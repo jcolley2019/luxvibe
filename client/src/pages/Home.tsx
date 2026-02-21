@@ -201,6 +201,36 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Featured / Recommended Hotels */}
+          <section className="pb-10 container mx-auto px-4">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold font-heading">Recommended Hotels</h2>
+              <span className="text-muted-foreground text-sm">Handpicked for you</span>
+            </div>
+
+            {featuredLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <Loader2 className="w-7 h-7 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {featured?.map((hotel, i) => (
+                  <motion.div
+                    key={hotel.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
+                  >
+                    <HotelCard
+                      hotel={hotel}
+                      variant="featured"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {/* Nearby Hotels */}
           {geoStatus !== "denied" && (
             <section className="pb-10 container mx-auto px-4">
@@ -253,36 +283,6 @@ export default function Home() {
               )}
             </section>
           )}
-
-          {/* Featured / Recommended Hotels */}
-          <section className="pb-16 container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold font-heading">Recommended Hotels</h2>
-              <span className="text-muted-foreground text-sm">Handpicked for you</span>
-            </div>
-
-            {featuredLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-7 h-7 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {featured?.map((hotel, i) => (
-                  <motion.div
-                    key={hotel.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, duration: 0.35 }}
-                  >
-                    <HotelCard
-                      hotel={hotel}
-                      variant="featured"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </section>
 
           {/* Why Luxvibe */}
           <section className="py-14 bg-muted/40 border-t border-border">
