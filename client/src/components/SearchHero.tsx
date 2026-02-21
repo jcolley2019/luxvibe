@@ -103,7 +103,7 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
                         format(date.from, "MMM d")
                       )
                     ) : (
-                      "Check-in – Check-out"
+                      "Check-in date — Check-out date"
                     )}
                   </span>
                 </button>
@@ -121,18 +121,22 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center px-4 py-3 border-b md:border-b-0 border-border md:w-36">
+            <div className="flex items-center px-4 py-3 border-b md:border-b-0 border-border md:w-56">
               <Users className="w-5 h-5 shrink-0 mr-3 text-primary" />
-              <Input
-                type="number"
-                min="1"
-                max="20"
-                placeholder="Guests"
-                className="border-0 shadow-none focus-visible:ring-0 p-0 text-base h-auto bg-transparent placeholder:text-muted-foreground w-full"
-                value={guests}
-                onChange={(e) => setGuests(e.target.value)}
-                data-testid="input-guests"
-              />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-base text-foreground whitespace-nowrap">
+                  {guests} adult{parseInt(guests) !== 1 ? "s" : ""} · 0 children · 1 room
+                </span>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  className="w-full h-1 mt-1 accent-primary cursor-pointer"
+                  data-testid="input-guests"
+                />
+              </div>
             </div>
 
             <div className="p-2">
