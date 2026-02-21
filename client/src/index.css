@@ -86,3 +86,17 @@
 img {
   @apply transition-opacity duration-300;
 }
+
+/* Ken Burns Hero Effect */
+@keyframes kenBurns {
+  0%   { transform: scale(1.08) translate(2%, 1%); }
+  25%  { transform: scale(1.12) translate(-1%, 2%); }
+  50%  { transform: scale(1.10) translate(-2%, -1%); }
+  75%  { transform: scale(1.13) translate(1%, -2%); }
+  100% { transform: scale(1.08) translate(2%, 1%); }
+}
+
+.ken-burns {
+  animation: kenBurns 18s ease-in-out infinite;
+  will-change: transform;
+}
