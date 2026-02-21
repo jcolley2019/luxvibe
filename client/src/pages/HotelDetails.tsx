@@ -786,15 +786,26 @@ export default function HotelDetails() {
               </div>
 
               {/* Right panel – reviews */}
-              <div>
-                <div className="flex justify-end mb-3">
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center ${getRatingColor(hotel.rating)}`}>
+                      {hotel.rating.toFixed(0)}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-sm leading-tight">{getRatingLabel(hotel.rating)}</p>
+                      {hotel.reviewCount && (
+                        <p className="text-xs text-muted-foreground">Based on {hotel.reviewCount.toLocaleString()} reviews</p>
+                      )}
+                    </div>
+                  </div>
                   <select className="text-sm border border-border rounded-lg px-3 py-1.5 bg-background outline-none">
                     <option>Newest first</option>
                     <option>Highest score</option>
                     <option>Lowest score</option>
                   </select>
                 </div>
-                <div className={`border border-border rounded-xl divide-y divide-border overflow-hidden ${showAllReviews ? "overflow-y-scroll max-h-[420px]" : ""}`}>
+                <div className="border border-border rounded-xl divide-y divide-border overflow-y-auto max-h-[420px]">
                   {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, i) => (
                     <div key={i} className="p-4 flex items-start justify-between gap-3 bg-background" data-testid={`review-item-${i}`}>
                       <div className="flex-1 min-w-0">
@@ -811,23 +822,22 @@ export default function HotelDetails() {
                       </span>
                     </div>
                   ))}
-                  {showAllReviews && (
-                    <div className="p-4 flex items-center gap-4 bg-background sticky bottom-0">
-                      <Button variant="outline" size="sm" onClick={() => setShowAllReviews(false)} data-testid="button-collapse-reviews">Show less</Button>
-                      {hotel.reviewCount && (
-                        <span className="text-sm text-muted-foreground">Showing {reviews.length} of {hotel.reviewCount.toLocaleString()} reviews</span>
-                      )}
-                    </div>
+                </div>
+                <div className="flex items-center gap-4 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAllReviews(!showAllReviews)}
+                    data-testid="button-load-reviews"
+                  >
+                    {showAllReviews ? "Show less" : "Load more reviews"}
+                  </Button>
+                  {hotel.reviewCount && (
+                    <span className="text-sm text-muted-foreground">
+                      Showing {showAllReviews ? reviews.length : Math.min(3, reviews.length)} of {hotel.reviewCount.toLocaleString()} reviews
+                    </span>
                   )}
                 </div>
-                {!showAllReviews && (
-                  <div className="flex items-center gap-4 mt-4">
-                    <Button variant="outline" size="sm" onClick={() => setShowAllReviews(true)} data-testid="button-load-reviews">Load more reviews</Button>
-                    {hotel.reviewCount && (
-                      <span className="text-sm text-muted-foreground">Showing 3 of {hotel.reviewCount.toLocaleString()} reviews</span>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           ) : (
