@@ -24,10 +24,10 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           {/* Logo Icon */}
-          <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
-            <CalendarDays className="w-6 h-6" />
-          </div>
-          <span className="font-heading font-bold text-xl tracking-tight text-primary">
+          <span
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            className="text-2xl font-semibold tracking-[0.18em] text-foreground uppercase"
+          >
             Luxvibe
           </span>
         </Link>
