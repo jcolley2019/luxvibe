@@ -26,8 +26,6 @@ const POPULAR_DESTINATIONS = [
   { label: "Nashville", emoji: "🎸" },
   { label: "Paris", emoji: "🗼" },
   { label: "Dubai", emoji: "🏙️" },
-  { label: "London", emoji: "🎭" },
-  { label: "Tokyo", emoji: "🗾" },
 ];
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
@@ -186,12 +184,12 @@ export default function Home() {
           {/* Popular Destinations */}
           <section className="py-10 container mx-auto px-4">
             <h2 className="text-2xl font-bold font-heading mb-5">Popular Destinations</h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {POPULAR_DESTINATIONS.map((dest) => (
                 <button
                   key={dest.label}
                   onClick={() => handleDestinationClick(dest.label)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 text-sm font-medium shadow-sm"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 text-sm font-medium shadow-sm w-full"
                   data-testid={`button-dest-${dest.label.toLowerCase().replace(" ", "-")}`}
                 >
                   <span>{dest.emoji}</span>
