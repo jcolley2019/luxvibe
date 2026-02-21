@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, MapPin, Users, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface SearchHeroProps {
@@ -32,7 +30,7 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
   const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(
     initialCheckIn ? { from: parseDate(initialCheckIn)!, to: parseDate(initialCheckOut) } : undefined
   );
-  const [guests, setGuests] = useState(initialGuests || "2");
+  const [guests, setGuests] = useState(parseInt(initialGuests || "2"));
 
   const handleSearch = () => {
     if (!destination || !date?.from || !date?.to) return;
@@ -40,7 +38,7 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
       destination,
       checkIn: format(date.from, "yyyy-MM-dd"),
       checkOut: format(date.to, "yyyy-MM-dd"),
-      guests,
+      guests: String(guests),
     });
     setLocation(`/?${params.toString()}`);
   };
@@ -48,6 +46,14 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleSearch();
   };
+
+  const dateLabel = date?.from
+    ? date.to
+      ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
+      : format(date.from, "MMM d")
+    : "Add dates";
+
+  const guestsLabel = `1 Room, ${guests} Guest${guests !== 1 ? "s" : ""}`;
 
   return (
     <div className="relative w-full bg-slate-900 overflow-hidden">
@@ -71,86 +77,95 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
           Find and book top-rated hotels at unbeatable rates.
         </p>
 
-        <div className="w-full max-w-3xl bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
-          <div className="flex flex-col md:flex-row">
-            <div className="flex-1 flex items-center px-4 py-3 border-b md:border-b-0 md:border-r border-border">
-              <MapPin className="text-primary w-5 h-5 shrink-0 mr-3" />
-              <Input
-                placeholder="Where are you going?"
-                className="border-0 shadow-none focus-visible:ring-0 p-0 text-base h-auto bg-transparent placeholder:text-muted-foreground"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                onKeyDown={handleKeyDown}
-                data-testid="input-destination"
-              />
-            </div>
+        {/* Search bar */}
+        <div className="w-full max-w-3xl bg-white dark:bg-card rounded-full shadow-2xl flex items-stretch overflow-hidden px-2 py-2 gap-0">
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  className={cn(
-                    "flex-1 flex items-center px-4 py-3 border-b md:border-b-0 md:border-r border-border text-left hover:bg-muted/30 transition-colors",
-                    !date && "text-muted-foreground"
-                  )}
-                  data-testid="button-dates"
-                >
-                  <CalendarIcon className="w-5 h-5 shrink-0 mr-3 text-primary" />
-                  <span className="text-base">
-                    {date?.from ? (
-                      date.to ? (
-                        `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
-                      ) : (
-                        format(date.from, "MMM d")
-                      )
-                    ) : (
-                      "Check-in date — Check-out date"
-                    )}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={(range) => setDate(range as { from: Date; to?: Date } | undefined)}
-                  numberOfMonths={2}
-                  disabled={(d) => d < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <div className="flex items-center px-4 py-3 border-b md:border-b-0 border-border md:w-56">
-              <Users className="w-5 h-5 shrink-0 mr-3 text-primary" />
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-base text-foreground whitespace-nowrap">
-                  {guests} adult{parseInt(guests) !== 1 ? "s" : ""} · 0 children · 1 room
-                </span>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={guests}
-                  onChange={(e) => setGuests(e.target.value)}
-                  className="w-full h-1 mt-1 accent-primary cursor-pointer"
-                  data-testid="input-guests"
-                />
-              </div>
-            </div>
-
-            <div className="p-2">
-              <Button
-                size="lg"
-                className="w-full h-full px-8 text-base font-semibold rounded-xl"
-                onClick={handleSearch}
-                data-testid="button-search"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Search
-              </Button>
-            </div>
+          {/* Where */}
+          <div className="flex-1 flex flex-col justify-center px-5 py-1 min-w-0">
+            <span className="text-xs font-semibold text-foreground">Where</span>
+            <input
+              type="text"
+              placeholder="Enter a destination"
+              className="text-sm text-muted-foreground bg-transparent outline-none border-none placeholder:text-muted-foreground truncate w-full"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              onKeyDown={handleKeyDown}
+              data-testid="input-destination"
+            />
           </div>
+
+          <div className="w-px bg-border self-stretch my-1" />
+
+          {/* Dates */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className="flex-1 flex flex-col justify-center px-5 py-1 min-w-0 hover:bg-muted/30 rounded-full transition-colors text-left"
+                data-testid="button-dates"
+              >
+                <span className="text-xs font-semibold text-foreground">Dates</span>
+                <span className={cn("text-sm truncate", date ? "text-muted-foreground" : "text-muted-foreground")}>
+                  {dateLabel}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={(range) => setDate(range as { from: Date; to?: Date } | undefined)}
+                numberOfMonths={2}
+                disabled={(d) => d < new Date()}
+              />
+            </PopoverContent>
+          </Popover>
+
+          <div className="w-px bg-border self-stretch my-1" />
+
+          {/* Guests */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className="flex-1 flex flex-col justify-center px-5 py-1 min-w-0 hover:bg-muted/30 rounded-full transition-colors text-left"
+                data-testid="button-guests"
+              >
+                <span className="text-xs font-semibold text-foreground">Guests</span>
+                <span className="text-sm text-muted-foreground truncate">{guestsLabel}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="end">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-sm">Adults</div>
+                    <div className="text-xs text-muted-foreground">Ages 18+</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setGuests(Math.max(1, guests - 1))}
+                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                    >−</button>
+                    <span className="w-4 text-center font-medium">{guests}</span>
+                    <button
+                      onClick={() => setGuests(Math.min(20, guests + 1))}
+                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                    >+</button>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Search button */}
+          <button
+            onClick={handleSearch}
+            className="shrink-0 w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow-md"
+            data-testid="button-search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
