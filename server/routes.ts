@@ -240,8 +240,8 @@ export async function registerRoutes(
       const data = await liteApiGet("/data/hotels", {
         latitude: lat,
         longitude: lng,
-        radius: "10",
-        limit: "12",
+        radius: "50",
+        limit: "20",
       });
       const hotels: any[] = data?.data || [];
       const nearby = hotels

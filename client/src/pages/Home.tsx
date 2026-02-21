@@ -52,6 +52,7 @@ export default function Home() {
   const { data: featured, isLoading: featuredLoading } = useFeaturedHotels();
 
   const carouselRef = useRef<HTMLDivElement>(null);
+  const nearbyCarouselRef = useRef<HTMLDivElement>(null);
 
   type RecentSearch = { destination: string; checkIn: string; checkOut: string; guests: string };
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
@@ -63,10 +64,10 @@ export default function Home() {
     } catch {}
   }, []);
 
-  const scrollCarousel = (dir: "left" | "right") => {
-    if (!carouselRef.current) return;
-    const cardWidth = carouselRef.current.firstElementChild?.clientWidth ?? 300;
-    carouselRef.current.scrollBy({ left: dir === "right" ? cardWidth + 20 : -(cardWidth + 20), behavior: "smooth" });
+  const scrollCarousel = (ref: React.RefObject<HTMLDivElement>, dir: "left" | "right") => {
+    if (!ref.current) return;
+    const cardWidth = ref.current.firstElementChild?.clientWidth ?? 300;
+    ref.current.scrollBy({ left: dir === "right" ? cardWidth + 20 : -(cardWidth + 20), behavior: "smooth" });
   };
 
   type GeoStatus = "idle" | "loading" | "granted" | "denied";
@@ -224,14 +225,14 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-sm mr-1">Handpicked for you</span>
                 <button
-                  onClick={() => scrollCarousel("left")}
+                  onClick={() => scrollCarousel(carouselRef, "left")}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                   data-testid="button-carousel-prev"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => scrollCarousel("right")}
+                  onClick={() => scrollCarousel(carouselRef, "right")}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
                   data-testid="button-carousel-next"
                 >
@@ -307,11 +308,28 @@ export default function Home() {
                   <MapPin className="w-5 h-5 text-primary" />
                   <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
                 </div>
-                {(geoStatus === "granted" && nearbyHotels?.length === 0) ? null : (
-                  <span className="text-muted-foreground text-sm">
-                    {geoStatus === "granted" && nearbyHotels ? `${nearbyHotels.length} properties nearby` : "Finding your location…"}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {(geoStatus === "granted" && nearbyHotels && nearbyHotels.length > 0) && (
+                    <span className="text-muted-foreground text-sm mr-1">{nearbyHotels.length} properties nearby</span>
+                  )}
+                  {(geoStatus === "idle" || geoStatus === "loading") && (
+                    <span className="text-muted-foreground text-sm mr-1">Finding your location…</span>
+                  )}
+                  <button
+                    onClick={() => scrollCarousel(nearbyCarouselRef, "left")}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                    data-testid="button-nearby-prev"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel(nearbyCarouselRef, "right")}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                    data-testid="button-nearby-next"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {geoStatus === "idle" || geoStatus === "loading" ? (
@@ -326,10 +344,15 @@ export default function Home() {
                   <Loader2 className="w-7 h-7 animate-spin text-primary" />
                 </div>
               ) : nearbyHotels && nearbyHotels.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div
+                  ref={nearbyCarouselRef}
+                  className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div
                       key={hotel.id}
+                      className="flex-none w-[calc(25%-15px)] min-w-[240px]"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.35 }}
