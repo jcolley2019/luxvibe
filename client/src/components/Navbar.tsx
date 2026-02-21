@@ -28,7 +28,7 @@ export function Navbar() {
             <CalendarDays className="w-6 h-6" />
           </div>
           <span className="font-heading font-bold text-xl tracking-tight text-primary">
-            LuxeStay
+            Luxvibe
           </span>
         </Link>
 

@@ -75,7 +75,7 @@ export default function Home() {
       <footer className="bg-slate-900 text-slate-400 py-12 mt-auto">
         <div className="container mx-auto px-4 grid md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-white font-heading font-bold text-xl mb-4">LuxeStay</h3>
+            <h3 className="text-white font-heading font-bold text-xl mb-4">Luxvibe</h3>
             <p className="text-sm">Premium hotel booking experience for the modern traveler.</p>
           </div>
           <div>

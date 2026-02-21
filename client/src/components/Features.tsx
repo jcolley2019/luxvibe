@@ -29,7 +29,7 @@ export function Features() {
     <section className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold mb-4 font-heading">Why Choose LuxeStay?</h2>
+          <h2 className="text-3xl font-bold mb-4 font-heading">Why Choose Luxvibe?</h2>
           <p className="text-muted-foreground text-lg">
             We simplify your travel experience with features designed for peace of mind.
           </p>
