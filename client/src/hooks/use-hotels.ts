@@ -65,6 +65,20 @@ export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
   });
 }
 
+export function useSimilarHotels(id: string) {
+  return useQuery({
+    queryKey: [api.hotels.similar.path, id],
+    queryFn: async () => {
+      const url = buildUrl(api.hotels.similar.path, { id });
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      return api.hotels.similar.responses[200].parse(await res.json());
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 export function useHotel(id: string, params?: { checkIn?: string; checkOut?: string; guests?: string }) {
   return useQuery({
     queryKey: [api.hotels.get.path, id, params],

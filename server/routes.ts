@@ -461,8 +461,12 @@ export async function registerRoutes(
         id: hotelRaw.id,
         name: hotelRaw.name || "Hotel",
         address: [hotelRaw.address, hotelRaw.city, hotelRaw.country].filter(Boolean).join(", "),
+        city: hotelRaw.city || null,
+        countryCode: hotelRaw.countryCode || null,
         description,
+        stars: hotelRaw.stars ? parseFloat(String(hotelRaw.stars)) : null,
         rating: hotelRaw.rating ? parseFloat(String(hotelRaw.rating)) : null,
+        reviewCount: hotelRaw.reviews_total || null,
         images,
         amenities,
         rooms,
@@ -470,6 +474,45 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
       res.status(500).json({ message: "Failed to get hotel details" });
+    }
+  });
+
+  app.get(api.hotels.similar.path, async (req, res) => {
+    try {
+      const hotelId = req.params.id;
+      const hotelData = await liteApiGet("/data/hotels", { hotelIds: hotelId });
+      const hotelRaw = hotelData?.data?.[0];
+      if (!hotelRaw?.city || !hotelRaw?.countryCode) {
+        return res.json([]);
+      }
+      const cityHotels = await liteApiGet("/data/hotels", {
+        cityName: hotelRaw.city,
+        countryCode: hotelRaw.countryCode,
+        limit: "10",
+        offset: "0",
+      });
+      const list = (cityHotels?.data || []).filter((h: any) => h.id !== hotelId).slice(0, 5);
+      const FALLBACK_IMAGES = [
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80",
+        "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80",
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80",
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=80",
+      ];
+      const results = list.map((h: any, i: number) => ({
+        id: h.id,
+        name: h.name || "Hotel",
+        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        stars: h.stars ? parseFloat(String(h.stars)) : null,
+        rating: h.rating ? parseFloat(String(h.rating)) : null,
+        reviewCount: h.reviews_total || null,
+        price: null,
+        imageUrl: h.main_photo || h.thumbnail || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+      }));
+      res.json(results);
+    } catch (err: any) {
+      console.error("Similar hotels error:", err?.message || err);
+      res.status(500).json({ message: "Failed to fetch similar hotels" });
     }
   });
 
