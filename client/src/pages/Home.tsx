@@ -304,10 +304,7 @@ export default function Home() {
           {geoStatus !== "denied" && (
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
-                </div>
+                <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
                 <div className="flex items-center gap-2">
                   {(geoStatus === "granted" && nearbyHotels && nearbyHotels.length > 0) && (
                     <span className="text-muted-foreground text-sm mr-1">{nearbyHotels.length} properties nearby</span>
