@@ -71,10 +71,10 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
           2 Million Hotels Worldwide
         </p>
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-xl">
-          Same Luxury. <span className="text-blue-300">Better Prices.</span>
+          Luxury, <span className="text-blue-300">Unlocked.</span>
         </h1>
         <p className="text-white/80 text-lg mb-10">
-          Find and book top-rated hotels at unbeatable rates.
+          The world's finest hotels — at prices you didn't think were possible.
         </p>
 
         {/* Search bar */}
