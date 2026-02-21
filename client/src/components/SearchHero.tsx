@@ -34,12 +34,20 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
 
   const handleSearch = () => {
     if (!destination || !date?.from || !date?.to) return;
+    const checkIn = format(date.from, "yyyy-MM-dd");
+    const checkOut = format(date.to, "yyyy-MM-dd");
     const params = new URLSearchParams({
       destination,
-      checkIn: format(date.from, "yyyy-MM-dd"),
-      checkOut: format(date.to, "yyyy-MM-dd"),
+      checkIn,
+      checkOut,
       guests: String(guests),
     });
+    try {
+      const existing = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+      const entry = { destination, checkIn, checkOut, guests: String(guests) };
+      const filtered = existing.filter((s: typeof entry) => s.destination !== destination);
+      localStorage.setItem("recentSearches", JSON.stringify([entry, ...filtered].slice(0, 5)));
+    } catch {}
     setLocation(`/?${params.toString()}`);
   };
 

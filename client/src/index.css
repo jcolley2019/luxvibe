@@ -100,3 +100,8 @@ img {
   animation: kenBurns 18s ease-in-out infinite;
   will-change: transform;
 }
+
+/* Hide scrollbar on carousel */
+.carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
