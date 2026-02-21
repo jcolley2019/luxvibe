@@ -16,16 +16,18 @@ import {
 import { motion } from "framer-motion";
 
 const POPULAR_DESTINATIONS = [
+  { label: "New York", emoji: "🗽" },
+  { label: "Miami", emoji: "🌊" },
+  { label: "Las Vegas", emoji: "🎰" },
+  { label: "Los Angeles", emoji: "🎬" },
+  { label: "Chicago", emoji: "🌆" },
+  { label: "San Francisco", emoji: "🌉" },
+  { label: "Orlando", emoji: "🎡" },
+  { label: "Nashville", emoji: "🎸" },
   { label: "Paris", emoji: "🗼" },
   { label: "Dubai", emoji: "🏙️" },
-  { label: "New York", emoji: "🗽" },
+  { label: "London", emoji: "🎭" },
   { label: "Tokyo", emoji: "🗾" },
-  { label: "London", emoji: "🎡" },
-  { label: "Rome", emoji: "🏛️" },
-  { label: "Bali", emoji: "🌴" },
-  { label: "Barcelona", emoji: "⛪" },
-  { label: "Singapore", emoji: "🦁" },
-  { label: "Bangkok", emoji: "🛕" },
 ];
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";

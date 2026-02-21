@@ -128,13 +128,16 @@ function resolveDestination(destination: string): { cityName: string; countryCod
   return { cityName: destination, countryCode: "" };
 }
 
-const FEATURED_CITIES = [
-  { cityName: "Paris", countryCode: "FR" },
-  { cityName: "Dubai", countryCode: "AE" },
-  { cityName: "New York", countryCode: "US" },
-  { cityName: "London", countryCode: "GB" },
-  { cityName: "Tokyo", countryCode: "JP" },
-  { cityName: "Rome", countryCode: "IT" },
+const FEATURED_CITIES: { cityName: string; countryCode: string; limit: number }[] = [
+  { cityName: "New York", countryCode: "US", limit: 4 },
+  { cityName: "Miami", countryCode: "US", limit: 4 },
+  { cityName: "Las Vegas", countryCode: "US", limit: 4 },
+  { cityName: "Los Angeles", countryCode: "US", limit: 3 },
+  { cityName: "Chicago", countryCode: "US", limit: 3 },
+  { cityName: "San Francisco", countryCode: "US", limit: 3 },
+  { cityName: "Paris", countryCode: "FR", limit: 2 },
+  { cityName: "Dubai", countryCode: "AE", limit: 2 },
+  { cityName: "London", countryCode: "GB", limit: 2 },
 ];
 
 export async function registerRoutes(
@@ -148,16 +151,16 @@ export async function registerRoutes(
     try {
       const results: any[] = [];
       await Promise.all(
-        FEATURED_CITIES.map(async ({ cityName, countryCode }) => {
+        FEATURED_CITIES.map(async ({ cityName, countryCode, limit }) => {
           try {
             const data = await liteApiGet("/data/hotels", {
               cityName,
               countryCode,
-              limit: "3",
+              limit: String(limit),
               offset: "0",
             });
             const hotels = data?.data || [];
-            for (const h of hotels.slice(0, 3)) {
+            for (const h of hotels.slice(0, limit)) {
               results.push({
                 id: h.id,
                 name: h.name || "Hotel",
