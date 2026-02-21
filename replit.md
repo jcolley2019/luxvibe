@@ -1,8 +1,8 @@
-# LuxeStay - Hotel Booking Platform
+# Luxvibe - Hotel Booking Platform
 
 ## Overview
 
-LuxeStay is a full-stack hotel booking web application that allows users to search for hotels, view details, and make reservations. It integrates with the LiteAPI travel service for real-time hotel data (search, details, room availability) and uses Replit Auth for user authentication. The app features a polished landing page with a hero search bar, hotel listing/detail pages, and a personal bookings dashboard.
+Luxvibe is a full-stack hotel booking web application similar to zzzello.com. It features a clean minimal homepage with recommended hotels loaded immediately (no search required), popular destination chips, sort/filter on results, wishlist heart buttons, and rating labels (Exceptional, Wonderful, etc.). It integrates with the LiteAPI travel service for real-time hotel data and uses Replit Auth for user authentication.
 
 ## User Preferences
 

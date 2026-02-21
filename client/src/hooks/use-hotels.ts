@@ -1,7 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse } from "@shared/routes";
+import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse } from "@shared/routes";
 
-// Search Hotels
+export function useFeaturedHotels() {
+  return useQuery({
+    queryKey: [api.hotels.featured.path],
+    queryFn: async () => {
+      const res = await fetch(api.hotels.featured.path);
+      if (!res.ok) throw new Error("Failed to fetch featured hotels");
+      return api.hotels.featured.responses[200].parse(await res.json());
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 export function useSearchHotels(params: {
   destination: string;
   checkIn: string;
@@ -29,7 +40,6 @@ export function useSearchHotels(params: {
   });
 }
 
-// Get Single Hotel Details
 export function useHotel(id: string, params?: { checkIn?: string; checkOut?: string; guests?: string }) {
   return useQuery({
     queryKey: [api.hotels.get.path, id, params],

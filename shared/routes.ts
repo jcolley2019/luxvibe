@@ -10,10 +10,24 @@ export const errorSchemas = {
 
 export const api = {
   hotels: {
+    featured: {
+      method: 'GET' as const,
+      path: '/api/hotels/featured' as const,
+      responses: {
+        200: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          address: z.string(),
+          city: z.string(),
+          rating: z.number().nullable(),
+          imageUrl: z.string().nullable(),
+        })),
+        500: errorSchemas.internal,
+      },
+    },
     search: {
       method: 'GET' as const,
       path: '/api/hotels/search' as const,
-      // Input comes via query params
       input: z.object({
         destination: z.string(),
         checkIn: z.string(),
@@ -98,4 +112,5 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
 
 export type HotelSearchResponse = z.infer<typeof api.hotels.search.responses[200]>;
 export type HotelDetailsResponse = z.infer<typeof api.hotels.get.responses[200]>;
+export type HotelFeaturedResponse = z.infer<typeof api.hotels.featured.responses[200]>;
 export type BookingResponse = z.infer<typeof api.bookings.create.responses[201]>;

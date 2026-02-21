@@ -50,7 +50,7 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border border-border">
-                    <AvatarImage src={user?.profileImageUrl} alt={user?.firstName || "User"} />
+                    <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {(user?.firstName?.[0] || "U").toUpperCase()}
                     </AvatarFallback>

@@ -128,12 +128,55 @@ function resolveDestination(destination: string): { cityName: string; countryCod
   return { cityName: destination, countryCode: "" };
 }
 
+const FEATURED_CITIES = [
+  { cityName: "Paris", countryCode: "FR" },
+  { cityName: "Dubai", countryCode: "AE" },
+  { cityName: "New York", countryCode: "US" },
+  { cityName: "London", countryCode: "GB" },
+  { cityName: "Tokyo", countryCode: "JP" },
+  { cityName: "Rome", countryCode: "IT" },
+];
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
+
+  app.get(api.hotels.featured.path, async (req, res) => {
+    try {
+      const results: any[] = [];
+      await Promise.all(
+        FEATURED_CITIES.map(async ({ cityName, countryCode }) => {
+          try {
+            const data = await liteApiGet("/data/hotels", {
+              cityName,
+              countryCode,
+              limit: "3",
+              offset: "0",
+            });
+            const hotels = data?.data || [];
+            for (const h of hotels.slice(0, 3)) {
+              results.push({
+                id: h.id,
+                name: h.name || "Hotel",
+                address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+                city: cityName,
+                rating: h.stars ? parseFloat(String(h.stars)) : null,
+                imageUrl: h.main_photo || h.thumbnail || null,
+              });
+            }
+          } catch {
+          }
+        })
+      );
+      res.json(results);
+    } catch (err: any) {
+      console.error("Featured hotels error:", err?.message || err);
+      res.status(500).json({ message: "Failed to fetch featured hotels" });
+    }
+  });
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
