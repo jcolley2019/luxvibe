@@ -215,6 +215,10 @@ export default function HotelDetails() {
   const [navSticky, setNavSticky] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
+  useEffect(() => {
     const onScroll = () => {
       const navTop = navRef.current?.getBoundingClientRect().top ?? 0;
       setNavSticky(navTop <= 64);
