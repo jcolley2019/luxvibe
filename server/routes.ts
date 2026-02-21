@@ -160,16 +160,19 @@ export async function registerRoutes(
               offset: "0",
             });
             const hotels = data?.data || [];
-            for (const h of hotels.slice(0, limit)) {
-              results.push({
+            const scored = hotels
+              .map((h: any) => ({
                 id: h.id,
                 name: h.name || "Hotel",
                 address: [h.address, h.city, h.country].filter(Boolean).join(", "),
                 city: cityName,
-                rating: h.stars ? parseFloat(String(h.stars)) : null,
+                rating: h.rating ? parseFloat(String(h.rating)) : null,
                 imageUrl: h.main_photo || h.thumbnail || null,
-              });
-            }
+              }))
+              .filter((h: any) => h.rating !== null && h.rating >= 7.0)
+              .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
+              .slice(0, limit);
+            results.push(...scored);
           } catch {
           }
         })
@@ -194,14 +197,18 @@ export async function registerRoutes(
         limit: "12",
       });
       const hotels: any[] = data?.data || [];
-      res.json(hotels.map((h: any) => ({
-        id: h.id,
-        name: h.name || "Hotel",
-        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
-        city: h.city || "",
-        rating: h.stars ? parseFloat(String(h.stars)) : null,
-        imageUrl: h.main_photo || h.thumbnail || null,
-      })));
+      const nearby = hotels
+        .map((h: any) => ({
+          id: h.id,
+          name: h.name || "Hotel",
+          address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+          city: h.city || "",
+          rating: h.rating ? parseFloat(String(h.rating)) : null,
+          imageUrl: h.main_photo || h.thumbnail || null,
+        }))
+        .filter((h: any) => h.rating !== null)
+        .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0));
+      res.json(nearby);
     } catch (err: any) {
       console.error("Nearby hotels error:", err?.message || err);
       res.status(500).json({ message: "Failed to fetch nearby hotels" });
@@ -269,7 +276,7 @@ export async function registerRoutes(
         id: h.id,
         name: h.name || "Hotel",
         address: [h.address, h.city, h.country].filter(Boolean).join(", "),
-        rating: h.stars ? parseFloat(h.stars) : (h.rating ? parseFloat(String(h.rating)) : null),
+        rating: h.rating ? parseFloat(String(h.rating)) : null,
         price: ratesMap.get(h.id) || 0,
         imageUrl: h.main_photo || h.thumbnail || null,
       }));
@@ -372,7 +379,7 @@ export async function registerRoutes(
         name: hotelRaw.name || "Hotel",
         address: [hotelRaw.address, hotelRaw.city, hotelRaw.country].filter(Boolean).join(", "),
         description,
-        rating: hotelRaw.stars ? parseFloat(String(hotelRaw.stars)) : null,
+        rating: hotelRaw.rating ? parseFloat(String(hotelRaw.rating)) : null,
         images,
         amenities,
         rooms,

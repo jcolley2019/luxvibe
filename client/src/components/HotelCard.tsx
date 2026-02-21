@@ -16,12 +16,12 @@ interface HotelCardProps {
 }
 
 function getRatingLabel(rating: number | null): { label: string; color: string } {
-  if (!rating) return { label: "New", color: "bg-slate-100 text-slate-600" };
-  if (rating >= 4.5) return { label: "Exceptional", color: "bg-emerald-600 text-white" };
-  if (rating >= 4.0) return { label: "Wonderful", color: "bg-emerald-500 text-white" };
-  if (rating >= 3.5) return { label: "Excellent", color: "bg-blue-600 text-white" };
-  if (rating >= 3.0) return { label: "Very Good", color: "bg-blue-500 text-white" };
-  if (rating >= 2.5) return { label: "Good", color: "bg-blue-400 text-white" };
+  if (!rating) return { label: "New", color: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300" };
+  if (rating >= 9.0) return { label: "Exceptional", color: "bg-emerald-600 text-white" };
+  if (rating >= 8.0) return { label: "Wonderful", color: "bg-emerald-500 text-white" };
+  if (rating >= 7.0) return { label: "Excellent", color: "bg-blue-600 text-white" };
+  if (rating >= 6.0) return { label: "Very Good", color: "bg-blue-500 text-white" };
+  if (rating >= 5.0) return { label: "Good", color: "bg-blue-400 text-white" };
   return { label: "Reviewed", color: "bg-slate-400 text-white" };
 }
 

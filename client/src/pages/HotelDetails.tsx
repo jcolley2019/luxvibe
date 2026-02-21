@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, MapPin, Star, Wifi, Coffee, Car, Dumbbell, Utensils, Check } from "lucide-react";
+import { Loader2, MapPin, Wifi, Coffee, Car, Dumbbell, Utensils, Check } from "lucide-react";
 import { useState } from "react";
 import { format, differenceInDays, parseISO } from "date-fns";
 import { motion } from "framer-motion";
@@ -125,10 +125,26 @@ export default function HotelDetails() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-4xl font-heading font-bold">{hotel.name}</h1>
-              <div className="flex items-center gap-1 bg-accent/10 text-accent-foreground px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 fill-accent text-accent" />
-                <span className="font-bold">{hotel.rating || "New"}</span>
-              </div>
+              {hotel.rating ? (
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-bold px-2.5 py-1 rounded ${
+                    hotel.rating >= 9.0 ? "bg-emerald-600 text-white" :
+                    hotel.rating >= 8.0 ? "bg-emerald-500 text-white" :
+                    hotel.rating >= 7.0 ? "bg-blue-600 text-white" :
+                    "bg-blue-500 text-white"
+                  }`}>
+                    {hotel.rating.toFixed(1)}
+                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {hotel.rating >= 9.0 ? "Exceptional" :
+                     hotel.rating >= 8.0 ? "Wonderful" :
+                     hotel.rating >= 7.0 ? "Excellent" :
+                     hotel.rating >= 6.0 ? "Very Good" : "Good"}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm text-muted-foreground px-3 py-1 bg-muted rounded-full">No reviews yet</span>
+              )}
             </div>
             <p className="flex items-center text-muted-foreground">
               <MapPin className="w-4 h-4 mr-1" />
