@@ -178,6 +178,7 @@ export default function HotelDetails() {
   const checkInParam = searchParams.get("checkIn");
   const checkOutParam = searchParams.get("checkOut");
   const guestsParam = searchParams.get("guests") || "2";
+  const reviewCountParam = searchParams.get("reviewCount") ? parseInt(searchParams.get("reviewCount")!) : null;
 
   const defaultCheckIn = format(addDays(new Date(), 1), "yyyy-MM-dd");
   const defaultCheckOut = format(addDays(new Date(), 2), "yyyy-MM-dd");
@@ -187,6 +188,7 @@ export default function HotelDetails() {
   const [guests] = useState(guestsParam);
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
+  const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
   const { data: similarHotels = [] } = useSimilarHotels(id!);
   const createBooking = useCreateBooking();
 
@@ -484,8 +486,8 @@ export default function HotelDetails() {
               </span>
               <div>
                 <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
-                {hotel.reviewCount && (
-                  <p className="text-sm text-muted-foreground">Based on {hotel.reviewCount.toLocaleString()} reviews</p>
+                {effectiveReviewCount && (
+                  <p className="text-sm text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
                 )}
               </div>
             </div>
@@ -519,7 +521,7 @@ export default function HotelDetails() {
               </div>
               <p className="text-xs text-purple-500 mt-4 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                This sentiment is generated from{hotel.reviewCount ? ` ${hotel.reviewCount.toLocaleString()}` : ""} reviews summarized by AI.
+                This sentiment is generated from{effectiveReviewCount ? ` ${effectiveReviewCount.toLocaleString()}` : ""} reviews summarized by AI.
               </p>
             </div>
           </div>
@@ -754,8 +756,8 @@ export default function HotelDetails() {
                   </span>
                   <div>
                     <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
-                    {hotel.reviewCount && (
-                      <p className="text-sm text-muted-foreground">Based on {hotel.reviewCount.toLocaleString()} reviews</p>
+                    {effectiveReviewCount && (
+                      <p className="text-sm text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
                     )}
                   </div>
                 </div>
@@ -794,8 +796,8 @@ export default function HotelDetails() {
                     </span>
                     <div>
                       <p className="font-semibold text-sm leading-tight">{getRatingLabel(hotel.rating)}</p>
-                      {hotel.reviewCount && (
-                        <p className="text-xs text-muted-foreground">Based on {hotel.reviewCount.toLocaleString()} reviews</p>
+                      {effectiveReviewCount && (
+                        <p className="text-xs text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
                       )}
                     </div>
                   </div>
@@ -832,9 +834,9 @@ export default function HotelDetails() {
                   >
                     {showAllReviews ? "Show less" : "Load more reviews"}
                   </Button>
-                  {hotel.reviewCount && (
+                  {effectiveReviewCount && (
                     <span className="text-sm text-muted-foreground">
-                      Showing {showAllReviews ? reviews.length : Math.min(3, reviews.length)} of {hotel.reviewCount.toLocaleString()} reviews
+                      Showing {showAllReviews ? reviews.length : Math.min(3, reviews.length)} of {effectiveReviewCount.toLocaleString()} reviews
                     </span>
                   )}
                 </div>

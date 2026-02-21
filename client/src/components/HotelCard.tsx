@@ -92,6 +92,8 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
   if (checkIn) params.set("checkIn", checkIn);
   if (checkOut) params.set("checkOut", checkOut);
   if (guests) params.set("guests", guests);
+  const reviewCount = "reviewCount" in hotel ? (hotel as any).reviewCount as number | null : null;
+  if (reviewCount) params.set("reviewCount", String(reviewCount));
   const detailsUrl = `/hotel/${hotel.id}?${params.toString()}`;
 
   const label = getRatingLabel(hotel.rating);
@@ -99,7 +101,6 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
   const price = rawPrice && rawPrice > 0 ? rawPrice : null;
   const nights = getNights(checkIn, checkOut) ?? 1;
   const stars = "stars" in hotel ? (hotel as any).stars as number | null : null;
-  const reviewCount = "reviewCount" in hotel ? (hotel as any).reviewCount as number | null : null;
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
