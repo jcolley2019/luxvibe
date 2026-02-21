@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard } from "@/components/HotelCard";
-import { useSearchHotels, useFeaturedHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, SlidersHorizontal } from "lucide-react";
+import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
+import { Loader2, ArrowUpDown, MapPin, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -52,6 +52,29 @@ export default function Home() {
   });
 
   const { data: featured, isLoading: featuredLoading } = useFeaturedHotels();
+
+  type GeoStatus = "idle" | "loading" | "granted" | "denied";
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) { setGeoStatus("denied"); return; }
+    setGeoStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoStatus("granted");
+      },
+      () => setGeoStatus("denied"),
+      { timeout: 10000 }
+    );
+  };
+
+  useEffect(() => {
+    requestLocation();
+  }, []);
+
+  const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(coords);
 
   const sortedHotels = useMemo(() => {
     if (!hotels) return [];
@@ -177,6 +200,59 @@ export default function Home() {
               ))}
             </div>
           </section>
+
+          {/* Nearby Hotels */}
+          {geoStatus !== "denied" && (
+            <section className="pb-10 container mx-auto px-4">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
+                </div>
+                {geoStatus === "denied" || (geoStatus === "granted" && nearbyHotels?.length === 0) ? null : (
+                  <span className="text-muted-foreground text-sm">
+                    {geoStatus === "granted" && nearbyHotels ? `${nearbyHotels.length} properties nearby` : "Finding your location…"}
+                  </span>
+                )}
+              </div>
+
+              {geoStatus === "idle" || geoStatus === "loading" ? (
+                <div className="flex items-center justify-center h-40 bg-muted/30 rounded-2xl border border-dashed border-border">
+                  <div className="text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Detecting your location…</p>
+                  </div>
+                </div>
+              ) : nearbyLoading ? (
+                <div className="flex items-center justify-center h-40">
+                  <Loader2 className="w-7 h-7 animate-spin text-primary" />
+                </div>
+              ) : nearbyHotels && nearbyHotels.length > 0 ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {nearbyHotels.map((hotel, i) => (
+                    <motion.div
+                      key={hotel.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.35 }}
+                    >
+                      <HotelCard hotel={hotel} variant="featured" />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-40 bg-muted/30 rounded-2xl border border-dashed border-border">
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-sm mb-3">No hotels found near your location.</p>
+                    <Button variant="outline" size="sm" onClick={requestLocation} className="gap-2" data-testid="button-retry-location">
+                      <LocateFixed className="w-4 h-4" />
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Featured / Recommended Hotels */}
           <section className="pb-16 container mx-auto px-4">

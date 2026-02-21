@@ -181,6 +181,33 @@ export async function registerRoutes(
     }
   });
 
+  app.get(api.hotels.nearby.path, async (req, res) => {
+    try {
+      const { lat, lng } = req.query as Record<string, string>;
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "lat and lng are required" });
+      }
+      const data = await liteApiGet("/data/hotels", {
+        latitude: lat,
+        longitude: lng,
+        radius: "10",
+        limit: "12",
+      });
+      const hotels: any[] = data?.data || [];
+      res.json(hotels.map((h: any) => ({
+        id: h.id,
+        name: h.name || "Hotel",
+        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        city: h.city || "",
+        rating: h.stars ? parseFloat(String(h.stars)) : null,
+        imageUrl: h.main_photo || h.thumbnail || null,
+      })));
+    } catch (err: any) {
+      console.error("Nearby hotels error:", err?.message || err);
+      res.status(500).json({ message: "Failed to fetch nearby hotels" });
+    }
+  });
+
   app.get(api.hotels.search.path, async (req, res) => {
     try {
       const { destination, checkIn, checkOut, guests } = req.query as Record<string, string>;

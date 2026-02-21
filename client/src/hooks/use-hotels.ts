@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse } from "@shared/routes";
 
+export type NearbyHotel = {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  rating: number | null;
+  imageUrl: string | null;
+};
+
 export function useFeaturedHotels() {
   return useQuery({
     queryKey: [api.hotels.featured.path],
@@ -37,6 +46,19 @@ export function useSearchHotels(params: {
       return api.hotels.search.responses[200].parse(await res.json());
     },
     enabled: !!params.destination && !!params.checkIn && !!params.checkOut,
+  });
+}
+
+export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
+  return useQuery<NearbyHotel[]>({
+    queryKey: [api.hotels.nearby.path, coords],
+    queryFn: async () => {
+      const res = await fetch(`${api.hotels.nearby.path}?lat=${coords!.lat}&lng=${coords!.lng}`);
+      if (!res.ok) throw new Error("Failed to fetch nearby hotels");
+      return res.json();
+    },
+    enabled: !!coords,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

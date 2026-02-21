@@ -25,6 +25,21 @@ export const api = {
         500: errorSchemas.internal,
       },
     },
+    nearby: {
+      method: 'GET' as const,
+      path: '/api/hotels/nearby' as const,
+      responses: {
+        200: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          address: z.string(),
+          city: z.string(),
+          rating: z.number().nullable(),
+          imageUrl: z.string().nullable(),
+        })),
+        500: errorSchemas.internal,
+      },
+    },
     search: {
       method: 'GET' as const,
       path: '/api/hotels/search' as const,
