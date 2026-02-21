@@ -198,6 +198,7 @@ export default function HotelDetails() {
   const [aiAnswer, setAiAnswer] = useState("");
   const [similarIdx, setSimilarIdx] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   const sectionRefs: Record<TabId, React.RefObject<HTMLDivElement>> = {
     overview: useRef<HTMLDivElement>(null),
@@ -793,9 +794,9 @@ export default function HotelDetails() {
                     <option>Lowest score</option>
                   </select>
                 </div>
-                <div className="space-y-0 border border-border rounded-xl overflow-hidden divide-y divide-border">
-                  {reviews.map((review, i) => (
-                    <div key={i} className="p-4 flex items-start justify-between gap-3" data-testid={`review-item-${i}`}>
+                <div className={`border border-border rounded-xl divide-y divide-border overflow-hidden ${showAllReviews ? "overflow-y-scroll max-h-[420px]" : ""}`}>
+                  {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, i) => (
+                    <div key={i} className="p-4 flex items-start justify-between gap-3 bg-background" data-testid={`review-item-${i}`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="font-semibold text-sm">{review.name}</span>
@@ -810,13 +811,23 @@ export default function HotelDetails() {
                       </span>
                     </div>
                   ))}
-                </div>
-                <div className="flex items-center gap-4 mt-4">
-                  <Button variant="outline" size="sm" data-testid="button-load-reviews">Load more reviews</Button>
-                  {hotel.reviewCount && (
-                    <span className="text-sm text-muted-foreground">Showing {reviews.length} of {hotel.reviewCount.toLocaleString()} reviews</span>
+                  {showAllReviews && (
+                    <div className="p-4 flex items-center gap-4 bg-background sticky bottom-0">
+                      <Button variant="outline" size="sm" onClick={() => setShowAllReviews(false)} data-testid="button-collapse-reviews">Show less</Button>
+                      {hotel.reviewCount && (
+                        <span className="text-sm text-muted-foreground">Showing {reviews.length} of {hotel.reviewCount.toLocaleString()} reviews</span>
+                      )}
+                    </div>
                   )}
                 </div>
+                {!showAllReviews && (
+                  <div className="flex items-center gap-4 mt-4">
+                    <Button variant="outline" size="sm" onClick={() => setShowAllReviews(true)} data-testid="button-load-reviews">Load more reviews</Button>
+                    {hotel.reviewCount && (
+                      <span className="text-sm text-muted-foreground">Showing 3 of {hotel.reviewCount.toLocaleString()} reviews</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
