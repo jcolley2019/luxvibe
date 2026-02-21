@@ -149,6 +149,14 @@ export async function registerRoutes(
 
   app.get(api.hotels.featured.path, async (req, res) => {
     try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dayAfter = new Date();
+      dayAfter.setDate(dayAfter.getDate() + 2);
+      const fmt = (d: Date) => d.toISOString().split("T")[0];
+      const defaultCheckIn = fmt(tomorrow);
+      const defaultCheckOut = fmt(dayAfter);
+
       const results: any[] = [];
       await Promise.all(
         FEATURED_CITIES.map(async ({ cityName, countryCode, limit }) => {
@@ -169,6 +177,7 @@ export async function registerRoutes(
                 stars: h.stars ? parseFloat(String(h.stars)) : null,
                 rating: h.rating ? parseFloat(String(h.rating)) : null,
                 reviewCount: h.reviews_total || h.reviewCount || null,
+                price: null as number | null,
                 imageUrl: h.main_photo || h.thumbnail || null,
               }))
               .filter((h: any) => h.rating !== null && h.rating >= 7.0)
@@ -179,6 +188,42 @@ export async function registerRoutes(
           }
         })
       );
+
+      // Fetch rates for all hotels using default dates (tomorrow, 1 night)
+      try {
+        const hotelIds = results.map((h: any) => h.id);
+        const BATCH = 20;
+        const priceMap = new Map<string, number>();
+        for (let i = 0; i < hotelIds.length; i += BATCH) {
+          const batch = hotelIds.slice(i, i + BATCH);
+          try {
+            const ratesData = await liteApiPost("/hotels/rates", {
+              hotelIds: batch,
+              checkin: defaultCheckIn,
+              checkout: defaultCheckOut,
+              currency: "USD",
+              guestNationality: "US",
+              occupancies: [{ rooms: 1, adults: 2, children: [] }],
+            });
+            if (ratesData?.data) {
+              for (const hotel of ratesData.data) {
+                if (hotel.roomTypes?.length > 0) {
+                  const prices = hotel.roomTypes
+                    .map((rt: any) => rt.offerRetailRate?.amount)
+                    .filter((p: any) => p && !isNaN(p));
+                  if (prices.length > 0) {
+                    priceMap.set(hotel.hotelId, Math.min(...prices));
+                  }
+                }
+              }
+            }
+          } catch { }
+        }
+        for (const hotel of results) {
+          hotel.price = priceMap.get(hotel.id) ?? null;
+        }
+      } catch { }
+
       res.json(results);
     } catch (err: any) {
       console.error("Featured hotels error:", err?.message || err);
@@ -208,10 +253,42 @@ export async function registerRoutes(
           stars: h.stars ? parseFloat(String(h.stars)) : null,
           rating: h.rating ? parseFloat(String(h.rating)) : null,
           reviewCount: h.reviews_total || h.reviewCount || null,
+          price: null as number | null,
           imageUrl: h.main_photo || h.thumbnail || null,
         }))
         .filter((h: any) => h.rating !== null)
         .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0));
+
+      // Fetch rates using default dates
+      try {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date();
+        dayAfter.setDate(dayAfter.getDate() + 2);
+        const fmt = (d: Date) => d.toISOString().split("T")[0];
+        const hotelIds = nearby.map((h: any) => h.id);
+        const ratesData = await liteApiPost("/hotels/rates", {
+          hotelIds,
+          checkin: fmt(tomorrow),
+          checkout: fmt(dayAfter),
+          currency: "USD",
+          guestNationality: "US",
+          occupancies: [{ rooms: 1, adults: 2, children: [] }],
+        });
+        if (ratesData?.data) {
+          const priceMap = new Map<string, number>();
+          for (const hotel of ratesData.data) {
+            if (hotel.roomTypes?.length > 0) {
+              const prices = hotel.roomTypes
+                .map((rt: any) => rt.offerRetailRate?.amount)
+                .filter((p: any) => p && !isNaN(p));
+              if (prices.length > 0) priceMap.set(hotel.hotelId, Math.min(...prices));
+            }
+          }
+          for (const hotel of nearby) hotel.price = priceMap.get(hotel.id) ?? null;
+        }
+      } catch { }
+
       res.json(nearby);
     } catch (err: any) {
       console.error("Nearby hotels error:", err?.message || err);

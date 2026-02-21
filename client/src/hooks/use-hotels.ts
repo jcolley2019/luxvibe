@@ -9,6 +9,7 @@ export type NearbyHotel = {
   stars: number | null;
   rating: number | null;
   reviewCount: number | null;
+  price: number | null;
   imageUrl: string | null;
 };
 
