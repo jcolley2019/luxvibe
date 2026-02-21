@@ -166,7 +166,9 @@ export async function registerRoutes(
                 name: h.name || "Hotel",
                 address: [h.address, h.city, h.country].filter(Boolean).join(", "),
                 city: cityName,
+                stars: h.stars ? parseFloat(String(h.stars)) : null,
                 rating: h.rating ? parseFloat(String(h.rating)) : null,
+                reviewCount: h.reviews_total || h.reviewCount || null,
                 imageUrl: h.main_photo || h.thumbnail || null,
               }))
               .filter((h: any) => h.rating !== null && h.rating >= 7.0)
@@ -203,7 +205,9 @@ export async function registerRoutes(
           name: h.name || "Hotel",
           address: [h.address, h.city, h.country].filter(Boolean).join(", "),
           city: h.city || "",
+          stars: h.stars ? parseFloat(String(h.stars)) : null,
           rating: h.rating ? parseFloat(String(h.rating)) : null,
+          reviewCount: h.reviews_total || h.reviewCount || null,
           imageUrl: h.main_photo || h.thumbnail || null,
         }))
         .filter((h: any) => h.rating !== null)
@@ -276,7 +280,9 @@ export async function registerRoutes(
         id: h.id,
         name: h.name || "Hotel",
         address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        stars: h.stars ? parseFloat(String(h.stars)) : null,
         rating: h.rating ? parseFloat(String(h.rating)) : null,
+        reviewCount: h.reviews_total || h.reviewCount || null,
         price: ratesMap.get(h.id) || 0,
         imageUrl: h.main_photo || h.thumbnail || null,
       }));

@@ -239,7 +239,7 @@ export default function Home() {
                   <MapPin className="w-5 h-5 text-primary" />
                   <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
                 </div>
-                {geoStatus === "denied" || (geoStatus === "granted" && nearbyHotels?.length === 0) ? null : (
+                {(geoStatus === "granted" && nearbyHotels?.length === 0) ? null : (
                   <span className="text-muted-foreground text-sm">
                     {geoStatus === "granted" && nearbyHotels ? `${nearbyHotels.length} properties nearby` : "Finding your location…"}
                   </span>

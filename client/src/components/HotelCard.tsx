@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { MapPin, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse } from "@shared/routes";
 
@@ -15,14 +14,29 @@ interface HotelCardProps {
   variant?: "search" | "featured";
 }
 
-function getRatingLabel(rating: number | null): { label: string; color: string } {
-  if (!rating) return { label: "New", color: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300" };
-  if (rating >= 9.0) return { label: "Exceptional", color: "bg-emerald-600 text-white" };
-  if (rating >= 8.0) return { label: "Wonderful", color: "bg-emerald-500 text-white" };
-  if (rating >= 7.0) return { label: "Excellent", color: "bg-blue-600 text-white" };
-  if (rating >= 6.0) return { label: "Very Good", color: "bg-blue-500 text-white" };
-  if (rating >= 5.0) return { label: "Good", color: "bg-blue-400 text-white" };
-  return { label: "Reviewed", color: "bg-slate-400 text-white" };
+function getRatingLabel(rating: number | null): string {
+  if (!rating) return "New";
+  if (rating >= 9.0) return "Exceptional";
+  if (rating >= 8.5) return "Fabulous";
+  if (rating >= 8.0) return "Wonderful";
+  if (rating >= 7.0) return "Very Good";
+  if (rating >= 6.0) return "Good";
+  return "Reviewed";
+}
+
+function StarDisplay({ stars }: { stars: number | null }) {
+  if (!stars) return null;
+  const full = Math.floor(stars);
+  const total = 5;
+  return (
+    <div className="flex items-center gap-0.5 mb-2">
+      {Array.from({ length: total }).map((_, i) => (
+        <svg key={i} className={`w-4 h-4 ${i < full ? "text-amber-400" : "text-slate-200"}`} fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
 }
 
 const FALLBACK_IMAGES = [
@@ -42,6 +56,13 @@ function getFallbackImage(hotelId: string): string {
     hash = (hash * 31 + hotelId.charCodeAt(i)) >>> 0;
   }
   return FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length];
+}
+
+function getNights(checkIn?: string, checkOut?: string): number | null {
+  if (!checkIn || !checkOut) return null;
+  const diff = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+  const nights = Math.round(diff / (1000 * 60 * 60 * 24));
+  return nights > 0 ? nights : null;
 }
 
 function getWishlistKey(hotelId: string) {
@@ -73,13 +94,18 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
   if (guests) params.set("guests", guests);
   const detailsUrl = `/hotel/${hotel.id}?${params.toString()}`;
 
-  const { label, color } = getRatingLabel(hotel.rating);
+  const label = getRatingLabel(hotel.rating);
   const hasPrice = "price" in hotel && (hotel as SearchHotel).price > 0;
   const price = hasPrice ? (hotel as SearchHotel).price : null;
+  const nights = getNights(checkIn, checkOut);
+  const stars = "stars" in hotel ? (hotel as any).stars as number | null : null;
+  const reviewCount = "reviewCount" in hotel ? (hotel as any).reviewCount as number | null : null;
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
-      <div className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300 flex flex-col h-full cursor-pointer">
+      <div className="group bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full cursor-pointer">
+
+        {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={hotel.imageUrl || getFallbackImage(hotel.id)}
@@ -89,56 +115,64 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
               (e.target as HTMLImageElement).src = getFallbackImage(hotel.id);
             }}
           />
-
           <button
             onClick={toggleWishlist}
-            className="absolute top-3 left-3 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow hover:bg-white transition-colors"
             data-testid={`button-wishlist-${hotel.id}`}
           >
             <Heart
-              className={`w-4 h-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-slate-500"}`}
+              className={`w-4 h-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`}
             />
           </button>
-
-          {"city" in hotel && (hotel as FeaturedHotel).city && (
-            <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded-full backdrop-blur-sm">
-              {(hotel as FeaturedHotel).city}
-            </div>
-          )}
-
-          {price !== null && (
-            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-foreground text-sm font-bold px-3 py-1 rounded-full shadow-sm">
-              ${price}<span className="text-muted-foreground font-normal text-xs">/night</span>
-            </div>
-          )}
         </div>
 
+        {/* Content */}
         <div className="p-4 flex flex-col flex-1">
+          <StarDisplay stars={stars} />
+
           <h3 className="font-bold text-base text-foreground line-clamp-1 group-hover:text-primary transition-colors mb-1">
             {hotel.name}
           </h3>
-          <div className="flex items-center text-muted-foreground text-xs mb-3">
-            <MapPin className="w-3 h-3 mr-1 shrink-0" />
+
+          <div className="flex items-center text-muted-foreground text-xs mb-4">
+            <MapPin className="w-3 h-3 mr-1 shrink-0 text-muted-foreground" />
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
 
-          <div className="mt-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          {/* Bottom row: rating left, price right */}
+          <div className="mt-auto flex items-end justify-between gap-2">
+            {/* Rating */}
+            <div className="flex items-center gap-2 min-w-0">
               {hotel.rating ? (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded ${color}`}>
-                  {hotel.rating.toFixed(1)}
-                </span>
-              ) : null}
-              <span className="text-xs text-muted-foreground">{label}</span>
+                <>
+                  <span className="shrink-0 w-9 h-9 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center">
+                    {hotel.rating % 1 === 0 ? hotel.rating.toFixed(0) : hotel.rating.toFixed(1)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-foreground leading-tight">{label}</div>
+                    {reviewCount ? (
+                      <div className="text-xs text-muted-foreground">{reviewCount.toLocaleString()} reviews</div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <span className="text-xs text-muted-foreground">No reviews yet</span>
+              )}
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-xs h-7 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors"
-              data-testid={`button-view-${hotel.id}`}
-            >
-              View
-            </Button>
+
+            {/* Price */}
+            {price !== null ? (
+              <div className="text-right shrink-0">
+                <div className="text-base font-bold text-foreground">US${price.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                  {nights ? `1 room x ${nights} night${nights > 1 ? "s" : ""} incl. taxes` : "1 room x 1 night incl. taxes"}
+                </div>
+              </div>
+            ) : (
+              <div className="text-right shrink-0">
+                <div className="text-sm font-semibold text-primary">Check rates</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
