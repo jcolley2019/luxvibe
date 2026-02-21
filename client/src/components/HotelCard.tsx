@@ -25,6 +25,25 @@ function getRatingLabel(rating: number | null): { label: string; color: string }
   return { label: "Reviewed", color: "bg-slate-400 text-white" };
 }
 
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+  "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80",
+  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80",
+  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80",
+  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+  "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800&q=80",
+  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80",
+  "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80",
+];
+
+function getFallbackImage(hotelId: string): string {
+  let hash = 0;
+  for (let i = 0; i < hotelId.length; i++) {
+    hash = (hash * 31 + hotelId.charCodeAt(i)) >>> 0;
+  }
+  return FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length];
+}
+
 function getWishlistKey(hotelId: string) {
   return `wishlist_${hotelId}`;
 }
@@ -62,17 +81,14 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
       <div className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300 flex flex-col h-full cursor-pointer">
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          {hotel.imageUrl ? (
-            <img
-              src={hotel.imageUrl}
-              alt={hotel.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-400 text-sm">
-              No Image
-            </div>
-          )}
+          <img
+            src={hotel.imageUrl || getFallbackImage(hotel.id)}
+            alt={hotel.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = getFallbackImage(hotel.id);
+            }}
+          />
 
           <button
             onClick={toggleWishlist}
