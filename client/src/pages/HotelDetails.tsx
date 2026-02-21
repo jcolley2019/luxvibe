@@ -31,7 +31,11 @@ export default function HotelDetails() {
   const checkOut = searchParams.get("checkOut");
   const guests = searchParams.get("guests") || "2";
 
-  const { data: hotel, isLoading, error } = useHotel(id!);
+  const { data: hotel, isLoading, error } = useHotel(id!, {
+    checkIn: checkIn || undefined,
+    checkOut: checkOut || undefined,
+    guests,
+  });
   const createBooking = useCreateBooking();
 
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);

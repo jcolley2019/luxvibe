@@ -46,8 +46,8 @@ export default function Home() {
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-destructive mb-2">Something went wrong fetching hotels.</p>
-              <p className="text-sm text-muted-foreground">Please try searching again.</p>
+              <p className="text-destructive mb-2">{(error as Error).message || "Something went wrong fetching hotels."}</p>
+              <p className="text-sm text-muted-foreground">Try adding the country, e.g. "Paris, France" or "Tokyo, Japan".</p>
             </div>
           ) : hotels?.length === 0 ? (
             <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border">

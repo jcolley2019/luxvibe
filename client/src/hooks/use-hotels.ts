@@ -19,7 +19,10 @@ export function useSearchHotels(params: {
       if (params.guests) queryParams.set("guests", params.guests);
 
       const res = await fetch(`${url}?${queryParams.toString()}`);
-      if (!res.ok) throw new Error("Failed to search hotels");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to search hotels");
+      }
       return api.hotels.search.responses[200].parse(await res.json());
     },
     enabled: !!params.destination && !!params.checkIn && !!params.checkOut,
@@ -27,11 +30,17 @@ export function useSearchHotels(params: {
 }
 
 // Get Single Hotel Details
-export function useHotel(id: string) {
+export function useHotel(id: string, params?: { checkIn?: string; checkOut?: string; guests?: string }) {
   return useQuery({
-    queryKey: [api.hotels.get.path, id],
+    queryKey: [api.hotels.get.path, id, params],
     queryFn: async () => {
-      const url = buildUrl(api.hotels.get.path, { id });
+      let url = buildUrl(api.hotels.get.path, { id });
+      const queryParams = new URLSearchParams();
+      if (params?.checkIn) queryParams.set("checkIn", params.checkIn);
+      if (params?.checkOut) queryParams.set("checkOut", params.checkOut);
+      if (params?.guests) queryParams.set("guests", params.guests);
+      const qs = queryParams.toString();
+      if (qs) url += `?${qs}`;
       const res = await fetch(url);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch hotel details");

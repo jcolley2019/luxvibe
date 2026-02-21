@@ -1,104 +1,311 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import { api, type HotelSearchResponse, type HotelDetailsResponse } from "@shared/routes";
+import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+
+const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
+
+async function liteApiGet(path: string, params?: Record<string, string>) {
+  const url = new URL(`${LITEAPI_BASE}${path}`);
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v) url.searchParams.set(k, v);
+    });
+  }
+  const res = await fetch(url.toString(), {
+    headers: {
+      "accept": "application/json",
+      "X-API-Key": process.env.LITEAPI_KEY!,
+    },
+  });
+  return res.json();
+}
+
+async function liteApiPost(path: string, body: any) {
+  const res = await fetch(`${LITEAPI_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "content-type": "application/json",
+      "X-API-Key": process.env.LITEAPI_KEY!,
+    },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+const CITY_COUNTRY_MAP: Record<string, string> = {
+  "paris": "FR", "lyon": "FR", "nice": "FR", "marseille": "FR", "bordeaux": "FR",
+  "london": "GB", "manchester": "GB", "birmingham": "GB", "edinburgh": "GB", "glasgow": "GB",
+  "new york": "US", "los angeles": "US", "chicago": "US", "miami": "US", "las vegas": "US",
+  "san francisco": "US", "boston": "US", "washington": "US", "seattle": "US", "orlando": "US",
+  "houston": "US", "dallas": "US", "denver": "US", "atlanta": "US", "phoenix": "US",
+  "tokyo": "JP", "osaka": "JP", "kyoto": "JP",
+  "dubai": "AE", "abu dhabi": "AE",
+  "rome": "IT", "milan": "IT", "venice": "IT", "florence": "IT", "naples": "IT",
+  "barcelona": "ES", "madrid": "ES", "seville": "ES", "malaga": "ES", "valencia": "ES",
+  "berlin": "DE", "munich": "DE", "hamburg": "DE", "frankfurt": "DE",
+  "amsterdam": "NL", "rotterdam": "NL",
+  "bangkok": "TH", "phuket": "TH", "chiang mai": "TH", "pattaya": "TH",
+  "sydney": "AU", "melbourne": "AU", "brisbane": "AU", "perth": "AU",
+  "toronto": "CA", "vancouver": "CA", "montreal": "CA",
+  "singapore": "SG",
+  "hong kong": "HK",
+  "istanbul": "TR", "antalya": "TR",
+  "lisbon": "PT", "porto": "PT",
+  "athens": "GR", "santorini": "GR",
+  "vienna": "AT", "salzburg": "AT",
+  "prague": "CZ",
+  "budapest": "HU",
+  "zurich": "CH", "geneva": "CH",
+  "dublin": "IE",
+  "brussels": "BE",
+  "copenhagen": "DK",
+  "stockholm": "SE",
+  "oslo": "NO",
+  "helsinki": "FI",
+  "warsaw": "PL", "krakow": "PL",
+  "cairo": "EG",
+  "marrakech": "MA", "casablanca": "MA",
+  "mumbai": "IN", "delhi": "IN", "goa": "IN", "jaipur": "IN", "bangalore": "IN",
+  "bali": "ID", "jakarta": "ID",
+  "kuala lumpur": "MY",
+  "manila": "PH", "cebu": "PH",
+  "hanoi": "VN", "ho chi minh": "VN",
+  "seoul": "KR", "busan": "KR",
+  "beijing": "CN", "shanghai": "CN",
+  "rio de janeiro": "BR", "sao paulo": "BR",
+  "buenos aires": "AR",
+  "mexico city": "MX", "cancun": "MX", "playa del carmen": "MX",
+  "cape town": "ZA", "johannesburg": "ZA",
+  "nairobi": "KE", "mombasa": "KE",
+  "doha": "QA",
+  "muscat": "OM",
+  "riyadh": "SA", "jeddah": "SA",
+};
+
+const COUNTRY_NAME_TO_CODE: Record<string, string> = {
+  "france": "FR", "uk": "GB", "united kingdom": "GB", "england": "GB", "usa": "US",
+  "united states": "US", "japan": "JP", "uae": "AE", "italy": "IT", "spain": "ES",
+  "germany": "DE", "netherlands": "NL", "thailand": "TH", "australia": "AU",
+  "canada": "CA", "singapore": "SG", "turkey": "TR", "portugal": "PT",
+  "greece": "GR", "austria": "AT", "czech republic": "CZ", "hungary": "HU",
+  "switzerland": "CH", "ireland": "IE", "belgium": "BE", "denmark": "DK",
+  "sweden": "SE", "norway": "NO", "finland": "FI", "poland": "PL", "egypt": "EG",
+  "morocco": "MA", "india": "IN", "indonesia": "ID", "malaysia": "MY",
+  "philippines": "PH", "vietnam": "VN", "south korea": "KR", "korea": "KR",
+  "china": "CN", "brazil": "BR", "argentina": "AR", "mexico": "MX",
+  "south africa": "ZA", "kenya": "KE", "qatar": "QA", "oman": "OM",
+  "saudi arabia": "SA", "hong kong": "HK",
+};
+
+function resolveDestination(destination: string): { cityName: string; countryCode: string } {
+  const parts = destination.split(",").map(p => p.trim());
+  
+  if (parts.length >= 2) {
+    const city = parts[0];
+    const countryPart = parts[parts.length - 1].toLowerCase();
+    const countryCode = countryPart.length === 2
+      ? countryPart.toUpperCase()
+      : COUNTRY_NAME_TO_CODE[countryPart] || "";
+    if (countryCode) {
+      return { cityName: city, countryCode };
+    }
+  }
+  
+  const cityLower = destination.toLowerCase().trim();
+  const countryCode = CITY_COUNTRY_MAP[cityLower];
+  if (countryCode) {
+    return { cityName: destination, countryCode };
+  }
+
+  return { cityName: destination, countryCode: "" };
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Setup Auth
   await setupAuth(app);
   registerAuthRoutes(app);
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, checkIn, checkOut, guests } = req.query;
-      
-      // For now, if no liteAPI key or just to have some mock data while developing:
-      if (!process.env.LITEAPI_KEY) {
-        // Return mock data
-        const mockHotels: HotelSearchResponse = [
-          {
-            id: "hotel-1",
-            name: "Grand Plaza Hotel",
-            address: "123 Main St, " + (destination || "City Center"),
-            rating: 4.5,
-            price: 199,
-            imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
-          },
-          {
-            id: "hotel-2",
-            name: "Oceanview Resort",
-            address: "456 Beach Rd, " + (destination || "Coastal Area"),
-            rating: 4.8,
-            price: 299,
-            imageUrl: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80",
-          },
-          {
-            id: "hotel-3",
-            name: "Mountain Retreat",
-            address: "789 Pine View, " + (destination || "Highlands"),
-            rating: 4.2,
-            price: 149,
-            imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c0d5c9f4?w=800&q=80",
-          }
-        ];
-        return res.json(mockHotels);
+      const { destination, checkIn, checkOut, guests } = req.query as Record<string, string>;
+
+      if (!destination || !checkIn || !checkOut) {
+        return res.status(400).json({ message: "destination, checkIn, checkOut are required" });
       }
 
-      // TODO: Implement actual liteAPI integration here using LITEAPI_KEY
-      res.json([]);
-    } catch (err) {
+      const guestCount = parseInt(guests || "2");
+      const resolved = resolveDestination(destination);
+
+      if (!resolved.countryCode) {
+        return res.status(400).json({ message: "Could not determine the country. Try adding the country, e.g. 'Paris, France'." });
+      }
+
+      const hotelsData = await liteApiGet("/data/hotels", {
+        cityName: resolved.cityName,
+        countryCode: resolved.countryCode,
+        limit: "20",
+        offset: "0",
+      });
+
+      const hotelsList = hotelsData?.data || [];
+
+      if (hotelsList.length === 0) {
+        return res.json([]);
+      }
+
+      const hotelIds = hotelsList.slice(0, 20).map((h: any) => h.id);
+
+      let ratesMap = new Map<string, number>();
+      try {
+        const ratesData = await liteApiPost("/hotels/rates", {
+          hotelIds,
+          checkin: checkIn,
+          checkout: checkOut,
+          currency: "USD",
+          guestNationality: "US",
+          occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+        });
+
+        if (ratesData?.data) {
+          for (const hotel of ratesData.data) {
+            if (hotel.roomTypes && hotel.roomTypes.length > 0) {
+              const prices = hotel.roomTypes
+                .map((rt: any) => rt.offerRetailRate?.amount)
+                .filter((p: any) => p && !isNaN(p));
+              if (prices.length > 0) {
+                ratesMap.set(hotel.hotelId, Math.min(...prices));
+              }
+            }
+          }
+        }
+      } catch (rateErr) {
+        console.error("Rates fetch failed, returning hotels without prices:", rateErr);
+      }
+
+      const results = hotelsList.map((h: any) => ({
+        id: h.id,
+        name: h.name || "Hotel",
+        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        rating: h.stars ? parseFloat(h.stars) : (h.rating ? parseFloat(String(h.rating)) : null),
+        price: ratesMap.get(h.id) || 0,
+        imageUrl: h.main_photo || h.thumbnail || null,
+      }));
+
+      const withRates = results.filter((h: any) => h.price > 0);
+      res.json(withRates.length > 0 ? withRates : results);
+    } catch (err: any) {
+      console.error("Hotel search error:", err?.message || err);
       res.status(500).json({ message: "Failed to search hotels" });
     }
   });
 
   app.get(api.hotels.get.path, async (req, res) => {
     try {
-      if (!process.env.LITEAPI_KEY) {
-        const mockHotel: HotelDetailsResponse = {
-          id: req.params.id,
-          name: "Grand Plaza Hotel",
-          address: "123 Main St",
-          description: "A beautiful hotel in the heart of the city with luxury amenities and breathtaking views. Perfect for both business and leisure travelers.",
-          rating: 4.5,
-          images: [
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
-            "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=80",
-            "https://images.unsplash.com/photo-1551882547-ff40c0d5c9f4?w=1200&q=80"
-          ],
-          amenities: ["Free WiFi", "Pool", "Spa", "Restaurant", "Gym", "Room Service"],
-          rooms: [
-            {
-              id: "room1",
-              name: "Standard Room",
-              description: "1 King Bed, City View, 30 sqm",
-              price: 199,
-              capacity: 2,
-            },
-            {
-              id: "room2",
-              name: "Deluxe Suite",
-              description: "1 King Bed, Ocean View, Balcony, 55 sqm",
-              price: 349,
-              capacity: 2,
-            },
-            {
-              id: "room3",
-              name: "Family Room",
-              description: "2 Queen Beds, City View, 45 sqm",
-              price: 279,
-              capacity: 4,
-            }
-          ]
-        };
-        return res.json(mockHotel);
+      const hotelId = req.params.id;
+      const { checkIn, checkOut, guests } = req.query as Record<string, string>;
+
+      const hotelsData = await liteApiGet("/data/hotels", {
+        hotelIds: hotelId,
+      });
+
+      const hotelRaw = hotelsData?.data?.[0];
+      if (!hotelRaw) {
+        return res.status(404).json({ message: "Hotel not found" });
       }
-      res.json(null);
-    } catch (err) {
+
+      let rooms: any[] = [];
+      if (checkIn && checkOut) {
+        const guestCount = parseInt(guests || "2");
+        try {
+          const ratesData = await liteApiPost("/hotels/rates", {
+            hotelIds: [hotelId],
+            checkin: checkIn,
+            checkout: checkOut,
+            currency: "USD",
+            guestNationality: "US",
+            occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+          });
+
+          if (ratesData?.data?.[0]?.roomTypes) {
+            const seenNames = new Set<string>();
+            for (const rt of ratesData.data[0].roomTypes) {
+              if (rooms.length >= 10) break;
+              const rate = rt.rates?.[0];
+              const roomName = rate?.name || rt.name || `Room Type`;
+              if (seenNames.has(roomName)) continue;
+              seenNames.add(roomName);
+              const price = rt.offerRetailRate?.amount || 0;
+              rooms.push({
+                id: rt.offerId || `room-${rooms.length}`,
+                name: roomName,
+                description: [
+                  rate?.boardName || "",
+                  rate?.maxOccupancy ? `Max ${rate.maxOccupancy} guests` : "",
+                ].filter(Boolean).join(" - ") || "Standard Room",
+                price: typeof price === "number" ? price : parseFloat(String(price)) || 0,
+                capacity: rate?.maxOccupancy || parseInt(guests || "2"),
+              });
+            }
+          }
+        } catch (rateErr) {
+          console.error("Rates fetch for hotel details failed:", rateErr);
+        }
+      }
+
+      const images: string[] = [];
+      if (hotelRaw.main_photo) images.push(hotelRaw.main_photo);
+      if (hotelRaw.thumbnail && hotelRaw.thumbnail !== hotelRaw.main_photo) images.push(hotelRaw.thumbnail);
+      if (images.length === 0) {
+        images.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80");
+      }
+
+      const facilityMap: Record<number, string> = {
+        1: "Parking", 8: "Restaurant", 91: "Fitness Center", 107: "24-hour Front Desk",
+        124: "Laundry", 491: "Free WiFi", 502: "Airport Shuttle", 509: "Spa",
+        519: "Pool", 526: "Bar", 533: "Room Service", 535: "Non-Smoking Rooms",
+        564: "Business Center", 581: "Elevator", 595: "Air Conditioning",
+        626: "Currency Exchange", 678: "Luggage Storage", 691: "Concierge",
+        692: "Daily Housekeeping", 804: "Breakfast", 805: "Family Rooms", 806: "Accessible",
+        1869: "Pet Friendly", 1979: "EV Charging",
+      };
+
+      const amenities: string[] = [];
+      if (hotelRaw.facilityIds && Array.isArray(hotelRaw.facilityIds)) {
+        for (const fid of hotelRaw.facilityIds) {
+          const name = facilityMap[fid];
+          if (name) amenities.push(name);
+        }
+      }
+      if (amenities.length === 0) {
+        amenities.push("Contact hotel for amenities");
+      }
+
+      const description = hotelRaw.hotelDescription
+        ? stripHtml(hotelRaw.hotelDescription)
+        : `Welcome to ${hotelRaw.name}. Enjoy your stay in ${hotelRaw.city || "this beautiful destination"}.`;
+
+      res.json({
+        id: hotelRaw.id,
+        name: hotelRaw.name || "Hotel",
+        address: [hotelRaw.address, hotelRaw.city, hotelRaw.country].filter(Boolean).join(", "),
+        description,
+        rating: hotelRaw.stars ? parseFloat(String(hotelRaw.stars)) : null,
+        images,
+        amenities,
+        rooms,
+      });
+    } catch (err: any) {
+      console.error("Hotel details error:", err?.message || err);
       res.status(500).json({ message: "Failed to get hotel details" });
     }
   });
@@ -117,12 +324,12 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const input = api.bookings.create.input.parse(req.body);
-      
+
       const booking = await storage.createBooking({
         ...input,
         userId
       });
-      
+
       res.status(201).json(booking);
     } catch (err) {
       if (err instanceof z.ZodError) {
