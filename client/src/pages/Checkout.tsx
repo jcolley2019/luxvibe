@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ export default function Checkout() {
 
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const sdkInitialized = useRef(false);
 
   useEffect(() => {
     if (!offerId) {
@@ -105,7 +106,13 @@ export default function Checkout() {
   };
 
   useEffect(() => {
-    if (sdkLoaded && prebookData) {
+    if (sdkLoaded && prebookData && !sdkInitialized.current) {
+      sdkInitialized.current = true;
+
+      // Clear any previous SDK content before mounting
+      const container = document.getElementById('liteapi-payment');
+      if (container) container.innerHTML = '';
+
       const liteAPIConfig = {
         publicKey: (prebookData.paymentEnv || 'sandbox') as 'sandbox' | 'live',
         secretKey: prebookData.secretKey,
@@ -123,7 +130,7 @@ export default function Checkout() {
           }
         }
       };
-      
+
       try {
         const payment = new window.LiteAPIPayment(liteAPIConfig);
         payment.handlePayment();
