@@ -657,7 +657,8 @@ export async function registerRoutes(
 
       const apiKey = process.env.LITEAPI_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
-      res.json({ ...data, paymentEnv });
+      const inner = data.data || data;
+      res.json({ ...inner, paymentEnv });
     } catch (err: any) {
       console.error("Prebook error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to prebook" });
@@ -686,7 +687,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: data.error });
       }
 
-      res.json(data);
+      res.json(data.data || data);
     } catch (err: any) {
       console.error("Book error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to book" });
