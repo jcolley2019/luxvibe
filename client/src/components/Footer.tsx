@@ -6,7 +6,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-background mt-auto">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-5">
           {/* Logo + tagline */}
           <div className="flex items-center gap-3 shrink-0">
