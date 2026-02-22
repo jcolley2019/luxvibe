@@ -8,10 +8,18 @@ export function Footer() {
     <footer className="border-t border-border bg-background mt-auto">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-5">
-          {/* Logo */}
-          <Link href="/" className="font-heading font-bold text-xl text-foreground hover:text-primary transition-colors shrink-0">
-            Luxvibe
-          </Link>
+          {/* Logo + tagline */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <span
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-xl font-semibold tracking-[0.18em] text-foreground uppercase"
+              >
+                Luxvibe
+              </span>
+            </Link>
+            <span className="text-sm text-muted-foreground hidden md:inline">Premium hotel booking for the modern traveler.</span>
+          </div>
 
           {/* Nav links */}
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
