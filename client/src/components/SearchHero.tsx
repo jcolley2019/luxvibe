@@ -116,9 +116,9 @@ export function SearchHero({
   const guestsLabel = `1 Room, ${guests} Guest${guests !== 1 ? "s" : ""}`;
 
   return (
-    <div className="w-full px-4 md:px-8 py-6">
+    <div className="container mx-auto px-4 py-6">
       {/* Rounded hero card */}
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 320 }}>
+      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 460 }}>
 
         {/* Split photo background */}
         <div className="absolute inset-0 flex">
