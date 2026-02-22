@@ -414,41 +414,6 @@ export default function Home() {
         </>
       )}
 
-      <footer className="bg-slate-900 text-slate-400 py-12 mt-auto">
-        <div className="container mx-auto px-4 grid md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-white font-heading font-bold text-xl mb-3">Luxvibe</h3>
-            <p className="text-sm">Premium hotel booking for the modern traveler.</p>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li>About Us</li>
-              <li>Careers</li>
-              <li>Press</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3">Support</h4>
-            <ul className="space-y-2 text-sm">
-              <li>Help Center</li>
-              <li>Terms of Service</li>
-              <li>Privacy Policy</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3">Newsletter</h4>
-            <p className="text-sm mb-3">Subscribe for exclusive deals.</p>
-            <div className="flex gap-2">
-              <input type="email" placeholder="Email" className="bg-slate-800 border-none rounded px-3 py-2 text-sm w-full" />
-              <button className="bg-primary text-white px-3 py-2 rounded text-sm font-medium">Join</button>
-            </div>
-          </div>
-        </div>
-        <div className="container mx-auto px-4 mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
-          © 2026 Luxvibe. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 }
