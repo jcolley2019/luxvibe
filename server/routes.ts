@@ -465,52 +465,10 @@ export async function registerRoutes(
       const hotelId = req.params.id;
       const { checkIn, checkOut, guests } = req.query as Record<string, string>;
 
-      const hotelsData = await liteApiGet("/data/hotel", {
-        hotelId,
-      });
-
+      const hotelsData = await liteApiGet("/data/hotel", { hotelId });
       const hotelRaw = hotelsData?.data?.[0] ?? hotelsData?.data;
       if (!hotelRaw) {
         return res.status(404).json({ message: "Hotel not found" });
-      }
-
-      let rooms: any[] = [];
-      if (checkIn && checkOut) {
-        const guestCount = parseInt(guests || "2");
-        try {
-          const ratesData = await liteApiPost("/hotels/rates", {
-            hotelIds: [hotelId],
-            checkin: checkIn,
-            checkout: checkOut,
-            currency: "USD",
-            guestNationality: "US",
-            occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
-          });
-
-          if (ratesData?.data?.[0]?.roomTypes) {
-            const seenNames = new Set<string>();
-            for (const rt of ratesData.data[0].roomTypes) {
-              if (rooms.length >= 10) break;
-              const rate = rt.rates?.[0];
-              const roomName = rate?.name || rt.name || `Room Type`;
-              if (seenNames.has(roomName)) continue;
-              seenNames.add(roomName);
-              const price = rt.offerRetailRate?.amount || 0;
-              rooms.push({
-                id: rt.offerId || `room-${rooms.length}`,
-                name: roomName,
-                description: [
-                  rate?.boardName || "",
-                  rate?.maxOccupancy ? `Max ${rate.maxOccupancy} guests` : "",
-                ].filter(Boolean).join(" - ") || "Standard Room",
-                price: typeof price === "number" ? price : parseFloat(String(price)) || 0,
-                capacity: rate?.maxOccupancy || parseInt(guests || "2"),
-              });
-            }
-          }
-        } catch (rateErr) {
-          console.error("Rates fetch for hotel details failed:", rateErr);
-        }
       }
 
       const images: string[] = [];
@@ -519,6 +477,13 @@ export async function registerRoutes(
       if (images.length === 0) {
         images.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80");
       }
+
+      // Extract room info (with photos) from hotel data
+      const rooms: any[] = (hotelRaw.rooms || []).map((r: any) => ({
+        id: r.id,
+        name: r.name || "Room",
+        photos: (r.photos || []).map((p: any) => ({ url: p.url || p })),
+      }));
 
       const facilityMap: Record<number, string> = {
         1: "Parking", 8: "Restaurant", 91: "Fitness Center", 107: "24-hour Front Desk",
@@ -545,6 +510,47 @@ export async function registerRoutes(
         ? stripHtml(hotelRaw.hotelDescription)
         : `Welcome to ${hotelRaw.name}. Enjoy your stay in ${hotelRaw.city || "this beautiful destination"}.`;
 
+      // Fetch room rates
+      let roomTypes: any[] = [];
+      if (checkIn && checkOut) {
+        const guestCount = parseInt(guests || "2");
+        try {
+          const ratesData = await liteApiPost("/hotels/rates", {
+            hotelIds: [hotelId],
+            checkin: checkIn,
+            checkout: checkOut,
+            currency: "USD",
+            guestNationality: "US",
+            occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+          });
+
+          const rawRoomTypes: any[] = ratesData?.data?.[0]?.roomTypes || [];
+          for (const rt of rawRoomTypes) {
+            if (roomTypes.length >= 15) break;
+            const rate = rt.rates?.[0];
+            const price = rt.offerRetailRate?.amount || rate?.retailRate?.total?.[0]?.amount || 0;
+            const currency = rt.offerRetailRate?.currency || rate?.retailRate?.total?.[0]?.currency || "USD";
+            const cancellationPolicies = rate?.cancellationPolicies || [];
+            const cancellationPolicy = cancellationPolicies.length > 0
+              ? `Cancel by ${cancellationPolicies[0]?.cancelTime?.split("T")[0] || "check-in"}`
+              : undefined;
+
+            roomTypes.push({
+              offerId: rt.offerId,
+              mappedRoomId: rt.mappedRoomId || rt.offerId,
+              name: rt.name || rate?.name || "Room",
+              boardName: rate?.boardName || "Room Only",
+              price: typeof price === "number" ? price : parseFloat(String(price)) || 0,
+              currency,
+              refundableTag: rate?.refundableTag || undefined,
+              cancellationPolicy,
+            });
+          }
+        } catch (rateErr) {
+          console.error("Rates fetch for hotel details failed:", rateErr);
+        }
+      }
+
       res.json({
         id: hotelRaw.id,
         name: hotelRaw.name || "Hotel",
@@ -558,6 +564,7 @@ export async function registerRoutes(
         images,
         amenities,
         rooms,
+        roomTypes,
       });
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
