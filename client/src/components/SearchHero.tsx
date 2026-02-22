@@ -71,7 +71,7 @@ export function SearchHero({ initialDestination, initialCheckIn, initialCheckOut
           alt="Luxury Resort"
           className="w-full h-full object-cover opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/5" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-16 md:py-24 flex flex-col items-center text-center">
