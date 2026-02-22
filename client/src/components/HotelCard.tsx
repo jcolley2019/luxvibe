@@ -141,18 +141,18 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
           </div>
 
           {/* Bottom row: rating left, price right */}
-          <div className="mt-auto flex items-end justify-between gap-2">
+          <div className="mt-auto flex items-end justify-between gap-2 flex-wrap">
             {/* Rating */}
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               {hotel.rating ? (
                 <>
-                  <span className="shrink-0 w-9 h-9 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center">
+                  <span className="shrink-0 w-8 h-8 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">
                     {hotel.rating % 1 === 0 ? hotel.rating.toFixed(0) : hotel.rating.toFixed(1)}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground leading-tight">{label}</div>
+                    <div className="text-xs font-semibold text-foreground leading-tight">{label}</div>
                     {reviewCount ? (
-                      <div className="text-xs text-muted-foreground">{reviewCount.toLocaleString()} reviews</div>
+                      <div className="text-xs text-muted-foreground">{reviewCount.toLocaleString()}</div>
                     ) : null}
                   </div>
                 </>
@@ -164,10 +164,8 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             {/* Price */}
             {price !== null ? (
               <div className="text-right shrink-0">
-                <div className="text-base font-bold text-foreground">US${price.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground whitespace-nowrap">
-                  {nights ? `1 room x ${nights} night${nights > 1 ? "s" : ""} incl. taxes` : "1 room x 1 night incl. taxes"}
-                </div>
+                <div className="text-sm font-bold text-foreground">US${price.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">incl. taxes</div>
               </div>
             ) : (
               <div className="text-right shrink-0">
