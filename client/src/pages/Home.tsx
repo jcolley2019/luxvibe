@@ -378,7 +378,7 @@ export default function Home() {
           <section className="py-14 bg-muted/40 border-t border-border">
             <div className="container mx-auto px-4 text-center max-w-2xl mb-10">
               <h2 className="text-2xl font-bold font-heading mb-2">Why Choose Luxvibe?</h2>
-              <p className="text-muted-foreground">We simplify your travel with features designed for peace of mind.</p>
+              <p className="text-muted-foreground">We simplify your hotel booking with features designed for peace of mind.</p>
             </div>
             <div className="container mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
