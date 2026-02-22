@@ -26,7 +26,9 @@ export function useFeaturedHotels() {
 }
 
 export function useSearchHotels(params: {
-  destination: string;
+  destination?: string;
+  placeId?: string;
+  aiSearch?: string;
   checkIn: string;
   checkOut: string;
   guests?: string;
@@ -36,7 +38,9 @@ export function useSearchHotels(params: {
     queryFn: async () => {
       const url = buildUrl(api.hotels.search.path);
       const queryParams = new URLSearchParams();
-      queryParams.set("destination", params.destination);
+      if (params.destination) queryParams.set("destination", params.destination);
+      if (params.placeId) queryParams.set("placeId", params.placeId);
+      if (params.aiSearch) queryParams.set("aiSearch", params.aiSearch);
       queryParams.set("checkIn", params.checkIn);
       queryParams.set("checkOut", params.checkOut);
       if (params.guests) queryParams.set("guests", params.guests);
@@ -48,7 +52,7 @@ export function useSearchHotels(params: {
       }
       return api.hotels.search.responses[200].parse(await res.json());
     },
-    enabled: !!params.destination && !!params.checkIn && !!params.checkOut,
+    enabled: (!!params.destination || !!params.placeId || !!params.aiSearch) && !!params.checkIn && !!params.checkOut,
   });
 }
 

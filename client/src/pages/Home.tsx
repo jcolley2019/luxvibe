@@ -37,15 +37,19 @@ export default function Home() {
   const searchParams = new URLSearchParams(window.location.search);
 
   const destination = searchParams.get("destination");
+  const placeId = searchParams.get("placeId");
+  const aiSearch = searchParams.get("aiSearch");
   const checkIn = searchParams.get("checkIn");
   const checkOut = searchParams.get("checkOut");
   const guests = searchParams.get("guests") || "2";
 
-  const isSearchActive = !!(destination && checkIn && checkOut);
+  const isSearchActive = !!((destination || placeId || aiSearch) && checkIn && checkOut);
   const [sortBy, setSortBy] = useState<SortOption>("recommended");
 
   const { data: hotels, isLoading, error } = useSearchHotels({
-    destination: destination || "",
+    destination: destination || undefined,
+    placeId: placeId || undefined,
+    aiSearch: aiSearch || undefined,
     checkIn: checkIn || "",
     checkOut: checkOut || "",
     guests,
@@ -132,6 +136,8 @@ export default function Home() {
       <Navbar />
       <SearchHero
         initialDestination={destination || undefined}
+        initialPlaceId={placeId || undefined}
+        initialAiSearch={aiSearch || undefined}
         initialCheckIn={checkIn || undefined}
         initialCheckOut={checkOut || undefined}
         initialGuests={guests}
@@ -142,7 +148,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <div>
               <h2 className="text-2xl font-bold font-heading">
-                Hotels in <span className="text-primary capitalize">{destination}</span>
+                {aiSearch ? (
+                  <>Vibe search: <span className="text-primary capitalize">{aiSearch}</span></>
+                ) : (
+                  <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
+                )}
               </h2>
               <p className="text-muted-foreground text-sm mt-1">
                 {sortedHotels.length} properties found

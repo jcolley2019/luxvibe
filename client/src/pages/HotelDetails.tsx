@@ -1,18 +1,17 @@
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useHotel, useSimilarHotels } from "@/hooks/use-hotels";
-import { useCreateBooking } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
-  Beer, Clock, Accessibility, Leaf, Zap, Send, X
+  Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -190,17 +189,37 @@ export default function HotelDetails() {
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
   const { data: similarHotels = [] } = useSimilarHotels(id!);
-  const createBooking = useCreateBooking();
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [wishlist, setWishlist] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [similarIdx, setSimilarIdx] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+
+  const groupedRooms = useMemo(() => {
+    if (!hotel) return [];
+    
+    // Group rates by mappedRoomId
+    const groups: Record<string, typeof hotel.roomTypes> = {};
+    hotel.roomTypes.forEach(rate => {
+      if (!groups[rate.mappedRoomId]) {
+        groups[rate.mappedRoomId] = [];
+      }
+      groups[rate.mappedRoomId].push(rate);
+    });
+
+    return Object.entries(groups).map(([mappedRoomId, rates]) => {
+      const roomInfo = hotel.rooms.find(r => r.id === mappedRoomId);
+      return {
+        mappedRoomId,
+        name: roomInfo?.name || rates[0]?.name || "Standard Room",
+        photo: roomInfo?.photos?.[0]?.url || hotel.images[0] || GALLERY_FALLBACKS[0],
+        rates
+      };
+    });
+  }, [hotel]);
 
   const sectionRefs: Record<TabId, React.RefObject<HTMLDivElement>> = {
     overview: useRef<HTMLDivElement>(null),
@@ -229,7 +248,7 @@ export default function HotelDetails() {
         stars: hotel.stars ?? null,
         rating: hotel.rating ?? null,
         reviewCount: hotel.reviewCount ?? null,
-        price: hotel.rooms?.[0]?.price ?? null,
+        price: hotel.roomTypes?.[0]?.price ?? null,
         imageUrl: hotel.images?.[0] ?? null,
       };
       const existing = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
@@ -301,26 +320,19 @@ export default function HotelDetails() {
     setAiInput("");
   };
 
-  const handleBookClick = (roomId: string) => {
-    if (!isAuthenticated) { window.location.href = "/api/login"; return; }
-    setSelectedRoom(roomId);
-    setIsConfirmOpen(true);
-  };
-
-  const handleConfirmBooking = () => {
-    if (!selectedRoom) return;
-    const room = hotel?.rooms.find(r => r.id === selectedRoom);
-    if (!room) return;
-    const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn));
-    createBooking.mutate({
+  const handleSelectRate = (rate: any) => {
+    const params = new URLSearchParams({
+      offerId: rate.offerId,
       hotelId: hotel!.id,
       hotelName: hotel!.name,
-      roomType: room.name,
       checkIn,
       checkOut,
-      guests: parseInt(guests),
-      totalPrice: (room.price * nights).toString(),
-    }, { onSuccess: () => setIsConfirmOpen(false) });
+      guests,
+      roomName: rate.name,
+      price: rate.price.toString(),
+      currency: rate.currency
+    });
+    setLocation(`/checkout?${params.toString()}`);
   };
 
   if (isLoading) {
@@ -344,10 +356,8 @@ export default function HotelDetails() {
   const highlights = generateHighlights(hotel.name, hotel.description, hotel.amenities);
   const categoryScores = hotel.rating ? generateCategoryScores(hotel.rating) : [];
   const reviews = hotel.rating ? generateReviews(hotel.rating) : [];
-  const selectedRoomDetails = hotel.rooms.find(r => r.id === selectedRoom);
-  const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn));
-  const totalPrice = selectedRoomDetails ? selectedRoomDetails.price * nights : 0;
-  const noRooms = hotel.rooms.length === 0;
+  const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn)) || 1;
+  const noRooms = groupedRooms.length === 0;
 
   const visibleSimilar = similarHotels.slice(similarIdx, similarIdx + 3);
 
@@ -606,33 +616,59 @@ export default function HotelDetails() {
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
-              {hotel.rooms.map((room) => (
-                <motion.div
-                  key={room.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="border border-border rounded-xl p-5 flex flex-col md:flex-row gap-4 hover:border-primary/40 transition-colors bg-card"
-                  data-testid={`card-room-${room.id}`}
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{room.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{room.description}</p>
-                    <div className="flex gap-2 flex-wrap">
-                      <Badge variant="secondary">Sleeps {room.capacity}</Badge>
-                      <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20">Free Cancellation</Badge>
+            <div className="space-y-6">
+              {groupedRooms.map((group) => (
+                <Card key={group.mappedRoomId} className="overflow-hidden border-border/60" data-testid={`room-group-${group.mappedRoomId}`}>
+                  <div className="grid md:grid-cols-[300px_1fr] gap-0">
+                    <div className="h-48 md:h-auto relative overflow-hidden">
+                      <img src={group.photo} alt={group.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-4">{group.name}</h3>
+                      <div className="space-y-4">
+                        {group.rates.map((rate: any) => (
+                          <div 
+                            key={rate.offerId} 
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/50 transition-colors gap-4"
+                            data-testid={`rate-${rate.offerId}`}
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-sm">{rate.boardName}</span>
+                                {rate.refundableTag === "RFN" ? (
+                                  <Badge variant="outline" className="text-[10px] h-5 text-emerald-600 border-emerald-200 bg-emerald-50">Free cancellation</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">Non-refundable</Badge>
+                                )}
+                              </div>
+                              {rate.cancellationPolicy && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Info className="w-3 h-3" />
+                                  {rate.cancellationPolicy}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between sm:justify-end gap-6">
+                              <div className="text-right">
+                                <p className="text-lg font-bold">
+                                  {rate.currency} {rate.price.toLocaleString()}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">Total for your stay</p>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleSelectRate(rate)}
+                                data-testid={`button-select-rate-${rate.offerId}`}
+                              >
+                                Select
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex md:flex-col items-center justify-between md:justify-center md:items-end gap-3 md:min-w-[160px]">
-                    <div className="text-right">
-                      <p className="text-xl font-bold">${room.price.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">1 room × {nights || 1} night{nights !== 1 ? "s" : ""} incl. taxes</p>
-                    </div>
-                    <Button onClick={() => handleBookClick(room.id)} className="w-full md:w-auto" data-testid={`button-book-${room.id}`}>
-                      Reserve
-                    </Button>
-                  </div>
-                </motion.div>
+                </Card>
               ))}
             </div>
           )}
@@ -906,43 +942,6 @@ export default function HotelDetails() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Booking confirmation dialog */}
-      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>Confirm Booking</DialogTitle>
-            <DialogDescription>Review your reservation details before confirming.</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <div className="bg-muted/50 rounded-xl p-4 space-y-2 text-sm">
-              {[
-                ["Hotel", hotel.name],
-                ["Room", selectedRoomDetails?.name],
-                ["Check-in", checkIn ? format(parseISO(checkIn), "MMM d, yyyy") : "—"],
-                ["Check-out", checkOut ? format(parseISO(checkOut), "MMM d, yyyy") : "—"],
-                ["Duration", `${nights} night${nights !== 1 ? "s" : ""}`],
-                ["Guests", `${guests} guest${parseInt(guests) !== 1 ? "s" : ""}`],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium">{value}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between items-center font-bold border-t pt-3">
-              <span>Total Price</span>
-              <span className="text-primary text-lg">${totalPrice.toLocaleString()}</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>Cancel</Button>
-            <Button onClick={handleConfirmBooking} disabled={createBooking.isPending} data-testid="button-confirm-booking">
-              {createBooking.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> : "Confirm & Pay"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

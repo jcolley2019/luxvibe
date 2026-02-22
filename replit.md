@@ -2,7 +2,7 @@
 
 ## Overview
 
-Luxvibe is a full-stack hotel booking web application similar to zzzello.com. It features a clean minimal homepage with recommended hotels loaded immediately (no search required), popular destination chips, sort/filter on results, wishlist heart buttons, and rating labels (Exceptional, Wonderful, etc.). It integrates with the LiteAPI travel service for real-time hotel data and uses Replit Auth for user authentication.
+Luxvibe is a full-stack hotel booking web application. It features a clean minimal homepage with recommended hotels loaded immediately (no search required), popular destination chips, sort/filter on results, wishlist heart buttons, and rating labels (Exceptional, Wonderful, etc.). It integrates with the LiteAPI travel service for real-time hotel data, uses Replit Auth for user authentication, and implements the full LiteAPI booking flow: places autocomplete → rates search (destination or AI/vibe) → prebook → LiteAPI Payment SDK → book → confirmation.
 
 ## User Preferences
 
@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend
 - **Framework**: React 18 with TypeScript, bundled by Vite
-- **Routing**: Wouter (lightweight client-side router) with routes: `/` (home/search), `/hotel/:id` (details), `/my-bookings` (user bookings)
+- **Routing**: Wouter (lightweight client-side router) with routes: `/` (home/search), `/hotel/:id` (details), `/checkout` (guest form + payment), `/booking-confirmation` (post-payment booking), `/my-bookings` (user bookings)
 - **State Management**: TanStack React Query for server state (caching, fetching, mutations)
 - **UI Components**: shadcn/ui (new-york style) built on Radix UI primitives with Tailwind CSS
 - **Styling**: Tailwind CSS with CSS variables for theming, custom fonts (Plus Jakarta Sans for body, Playfair Display for headings)
@@ -24,10 +24,12 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js running on Node with TypeScript (compiled via tsx in dev, esbuild for production)
 - **API Design**: RESTful JSON API under `/api/` prefix. Route contracts defined in `shared/routes.ts` with Zod schemas for request/response validation
 - **Key API Endpoints**:
-  - `GET /api/hotels/search` - Search hotels via LiteAPI
-  - `GET /api/hotels/:id` - Get hotel details via LiteAPI
+  - `GET /api/places?q=...` - Places autocomplete via LiteAPI
+  - `GET /api/hotels/search` - Search hotels via LiteAPI (supports destination, placeId, aiSearch)
+  - `GET /api/hotels/:id` - Get hotel details + rates via LiteAPI
+  - `POST /api/hotels/prebook` - Prebook a rate via LiteAPI (returns secretKey for Payment SDK)
+  - `POST /api/hotels/book` - Complete booking via LiteAPI with transactionId from payment
   - `GET /api/bookings` - Get user's bookings (authenticated)
-  - `POST /api/bookings` - Create a booking (authenticated)
   - `GET /api/auth/user` - Get current authenticated user
   - `GET /api/login` / `GET /api/logout` - Auth flow endpoints
 - **Authentication**: Replit Auth (OpenID Connect) with Passport.js, sessions stored in PostgreSQL via connect-pg-simple

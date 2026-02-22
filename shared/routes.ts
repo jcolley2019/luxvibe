@@ -46,15 +46,31 @@ export const api = {
         500: errorSchemas.internal,
       },
     },
+    places: {
+      method: 'GET' as const,
+      path: '/api/places' as const,
+      input: z.object({
+        q: z.string(),
+      }),
+      responses: {
+        200: z.array(z.object({
+          placeId: z.string(),
+          displayName: z.string(),
+        })),
+        500: errorSchemas.internal,
+      },
+    },
     search: {
       method: 'GET' as const,
       path: '/api/hotels/search' as const,
       input: z.object({
-        destination: z.string(),
+        destination: z.string().optional(),
+        placeId: z.string().optional(),
+        aiSearch: z.string().optional(),
         checkIn: z.string(),
         checkOut: z.string(),
         guests: z.string().optional(),
-      }).optional(),
+      }),
       responses: {
         200: z.array(z.object({
           id: z.string(),
@@ -91,11 +107,19 @@ export const api = {
           images: z.array(z.string()),
           amenities: z.array(z.string()),
           rooms: z.array(z.object({
-            id: z.string(),
+            id: z.string(), // mappedRoomId
             name: z.string(),
-            description: z.string(),
+            photos: z.array(z.object({ url: z.string() })).optional(),
+          })),
+          roomTypes: z.array(z.object({
+            offerId: z.string(),
+            mappedRoomId: z.string(),
+            name: z.string(),
+            boardName: z.string(),
             price: z.number(),
-            capacity: z.number(),
+            currency: z.string(),
+            cancellationPolicy: z.string().optional(),
+            refundableTag: z.string().optional(),
           })),
         }),
         404: errorSchemas.notFound,
@@ -116,6 +140,34 @@ export const api = {
           price: z.number().nullable(),
           imageUrl: z.string().nullable(),
         })),
+        500: errorSchemas.internal,
+      },
+    },
+    prebook: {
+      method: 'POST' as const,
+      path: '/api/hotels/prebook' as const,
+      input: z.object({
+        offerId: z.string(),
+      }),
+      responses: {
+        200: z.any(),
+        400: errorSchemas.validation,
+        500: errorSchemas.internal,
+      },
+    },
+    book: {
+      method: 'POST' as const,
+      path: '/api/hotels/book' as const,
+      input: z.object({
+        prebookId: z.string(),
+        transactionId: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string().email(),
+      }),
+      responses: {
+        200: z.any(),
+        400: errorSchemas.validation,
         500: errorSchemas.internal,
       },
     },

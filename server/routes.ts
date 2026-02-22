@@ -6,6 +6,7 @@ import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
+const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
 
 async function liteApiGet(path: string, params?: Record<string, string>) {
   const url = new URL(`${LITEAPI_BASE}${path}`);
@@ -23,8 +24,8 @@ async function liteApiGet(path: string, params?: Record<string, string>) {
   return res.json();
 }
 
-async function liteApiPost(path: string, body: any) {
-  const res = await fetch(`${LITEAPI_BASE}${path}`, {
+async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BASE) {
+  const res = await fetch(`${baseUrl}${path}`, {
     method: "POST",
     headers: {
       "accept": "application/json",
@@ -33,7 +34,11 @@ async function liteApiPost(path: string, body: any) {
     },
     body: JSON.stringify(body),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error || data?.message || "LiteAPI request failed");
+  }
+  return data;
 }
 
 function stripHtml(html: string): string {
@@ -316,37 +321,100 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/places", async (req, res) => {
+    try {
+      const { q } = req.query as Record<string, string>;
+      if (!q) return res.json([]);
+      const data = await liteApiGet("/data/places", { textQuery: q });
+      const places = (data?.data || []).map((p: any) => ({
+        placeId: p.placeId,
+        displayName: p.name,
+      }));
+      res.json(places);
+    } catch (err: any) {
+      console.error("Places API error:", err?.message || err);
+      res.status(500).json({ message: "Failed to fetch places" });
+    }
+  });
+
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, checkIn, checkOut, guests } = req.query as Record<string, string>;
+      const { destination, placeId, aiSearch, checkIn, checkOut, guests } = req.query as Record<string, string>;
 
-      if (!destination || !checkIn || !checkOut) {
-        return res.status(400).json({ message: "destination, checkIn, checkOut are required" });
+      if ((!destination && !placeId && !aiSearch) || !checkIn || !checkOut) {
+        return res.status(400).json({ message: "destination/placeId/aiSearch, checkIn, checkOut are required" });
       }
 
       const guestCount = parseInt(guests || "2");
-      const resolved = resolveDestination(destination);
 
-      if (!resolved.countryCode) {
-        return res.status(400).json({ message: "Could not determine the country. Try adding the country, e.g. 'Paris, France'." });
+      let hotelIds: string[] = [];
+      let hotelsMetadata: any[] = [];
+
+      if (aiSearch) {
+        const ratesData = await liteApiPost("/hotels/rates", {
+          aiSearch,
+          checkin: checkIn,
+          checkout: checkOut,
+          currency: "USD",
+          guestNationality: "US",
+          occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+        });
+
+        if (!ratesData?.data || ratesData.data.length === 0) {
+          return res.json([]);
+        }
+
+        const hotelsInfo = ratesData.hotels || [];
+        const hotelsInfoMap = new Map(hotelsInfo.map((h: any) => [h.id, h]));
+
+        const results = ratesData.data.map((hotelRate: any) => {
+          const h = (hotelsInfoMap.get(hotelRate.hotelId) || {}) as any;
+          const firstRoom = hotelRate.roomTypes?.[0];
+          const price = firstRoom?.offerRetailRate?.amount || 0;
+
+          return {
+            id: hotelRate.hotelId,
+            name: h.name || "Hotel",
+            address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+            stars: h.stars ? parseFloat(String(h.stars)) : null,
+            rating: h.rating ? parseFloat(String(h.rating)) : null,
+            reviewCount: h.reviews_total || h.reviewCount || null,
+            price: price,
+            imageUrl: h.main_photo || h.thumbnail || null,
+          };
+        }).filter((h: any) => h.price > 0);
+
+        return res.json(results);
       }
 
-      const hotelsData = await liteApiGet("/data/hotels", {
-        cityName: resolved.cityName,
-        countryCode: resolved.countryCode,
-        limit: "20",
-        offset: "0",
-      });
+      if (placeId) {
+        const hotelsData = await liteApiGet("/data/hotels", {
+          placeId,
+          limit: "20",
+          offset: "0",
+        });
+        hotelsMetadata = hotelsData?.data || [];
+      } else if (destination) {
+        const resolved = resolveDestination(destination);
+        if (!resolved.countryCode) {
+          return res.status(400).json({ message: "Could not determine the country. Try adding the country, e.g. 'Paris, France'." });
+        }
+        const hotelsData = await liteApiGet("/data/hotels", {
+          cityName: resolved.cityName,
+          countryCode: resolved.countryCode,
+          limit: "20",
+          offset: "0",
+        });
+        hotelsMetadata = hotelsData?.data || [];
+      }
 
-      const hotelsList = hotelsData?.data || [];
-
-      if (hotelsList.length === 0) {
+      if (hotelsMetadata.length === 0) {
         return res.json([]);
       }
 
-      const hotelIds = hotelsList.slice(0, 20).map((h: any) => h.id);
-
+      hotelIds = hotelsMetadata.slice(0, 20).map((h: any) => h.id);
       let ratesMap = new Map<string, number>();
+
       try {
         const ratesData = await liteApiPost("/hotels/rates", {
           hotelIds,
@@ -373,7 +441,7 @@ export async function registerRoutes(
         console.error("Rates fetch failed, returning hotels without prices:", rateErr);
       }
 
-      const results = hotelsList.map((h: any) => ({
+      const results = hotelsMetadata.map((h: any) => ({
         id: h.id,
         name: h.name || "Hotel",
         address: [h.address, h.city, h.country].filter(Boolean).join(", "),
@@ -565,6 +633,54 @@ export async function registerRoutes(
         });
       }
       res.status(500).json({ message: "Failed to create booking" });
+    }
+  });
+
+  app.post(api.hotels.prebook.path, async (req, res) => {
+    try {
+      const { offerId } = api.hotels.prebook.input.parse(req.body);
+      const data = await liteApiPost("/rates/prebook", {
+        usePaymentSdk: true,
+        offerId
+      }, LITEAPI_BOOK_BASE);
+
+      if (data.error) {
+        return res.status(400).json({ message: data.error });
+      }
+
+      res.json(data);
+    } catch (err: any) {
+      console.error("Prebook error:", err?.message || err);
+      res.status(400).json({ message: err?.message || "Failed to prebook" });
+    }
+  });
+
+  app.post(api.hotels.book.path, async (req, res) => {
+    try {
+      const { prebookId, transactionId, firstName, lastName, email } = api.hotels.book.input.parse(req.body);
+      const data = await liteApiPost("/rates/book", {
+        prebookId,
+        holder: { firstName, lastName, email },
+        payment: {
+          method: "TRANSACTION_ID",
+          transactionId
+        },
+        guests: [{
+          occupancyNumber: 1,
+          firstName,
+          lastName,
+          email
+        }]
+      }, LITEAPI_BOOK_BASE);
+
+      if (data.error) {
+        return res.status(400).json({ message: data.error });
+      }
+
+      res.json(data);
+    } catch (err: any) {
+      console.error("Book error:", err?.message || err);
+      res.status(400).json({ message: err?.message || "Failed to book" });
     }
   });
 

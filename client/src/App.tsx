@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Footer } from "@/components/Footer";
 import Home from "@/pages/Home";
 import HotelDetails from "@/pages/HotelDetails";
+import Checkout from "@/pages/Checkout";
+import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
 import NotFound from "@/pages/not-found";
 
@@ -14,6 +16,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/hotel/:id" component={HotelDetails} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
       <Route component={NotFound} />
     </Switch>
