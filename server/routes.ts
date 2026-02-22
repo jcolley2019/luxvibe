@@ -237,19 +237,39 @@ export async function registerRoutes(
       if (!lat || !lng) {
         return res.status(400).json({ message: "lat and lng are required" });
       }
-      const data = await liteApiGet("/data/hotels", {
-        latitude: lat,
-        longitude: lng,
-        radius: "50",
+
+      // Reverse geocode coordinates -> city + country using Nominatim (free, no key needed)
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { "User-Agent": "Luxvibe/1.0 (hotel booking app)" } }
+      );
+      const geoData = await geoRes.json();
+      const addr = geoData?.address || {};
+      const cityName = addr.city || addr.town || addr.village || addr.county || "";
+      const countryCode = addr.country_code?.toUpperCase() || "US";
+
+      if (!cityName) {
+        return res.json([]);
+      }
+
+      console.log(`[nearby] Resolved coords (${lat},${lng}) -> ${cityName}, ${countryCode}`);
+
+      const hotelsData = await liteApiGet("/data/hotels", {
+        cityName,
+        countryCode,
         limit: "20",
+        offset: "0",
       });
-      const hotels: any[] = data?.data || [];
-      const nearby = hotels
+
+      const hotelsList: any[] = hotelsData?.data || [];
+      if (hotelsList.length === 0) return res.json([]);
+
+      const nearby = hotelsList
         .map((h: any) => ({
           id: h.id,
           name: h.name || "Hotel",
           address: [h.address, h.city, h.country].filter(Boolean).join(", "),
-          city: h.city || "",
+          city: h.city || cityName,
           stars: h.stars ? parseFloat(String(h.stars)) : null,
           rating: h.rating ? parseFloat(String(h.rating)) : null,
           reviewCount: h.reviews_total || h.reviewCount || null,
