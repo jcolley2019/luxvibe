@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useLocation, useSearch } from "wouter";
+import { useSearch } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard } from "@/components/HotelCard";
@@ -15,25 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 
-const POPULAR_DESTINATIONS = [
-  { label: "New York", emoji: "🗽", placeId: "ChIJOwg_06VPwokRYv534QaPC8g" },
-  { label: "Miami", emoji: "🌊", placeId: "ChIJEcHIDqKw2YgRZU-t3XHylv8" },
-  { label: "Las Vegas", emoji: "🎰", placeId: "ChIJ0X31pIK3voARo3mz1ebVzDo" },
-  { label: "Los Angeles", emoji: "🎬", placeId: "ChIJE9on3F3HwoAR9AhGJW_fL-I" },
-  { label: "Chicago", emoji: "🌆", placeId: "ChIJ7cv00DwsDogRAMDACa2m4K8" },
-  { label: "San Francisco", emoji: "🌉", placeId: "ChIJIQBpAG2ahYAR_6128GcTUEo" },
-  { label: "Orlando", emoji: "🎡", placeId: "ChIJd7zN_thz54gRnr-lPAaywwo" },
-  { label: "Nashville", emoji: "🎸", placeId: "ChIJPZDrEzLsZIgRoNrpodC5P30" },
-  { label: "Paris", emoji: "🗼", placeId: "ChIJD7fiBh9u5kcRYJSMaMOCCwQ" },
-  { label: "Dubai", emoji: "🏙️", placeId: "ChIJRcbZaklDXz4RYlEphFBu5r0" },
-  { label: "New Orleans", emoji: "🎷", placeId: "ChIJZYIRslSkIIYRtNMiXuhbBts" },
-  { label: "Honolulu", emoji: "🌺", placeId: "ChIJTUbDjDsYAHwRbJen81_1KEs" },
-];
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
 
@@ -109,22 +94,6 @@ export default function Home() {
     if (sortBy === "rating") return copy.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     return copy;
   }, [hotels, sortBy]);
-
-  const handleDestinationClick = (dest: { label: string; placeId: string }) => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    const fmt = (d: Date) => d.toISOString().split("T")[0];
-    const params = new URLSearchParams({
-      destination: dest.label,
-      placeId: dest.placeId,
-      checkIn: fmt(tomorrow),
-      checkOut: fmt(dayAfter),
-      guests,
-    });
-    setLocation(`/?${params.toString()}`);
-  };
 
   const sortLabel: Record<SortOption, string> = {
     recommended: "Recommended",
@@ -215,24 +184,6 @@ export default function Home() {
         </section>
       ) : (
         <>
-          {/* Popular Destinations */}
-          <section className="py-8 container mx-auto px-4">
-            <h2 className="text-2xl font-bold font-heading mb-4">Popular Destinations</h2>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3">
-              {POPULAR_DESTINATIONS.map((dest) => (
-                <button
-                  key={dest.label}
-                  onClick={() => handleDestinationClick(dest)}
-                  className="flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm"
-                  data-testid={`button-dest-${dest.label.toLowerCase().replace(" ", "-")}`}
-                >
-                  <span className="shrink-0">{dest.emoji}</span>
-                  <span className="truncate">{dest.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
           {/* Featured / Recommended Hotels */}
           <section className="pb-10 container mx-auto px-4">
             <div className="flex items-center justify-between mb-5">
