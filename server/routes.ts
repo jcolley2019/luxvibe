@@ -465,11 +465,11 @@ export async function registerRoutes(
       const hotelId = req.params.id;
       const { checkIn, checkOut, guests } = req.query as Record<string, string>;
 
-      const hotelsData = await liteApiGet("/data/hotels", {
-        hotelIds: hotelId,
+      const hotelsData = await liteApiGet("/data/hotel", {
+        hotelId,
       });
 
-      const hotelRaw = hotelsData?.data?.[0];
+      const hotelRaw = hotelsData?.data?.[0] ?? hotelsData?.data;
       if (!hotelRaw) {
         return res.status(404).json({ message: "Hotel not found" });
       }
@@ -568,8 +568,8 @@ export async function registerRoutes(
   app.get(api.hotels.similar.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
-      const hotelData = await liteApiGet("/data/hotels", { hotelIds: hotelId });
-      const hotelRaw = hotelData?.data?.[0];
+      const hotelData = await liteApiGet("/data/hotel", { hotelId });
+      const hotelRaw = hotelData?.data?.[0] ?? hotelData?.data;
       if (!hotelRaw?.city || !hotelRaw?.countryCode) {
         return res.json([]);
       }

@@ -28,10 +28,10 @@ export function Footer() {
             </div>
 
             {/* Nav links */}
-            <nav className="flex items-center gap-x-5">
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
               <button
                 onClick={() => setTermsOpen(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap bg-transparent border-none p-0 cursor-pointer"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
                 data-testid="footer-link-terms-conditions"
               >
                 Terms &amp; Conditions
@@ -44,7 +44,7 @@ export function Footer() {
                 <a
                   key={label}
                   href={href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid={`footer-link-${label.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   {label}
