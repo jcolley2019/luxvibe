@@ -114,7 +114,7 @@ export default function Checkout() {
         appearance: {
           theme: 'flat',
           variables: {
-            colorPrimary: 'hsl(221 83% 53%)',
+            colorPrimary: '#1d4ed8',
           }
         },
         options: {
