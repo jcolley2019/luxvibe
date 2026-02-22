@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard } from "@/components/HotelCard";
@@ -33,8 +33,8 @@ const POPULAR_DESTINATIONS = [
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
 export default function Home() {
-  const [currentPath, setLocation] = useLocation();
-  const searchString = currentPath.includes("?") ? currentPath.split("?")[1] : window.location.search.slice(1);
+  const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
 
   const destination = searchParams.get("destination");
