@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, MapPin, LocateFixed, ChevronLeft, ChevronRight, Clock, Users } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,14 +55,15 @@ export default function Home() {
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const nearbyCarouselRef = useRef<HTMLDivElement>(null);
+  const recentCarouselRef = useRef<HTMLDivElement>(null);
 
-  type RecentSearch = { destination: string; checkIn: string; checkOut: string; guests: string };
-  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  type RecentHotel = { id: string; name: string; address: string; city: string; stars: number | null; rating: number | null; reviewCount: number | null; price: number | null; imageUrl: string | null };
+  const [recentHotels, setRecentHotels] = useState<RecentHotel[]>([]);
 
   useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem("recentSearches") || "[]");
-      setRecentSearches(stored);
+      const stored = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
+      setRecentHotels(stored);
     } catch {}
   }, []);
 
@@ -268,35 +269,43 @@ export default function Home() {
             )}
           </section>
 
-          {/* Recent Searches */}
-          {recentSearches.length > 0 && (
+          {/* Recently Viewed Hotels */}
+          {recentHotels.length > 0 && (
             <section className="pb-10 container mx-auto px-4">
-              <h2 className="text-2xl font-bold font-heading mb-5">Your recent searches</h2>
-              <div className="flex gap-4 flex-wrap">
-                {recentSearches.map((s, i) => (
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-2xl font-bold font-heading">Your recent searches</h2>
+                <div className="flex items-center gap-2">
                   <button
-                    key={i}
-                    data-testid={`button-recent-search-${i}`}
-                    onClick={() => {
-                      const params = new URLSearchParams({ destination: s.destination, checkIn: s.checkIn, checkOut: s.checkOut, guests: s.guests });
-                      setLocation(`/?${params.toString()}`);
-                    }}
-                    className="flex items-center gap-3 border border-border rounded-xl px-4 py-3 hover:bg-muted/50 transition-colors text-left min-w-[200px]"
+                    onClick={() => scrollCarousel(recentCarouselRef, "left")}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                    data-testid="button-recent-prev"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                      <MapPin className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm leading-tight">{s.destination}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {s.checkIn} – {s.checkOut}
-                      </p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Users className="w-3 h-3" />
-                        {s.guests} {parseInt(s.guests) === 1 ? "guest" : "guests"}, 1 room
-                      </p>
-                    </div>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
+                  <button
+                    onClick={() => scrollCarousel(recentCarouselRef, "right")}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                    data-testid="button-recent-next"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={recentCarouselRef}
+                className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {recentHotels.map((hotel, i) => (
+                  <motion.div
+                    key={hotel.id}
+                    className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
+                  >
+                    <HotelCard hotel={hotel} variant="featured" />
+                  </motion.div>
                 ))}
               </div>
             </section>

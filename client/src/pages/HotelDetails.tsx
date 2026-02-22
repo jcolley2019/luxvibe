@@ -219,6 +219,26 @@ export default function HotelDetails() {
   }, []);
 
   useEffect(() => {
+    if (!hotel) return;
+    try {
+      const entry = {
+        id: hotel.id,
+        name: hotel.name,
+        address: hotel.address || "",
+        city: hotel.city || "",
+        stars: hotel.stars ?? null,
+        rating: hotel.rating ?? null,
+        reviewCount: hotel.reviewCount ?? null,
+        price: hotel.rooms?.[0]?.price ?? null,
+        imageUrl: hotel.images?.[0] ?? null,
+      };
+      const existing = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
+      const filtered = existing.filter((h: typeof entry) => h.id !== hotel.id);
+      localStorage.setItem("recentlyViewedHotels", JSON.stringify([entry, ...filtered].slice(0, 10)));
+    } catch {}
+  }, [hotel?.id]);
+
+  useEffect(() => {
     const onScroll = () => {
       const navTop = navRef.current?.getBoundingClientRect().top ?? 0;
       setNavSticky(navTop <= 64);
