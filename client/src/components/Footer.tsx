@@ -22,7 +22,7 @@ export function Footer() {
           </div>
 
           {/* Nav links */}
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          <nav className="flex items-center gap-x-5">
             {[
               { label: "Terms & Conditions", href: "#" },
               { label: "Privacy Policy", href: "#" },
