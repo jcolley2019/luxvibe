@@ -35,7 +35,7 @@ export default function BookingConfirmation() {
 
   useEffect(() => {
     const savedData = sessionStorage.getItem("checkoutData");
-    if (!prebookId || !transactionId || !savedData) {
+    if (!prebookId || !savedData) {
       setError("Missing booking information. Please start over.");
       return;
     }
@@ -43,9 +43,15 @@ export default function BookingConfirmation() {
     const parsedData = JSON.parse(savedData);
     setCheckoutData(parsedData);
 
+    const resolvedTransactionId = transactionId || parsedData.transactionId;
+    if (!resolvedTransactionId) {
+      setError("Payment transaction ID missing. Please try again.");
+      return;
+    }
+
     bookMutation.mutate({
       prebookId,
-      transactionId,
+      transactionId: resolvedTransactionId,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
       email: parsedData.email,

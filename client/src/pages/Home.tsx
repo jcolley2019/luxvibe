@@ -33,8 +33,9 @@ const POPULAR_DESTINATIONS = [
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
+  const [currentPath, setLocation] = useLocation();
+  const searchString = currentPath.includes("?") ? currentPath.split("?")[1] : window.location.search.slice(1);
+  const searchParams = new URLSearchParams(searchString);
 
   const destination = searchParams.get("destination");
   const placeId = searchParams.get("placeId");

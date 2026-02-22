@@ -51,6 +51,8 @@ const CITY_COUNTRY_MAP: Record<string, string> = {
   "new york": "US", "los angeles": "US", "chicago": "US", "miami": "US", "las vegas": "US",
   "san francisco": "US", "boston": "US", "washington": "US", "seattle": "US", "orlando": "US",
   "houston": "US", "dallas": "US", "denver": "US", "atlanta": "US", "phoenix": "US",
+  "nashville": "US", "new orleans": "US", "honolulu": "US", "portland": "US", "austin": "US",
+  "san diego": "US", "philadelphia": "US", "detroit": "US", "minneapolis": "US", "tampa": "US",
   "tokyo": "JP", "osaka": "JP", "kyoto": "JP",
   "dubai": "AE", "abu dhabi": "AE",
   "rome": "IT", "milan": "IT", "venice": "IT", "florence": "IT", "naples": "IT",
