@@ -109,10 +109,6 @@ export default function Checkout() {
     if (sdkLoaded && prebookData && !sdkInitialized.current) {
       sdkInitialized.current = true;
 
-      // Clear any previous SDK content before mounting
-      const container = document.getElementById('liteapi-payment');
-      if (container) container.innerHTML = '';
-
       const liteAPIConfig = {
         publicKey: (prebookData.paymentEnv || 'sandbox') as 'sandbox' | 'live',
         secretKey: prebookData.secretKey,
