@@ -480,7 +480,7 @@ export async function registerRoutes(
 
       // Extract room info (with photos) from hotel data
       const rooms: any[] = (hotelRaw.rooms || []).map((r: any) => ({
-        id: r.id,
+        id: String(r.id),
         name: r.name || "Room",
         photos: (r.photos || []).map((p: any) => ({ url: p.url || p })),
       }));
