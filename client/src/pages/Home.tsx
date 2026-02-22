@@ -185,7 +185,7 @@ export default function Home() {
       ) : (
         <>
           {/* Featured / Recommended Hotels */}
-          <section className="pb-10 container mx-auto px-4">
+          <section className="pt-10 pb-10 container mx-auto px-4">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold font-heading">Recommended Hotels</h2>
               <div className="flex items-center gap-2">
