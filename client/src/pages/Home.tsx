@@ -26,6 +26,8 @@ const POPULAR_DESTINATIONS = [
   { label: "Nashville", emoji: "🎸" },
   { label: "Paris", emoji: "🗼" },
   { label: "Dubai", emoji: "🏙️" },
+  { label: "New Orleans", emoji: "🎷" },
+  { label: "Honolulu", emoji: "🌺" },
 ];
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
