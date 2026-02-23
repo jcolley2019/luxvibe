@@ -147,7 +147,7 @@ export function SearchHero({
           <div className="w-full max-w-2xl bg-white dark:bg-card rounded-full shadow-xl flex items-stretch overflow-visible px-1 py-1 gap-0">
 
             {/* Where / Vibe input */}
-            <div className="flex-1 flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
+            <div className="flex-[2] flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide text-left">
                 {mode === "destination" ? "Where" : "Vibe"}
               </span>
@@ -205,7 +205,7 @@ export function SearchHero({
             <Popover open={dateOpen} onOpenChange={setDateOpen}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left min-w-[110px]"
+                  className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
                   data-testid="button-dates"
                 >
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Dates</span>
@@ -235,7 +235,7 @@ export function SearchHero({
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  className="flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left min-w-[120px]"
+                  className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
                   data-testid="button-guests"
                 >
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Guests</span>
