@@ -136,15 +136,15 @@ function resolveDestination(destination: string): { cityName: string; countryCod
 }
 
 const FEATURED_CITIES: { cityName: string; countryCode: string; limit: number }[] = [
-  { cityName: "New York", countryCode: "US", limit: 4 },
-  { cityName: "Miami", countryCode: "US", limit: 4 },
-  { cityName: "Las Vegas", countryCode: "US", limit: 4 },
-  { cityName: "Los Angeles", countryCode: "US", limit: 3 },
-  { cityName: "Chicago", countryCode: "US", limit: 3 },
-  { cityName: "San Francisco", countryCode: "US", limit: 3 },
-  { cityName: "Paris", countryCode: "FR", limit: 2 },
-  { cityName: "Dubai", countryCode: "AE", limit: 2 },
-  { cityName: "London", countryCode: "GB", limit: 2 },
+  { cityName: "New York", countryCode: "US", limit: 10 },
+  { cityName: "Miami", countryCode: "US", limit: 10 },
+  { cityName: "Las Vegas", countryCode: "US", limit: 8 },
+  { cityName: "Los Angeles", countryCode: "US", limit: 8 },
+  { cityName: "Chicago", countryCode: "US", limit: 8 },
+  { cityName: "San Francisco", countryCode: "US", limit: 8 },
+  { cityName: "Paris", countryCode: "FR", limit: 6 },
+  { cityName: "Dubai", countryCode: "AE", limit: 6 },
+  { cityName: "London", countryCode: "GB", limit: 6 },
 ];
 
 export async function registerRoutes(
@@ -187,8 +187,12 @@ export async function registerRoutes(
                 price: null as number | null,
                 imageUrl: h.main_photo || h.thumbnail || null,
               }))
-              .filter((h: any) => h.rating !== null && h.rating >= 7.0)
-              .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
+              .filter((h: any) => h.rating !== null && h.rating >= 8.0 && (h.reviewCount == null || h.reviewCount >= 50))
+              .sort((a: any, b: any) => {
+                const scoreA = (a.rating ?? 0) * 2 + (a.stars ?? 0) * 0.5;
+                const scoreB = (b.rating ?? 0) * 2 + (b.stars ?? 0) * 0.5;
+                return scoreB - scoreA;
+              })
               .slice(0, limit);
             results.push(...scored);
           } catch {
@@ -230,6 +234,12 @@ export async function registerRoutes(
           hotel.price = priceMap.get(hotel.id) ?? null;
         }
       } catch { }
+
+      results.sort((a: any, b: any) => {
+        const scoreA = (a.rating ?? 0) * 2 + (a.stars ?? 0) * 0.5 + Math.min((a.reviewCount ?? 0) / 2000, 0.5);
+        const scoreB = (b.rating ?? 0) * 2 + (b.stars ?? 0) * 0.5 + Math.min((b.reviewCount ?? 0) / 2000, 0.5);
+        return scoreB - scoreA;
+      });
 
       res.json(results);
     } catch (err: any) {
