@@ -88,8 +88,8 @@ export default function Home() {
 
   const enrichedRecentHotels = useMemo(() => {
     const freshSources = [...(featured || []), ...(nearbyHotels || [])];
-    const freshById: Record<string, { stars?: number | null; rating?: number | null; reviewCount?: number | null; price?: number | null }> = {};
-    freshSources.forEach(h => { freshById[h.id] = { stars: h.stars, rating: h.rating, reviewCount: h.reviewCount, price: h.price }; });
+    const freshById: Record<string, { stars?: number | null; rating?: number | null; reviewCount?: number | null; price?: number | null; address?: string; city?: string }> = {};
+    freshSources.forEach(h => { freshById[h.id] = { stars: h.stars, rating: h.rating, reviewCount: h.reviewCount, price: h.price, address: h.address, city: h.city }; });
     return recentHotels.map(rh => {
       const fresh = freshById[rh.id];
       if (!fresh) return rh;
@@ -99,6 +99,8 @@ export default function Home() {
         rating: rh.rating ?? fresh.rating ?? null,
         reviewCount: rh.reviewCount ?? fresh.reviewCount ?? null,
         price: fresh.price ?? rh.price ?? null,
+        address: fresh.address ?? rh.address ?? "",
+        city: fresh.city ?? rh.city ?? "",
       };
     });
   }, [recentHotels, featured, nearbyHotels]);
