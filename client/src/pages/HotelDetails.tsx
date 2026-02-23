@@ -193,6 +193,7 @@ export default function HotelDetails() {
     from: parseISO(checkInParam || defaultCheckIn),
     to: parseISO(checkOutParam || defaultCheckOut),
   });
+  const [selectionPhase, setSelectionPhase] = useState<"checkin" | "checkout">("checkin");
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
@@ -589,7 +590,10 @@ export default function HotelDetails() {
           <div className="flex items-center gap-2 mb-5 flex-wrap">
             <Popover open={dateOpen} onOpenChange={(open) => {
               setDateOpen(open);
-              if (open) setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) });
+              if (open) {
+                setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) });
+                setSelectionPhase("checkin");
+              }
             }}>
               <PopoverTrigger asChild>
                 <button
@@ -609,6 +613,14 @@ export default function HotelDetails() {
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
+                <div className="px-4 pt-3 pb-1 flex gap-4 text-xs font-medium border-b border-border mb-1">
+                  <span className={selectionPhase === "checkin" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
+                    Check-in
+                  </span>
+                  <span className={selectionPhase === "checkout" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
+                    Check-out
+                  </span>
+                </div>
                 <Calendar
                   mode="range"
                   numberOfMonths={2}
@@ -616,12 +628,20 @@ export default function HotelDetails() {
                   selected={pendingRange}
                   onSelect={(range) => {
                     const r = range as { from: Date; to?: Date } | undefined;
-                    if (!r) return;
-                    setPendingRange(r);
-                    if (r.from) setCheckIn(format(r.from, "yyyy-MM-dd"));
-                    if (r.to) {
-                      setCheckOut(format(r.to, "yyyy-MM-dd"));
-                      setDateOpen(false);
+                    if (!r?.from) return;
+                    if (selectionPhase === "checkin") {
+                      setPendingRange({ from: r.from, to: undefined });
+                      setSelectionPhase("checkout");
+                    } else {
+                      if (r.to && r.to > r.from) {
+                        setPendingRange(r);
+                        setCheckIn(format(r.from, "yyyy-MM-dd"));
+                        setCheckOut(format(r.to, "yyyy-MM-dd"));
+                        setDateOpen(false);
+                        setSelectionPhase("checkin");
+                      } else {
+                        setPendingRange({ from: r.from, to: undefined });
+                      }
                     }
                   }}
                   disabled={(d) => d < new Date()}
