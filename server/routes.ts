@@ -286,21 +286,59 @@ export async function registerRoutes(
       console.log(`[nearby] Resolved coords (${lat},${lng}) -> "${cityName}", ${countryCode}`);
 
       const KNOWN_CITIES = [
-        { cityName: "Las Vegas", countryCode: "US", lat: 36.1699, lng: -115.1398 },
-        { cityName: "Los Angeles", countryCode: "US", lat: 34.0522, lng: -118.2437 },
-        { cityName: "San Francisco", countryCode: "US", lat: 37.7749, lng: -122.4194 },
+        // Pacific Coast
         { cityName: "Seattle", countryCode: "US", lat: 47.6062, lng: -122.3321 },
-        { cityName: "Chicago", countryCode: "US", lat: 41.8781, lng: -87.6298 },
-        { cityName: "New York", countryCode: "US", lat: 40.7128, lng: -74.0060 },
-        { cityName: "Miami", countryCode: "US", lat: 25.7617, lng: -80.1918 },
+        { cityName: "Portland", countryCode: "US", lat: 45.5051, lng: -122.6750 },
+        { cityName: "San Francisco", countryCode: "US", lat: 37.7749, lng: -122.4194 },
+        { cityName: "Los Angeles", countryCode: "US", lat: 34.0522, lng: -118.2437 },
+        { cityName: "San Diego", countryCode: "US", lat: 32.7157, lng: -117.1611 },
+        // Pacific Northwest / Mountain
+        { cityName: "Boise", countryCode: "US", lat: 43.6150, lng: -116.2023 },
+        { cityName: "Salt Lake City", countryCode: "US", lat: 40.7608, lng: -111.8910 },
         { cityName: "Denver", countryCode: "US", lat: 39.7392, lng: -104.9903 },
+        { cityName: "Las Vegas", countryCode: "US", lat: 36.1699, lng: -115.1398 },
+        { cityName: "Phoenix", countryCode: "US", lat: 33.4484, lng: -112.0740 },
+        { cityName: "Tucson", countryCode: "US", lat: 32.2226, lng: -110.9747 },
+        { cityName: "Albuquerque", countryCode: "US", lat: 35.0844, lng: -106.6504 },
+        // Midwest
+        { cityName: "Minneapolis", countryCode: "US", lat: 44.9778, lng: -93.2650 },
+        { cityName: "Chicago", countryCode: "US", lat: 41.8781, lng: -87.6298 },
+        { cityName: "Detroit", countryCode: "US", lat: 42.3314, lng: -83.0458 },
+        { cityName: "Milwaukee", countryCode: "US", lat: 43.0389, lng: -87.9065 },
+        { cityName: "Kansas City", countryCode: "US", lat: 39.0997, lng: -94.5786 },
+        { cityName: "St. Louis", countryCode: "US", lat: 38.6270, lng: -90.1994 },
+        { cityName: "Indianapolis", countryCode: "US", lat: 39.7684, lng: -86.1581 },
+        { cityName: "Columbus", countryCode: "US", lat: 39.9612, lng: -82.9988 },
+        { cityName: "Cincinnati", countryCode: "US", lat: 39.1031, lng: -84.5120 },
+        // South / Southwest
         { cityName: "Dallas", countryCode: "US", lat: 32.7767, lng: -96.7970 },
         { cityName: "Houston", countryCode: "US", lat: 29.7604, lng: -95.3698 },
-        { cityName: "Phoenix", countryCode: "US", lat: 33.4484, lng: -112.0740 },
-        { cityName: "Portland", countryCode: "US", lat: 45.5051, lng: -122.6750 },
+        { cityName: "San Antonio", countryCode: "US", lat: 29.4241, lng: -98.4936 },
+        { cityName: "Austin", countryCode: "US", lat: 30.2672, lng: -97.7431 },
+        { cityName: "New Orleans", countryCode: "US", lat: 29.9511, lng: -90.0715 },
+        { cityName: "Atlanta", countryCode: "US", lat: 33.7490, lng: -84.3880 },
+        { cityName: "Nashville", countryCode: "US", lat: 36.1627, lng: -86.7816 },
+        { cityName: "Memphis", countryCode: "US", lat: 35.1495, lng: -90.0490 },
+        { cityName: "Charlotte", countryCode: "US", lat: 35.2271, lng: -80.8431 },
+        { cityName: "Raleigh", countryCode: "US", lat: 35.7796, lng: -78.6382 },
+        { cityName: "Miami", countryCode: "US", lat: 25.7617, lng: -80.1918 },
+        { cityName: "Orlando", countryCode: "US", lat: 28.5383, lng: -81.3792 },
+        { cityName: "Tampa", countryCode: "US", lat: 27.9506, lng: -82.4572 },
+        // Northeast
+        { cityName: "New York", countryCode: "US", lat: 40.7128, lng: -74.0060 },
+        { cityName: "Philadelphia", countryCode: "US", lat: 39.9526, lng: -75.1652 },
+        { cityName: "Washington", countryCode: "US", lat: 38.9072, lng: -77.0369 },
+        { cityName: "Baltimore", countryCode: "US", lat: 39.2904, lng: -76.6122 },
+        { cityName: "Boston", countryCode: "US", lat: 42.3601, lng: -71.0589 },
+        { cityName: "Pittsburgh", countryCode: "US", lat: 40.4406, lng: -79.9959 },
+        { cityName: "Cleveland", countryCode: "US", lat: 41.4993, lng: -81.6944 },
+        // International
         { cityName: "Paris", countryCode: "FR", lat: 48.8566, lng: 2.3522 },
         { cityName: "London", countryCode: "GB", lat: 51.5074, lng: -0.1278 },
         { cityName: "Dubai", countryCode: "AE", lat: 25.2048, lng: 55.2708 },
+        { cityName: "Tokyo", countryCode: "JP", lat: 35.6762, lng: 139.6503 },
+        { cityName: "Barcelona", countryCode: "ES", lat: 41.3851, lng: 2.1734 },
+        { cityName: "Rome", countryCode: "IT", lat: 41.9028, lng: 12.4964 },
       ];
       const userLat = parseFloat(lat);
       const userLng = parseFloat(lng);
