@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
-import { HotelCard } from "@/components/HotelCard";
+import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
 import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -95,6 +95,39 @@ export default function Home() {
     return copy;
   }, [hotels, sortBy]);
 
+  function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, DealBadge> {
+    const tierPrices: Record<number, number[]> = {};
+    for (const h of hotelList) {
+      const price = (h as any).price as number | null;
+      const stars = (h as any).stars as number | null;
+      if (price && price > 0 && stars) {
+        const tier = Math.round(stars);
+        if (!tierPrices[tier]) tierPrices[tier] = [];
+        tierPrices[tier].push(price);
+      }
+    }
+    const tierAvg: Record<number, number> = {};
+    for (const [tier, prices] of Object.entries(tierPrices)) {
+      tierAvg[Number(tier)] = prices.reduce((s, p) => s + p, 0) / prices.length;
+    }
+    const map = new Map<string, DealBadge>();
+    for (const h of hotelList) {
+      const price = (h as any).price as number | null;
+      const stars = (h as any).stars as number | null;
+      if (!price || price <= 0 || !stars) { map.set(h.id, null); continue; }
+      const avg = tierAvg[Math.round(stars)];
+      if (!avg) { map.set(h.id, null); continue; }
+      if (price < avg * 0.85) map.set(h.id, "great-deal");
+      else if (price < avg * 0.92) map.set(h.id, "good-value");
+      else map.set(h.id, null);
+    }
+    return map;
+  }
+
+  const searchDealBadges = useMemo(() => computeDealBadges(sortedHotels), [sortedHotels]);
+  const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
+  const nearbyDealBadges = useMemo(() => computeDealBadges(nearbyHotels ?? []), [nearbyHotels]);
+
   const sortLabel: Record<SortOption, string> = {
     recommended: "Recommended",
     price_asc: "Price: Low to High",
@@ -176,6 +209,7 @@ export default function Home() {
                     checkOut={checkOut || undefined}
                     guests={guests}
                     variant="search"
+                    dealBadge={searchDealBadges.get(hotel.id)}
                   />
                 </motion.div>
               ))}
@@ -225,7 +259,7 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
                   >
-                    <HotelCard hotel={hotel} variant="featured" />
+                    <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)} />
                   </motion.div>
                 ))}
               </div>
@@ -335,7 +369,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.35 }}
                     >
-                      <HotelCard hotel={hotel} variant="featured" />
+                      <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)} />
                     </motion.div>
                   ))}
                 </div>

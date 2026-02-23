@@ -1,10 +1,12 @@
 import { Link } from "wouter";
-import { MapPin, Heart } from "lucide-react";
+import { MapPin, Heart, Tag, ThumbsUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse } from "@shared/routes";
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
+
+export type DealBadge = "great-deal" | "good-value" | null;
 
 interface HotelCardProps {
   hotel: SearchHotel | FeaturedHotel;
@@ -12,6 +14,7 @@ interface HotelCardProps {
   checkOut?: string;
   guests?: string;
   variant?: "search" | "featured";
+  dealBadge?: DealBadge;
 }
 
 function getRatingLabel(rating: number | null): string {
@@ -69,7 +72,7 @@ function getWishlistKey(hotelId: string) {
   return `wishlist_${hotelId}`;
 }
 
-export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search" }: HotelCardProps) {
+export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge }: HotelCardProps) {
   const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
@@ -125,6 +128,19 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
               className={`w-4 h-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`}
             />
           </button>
+
+          {dealBadge === "great-deal" && (
+            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md" data-testid={`badge-deal-${hotel.id}`}>
+              <Tag className="w-3 h-3" />
+              Great Deal
+            </div>
+          )}
+          {dealBadge === "good-value" && (
+            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md" data-testid={`badge-value-${hotel.id}`}>
+              <ThumbsUp className="w-3 h-3" />
+              Good Value
+            </div>
+          )}
         </div>
 
         {/* Content */}
