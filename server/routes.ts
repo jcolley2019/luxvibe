@@ -448,19 +448,112 @@ export async function registerRoutes(
     }
   });
 
+  // Map country names/abbreviations to ISO 2-letter codes
+  const COUNTRY_CODE_MAP: Record<string, string> = {
+    "USA": "US", "US": "US", "United States": "US",
+    "UK": "GB", "GB": "GB", "United Kingdom": "GB", "England": "GB",
+    "France": "FR", "FR": "FR",
+    "Germany": "DE", "DE": "DE",
+    "Spain": "ES", "ES": "ES",
+    "Italy": "IT", "IT": "IT",
+    "UAE": "AE", "AE": "AE", "United Arab Emirates": "AE",
+    "Australia": "AU", "AU": "AU",
+    "Canada": "CA", "CA": "CA",
+    "Japan": "JP", "JP": "JP",
+    "Mexico": "MX", "MX": "MX",
+    "Thailand": "TH", "TH": "TH",
+    "Singapore": "SG", "SG": "SG",
+    "India": "IN", "IN": "IN",
+    "Netherlands": "NL", "NL": "NL",
+    "Portugal": "PT", "PT": "PT",
+    "Greece": "GR", "GR": "GR",
+    "Turkey": "TR", "TR": "TR",
+    "Brazil": "BR", "BR": "BR",
+    "Switzerland": "CH", "CH": "CH",
+    "Austria": "AT", "AT": "AT",
+    "Belgium": "BE", "BE": "BE",
+    "Sweden": "SE", "SE": "SE",
+    "Norway": "NO", "NO": "NO",
+    "Denmark": "DK", "DK": "DK",
+    "Poland": "PL", "PL": "PL",
+    "Czech Republic": "CZ", "Czechia": "CZ", "CZ": "CZ",
+    "Croatia": "HR", "HR": "HR",
+    "Indonesia": "ID", "ID": "ID",
+    "Malaysia": "MY", "MY": "MY",
+    "Vietnam": "VN", "VN": "VN",
+    "Philippines": "PH", "PH": "PH",
+    "South Korea": "KR", "Korea": "KR", "KR": "KR",
+    "Israel": "IL", "IL": "IL",
+    "Morocco": "MA", "MA": "MA",
+    "Egypt": "EG", "EG": "EG",
+    "South Africa": "ZA", "ZA": "ZA",
+    "New Zealand": "NZ", "NZ": "NZ",
+    "Ireland": "IE", "IE": "IE",
+    "Saudi Arabia": "SA", "SA": "SA",
+    "Qatar": "QA", "QA": "QA",
+    "Bahrain": "BH", "BH": "BH",
+    "Kuwait": "KW", "KW": "KW",
+    "Oman": "OM", "OM": "OM",
+    "Jordan": "JO", "JO": "JO",
+    "Argentina": "AR", "AR": "AR",
+    "Colombia": "CO", "CO": "CO",
+    "Chile": "CL", "CL": "CL",
+    "Peru": "PE", "PE": "PE",
+  };
+
+  function extractCountryCode(formattedAddress: string): string | null {
+    if (!formattedAddress) return null;
+    const parts = formattedAddress.split(",").map((p: string) => p.trim());
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const code = COUNTRY_CODE_MAP[parts[i]];
+      if (code) return code;
+    }
+    return null;
+  }
+
   app.get("/api/places", async (req, res) => {
     try {
       const { q } = req.query as Record<string, string>;
       if (!q) return res.json([]);
-      const data = await liteApiGet("/data/places", { textQuery: q });
-      const raw = data?.data || [];
-      const places = raw.map((p: any) => ({
+
+      // Step 1: Get place suggestions from LiteAPI (backed by Google Places)
+      const placesData = await liteApiGet("/data/places", { textQuery: q });
+      const places = (placesData?.data || []).map((p: any) => ({
         placeId: p.placeId,
         displayName: p.displayName || p.name || p.placeId,
         formattedAddress: p.formattedAddress || "",
         types: p.types || [],
       }));
-      res.json(places);
+
+      // Step 2: Detect city + country from places results, then fetch hotels for that city
+      const localityPlace = places.find((p: any) =>
+        p.types.some((t: string) => ["locality", "administrative_area_level_1", "colloquial_area"].includes(t))
+      );
+      let hotels: any[] = [];
+      if (localityPlace) {
+        const countryCode = extractCountryCode(localityPlace.formattedAddress);
+        if (countryCode) {
+          const hotelsData = await liteApiGet("/data/hotels", {
+            cityName: localityPlace.displayName,
+            countryCode,
+            limit: "20",
+          });
+          hotels = (hotelsData?.data || []).map((h: any) => ({
+            placeId: `hotel:${h.id}`,
+            hotelId: h.id,
+            displayName: h.name,
+            formattedAddress: [h.address?.line1, h.address?.city?.name]
+              .filter(Boolean).join(", ") || localityPlace.displayName,
+            types: ["lodging", "establishment"],
+          }));
+        }
+      } else {
+        // No city found — try hotel name search (works when user types a brand like "hilton")
+        // Places API (Google) already returns hotel establishments naturally, so hotels array stays empty
+        // and we rely on the places results which include lodging types
+      }
+
+      res.json([...places, ...hotels]);
     } catch (err: any) {
       console.error("Places API error:", err?.message || err);
       res.status(500).json({ message: "Failed to fetch places" });
