@@ -9,7 +9,8 @@ import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
-  Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle
+  Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
+  BedDouble, Users, Maximize2, ChevronRight
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
@@ -197,30 +198,39 @@ export default function HotelDetails() {
   const [aiAnswer, setAiAnswer] = useState("");
   const [similarIdx, setSimilarIdx] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
   const groupedRooms = useMemo(() => {
     if (!hotel) return [];
-    
-    // Group rates by mappedRoomId
     const groups: Record<string, typeof hotel.roomTypes> = {};
     hotel.roomTypes.forEach(rate => {
-      if (!groups[rate.mappedRoomId]) {
-        groups[rate.mappedRoomId] = [];
-      }
+      if (!groups[rate.mappedRoomId]) groups[rate.mappedRoomId] = [];
       groups[rate.mappedRoomId].push(rate);
     });
-
     return Object.entries(groups).map(([mappedRoomId, rates]) => {
       const roomInfo = hotel.rooms.find(r => r.id === mappedRoomId);
+      const photos = (roomInfo?.photos || []).map(p => p.url).filter(Boolean);
+      if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
       return {
         mappedRoomId,
         name: roomInfo?.name || rates[0]?.name || "Standard Room",
-        photo: roomInfo?.photos?.[0]?.url || hotel.images[0] || GALLERY_FALLBACKS[0],
-        rates
+        photos,
+        description: roomInfo?.description || null,
+        amenities: roomInfo?.amenities || [],
+        bedTypes: roomInfo?.bedTypes || [],
+        roomSize: roomInfo?.roomSize || null,
+        maxOccupancy: roomInfo?.maxOccupancy || null,
+        rates,
       };
     });
   }, [hotel]);
+
+  const [roomPhotoIdxMap, setRoomPhotoIdxMap] = useState<Record<string, number>>({});
+  const [expandedDescMap, setExpandedDescMap] = useState<Record<string, boolean>>({});
+  const getRoomPhotoIdx = (id: string) => roomPhotoIdxMap[id] ?? 0;
+  const setRoomPhotoIdx = (id: string, idx: number) =>
+    setRoomPhotoIdxMap(prev => ({ ...prev, [id]: idx }));
 
   const sectionRefs: Record<TabId, React.RefObject<HTMLDivElement>> = {
     overview: useRef<HTMLDivElement>(null),
@@ -412,21 +422,21 @@ export default function HotelDetails() {
 
         {/* Photo Gallery */}
         <div className="grid grid-cols-4 grid-rows-2 gap-1.5 h-[380px] rounded-xl overflow-hidden mb-0 relative">
-          <div className="col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => setShowAllPhotos(true)}>
+          <div className="col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setLightboxIdx(0); setShowAllPhotos(true); }}>
             <img src={gallery[0]} alt="Main" className="w-full h-full object-cover ken-burns" />
           </div>
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className="col-span-1 row-span-1 overflow-hidden group cursor-pointer relative"
-              onClick={() => setShowAllPhotos(true)}
+              onClick={() => { setLightboxIdx(i); setShowAllPhotos(true); }}
             >
               <img src={gallery[i]} alt={`View ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               {i === 4 && (
                 <div className="absolute inset-0 bg-black/40 hover:bg-black/50 transition-colors flex items-center justify-center">
                   <span className="text-white text-sm font-medium flex items-center gap-1.5">
                     <Camera className="w-4 h-4" />
-                    Show all pictures
+                    {hotel.images.length > 5 ? `+${hotel.images.length - 4} photos` : "Show all pictures"}
                   </span>
                 </div>
               )}
@@ -619,59 +629,149 @@ export default function HotelDetails() {
             </div>
           ) : (
             <div className="space-y-6">
-              {groupedRooms.map((group) => (
-                <Card key={group.mappedRoomId} className="overflow-hidden border-border/60" data-testid={`room-group-${group.mappedRoomId}`}>
-                  <div className="grid md:grid-cols-[300px_1fr] gap-0">
-                    <div className="h-48 md:h-auto relative overflow-hidden">
-                      <img src={group.photo} alt={group.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-4">{group.name}</h3>
-                      <div className="space-y-4">
-                        {group.rates.map((rate: any) => (
-                          <div 
-                            key={rate.offerId} 
-                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/50 transition-colors gap-4"
-                            data-testid={`rate-${rate.offerId}`}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-semibold text-sm">{rate.boardName}</span>
-                                {rate.refundableTag === "RFN" ? (
-                                  <Badge variant="outline" className="text-[10px] h-5 text-emerald-600 border-emerald-200 bg-emerald-50">Free cancellation</Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">Non-refundable</Badge>
+              {groupedRooms.map((group) => {
+                const photoIdx = getRoomPhotoIdx(group.mappedRoomId);
+                const isExpanded = expandedDescMap[group.mappedRoomId] ?? false;
+                return (
+                  <Card key={group.mappedRoomId} className="overflow-hidden border-border/60" data-testid={`room-group-${group.mappedRoomId}`}>
+                    <div className="grid md:grid-cols-[320px_1fr] gap-0">
+                      {/* Photo carousel */}
+                      <div className="relative h-56 md:h-auto overflow-hidden bg-muted group/photo">
+                        <img
+                          src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
+                          alt={`${group.name} - photo ${photoIdx + 1}`}
+                          className="w-full h-full object-cover transition-opacity duration-300"
+                          onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
+                        />
+                        {group.photos.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length)}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                              data-testid={`button-room-photo-prev-${group.mappedRoomId}`}
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                              data-testid={`button-room-photo-next-${group.mappedRoomId}`}
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                              {group.photos.slice(0, 8).map((_, i) => (
+                                <button
+                                  key={i}
+                                  onClick={() => setRoomPhotoIdx(group.mappedRoomId, i)}
+                                  className={`w-1.5 h-1.5 rounded-full transition-colors ${i === photoIdx ? "bg-white" : "bg-white/40"}`}
+                                />
+                              ))}
+                            </div>
+                            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/50 text-white text-[10px]">
+                              {photoIdx + 1} / {group.photos.length}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Room details */}
+                      <div className="p-5 flex flex-col">
+                        <h3 className="text-lg font-bold mb-2">{group.name}</h3>
+
+                        {/* Quick facts row */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {group.bedTypes.map((bt, i) => (
+                            <span key={i} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                              <BedDouble className="w-3 h-3" />
+                              {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
+                            </span>
+                          ))}
+                          {group.roomSize && (
+                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                              <Maximize2 className="w-3 h-3" />
+                              {group.roomSize}
+                            </span>
+                          )}
+                          {group.maxOccupancy && (
+                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                              <Users className="w-3 h-3" />
+                              Up to {group.maxOccupancy} guests
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Room description */}
+                        {group.description && (
+                          <div className="mb-3">
+                            <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+                              {group.description}
+                            </p>
+                            {group.description.length > 120 && (
+                              <button
+                                className="text-xs text-primary mt-0.5 hover:underline"
+                                onClick={() => setExpandedDescMap(prev => ({ ...prev, [group.mappedRoomId]: !isExpanded }))}
+                              >
+                                {isExpanded ? "Show less" : "Read more"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Room amenities */}
+                        {group.amenities.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-4">
+                            {group.amenities.slice(0, 8).map((a) => (
+                              <span key={a} className="text-[10px] border border-border rounded px-1.5 py-0.5 text-muted-foreground">{a}</span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Rate options */}
+                        <div className="space-y-3 mt-auto">
+                          {group.rates.map((rate: any) => (
+                            <div
+                              key={rate.offerId}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/50 transition-colors gap-3"
+                              data-testid={`rate-${rate.offerId}`}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                  <span className="font-semibold text-sm">{rate.boardName}</span>
+                                  {rate.refundableTag === "RFN" ? (
+                                    <Badge variant="outline" className="text-[10px] h-5 text-emerald-600 border-emerald-200 bg-emerald-50">Free cancellation</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">Non-refundable</Badge>
+                                  )}
+                                </div>
+                                {rate.cancellationPolicy && (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Info className="w-3 h-3" />
+                                    {rate.cancellationPolicy}
+                                  </p>
                                 )}
                               </div>
-                              {rate.cancellationPolicy && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Info className="w-3 h-3" />
-                                  {rate.cancellationPolicy}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-6">
-                              <div className="text-right">
-                                <p className="text-lg font-bold">
-                                  {rate.currency} {rate.price.toLocaleString()}
-                                </p>
-                                <p className="text-[10px] text-muted-foreground">Total for your stay</p>
+                              <div className="flex items-center justify-between sm:justify-end gap-4">
+                                <div className="text-right">
+                                  <p className="text-lg font-bold">{rate.currency} {rate.price.toLocaleString()}</p>
+                                  <p className="text-[10px] text-muted-foreground">Total for your stay</p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSelectRate(rate)}
+                                  data-testid={`button-select-rate-${rate.offerId}`}
+                                >
+                                  Select
+                                </Button>
                               </div>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleSelectRate(rate)}
-                                data-testid={`button-select-rate-${rate.offerId}`}
-                              >
-                                Select
-                              </Button>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
@@ -952,25 +1052,64 @@ export default function HotelDetails() {
         </div>
       </div>
 
-      {/* Photo lightbox */}
+      {/* Photo lightbox — full gallery with navigation */}
       <AnimatePresence>
-        {showAllPhotos && (
+        {showAllPhotos && hotel && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setShowAllPhotos(false)}
+            className="fixed inset-0 z-50 bg-black flex flex-col"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setShowAllPhotos(false);
+              if (e.key === "ArrowLeft") setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length);
+              if (e.key === "ArrowRight") setLightboxIdx(i => (i + 1) % hotel.images.length);
+            }}
+            tabIndex={0}
           >
-            <button
-              onClick={() => setShowAllPhotos(false)}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              {gallery.map((img, i) => (
-                <img key={i} src={img} alt={`Photo ${i + 1}`} className="w-full aspect-video object-cover rounded-lg" />
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-6 py-4 shrink-0">
+              <span className="text-white/70 text-sm">{lightboxIdx + 1} / {hotel.images.length} photos</span>
+              <span className="text-white font-semibold text-sm">{hotel.name}</span>
+              <button onClick={() => setShowAllPhotos(false)} className="text-white/70 hover:text-white transition-colors p-1" data-testid="button-close-gallery">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Main image */}
+            <div className="flex-1 flex items-center justify-center px-14 relative min-h-0">
+              <button
+                onClick={() => setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length)}
+                className="absolute left-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                data-testid="button-gallery-prev"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <img
+                key={lightboxIdx}
+                src={hotel.images[lightboxIdx]}
+                alt={`Photo ${lightboxIdx + 1}`}
+                className="max-h-full max-w-full object-contain rounded-lg"
+              />
+              <button
+                onClick={() => setLightboxIdx(i => (i + 1) % hotel.images.length)}
+                className="absolute right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                data-testid="button-gallery-next"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Thumbnail strip */}
+            <div className="shrink-0 px-4 py-3 overflow-x-auto flex gap-2" style={{ scrollbarWidth: "thin" }}>
+              {hotel.images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setLightboxIdx(i)}
+                  className={`shrink-0 w-16 h-12 rounded overflow-hidden border-2 transition-colors ${i === lightboxIdx ? "border-white" : "border-transparent opacity-50 hover:opacity-80"}`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
               ))}
             </div>
           </motion.div>

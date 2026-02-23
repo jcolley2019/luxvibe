@@ -612,30 +612,23 @@ export async function registerRoutes(
         images.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80");
       }
 
-      // Extract room info (with photos) from hotel data
+      // Extract room info (with photos, description, amenities, bed types)
       const rooms: any[] = (hotelRaw.rooms || []).map((r: any) => ({
         id: String(r.id),
-        name: r.name || "Room",
-        photos: (r.photos || []).map((p: any) => ({ url: p.url || p })),
+        name: r.roomName || r.name || "Room",
+        photos: (r.photos || []).map((p: any) => ({ url: p.hd_url || p.url || p })),
+        description: r.description ? stripHtml(r.description) : null,
+        amenities: (r.roomAmenities || []).slice(0, 12).map((a: any) => a.name || a).filter(Boolean),
+        bedTypes: (r.bedTypes || []).map((b: any) => ({ type: b.bedType || b.type || "Bed", quantity: b.quantity || 1 })),
+        roomSize: r.roomSizeSquare ? `${r.roomSizeSquare} ${r.roomSizeUnit === "m2" ? "m²" : (r.roomSizeUnit || "sqm")}` : null,
+        maxOccupancy: r.maxOccupancy || r.maxAdults || null,
       }));
 
-      const facilityMap: Record<number, string> = {
-        1: "Parking", 8: "Restaurant", 91: "Fitness Center", 107: "24-hour Front Desk",
-        124: "Laundry", 491: "Free WiFi", 502: "Airport Shuttle", 509: "Spa",
-        519: "Pool", 526: "Bar", 533: "Room Service", 535: "Non-Smoking Rooms",
-        564: "Business Center", 581: "Elevator", 595: "Air Conditioning",
-        626: "Currency Exchange", 678: "Luggage Storage", 691: "Concierge",
-        692: "Daily Housekeeping", 804: "Breakfast", 805: "Family Rooms", 806: "Accessible",
-        1869: "Pet Friendly", 1979: "EV Charging",
-      };
-
-      const amenities: string[] = [];
-      if (hotelRaw.facilityIds && Array.isArray(hotelRaw.facilityIds)) {
-        for (const fid of hotelRaw.facilityIds) {
-          const name = facilityMap[fid];
-          if (name) amenities.push(name);
-        }
-      }
+      // Use the facilities[] array from the API which has names directly
+      const amenities: string[] = (hotelRaw.facilities || [])
+        .map((f: any) => f.name || f)
+        .filter(Boolean)
+        .slice(0, 60);
       if (amenities.length === 0) {
         amenities.push("Contact hotel for amenities");
       }

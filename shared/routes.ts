@@ -112,6 +112,11 @@ export const api = {
             id: z.string(),
             name: z.string(),
             photos: z.array(z.object({ url: z.string() })).optional(),
+            description: z.string().nullable().optional(),
+            amenities: z.array(z.string()).optional(),
+            bedTypes: z.array(z.object({ type: z.string(), quantity: z.number() })).optional(),
+            roomSize: z.string().nullable().optional(),
+            maxOccupancy: z.number().nullable().optional(),
           })),
           roomTypes: z.array(z.object({
             offerId: z.string(),
