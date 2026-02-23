@@ -243,19 +243,24 @@ export function SearchHero({
                     data-testid="input-destination"
                   />
                   {showAutocomplete && places.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                    <div className="absolute top-full left-0 z-50 mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "280px" }}>
                       {(places as any[]).map((place: any) => (
                         <button
                           key={place.placeId}
-                          className="w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                          className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-start gap-3"
                           onClick={() => {
                             setDestination(place.displayName || place.placeId);
                             setPlaceId(place.placeId);
                             setShowAutocomplete(false);
                           }}
                         >
-                          <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
-                          <span className="truncate">{place.displayName || place.placeId}</span>
+                          <MapPin className="w-4 h-4 shrink-0 text-primary mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">{place.displayName || place.placeId}</div>
+                            {place.formattedAddress && (
+                              <div className="text-xs text-muted-foreground truncate">{place.formattedAddress}</div>
+                            )}
+                          </div>
                         </button>
                       ))}
                     </div>

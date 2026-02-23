@@ -453,9 +453,11 @@ export async function registerRoutes(
       const { q } = req.query as Record<string, string>;
       if (!q) return res.json([]);
       const data = await liteApiGet("/data/places", { textQuery: q });
-      const places = (data?.data || []).map((p: any) => ({
+      const raw = data?.data || [];
+      const places = raw.map((p: any) => ({
         placeId: p.placeId,
-        displayName: p.name,
+        displayName: p.displayName || p.name || p.placeId,
+        formattedAddress: p.formattedAddress || "",
       }));
       res.json(places);
     } catch (err: any) {
