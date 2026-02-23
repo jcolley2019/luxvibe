@@ -458,6 +458,7 @@ export async function registerRoutes(
         placeId: p.placeId,
         displayName: p.displayName || p.name || p.placeId,
         formattedAddress: p.formattedAddress || "",
+        types: p.types || [],
       }));
       res.json(places);
     } catch (err: any) {
