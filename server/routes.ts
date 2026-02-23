@@ -712,6 +712,7 @@ export async function registerRoutes(
 
       // Fetch room rates
       let roomTypes: any[] = [];
+      let reviewCountFromRates: number | null = null;
       if (checkIn && checkOut) {
         const guestCount = parseInt(guests || "2");
         try {
@@ -724,7 +725,10 @@ export async function registerRoutes(
             occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
           });
 
-          const rawRoomTypes: any[] = ratesData?.data?.[0]?.roomTypes || [];
+          const ratesHotel = ratesData?.data?.[0] || {};
+          const rcVal = ratesHotel.reviews_total ?? ratesHotel.reviewCount ?? ratesHotel.review_count;
+          if (rcVal != null) reviewCountFromRates = Number(rcVal) || null;
+          const rawRoomTypes: any[] = ratesHotel.roomTypes || [];
           for (const rt of rawRoomTypes) {
             if (roomTypes.length >= 15) break;
             const rate = rt.rates?.[0];
@@ -762,7 +766,9 @@ export async function registerRoutes(
         description,
         stars: hotelRaw.stars ? parseFloat(String(hotelRaw.stars)) : null,
         rating: hotelRaw.rating ? parseFloat(String(hotelRaw.rating)) : null,
-        reviewCount: hotelRaw.reviews_total || null,
+        reviewCount: (hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count)
+          ? Number(hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count) || null
+          : reviewCountFromRates,
         checkinTime: hotelRaw.checkinCheckoutTimes?.checkin_start || null,
         checkoutTime: hotelRaw.checkinCheckoutTimes?.checkout || null,
         images,

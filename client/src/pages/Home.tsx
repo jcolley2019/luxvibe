@@ -86,6 +86,15 @@ export default function Home() {
 
   const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(coords);
 
+  const enrichedRecentHotels = useMemo(() => {
+    const freshSources = [...(featured || []), ...(nearbyHotels || [])];
+    const reviewCountById: Record<string, number> = {};
+    freshSources.forEach(h => { if (h.reviewCount) reviewCountById[h.id] = h.reviewCount; });
+    return recentHotels.map(rh =>
+      (!rh.reviewCount && reviewCountById[rh.id]) ? { ...rh, reviewCount: reviewCountById[rh.id] } : rh
+    );
+  }, [recentHotels, featured, nearbyHotels]);
+
   const sortedHotels = useMemo(() => {
     if (!hotels) return [];
     const copy = [...hotels];
@@ -270,7 +279,7 @@ export default function Home() {
           {recentHotels.length > 0 && (
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-2xl font-bold font-heading">Your recent searches</h2>
+                <h2 className="text-2xl font-bold font-heading">Your Recent Searches</h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => scrollCarousel(recentCarouselRef, "left")}
@@ -293,7 +302,7 @@ export default function Home() {
                 className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
-                {recentHotels.map((hotel, i) => (
+                {enrichedRecentHotels.map((hotel, i) => (
                   <motion.div
                     key={hotel.id}
                     className="flex-none w-[calc(25%-15px)] min-w-[240px]"
