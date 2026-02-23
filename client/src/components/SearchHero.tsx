@@ -104,7 +104,6 @@ export function SearchHero({
     initialCheckIn ? { from: parseDate(initialCheckIn)!, to: parseDate(initialCheckOut) } : undefined
   );
   const [dateOpen, setDateOpen] = useState(false);
-  const [selectionPhase, setSelectionPhase] = useState<"checkin" | "checkout">("checkin");
   const [guestsOpen, setGuestsOpen] = useState(false);
 
   const initialAdults = parseInt(initialGuests || "2");
@@ -277,10 +276,7 @@ export function SearchHero({
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
             {/* Dates */}
-            <Popover open={dateOpen} onOpenChange={(open) => {
-              setDateOpen(open);
-              if (open) setSelectionPhase("checkin");
-            }}>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
               <PopoverTrigger asChild>
                 <button
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
@@ -291,14 +287,6 @@ export function SearchHero({
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
-                <div className="px-4 pt-3 pb-1 flex gap-4 text-xs font-medium border-b border-border mb-1">
-                  <span className={selectionPhase === "checkin" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
-                    Check-in
-                  </span>
-                  <span className={selectionPhase === "checkout" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
-                    Check-out
-                  </span>
-                </div>
                 <Calendar
                   initialFocus
                   mode="range"
@@ -306,19 +294,8 @@ export function SearchHero({
                   selected={date}
                   onSelect={(range) => {
                     const r = range as { from: Date; to?: Date } | undefined;
-                    if (!r?.from) return;
-                    if (selectionPhase === "checkin") {
-                      setDate({ from: r.from, to: undefined });
-                      setSelectionPhase("checkout");
-                    } else {
-                      if (r.to && r.to > r.from) {
-                        setDate(r);
-                        setDateOpen(false);
-                        setSelectionPhase("checkin");
-                      } else {
-                        setDate({ from: r.from, to: undefined });
-                      }
-                    }
+                    setDate(r);
+                    if (r?.to) setDateOpen(false);
                   }}
                   numberOfMonths={2}
                   disabled={(d) => d < new Date()}
