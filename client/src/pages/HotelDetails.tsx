@@ -5,12 +5,14 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
-  BedDouble, Users, Maximize2, ChevronRight
+  BedDouble, Users, Maximize2, ChevronRight, CalendarDays
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
@@ -186,6 +188,11 @@ export default function HotelDetails() {
   const [checkIn, setCheckIn] = useState(checkInParam || defaultCheckIn);
   const [checkOut, setCheckOut] = useState(checkOutParam || defaultCheckOut);
   const [guests] = useState(guestsParam);
+  const [dateOpen, setDateOpen] = useState(false);
+  const dateRange = {
+    from: parseISO(checkIn),
+    to: parseISO(checkOut),
+  };
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
@@ -579,42 +586,47 @@ export default function HotelDetails() {
 
           {/* Date strip */}
           <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <div className="flex items-center gap-2 flex-1 min-w-[280px] border border-border rounded-xl overflow-hidden">
-              <div className="flex-1 px-4 py-2.5 border-r border-border">
-                <p className="text-xs text-muted-foreground">Check-in</p>
-                <input
-                  type="date"
-                  value={checkIn}
-                  min={format(new Date(), "yyyy-MM-dd")}
-                  onChange={e => setCheckIn(e.target.value)}
-                  className="text-sm font-medium bg-transparent outline-none w-full"
-                  data-testid="input-checkin"
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex items-center gap-3 flex-1 min-w-[280px] border border-border rounded-xl px-4 py-2.5 hover:bg-muted/40 transition-colors text-left"
+                  data-testid="button-dates"
+                >
+                  <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Dates</p>
+                    <p className="text-sm font-medium">
+                      {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 shrink-0">
+                    {differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? "s" : ""}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  defaultMonth={parseISO(checkIn)}
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    const r = range as { from: Date; to?: Date } | undefined;
+                    if (r?.from) setCheckIn(format(r.from, "yyyy-MM-dd"));
+                    if (r?.to) {
+                      setCheckOut(format(r.to, "yyyy-MM-dd"));
+                      setDateOpen(false);
+                    }
+                  }}
+                  disabled={(d) => d < new Date()}
                 />
-              </div>
-              <div className="flex-1 px-4 py-2.5">
-                <p className="text-xs text-muted-foreground">Check-out</p>
-                <input
-                  type="date"
-                  value={checkOut}
-                  min={checkIn}
-                  onChange={e => setCheckOut(e.target.value)}
-                  className="text-sm font-medium bg-transparent outline-none w-full"
-                  data-testid="input-checkout"
-                />
-              </div>
-            </div>
+              </PopoverContent>
+            </Popover>
+
             <div className="border border-border rounded-xl px-4 py-2.5 min-w-[160px]">
               <p className="text-xs text-muted-foreground">Guests</p>
               <p className="text-sm font-medium">1 Room, {guests} Adults</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-[58px] px-4"
-              data-testid="button-change-search"
-            >
-              Change search
-            </Button>
           </div>
 
           {noRooms ? (
