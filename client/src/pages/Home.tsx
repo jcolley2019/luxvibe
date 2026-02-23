@@ -88,11 +88,18 @@ export default function Home() {
 
   const enrichedRecentHotels = useMemo(() => {
     const freshSources = [...(featured || []), ...(nearbyHotels || [])];
-    const reviewCountById: Record<string, number> = {};
-    freshSources.forEach(h => { if (h.reviewCount) reviewCountById[h.id] = h.reviewCount; });
-    return recentHotels.map(rh =>
-      (!rh.reviewCount && reviewCountById[rh.id]) ? { ...rh, reviewCount: reviewCountById[rh.id] } : rh
-    );
+    const freshById: Record<string, { stars?: number | null; rating?: number | null; reviewCount?: number | null }> = {};
+    freshSources.forEach(h => { freshById[h.id] = { stars: h.stars, rating: h.rating, reviewCount: h.reviewCount }; });
+    return recentHotels.map(rh => {
+      const fresh = freshById[rh.id];
+      if (!fresh) return rh;
+      return {
+        ...rh,
+        stars: rh.stars ?? fresh.stars ?? null,
+        rating: rh.rating ?? fresh.rating ?? null,
+        reviewCount: rh.reviewCount ?? fresh.reviewCount ?? null,
+      };
+    });
   }, [recentHotels, featured, nearbyHotels]);
 
   const sortedHotels = useMemo(() => {
