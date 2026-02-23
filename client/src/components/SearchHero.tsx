@@ -68,6 +68,7 @@ export function SearchHero({
   );
   const [dateOpen, setDateOpen] = useState(false);
   const [guests, setGuests] = useState(parseInt(initialGuests || "2"));
+  const [children, setChildren] = useState(0);
 
   const handleSearch = () => {
     if (!date?.from || !date?.to) return;
@@ -76,7 +77,7 @@ export function SearchHero({
 
     const checkIn = format(date.from, "yyyy-MM-dd");
     const checkOut = format(date.to, "yyyy-MM-dd");
-    const params = new URLSearchParams({ checkIn, checkOut, guests: String(guests) });
+    const params = new URLSearchParams({ checkIn, checkOut, guests: String(guests), children: String(children) });
 
     if (mode === "destination") {
       params.set("destination", destination);
@@ -114,7 +115,9 @@ export function SearchHero({
       : format(date.from, "MMM d")
     : "Add dates";
 
-  const guestsLabel = `1 Room, ${guests} Guest${guests !== 1 ? "s" : ""}`;
+  const guestsLabel = children > 0
+    ? `1 Room, ${guests} Adult${guests !== 1 ? "s" : ""}, ${children} Child${children !== 1 ? "ren" : ""}`
+    : `1 Room, ${guests} Guest${guests !== 1 ? "s" : ""}`;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -242,7 +245,7 @@ export function SearchHero({
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-4" align="end">
+              <PopoverContent className="w-64 p-4 space-y-4" align="end">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium text-sm">Adults</div>
@@ -252,11 +255,32 @@ export function SearchHero({
                     <button
                       onClick={() => setGuests(Math.max(1, guests - 1))}
                       className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                      data-testid="button-adults-minus"
                     >−</button>
-                    <span className="w-4 text-center font-medium">{guests}</span>
+                    <span className="w-4 text-center font-medium" data-testid="text-adults-count">{guests}</span>
                     <button
                       onClick={() => setGuests(Math.min(20, guests + 1))}
                       className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                      data-testid="button-adults-plus"
+                    >+</button>
+                  </div>
+                </div>
+                <div className="border-t border-border pt-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-sm">Children</div>
+                    <div className="text-xs text-muted-foreground">Ages 0–17</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setChildren(Math.max(0, children - 1))}
+                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                      data-testid="button-children-minus"
+                    >−</button>
+                    <span className="w-4 text-center font-medium" data-testid="text-children-count">{children}</span>
+                    <button
+                      onClick={() => setChildren(Math.min(10, children + 1))}
+                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
+                      data-testid="button-children-plus"
                     >+</button>
                   </div>
                 </div>

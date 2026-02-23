@@ -466,13 +466,15 @@ export async function registerRoutes(
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, placeId, aiSearch, checkIn, checkOut, guests } = req.query as Record<string, string>;
+      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children } = req.query as Record<string, string>;
 
       if ((!destination && !placeId && !aiSearch) || !checkIn || !checkOut) {
         return res.status(400).json({ message: "destination/placeId/aiSearch, checkIn, checkOut are required" });
       }
 
       const guestCount = parseInt(guests || "2");
+      const childCount = parseInt(children || "0");
+      const childrenAges = Array.from({ length: childCount }, () => 10);
 
       let hotelIds: string[] = [];
       let hotelsMetadata: any[] = [];
@@ -484,7 +486,7 @@ export async function registerRoutes(
           checkout: checkOut,
           currency: "USD",
           guestNationality: "US",
-          occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+          occupancies: [{ rooms: 1, adults: guestCount, children: childrenAges }],
         });
 
         if (!ratesData?.data || ratesData.data.length === 0) {
@@ -549,7 +551,7 @@ export async function registerRoutes(
           checkout: checkOut,
           currency: "USD",
           guestNationality: "US",
-          occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
+          occupancies: [{ rooms: 1, adults: guestCount, children: childrenAges }],
         });
 
         if (ratesData?.data) {
