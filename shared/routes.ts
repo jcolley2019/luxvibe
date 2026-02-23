@@ -164,6 +164,7 @@ export const api = {
         firstName: z.string(),
         lastName: z.string(),
         email: z.string().email(),
+        phone: z.string(),
       }),
       responses: {
         200: z.any(),

@@ -669,10 +669,10 @@ export async function registerRoutes(
 
   app.post(api.hotels.book.path, async (req, res) => {
     try {
-      const { prebookId, transactionId, firstName, lastName, email } = api.hotels.book.input.parse(req.body);
+      const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
       const data = await liteApiPost("/rates/book", {
         prebookId,
-        holder: { firstName, lastName, email },
+        holder: { firstName, lastName, email, phone },
         payment: {
           method: "TRANSACTION_ID",
           transactionId

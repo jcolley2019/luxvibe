@@ -19,6 +19,7 @@ const guestSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
   email: z.string().email("Invalid email address"),
+  phone: z.string().min(6, "Phone number is required"),
 });
 
 type GuestFormValues = z.infer<typeof guestSchema>;
@@ -60,6 +61,7 @@ export default function Checkout() {
       firstName: "",
       lastName: "",
       email: "",
+      phone: "",
     },
   });
 
@@ -76,6 +78,7 @@ export default function Checkout() {
         firstName: variables.firstName,
         lastName: variables.lastName,
         email: variables.email,
+        phone: variables.phone,
         hotelId,
         hotelName,
         checkIn,
@@ -197,6 +200,19 @@ export default function Checkout() {
                           <FormLabel>Email Address</FormLabel>
                           <FormControl>
                             <Input placeholder="john.doe@example.com" type="email" {...field} data-testid="input-email" disabled={prebookMutation.isPending || !!prebookData} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+1 555 000 0000" type="tel" {...field} data-testid="input-phone" disabled={prebookMutation.isPending || !!prebookData} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

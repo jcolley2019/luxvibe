@@ -55,6 +55,7 @@ export default function BookingConfirmation() {
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
       email: parsedData.email,
+      phone: parsedData.phone || "0000000000",
     });
   }, []);
 
