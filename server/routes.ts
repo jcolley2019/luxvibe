@@ -466,15 +466,33 @@ export async function registerRoutes(
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children } = req.query as Record<string, string>;
+      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig } = req.query as Record<string, string>;
 
       if ((!destination && !placeId && !aiSearch) || !checkIn || !checkOut) {
         return res.status(400).json({ message: "destination/placeId/aiSearch, checkIn, checkOut are required" });
       }
 
-      const guestCount = parseInt(guests || "2");
-      const childCount = parseInt(children || "0");
-      const childrenAges = Array.from({ length: childCount }, () => 10);
+      // Build occupancies from roomConfig (multi-room) or fall back to guests/children params
+      let occupancies: { rooms: number; adults: number; children: number[] }[];
+      if (roomConfig) {
+        try {
+          const parsedRooms: { adults: number; children: number }[] = JSON.parse(roomConfig);
+          occupancies = parsedRooms.map(r => ({
+            rooms: 1,
+            adults: r.adults || 1,
+            children: Array.from({ length: r.children || 0 }, () => 10),
+          }));
+        } catch {
+          occupancies = [{ rooms: 1, adults: parseInt(guests || "2"), children: [] }];
+        }
+      } else {
+        const guestCount = parseInt(guests || "2");
+        const childCount = parseInt(children || "0");
+        occupancies = [{ rooms: 1, adults: guestCount, children: Array.from({ length: childCount }, () => 10) }];
+      }
+
+      const guestCount = occupancies.reduce((s, o) => s + o.adults + o.children.length, 0);
+      const childrenAges = occupancies.flatMap(o => o.children);
 
       let hotelIds: string[] = [];
       let hotelsMetadata: any[] = [];
@@ -486,7 +504,7 @@ export async function registerRoutes(
           checkout: checkOut,
           currency: "USD",
           guestNationality: "US",
-          occupancies: [{ rooms: 1, adults: guestCount, children: childrenAges }],
+          occupancies,
         });
 
         if (!ratesData?.data || ratesData.data.length === 0) {
@@ -551,7 +569,7 @@ export async function registerRoutes(
           checkout: checkOut,
           currency: "USD",
           guestNationality: "US",
-          occupancies: [{ rooms: 1, adults: guestCount, children: childrenAges }],
+          occupancies,
         });
 
         if (ratesData?.data) {

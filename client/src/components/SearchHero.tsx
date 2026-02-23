@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
-import { Search, MapPin, Sparkles } from "lucide-react";
+import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -11,6 +11,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
+interface Room {
+  adults: number;
+  children: number;
+}
+
 interface SearchHeroProps {
   initialDestination?: string;
   initialPlaceId?: string;
@@ -18,6 +23,38 @@ interface SearchHeroProps {
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: string;
+}
+
+function Counter({
+  value,
+  min,
+  max,
+  onChange,
+  testIdPrefix,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  onChange: (v: number) => void;
+  testIdPrefix: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
+        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+        data-testid={`${testIdPrefix}-minus`}
+      >−</button>
+      <span className="w-4 text-center font-medium text-sm" data-testid={`${testIdPrefix}-count`}>{value}</span>
+      <button
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+        data-testid={`${testIdPrefix}-plus`}
+      >+</button>
+    </div>
+  );
 }
 
 export function SearchHero({
@@ -67,8 +104,40 @@ export function SearchHero({
     initialCheckIn ? { from: parseDate(initialCheckIn)!, to: parseDate(initialCheckOut) } : undefined
   );
   const [dateOpen, setDateOpen] = useState(false);
-  const [guests, setGuests] = useState(parseInt(initialGuests || "2"));
-  const [children, setChildren] = useState(0);
+  const [guestsOpen, setGuestsOpen] = useState(false);
+
+  const initialAdults = parseInt(initialGuests || "2");
+  const [rooms, setRooms] = useState<Room[]>([{ adults: initialAdults, children: 0 }]);
+  const [expandedRooms, setExpandedRooms] = useState<boolean[]>([true]);
+
+  const updateRoom = (idx: number, field: keyof Room, value: number) => {
+    setRooms(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  };
+
+  const addRoom = () => {
+    setRooms(prev => [...prev, { adults: 2, children: 0 }]);
+    setExpandedRooms(prev => [...prev, true]);
+  };
+
+  const removeRoom = (idx: number) => {
+    setRooms(prev => prev.filter((_, i) => i !== idx));
+    setExpandedRooms(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const toggleRoom = (idx: number) => {
+    setExpandedRooms(prev => prev.map((v, i) => i === idx ? !v : v));
+  };
+
+  const totalAdults = rooms.reduce((s, r) => s + r.adults, 0);
+  const totalChildren = rooms.reduce((s, r) => s + r.children, 0);
+  const totalGuests = totalAdults + totalChildren;
+
+  const guestsLabel = (() => {
+    const roomPart = `${rooms.length} Room${rooms.length !== 1 ? "s" : ""}`;
+    const adultPart = `${totalAdults} Adult${totalAdults !== 1 ? "s" : ""}`;
+    const childPart = totalChildren > 0 ? `, ${totalChildren} Child${totalChildren !== 1 ? "ren" : ""}` : "";
+    return `${roomPart}, ${adultPart}${childPart}`;
+  })();
 
   const handleSearch = () => {
     if (!date?.from || !date?.to) return;
@@ -77,7 +146,13 @@ export function SearchHero({
 
     const checkIn = format(date.from, "yyyy-MM-dd");
     const checkOut = format(date.to, "yyyy-MM-dd");
-    const params = new URLSearchParams({ checkIn, checkOut, guests: String(guests), children: String(children) });
+    const params = new URLSearchParams({
+      checkIn,
+      checkOut,
+      guests: String(totalAdults),
+      children: String(totalChildren),
+      roomConfig: JSON.stringify(rooms),
+    });
 
     if (mode === "destination") {
       params.set("destination", destination);
@@ -88,7 +163,7 @@ export function SearchHero({
 
     try {
       const existing = JSON.parse(localStorage.getItem("recentSearches") || "[]");
-      const entry = { destination: mode === "destination" ? destination : aiSearch, checkIn, checkOut, guests: String(guests) };
+      const entry = { destination: mode === "destination" ? destination : aiSearch, checkIn, checkOut, guests: String(totalAdults) };
       const filtered = existing.filter((s: any) => s.destination !== entry.destination);
       localStorage.setItem("recentSearches", JSON.stringify([entry, ...filtered].slice(0, 5)));
     } catch {}
@@ -114,10 +189,6 @@ export function SearchHero({
       ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
       : format(date.from, "MMM d")
     : "Add dates";
-
-  const guestsLabel = children > 0
-    ? `1 Room, ${guests} Adult${guests !== 1 ? "s" : ""}, ${children} Child${children !== 1 ? "ren" : ""}`
-    : `1 Room, ${guests} Guest${guests !== 1 ? "s" : ""}`;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -234,8 +305,8 @@ export function SearchHero({
 
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
-            {/* Guests */}
-            <Popover>
+            {/* Guests — multi-room configurator */}
+            <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
               <PopoverTrigger asChild>
                 <button
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
@@ -245,44 +316,96 @@ export function SearchHero({
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-4 space-y-4" align="end">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-sm">Adults</div>
-                    <div className="text-xs text-muted-foreground">Ages 18+</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setGuests(Math.max(1, guests - 1))}
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
-                      data-testid="button-adults-minus"
-                    >−</button>
-                    <span className="w-4 text-center font-medium" data-testid="text-adults-count">{guests}</span>
-                    <button
-                      onClick={() => setGuests(Math.min(20, guests + 1))}
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
-                      data-testid="button-adults-plus"
-                    >+</button>
-                  </div>
+              <PopoverContent className="w-72 p-0" align="end">
+                {/* Title */}
+                <div className="px-5 pt-5 pb-3 border-b border-border">
+                  <h3 className="font-bold text-base">Configuring Rooms</h3>
                 </div>
-                <div className="border-t border-border pt-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-sm">Children</div>
-                    <div className="text-xs text-muted-foreground">Ages 0–17</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setChildren(Math.max(0, children - 1))}
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
-                      data-testid="button-children-minus"
-                    >−</button>
-                    <span className="w-4 text-center font-medium" data-testid="text-children-count">{children}</span>
-                    <button
-                      onClick={() => setChildren(Math.min(10, children + 1))}
-                      className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium"
-                      data-testid="button-children-plus"
-                    >+</button>
-                  </div>
+
+                {/* Rooms list */}
+                <div className="max-h-80 overflow-y-auto divide-y divide-border">
+                  {rooms.map((room, idx) => (
+                    <div key={idx} className="px-5 py-3">
+                      {/* Room header */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-sm">Room {idx + 1}</span>
+                        <div className="flex items-center gap-1">
+                          {rooms.length > 1 && (
+                            <button
+                              onClick={() => removeRoom(idx)}
+                              className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors rounded"
+                              data-testid={`button-remove-room-${idx}`}
+                              title="Remove room"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => toggleRoom(idx)}
+                            className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded"
+                            data-testid={`button-toggle-room-${idx}`}
+                          >
+                            {expandedRooms[idx]
+                              ? <ChevronUp className="w-4 h-4" />
+                              : <ChevronDown className="w-4 h-4" />
+                            }
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Room details (collapsible) */}
+                      {expandedRooms[idx] && (
+                        <div className="space-y-3">
+                          {/* Adults */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium">Adults</div>
+                            </div>
+                            <Counter
+                              value={room.adults}
+                              min={1}
+                              max={10}
+                              onChange={(v) => updateRoom(idx, "adults", v)}
+                              testIdPrefix={`room-${idx}-adults`}
+                            />
+                          </div>
+                          {/* Children */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium">Children</div>
+                              <div className="text-xs text-muted-foreground">Ages 0 to 17</div>
+                            </div>
+                            <Counter
+                              value={room.children}
+                              min={0}
+                              max={6}
+                              onChange={(v) => updateRoom(idx, "children", v)}
+                              testIdPrefix={`room-${idx}-children`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer buttons */}
+                <div className="flex gap-2 px-5 py-4 border-t border-border">
+                  <button
+                    onClick={addRoom}
+                    disabled={rooms.length >= 5}
+                    className="flex-1 py-2 rounded-full border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-testid="button-add-room"
+                  >
+                    Add room
+                  </button>
+                  <button
+                    onClick={() => setGuestsOpen(false)}
+                    className="flex-1 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                    data-testid="button-done-guests"
+                  >
+                    Done
+                  </button>
                 </div>
               </PopoverContent>
             </Popover>
