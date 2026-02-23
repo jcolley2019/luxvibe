@@ -717,12 +717,12 @@ export default function HotelDetails() {
                         {/* Room description */}
                         {group.description && (
                           <div className="mb-3">
-                            <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+                            <p className={`text-sm font-sans font-normal text-foreground/65 leading-relaxed tracking-wide ${isExpanded ? "" : "line-clamp-2"}`}>
                               {group.description}
                             </p>
                             {group.description.length > 120 && (
                               <button
-                                className="text-xs text-primary mt-0.5 hover:underline"
+                                className="text-xs text-primary mt-1 hover:underline font-medium"
                                 onClick={() => setExpandedDescMap(prev => ({ ...prev, [group.mappedRoomId]: !isExpanded }))}
                               >
                                 {isExpanded ? "Show less" : "Read more"}

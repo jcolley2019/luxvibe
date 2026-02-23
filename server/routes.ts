@@ -649,17 +649,47 @@ export async function registerRoutes(
         maxOccupancy: r.maxOccupancy || r.maxAdults || null,
       }));
 
-      // Name-based photo finder: score rooms by shared keywords, pick best match
+      // Bed-type keywords — highly distinctive, worth 4x and conflict-penalized
+      const BED_TYPES = ["king", "queen", "double", "twin", "single", "suite", "studio", "bunk"];
+
+      // Name-based photo finder: weighted keyword scoring with conflict penalty
       const findPhotosByName = (rateName: string): { url: string }[] => {
         const rateWords = normalizeName(rateName).split(" ").filter(w => w.length > 2);
-        let bestScore = 0;
+        const rateBedTypes = rateWords.filter(w => BED_TYPES.includes(w));
+
+        let bestScore = -Infinity;
         let bestPhotos: { url: string }[] = [];
+
         for (const room of roomDataList) {
           if (!room.photos.length) continue;
-          const roomWordSet = new Set<string>(room.normalizedName.split(" ").filter((w: string) => w.length > 2));
+          const roomWords: string[] = room.normalizedName.split(" ").filter((w: string) => w.length > 2);
+          const roomWordSet = new Set<string>(roomWords);
+          const roomBedTypes = roomWords.filter((w: string) => BED_TYPES.includes(w));
+
           let score = 0;
-          for (let i = 0; i < rateWords.length; i++) { if (roomWordSet.has(rateWords[i])) score++; }
-          if (score > bestScore) { bestScore = score; bestPhotos = room.photos; }
+
+          // Score each rate word
+          for (let i = 0; i < rateWords.length; i++) {
+            const w = rateWords[i];
+            if (roomWordSet.has(w)) {
+              // Bed-type keyword: worth 4 points; any other match: 1 point
+              score += BED_TYPES.includes(w) ? 4 : 1;
+            }
+          }
+
+          // Penalize conflicting bed types (rate says "king" but room says "double" etc.)
+          if (rateBedTypes.length > 0 && roomBedTypes.length > 0) {
+            const rateBedSet = new Set<string>(rateBedTypes);
+            for (let i = 0; i < roomBedTypes.length; i++) {
+              if (!rateBedSet.has(roomBedTypes[i])) score -= 6;
+            }
+          }
+
+          // Only consider rooms with a positive meaningful score
+          if (score > 0 && score > bestScore) {
+            bestScore = score;
+            bestPhotos = room.photos;
+          }
         }
         return bestPhotos;
       };
