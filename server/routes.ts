@@ -250,35 +250,112 @@ export async function registerRoutes(
 
   app.get(api.hotels.nearby.path, async (req, res) => {
     try {
+      res.set("Cache-Control", "no-store");
       const { lat, lng } = req.query as Record<string, string>;
       if (!lat || !lng) {
         return res.status(400).json({ message: "lat and lng are required" });
       }
 
-      // Reverse geocode coordinates -> city + country using Nominatim (free, no key needed)
+      const nominatimHeaders = { "User-Agent": "Luxvibe/1.0 (hotel booking app)" };
+
+      // First try detailed reverse geocode (zoom=14 default)
       const geoRes = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-        { headers: { "User-Agent": "Luxvibe/1.0 (hotel booking app)" } }
+        { headers: nominatimHeaders }
       );
       const geoData = await geoRes.json();
       const addr = geoData?.address || {};
-      const cityName = addr.city || addr.town || addr.village || addr.county || "";
-      const countryCode = addr.country_code?.toUpperCase() || "US";
+      let countryCode = addr.country_code?.toUpperCase() || "US";
 
+      // Only use real city/town/village — NOT county, as LiteAPI doesn't index by county
+      let cityName = addr.city || addr.town || addr.village || addr.suburb || addr.municipality || "";
+
+      // If no city-level name, retry Nominatim at zoom=10 (city-level zoom)
       if (!cityName) {
-        return res.json([]);
+        try {
+          const cityGeoRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
+            { headers: nominatimHeaders }
+          );
+          const cityGeoData = await cityGeoRes.json();
+          const cityAddr = cityGeoData?.address || {};
+          cityName = cityAddr.city || cityAddr.town || cityAddr.village || cityAddr.suburb || cityAddr.municipality || "";
+        } catch { }
       }
 
-      console.log(`[nearby] Resolved coords (${lat},${lng}) -> ${cityName}, ${countryCode}`);
+      console.log(`[nearby] Resolved coords (${lat},${lng}) -> "${cityName}", ${countryCode}`);
 
-      const hotelsData = await liteApiGet("/data/hotels", {
-        cityName,
-        countryCode,
-        limit: "20",
-        offset: "0",
-      });
+      const KNOWN_CITIES = [
+        { cityName: "Las Vegas", countryCode: "US", lat: 36.1699, lng: -115.1398 },
+        { cityName: "Los Angeles", countryCode: "US", lat: 34.0522, lng: -118.2437 },
+        { cityName: "San Francisco", countryCode: "US", lat: 37.7749, lng: -122.4194 },
+        { cityName: "Seattle", countryCode: "US", lat: 47.6062, lng: -122.3321 },
+        { cityName: "Chicago", countryCode: "US", lat: 41.8781, lng: -87.6298 },
+        { cityName: "New York", countryCode: "US", lat: 40.7128, lng: -74.0060 },
+        { cityName: "Miami", countryCode: "US", lat: 25.7617, lng: -80.1918 },
+        { cityName: "Denver", countryCode: "US", lat: 39.7392, lng: -104.9903 },
+        { cityName: "Dallas", countryCode: "US", lat: 32.7767, lng: -96.7970 },
+        { cityName: "Houston", countryCode: "US", lat: 29.7604, lng: -95.3698 },
+        { cityName: "Phoenix", countryCode: "US", lat: 33.4484, lng: -112.0740 },
+        { cityName: "Portland", countryCode: "US", lat: 45.5051, lng: -122.6750 },
+        { cityName: "Paris", countryCode: "FR", lat: 48.8566, lng: 2.3522 },
+        { cityName: "London", countryCode: "GB", lat: 51.5074, lng: -0.1278 },
+        { cityName: "Dubai", countryCode: "AE", lat: 25.2048, lng: 55.2708 },
+      ];
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      const geoDistSq = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
+        Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2);
+      const sortedFallbacks = KNOWN_CITIES.slice().sort((a, b) =>
+        geoDistSq({ lat: userLat, lng: userLng }, a) - geoDistSq({ lat: userLat, lng: userLng }, b)
+      );
 
-      const hotelsList: any[] = hotelsData?.data || [];
+      // Helper to fetch hotels for a city
+      const fetchHotelsForCity = async (city: string, country: string) => {
+        const data = await liteApiGet("/data/hotels", {
+          cityName: city,
+          countryCode: country,
+          limit: "25",
+          offset: "0",
+        });
+        return (data?.data || []) as any[];
+      };
+
+      let hotelsList: any[] = [];
+
+      // Try geocoded city first (if we got one)
+      if (cityName) {
+        hotelsList = await fetchHotelsForCity(cityName, countryCode);
+
+        // If no hotels found, try zoom=8 (region level) for a bigger city name
+        if (hotelsList.length === 0) {
+          try {
+            const regionRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=8`,
+              { headers: nominatimHeaders }
+            );
+            const regionData = await regionRes.json();
+            const regionAddr = regionData?.address || {};
+            const fallbackCity = regionAddr.city || regionAddr.town || regionAddr.village || regionAddr.state_district || "";
+            if (fallbackCity && fallbackCity !== cityName) {
+              console.log(`[nearby] Fallback city from zoom=8: ${fallbackCity}`);
+              hotelsList = await fetchHotelsForCity(fallbackCity, countryCode);
+            }
+          } catch { }
+        }
+      }
+
+      // Final fallback: find nearest well-covered city by lat/lng distance
+      if (hotelsList.length === 0) {
+        for (const city of sortedFallbacks) {
+          hotelsList = await fetchHotelsForCity(city.cityName, city.countryCode);
+          if (hotelsList.length > 0) {
+            console.log(`[nearby] Nearest known city fallback: ${city.cityName}`);
+            break;
+          }
+        }
+      }
+
       if (hotelsList.length === 0) return res.json([]);
 
       const nearby = hotelsList
@@ -596,7 +673,7 @@ export async function registerRoutes(
   app.get("/api/hotels/:id/reviews", async (req, res) => {
     try {
       const hotelId = req.params.id;
-      const reviewsData = await liteApiGet("/data/reviews", { hotelId, limit: 10 });
+      const reviewsData = await liteApiGet("/data/reviews", { hotelId, limit: "10" });
       const raw: any[] = Array.isArray(reviewsData?.data) ? reviewsData.data : [];
       res.json(raw.map((r: any) => ({
         name: r.name || "Guest",

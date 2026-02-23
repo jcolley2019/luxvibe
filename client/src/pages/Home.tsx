@@ -278,13 +278,20 @@ export default function Home() {
           {geoStatus !== "denied" && (
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
-                <div className="flex items-center gap-2">
-                  {(geoStatus === "granted" && nearbyHotels && nearbyHotels.length > 0) && (
-                    <span className="text-muted-foreground text-sm mr-1">{nearbyHotels.length} properties nearby</span>
+                <div>
+                  <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
+                  {nearbyHotels && nearbyHotels.length > 0 && nearbyHotels[0].city && (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Showing hotels in <span className="font-medium text-foreground">{nearbyHotels[0].city}</span>
+                    </p>
                   )}
                   {(geoStatus === "idle" || geoStatus === "loading") && (
-                    <span className="text-muted-foreground text-sm mr-1">Finding your location…</span>
+                    <p className="text-sm text-muted-foreground mt-0.5">Finding your location…</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {(geoStatus === "granted" && nearbyHotels && nearbyHotels.length > 0) && (
+                    <span className="text-muted-foreground text-sm mr-1">{nearbyHotels.length} properties</span>
                   )}
                   <button
                     onClick={() => scrollCarousel(nearbyCarouselRef, "left")}
