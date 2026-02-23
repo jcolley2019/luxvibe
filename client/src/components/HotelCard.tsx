@@ -168,7 +168,7 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
                   <div className="min-w-0">
                     <div className="text-xs font-semibold text-foreground leading-tight">{label}</div>
                     {reviewCount ? (
-                      <div className="text-xs text-muted-foreground">{reviewCount.toLocaleString()}</div>
+                      <div className="text-xs text-muted-foreground">{reviewCount.toLocaleString()} Reviews</div>
                     ) : null}
                   </div>
                 </>
