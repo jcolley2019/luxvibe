@@ -217,7 +217,8 @@ export default function HotelDetails() {
     });
     return Object.entries(groups).map(([mappedRoomId, rates]) => {
       const roomInfo = hotel.rooms.find(r => r.id === mappedRoomId);
-      const photos = (roomInfo?.photos || []).map(p => p.url).filter(Boolean);
+      // Primary: room data photos (if IDs match); Secondary: server-matched photos from rate; Fallback: hotel exterior
+      const photos = (roomInfo?.photos || (rates[0] as any)?.photos || []).map((p: any) => p.url).filter(Boolean);
       if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
       return {
         mappedRoomId,
@@ -672,7 +673,7 @@ export default function HotelDetails() {
                               <ChevronRight className="w-4 h-4" />
                             </button>
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                              {group.photos.slice(0, 8).map((_, i) => (
+                              {group.photos.slice(0, 8).map((_: string, i: number) => (
                                 <button
                                   key={i}
                                   onClick={() => setRoomPhotoIdx(group.mappedRoomId, i)}

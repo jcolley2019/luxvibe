@@ -632,17 +632,40 @@ export async function registerRoutes(
         images.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80");
       }
 
-      // Extract room info (with photos, description, amenities, bed types)
-      const rooms: any[] = (hotelRaw.rooms || []).map((r: any) => ({
+      // Extract room info and build a name-based lookup for photo matching
+      // (mappedRoomId from rates != rooms[].id from hotel data — different formats)
+      const normalizeName = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+      const roomDataList: any[] = (hotelRaw.rooms || []).map((r: any) => ({
         id: String(r.id),
         name: r.roomName || r.name || "Room",
-        photos: (r.photos || []).map((p: any) => ({ url: p.hd_url || p.url || p })),
+        normalizedName: normalizeName(r.roomName || r.name || ""),
+        photos: (r.photos || []).map((p: any) => ({ url: p.hd_url || p.url || p })).filter((p: any) => p.url && typeof p.url === "string"),
         description: r.description ? stripHtml(r.description) : null,
         amenities: (r.roomAmenities || []).slice(0, 12).map((a: any) => a.name || a).filter(Boolean),
         bedTypes: (r.bedTypes || []).map((b: any) => ({ type: b.bedType || b.type || "Bed", quantity: b.quantity || 1 })),
         roomSize: r.roomSizeSquare ? `${r.roomSizeSquare} ${r.roomSizeUnit === "m2" ? "m²" : (r.roomSizeUnit || "sqm")}` : null,
         maxOccupancy: r.maxOccupancy || r.maxAdults || null,
       }));
+
+      // Name-based photo finder: score rooms by shared keywords, pick best match
+      const findPhotosByName = (rateName: string): { url: string }[] => {
+        const rateWords = normalizeName(rateName).split(" ").filter(w => w.length > 2);
+        let bestScore = 0;
+        let bestPhotos: { url: string }[] = [];
+        for (const room of roomDataList) {
+          if (!room.photos.length) continue;
+          const roomWordSet = new Set<string>(room.normalizedName.split(" ").filter((w: string) => w.length > 2));
+          let score = 0;
+          for (let i = 0; i < rateWords.length; i++) { if (roomWordSet.has(rateWords[i])) score++; }
+          if (score > bestScore) { bestScore = score; bestPhotos = room.photos; }
+        }
+        return bestPhotos;
+      };
+
+      // Strip normalizedName before sending to client
+      const rooms: any[] = roomDataList.map(({ normalizedName, ...rest }) => rest);
 
       // Use the facilities[] array from the API which has names directly
       const amenities: string[] = (hotelRaw.facilities || [])
@@ -682,15 +705,17 @@ export async function registerRoutes(
               ? `Cancel by ${cancellationPolicies[0]?.cancelTime?.split("T")[0] || "check-in"}`
               : undefined;
 
+            const rateName = rt.name || rate?.name || "Room";
             roomTypes.push({
               offerId: rt.offerId,
               mappedRoomId: rt.mappedRoomId || rt.offerId,
-              name: rt.name || rate?.name || "Room",
+              name: rateName,
               boardName: rate?.boardName || "Room Only",
               price: typeof price === "number" ? price : parseFloat(String(price)) || 0,
               currency,
               refundableTag: rate?.refundableTag || undefined,
               cancellationPolicy,
+              photos: findPhotosByName(rateName),
             });
           }
         } catch (rateErr) {

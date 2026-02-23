@@ -127,6 +127,7 @@ export const api = {
             currency: z.string(),
             cancellationPolicy: z.string().optional(),
             refundableTag: z.string().optional(),
+            photos: z.array(z.object({ url: z.string() })).optional(),
           })),
         }),
         404: errorSchemas.notFound,
