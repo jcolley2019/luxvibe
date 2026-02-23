@@ -189,10 +189,10 @@ export default function HotelDetails() {
   const [checkOut, setCheckOut] = useState(checkOutParam || defaultCheckOut);
   const [guests] = useState(guestsParam);
   const [dateOpen, setDateOpen] = useState(false);
-  const dateRange = {
-    from: parseISO(checkIn),
-    to: parseISO(checkOut),
-  };
+  const [pendingRange, setPendingRange] = useState<{ from: Date; to?: Date }>({
+    from: parseISO(checkInParam || defaultCheckIn),
+    to: parseISO(checkOutParam || defaultCheckOut),
+  });
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
@@ -587,7 +587,10 @@ export default function HotelDetails() {
 
           {/* Date strip */}
           <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+            <Popover open={dateOpen} onOpenChange={(open) => {
+              setDateOpen(open);
+              if (open) setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) });
+            }}>
               <PopoverTrigger asChild>
                 <button
                   className="flex items-center gap-3 flex-1 min-w-[280px] border border-border rounded-xl px-4 py-2.5 hover:bg-muted/40 transition-colors text-left"
@@ -609,12 +612,14 @@ export default function HotelDetails() {
                 <Calendar
                   mode="range"
                   numberOfMonths={2}
-                  defaultMonth={parseISO(checkIn)}
-                  selected={dateRange}
+                  defaultMonth={pendingRange.from}
+                  selected={pendingRange}
                   onSelect={(range) => {
                     const r = range as { from: Date; to?: Date } | undefined;
-                    if (r?.from) setCheckIn(format(r.from, "yyyy-MM-dd"));
-                    if (r?.to) {
+                    if (!r) return;
+                    setPendingRange(r);
+                    if (r.from) setCheckIn(format(r.from, "yyyy-MM-dd"));
+                    if (r.to) {
                       setCheckOut(format(r.to, "yyyy-MM-dd"));
                       setDateOpen(false);
                     }
