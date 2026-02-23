@@ -66,6 +66,7 @@ export function SearchHero({
   const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(
     initialCheckIn ? { from: parseDate(initialCheckIn)!, to: parseDate(initialCheckOut) } : undefined
   );
+  const [dateOpen, setDateOpen] = useState(false);
   const [guests, setGuests] = useState(parseInt(initialGuests || "2"));
 
   const handleSearch = () => {
@@ -201,7 +202,7 @@ export function SearchHero({
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
             {/* Dates */}
-            <Popover>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
               <PopoverTrigger asChild>
                 <button
                   className="flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left min-w-[110px]"
@@ -217,7 +218,11 @@ export function SearchHero({
                   mode="range"
                   defaultMonth={date?.from}
                   selected={date}
-                  onSelect={(range) => setDate(range as { from: Date; to?: Date } | undefined)}
+                  onSelect={(range) => {
+                    const r = range as { from: Date; to?: Date } | undefined;
+                    setDate(r);
+                    if (r?.to) setDateOpen(false);
+                  }}
                   numberOfMonths={2}
                   disabled={(d) => d < new Date()}
                 />
