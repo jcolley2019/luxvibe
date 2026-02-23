@@ -179,7 +179,7 @@ export async function registerRoutes(
               .map((h: any) => ({
                 id: h.id,
                 name: h.name || "Hotel",
-                address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+                address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
                 city: cityName,
                 stars: h.stars ? parseFloat(String(h.stars)) : null,
                 rating: h.rating ? parseFloat(String(h.rating)) : null,
@@ -400,7 +400,7 @@ export async function registerRoutes(
         .map((h: any) => ({
           id: h.id,
           name: h.name || "Hotel",
-          address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+          address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
           city: h.city || cityName,
           stars: h.stars ? parseFloat(String(h.stars)) : null,
           rating: h.rating ? parseFloat(String(h.rating)) : null,
@@ -522,7 +522,7 @@ export async function registerRoutes(
           return {
             id: hotelRate.hotelId,
             name: h.name || "Hotel",
-            address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+            address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
             stars: h.stars ? parseFloat(String(h.stars)) : null,
             rating: h.rating ? parseFloat(String(h.rating)) : null,
             reviewCount: h.reviews_total || h.reviewCount || null,
@@ -591,7 +591,7 @@ export async function registerRoutes(
       const results = hotelsMetadata.map((h: any) => ({
         id: h.id,
         name: h.name || "Hotel",
-        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
         stars: h.stars ? parseFloat(String(h.stars)) : null,
         rating: h.rating ? parseFloat(String(h.rating)) : null,
         reviewCount: h.reviews_total || h.reviewCount || null,
@@ -760,7 +760,7 @@ export async function registerRoutes(
       res.json({
         id: hotelRaw.id,
         name: hotelRaw.name || "Hotel",
-        address: [hotelRaw.address, hotelRaw.city, hotelRaw.country].filter(Boolean).join(", "),
+        address: [hotelRaw.address, hotelRaw.city, hotelRaw.country?.toUpperCase()].filter(Boolean).join(", "),
         city: hotelRaw.city || null,
         countryCode: hotelRaw.countryCode || null,
         description,
@@ -829,7 +829,7 @@ export async function registerRoutes(
       const results = list.map((h: any, i: number) => ({
         id: h.id,
         name: h.name || "Hotel",
-        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
         stars: h.stars ? parseFloat(String(h.stars)) : null,
         rating: h.rating ? parseFloat(String(h.rating)) : null,
         reviewCount: h.reviews_total || null,
