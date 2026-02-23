@@ -474,8 +474,15 @@ export async function registerRoutes(
       }
 
       const images: string[] = [];
-      if (hotelRaw.main_photo) images.push(hotelRaw.main_photo);
-      if (hotelRaw.thumbnail && hotelRaw.thumbnail !== hotelRaw.main_photo) images.push(hotelRaw.thumbnail);
+      if (hotelRaw.hotelImages && Array.isArray(hotelRaw.hotelImages)) {
+        const sorted = [...hotelRaw.hotelImages].sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+        for (const img of sorted) {
+          const url = img.urlHd || img.url;
+          if (url && !images.includes(url)) images.push(url);
+        }
+      }
+      if (hotelRaw.main_photo && !images.includes(hotelRaw.main_photo)) images.push(hotelRaw.main_photo);
+      if (hotelRaw.thumbnail && !images.includes(hotelRaw.thumbnail)) images.push(hotelRaw.thumbnail);
       if (images.length === 0) {
         images.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80");
       }
@@ -563,6 +570,8 @@ export async function registerRoutes(
         stars: hotelRaw.stars ? parseFloat(String(hotelRaw.stars)) : null,
         rating: hotelRaw.rating ? parseFloat(String(hotelRaw.rating)) : null,
         reviewCount: hotelRaw.reviews_total || null,
+        checkinTime: hotelRaw.checkinCheckoutTimes?.checkin_start || null,
+        checkoutTime: hotelRaw.checkinCheckoutTimes?.checkout || null,
         images,
         amenities,
         rooms,
@@ -571,6 +580,28 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
       res.status(500).json({ message: "Failed to get hotel details" });
+    }
+  });
+
+  app.get("/api/hotels/:id/reviews", async (req, res) => {
+    try {
+      const hotelId = req.params.id;
+      const reviewsData = await liteApiGet("/data/reviews", { hotelId, limit: 10 });
+      const raw: any[] = Array.isArray(reviewsData?.data) ? reviewsData.data : [];
+      res.json(raw.map((r: any) => ({
+        name: r.name || "Guest",
+        score: typeof r.averageScore === "number" ? r.averageScore : null,
+        type: r.type?.replace(/review category /i, "") || null,
+        date: r.date ? r.date.split(" ")[0] : null,
+        headline: r.headline || null,
+        pros: r.pros || null,
+        cons: r.cons || null,
+        source: r.source || null,
+        country: r.country || null,
+      })));
+    } catch (err: any) {
+      console.error("Reviews error:", err?.message || err);
+      res.status(500).json({ message: "Failed to get reviews" });
     }
   });
 

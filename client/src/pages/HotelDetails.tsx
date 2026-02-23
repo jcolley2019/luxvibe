@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useHotel, useSimilarHotels } from "@/hooks/use-hotels";
+import { useHotel, useSimilarHotels, useHotelReviews } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -189,6 +189,7 @@ export default function HotelDetails() {
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
   const { data: similarHotels = [] } = useSimilarHotels(id!);
+  const { data: realReviews = [], isLoading: reviewsLoading } = useHotelReviews(id!);
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [wishlist, setWishlist] = useState(false);
@@ -355,7 +356,8 @@ export default function HotelDetails() {
   const gallery = getGallery(hotel.id, hotel.images);
   const highlights = generateHighlights(hotel.name, hotel.description, hotel.amenities);
   const categoryScores = hotel.rating ? generateCategoryScores(hotel.rating) : [];
-  const reviews = hotel.rating ? generateReviews(hotel.rating) : [];
+  const reviews = realReviews.length > 0 ? realReviews : (hotel.rating ? generateReviews(hotel.rating) : []);
+  const usingRealReviews = realReviews.length > 0;
   const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn)) || 1;
   const noRooms = groupedRooms.length === 0;
 
@@ -806,100 +808,132 @@ export default function HotelDetails() {
         {/* ─── Guest Reviews ─── */}
         <div ref={sectionRefs.reviews} className="border-t border-border pt-8 pb-10">
           <h2 className="text-xl font-bold mb-4">Guest reviews</h2>
-          {hotel.rating ? (
-            <div className="md:grid md:grid-cols-[280px_1fr] gap-8">
-              {/* Left panel */}
+          {(hotel.rating || reviews.length > 0) ? (
+            <div className="md:grid md:grid-cols-[260px_1fr] gap-8">
+              {/* Left panel – score summary */}
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className={`text-white text-base font-bold w-9 h-9 rounded-full flex items-center justify-center ${getRatingColor(hotel.rating)}`}>
-                    {hotel.rating.toFixed(0)}
-                  </span>
-                  <div>
-                    <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
-                    {effectiveReviewCount && (
-                      <p className="text-sm text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
+                {hotel.rating && (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className={`text-white text-base font-bold w-12 h-12 rounded-xl flex items-center justify-center text-xl ${getRatingColor(hotel.rating)}`}>
+                        {hotel.rating.toFixed(1)}
+                      </span>
+                      <div>
+                        <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
+                        {effectiveReviewCount && (
+                          <p className="text-sm text-muted-foreground">{effectiveReviewCount.toLocaleString()} reviews</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2.5 mb-5">
+                      {categoryScores.slice(0, 6).map(({ name, score }) => (
+                        <div key={name}>
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">{name}</span>
+                            <span className="font-medium">{score}</span>
+                          </div>
+                          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${getBarColor(score)}`} style={{ width: `${(score / 10) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {(hotel.checkinTime || hotel.checkoutTime) && (
+                  <div className="border border-border rounded-xl p-4 space-y-2">
+                    <p className="text-sm font-semibold mb-1">Check-in / Check-out</p>
+                    {hotel.checkinTime && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4 shrink-0" />
+                        <span>Check-in from <span className="font-medium text-foreground">{hotel.checkinTime}</span></span>
+                      </div>
+                    )}
+                    {hotel.checkoutTime && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4 shrink-0" />
+                        <span>Check-out by <span className="font-medium text-foreground">{hotel.checkoutTime}</span></span>
+                      </div>
                     )}
                   </div>
-                </div>
-                <p className="text-sm font-semibold mb-2">Top comments from travellers</p>
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {categoryScores.slice(0, 6).map(({ name, score }) => (
-                    <span key={name} className="text-xs border border-border rounded-full px-3 py-1">{name} ({score})</span>
-                  ))}
-                </div>
-                <p className="text-sm font-semibold mb-3">Who stays here</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { icon: Heart, label: "Couple", pct: "55%" },
-                    { icon: Building2, label: "Solo", pct: "19%" },
-                    { icon: Sparkles, label: "Family", pct: "11%" },
-                    { icon: Briefcase, label: "Business", pct: "9%" },
-                    { icon: Sparkles, label: "Friends/Group", pct: "6%" },
-                  ].map(({ icon: Icon, label, pct }) => (
-                    <div key={label} className="flex flex-col items-center gap-1 text-center">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                      <p className="text-xs font-semibold">{pct}</p>
-                    </div>
-                  ))}
-                </div>
+                )}
               </div>
 
-              {/* Right panel – reviews */}
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center ${getRatingColor(hotel.rating)}`}>
-                      {hotel.rating.toFixed(0)}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-sm leading-tight">{getRatingLabel(hotel.rating)}</p>
-                      {effectiveReviewCount && (
-                        <p className="text-xs text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
-                      )}
-                    </div>
+              {/* Right panel – individual reviews */}
+              <div className="flex flex-col mt-6 md:mt-0">
+                {reviewsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-8">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading reviews…
                   </div>
-                  <select className="text-sm border border-border rounded-lg px-3 py-1.5 bg-background outline-none">
-                    <option>Newest first</option>
-                    <option>Highest score</option>
-                    <option>Lowest score</option>
-                  </select>
-                </div>
-                <div className="border border-border rounded-xl divide-y divide-border overflow-y-auto max-h-[420px]">
-                  {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, i) => (
-                    <div key={i} className="p-4 flex items-start justify-between gap-3 bg-background" data-testid={`review-item-${i}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="font-semibold text-sm">{review.name}</span>
-                          <span className="text-xs text-muted-foreground">· {review.type}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">{review.date}</p>
-                        {review.title && <p className="text-sm font-medium mb-1">{review.title}</p>}
-                        {review.text && <p className="text-sm text-muted-foreground">{review.text}</p>}
-                      </div>
-                      <span className={`text-white text-sm font-bold w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${review.score >= 8 ? "bg-emerald-500" : "bg-amber-500"}`}>
-                        {review.score}
-                      </span>
+                ) : (
+                  <>
+                    <div className="border border-border rounded-xl divide-y divide-border overflow-hidden">
+                      {(showAllReviews ? reviews : reviews.slice(0, 4)).map((review, i) => {
+                        const isReal = usingRealReviews;
+                        const score = review.score ?? (review as any).score;
+                        const name = review.name;
+                        const type = review.type;
+                        const date = review.date;
+                        const pros = isReal ? (review as any).pros : (review as any).text;
+                        const cons = isReal ? (review as any).cons : null;
+                        const headline = isReal ? (review as any).headline : (review as any).title;
+                        const source = isReal ? (review as any).source : null;
+                        return (
+                          <div key={i} className="p-4 bg-background" data-testid={`review-item-${i}`}>
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-semibold text-sm">{name}</span>
+                                  {type && <span className="text-xs text-muted-foreground">· {type}</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {date && <p className="text-xs text-muted-foreground">{date}</p>}
+                                  {source && <span className="text-xs text-muted-foreground">via {source}</span>}
+                                </div>
+                              </div>
+                              {score != null && (
+                                <span className={`text-white text-sm font-bold w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${score >= 8 ? "bg-emerald-500" : "bg-amber-500"}`}>
+                                  {score}
+                                </span>
+                              )}
+                            </div>
+                            {headline && <p className="text-sm font-medium mb-1">{headline}</p>}
+                            {pros && (
+                              <div className="flex gap-1.5 mb-1">
+                                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-muted-foreground">{pros}</p>
+                              </div>
+                            )}
+                            {cons && (
+                              <div className="flex gap-1.5">
+                                <X className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                                <p className="text-sm text-muted-foreground">{cons}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-                <div className="flex items-center gap-4 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAllReviews(!showAllReviews)}
-                    data-testid="button-load-reviews"
-                  >
-                    {showAllReviews ? "Show less" : "Load more reviews"}
-                  </Button>
-                  {effectiveReviewCount && (
-                    <span className="text-sm text-muted-foreground">
-                      Showing {showAllReviews ? reviews.length : Math.min(3, reviews.length)} of {effectiveReviewCount.toLocaleString()} reviews
-                    </span>
-                  )}
-                </div>
+                    {reviews.length > 4 && (
+                      <div className="flex items-center gap-4 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAllReviews(!showAllReviews)}
+                          data-testid="button-load-reviews"
+                        >
+                          {showAllReviews ? "Show less" : `Load more reviews`}
+                        </Button>
+                        {effectiveReviewCount && (
+                          <span className="text-sm text-muted-foreground">
+                            Showing {showAllReviews ? reviews.length : Math.min(4, reviews.length)} of {effectiveReviewCount.toLocaleString()} reviews
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           ) : (

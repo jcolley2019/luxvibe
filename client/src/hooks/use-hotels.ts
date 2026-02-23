@@ -1,6 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse } from "@shared/routes";
 
+export type HotelReview = {
+  name: string;
+  score: number | null;
+  type: string | null;
+  date: string | null;
+  headline: string | null;
+  pros: string | null;
+  cons: string | null;
+  source: string | null;
+  country: string | null;
+};
+
 export type NearbyHotel = {
   id: string;
   name: string;
@@ -77,6 +89,20 @@ export function useSimilarHotels(id: string) {
       const res = await fetch(url);
       if (!res.ok) return [];
       return api.hotels.similar.responses[200].parse(await res.json());
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useHotelReviews(id: string) {
+  return useQuery<HotelReview[]>({
+    queryKey: ["/api/hotels/:id/reviews", id],
+    queryFn: async () => {
+      const url = buildUrl(api.hotels.reviews.path, { id });
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      return res.json();
     },
     enabled: !!id,
     staleTime: 1000 * 60 * 10,

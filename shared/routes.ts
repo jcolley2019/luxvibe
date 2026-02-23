@@ -104,10 +104,12 @@ export const api = {
           stars: z.number().nullable(),
           rating: z.number().nullable(),
           reviewCount: z.number().nullable(),
+          checkinTime: z.string().nullable(),
+          checkoutTime: z.string().nullable(),
           images: z.array(z.string()),
           amenities: z.array(z.string()),
           rooms: z.array(z.object({
-            id: z.string(), // mappedRoomId
+            id: z.string(),
             name: z.string(),
             photos: z.array(z.object({ url: z.string() })).optional(),
           })),
@@ -123,6 +125,24 @@ export const api = {
           })),
         }),
         404: errorSchemas.notFound,
+        500: errorSchemas.internal,
+      },
+    },
+    reviews: {
+      method: 'GET' as const,
+      path: '/api/hotels/:id/reviews' as const,
+      responses: {
+        200: z.array(z.object({
+          name: z.string(),
+          score: z.number().nullable(),
+          type: z.string().nullable(),
+          date: z.string().nullable(),
+          headline: z.string().nullable(),
+          pros: z.string().nullable(),
+          cons: z.string().nullable(),
+          source: z.string().nullable(),
+          country: z.string().nullable(),
+        })),
         500: errorSchemas.internal,
       },
     },
