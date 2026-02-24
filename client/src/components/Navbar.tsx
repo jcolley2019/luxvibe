@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, CalendarDays, Globe, KeyRound, X } from "lucide-react";
+import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb } from "lucide-react";
 
 const LANGUAGES = [
   { name: "English", code: "EN", flag: "🇺🇸" },
@@ -47,6 +47,39 @@ const CURRENCIES = [
   { name: "UAE Dirham", code: "AED", symbol: "د.إ" },
 ];
 
+const GUIDE_TIPS = [
+  {
+    icon: "✦",
+    title: "Pick from the dropdown for best results",
+    text: "When you type a destination, select a suggestion from the list — this gives the search engine a precise location and returns far more hotels.",
+  },
+  {
+    icon: "♠",
+    title: "Searching Las Vegas? Try \"Las Vegas Strip\"",
+    text: "Type \"Las Vegas Strip\" and choose from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more.",
+  },
+  {
+    icon: "✧",
+    title: "Use Vibe search for inspiration",
+    text: "Switch to the Vibe tab in the search bar and describe your dream stay — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it.",
+  },
+  {
+    icon: "★",
+    title: "4 & 5-star hotels shown by default",
+    text: "Results are curated to luxury properties. Use the star filter in the sidebar to include 3-star or budget options at any time.",
+  },
+  {
+    icon: "🛏",
+    title: "Adjust dates on the hotel page",
+    text: "On any hotel details page, use the compact search bar in the header to change your dates and see updated room rates instantly.",
+  },
+  {
+    icon: "🔒",
+    title: "Secure booking in 3 steps",
+    text: "Select a room → fill in your guest details → pay with our secure payment system. Your booking confirmation appears instantly.",
+  },
+];
+
 function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState<"language" | "currency">("language");
   const [selectedLang, setSelectedLang] = useState("EN");
@@ -66,7 +99,6 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
             <DialogTitle className="text-xl font-bold">Choose a language and currency</DialogTitle>
           </DialogHeader>
 
-          {/* Tabs */}
           <div className="flex gap-6 border-b border-border mb-5">
             {(["language", "currency"] as const).map(t => (
               <button
@@ -143,7 +175,6 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
         <div className="p-8">
-          {/* Logo */}
           <div className="text-center mb-6">
             <span
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -186,11 +217,24 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
-export function Navbar() {
+export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
+  const [tipsOpen, setTipsOpen] = useState(false);
+  const tipsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!tipsOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (tipsRef.current && !tipsRef.current.contains(e.target as Node)) {
+        setTipsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [tipsOpen]);
 
   return (
     <>
@@ -198,9 +242,9 @@ export function Navbar() {
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <span
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
               className="text-2xl font-semibold tracking-[0.18em] text-foreground uppercase"
@@ -209,8 +253,15 @@ export function Navbar() {
             </span>
           </Link>
 
+          {/* Central slot (compact search bar on hotel pages) */}
+          {centralSlot && (
+            <div className="flex-1 flex justify-center">
+              {centralSlot}
+            </div>
+          )}
+
           {/* Right side icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Language / Currency */}
             <button
               onClick={() => setLangOpen(true)}
@@ -220,6 +271,55 @@ export function Navbar() {
             >
               <Globe className="w-4 h-4" />
             </button>
+
+            {/* Lightbulb — site guide */}
+            <div className="relative" ref={tipsRef}>
+              <button
+                onClick={() => setTipsOpen(o => !o)}
+                className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${tipsOpen ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"}`}
+                title="Luxvibe Guide"
+                data-testid="button-site-guide"
+              >
+                <Lightbulb className="w-4 h-4" />
+              </button>
+
+              {tipsOpen && (
+                <div className="absolute top-11 right-0 w-80 bg-white dark:bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-sm text-foreground">Luxvibe Guide</span>
+                    </div>
+                    <button
+                      onClick={() => setTipsOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Tips list */}
+                  <div className="p-4 space-y-4 max-h-[420px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+                    {GUIDE_TIPS.map((tip, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <span className="text-lg leading-none shrink-0 mt-0.5">{tip.icon}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground leading-snug mb-0.5">{tip.title}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{tip.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="px-5 pb-4 pt-1 border-t border-border">
+                    <p className="text-[11px] text-muted-foreground text-center">
+                      Luxvibe — Luxury hotel booking made simple
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Manage Bookings */}
             <div className="relative">

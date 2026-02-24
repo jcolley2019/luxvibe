@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp, Map as MapIcon, Search, List } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -263,28 +263,6 @@ function HotelListCard({
   );
 }
 
-const TIPS = [
-  {
-    icon: "✦",
-    title: "Pick from the dropdown for best results",
-    text: "When you type a destination, select a suggestion from the list that appears — this gives the search engine a precise location and returns far more hotels.",
-  },
-  {
-    icon: "♠",
-    title: "Searching Las Vegas? Try \"Las Vegas Strip\"",
-    text: "Type \"Las Vegas Strip\" and choose that option from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more.",
-  },
-  {
-    icon: "✧",
-    title: "Use Vibe search for inspiration",
-    text: "Switch to the Vibe tab in the search bar and describe your dream stay in plain language — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it.",
-  },
-  {
-    icon: "★",
-    title: "4 & 5-star hotels shown by default",
-    text: "Results are curated to luxury properties by default. Use the star filter in the sidebar to include 3-star or budget options at any time.",
-  },
-];
 
 function fmtShortDate(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -332,148 +310,6 @@ function CompactSearchBar({
   );
 }
 
-function SearchTips() {
-  const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem("luxvibe_tips_v1") === "dismissed"; } catch { return false; }
-  });
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [expandedTip, setExpandedTip] = useState<number | null>(null);
-
-  const dismiss = () => {
-    try { localStorage.setItem("luxvibe_tips_v1", "dismissed"); } catch {}
-    setDismissed(true);
-  };
-
-  if (dismissed) return null;
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.35 }}
-        className="container mx-auto px-4 mb-3"
-      >
-        <div className="rounded-xl overflow-hidden border border-white/15 shadow-lg shadow-blue-900/20"
-          style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #1e40af 100%)" }}
-        >
-          {/* Header — always visible, toggles panel */}
-          <div className="flex items-center justify-between px-5 py-3.5">
-            <button
-              onClick={() => setPanelOpen(o => !o)}
-              className="flex items-center gap-3 flex-1 text-left group"
-              data-testid="button-toggle-tips"
-            >
-              <motion.div
-                className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0"
-                animate={!panelOpen ? {
-                  boxShadow: [
-                    "0 0 0px rgba(255,255,255,0.0)",
-                    "0 0 10px rgba(255,255,255,0.55)",
-                    "0 0 0px rgba(255,255,255,0.0)",
-                  ],
-                } : { boxShadow: "0 0 0px rgba(255,255,255,0.0)" }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Lightbulb className="w-3.5 h-3.5 text-white" />
-              </motion.div>
-              <motion.span
-                className="text-sm font-semibold tracking-wide text-white"
-                animate={!panelOpen ? { opacity: [1, 0.65, 1] } : { opacity: 1 }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                Search Tips
-              </motion.span>
-              <span className="text-[10px] uppercase tracking-widest text-white/50 font-medium hidden sm:inline">
-                · Luxvibe Guide
-              </span>
-              <span className="ml-1">
-                {panelOpen
-                  ? <ChevronUp className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
-                  : <ChevronDown className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
-                }
-              </span>
-            </button>
-            <button
-              onClick={dismiss}
-              className="text-white/40 hover:text-white transition-colors p-0.5 ml-3"
-              data-testid="button-dismiss-tips"
-              aria-label="Dismiss tips"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Collapsible body */}
-          <AnimatePresence>
-            {panelOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                {/* Divider */}
-                <div className="mx-5 h-px bg-white/20" />
-
-                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {TIPS.map((tip, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setExpandedTip(expandedTip === i ? null : i)}
-                      className="text-left rounded-lg px-4 py-3 border border-white/10 transition-all duration-200 group/tip hover:bg-white/10"
-                      style={{
-                        background: expandedTip === i ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
-                        borderColor: expandedTip === i ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.10)",
-                      }}
-                      data-testid={`tip-item-${i}`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="text-base shrink-0 leading-none text-white">{tip.icon}</span>
-                          <span className="text-xs font-semibold text-white leading-snug">{tip.title}</span>
-                        </div>
-                        {expandedTip === i
-                          ? <ChevronUp className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white" />
-                          : <ChevronDown className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white/40 group-hover/tip:text-white/80 transition-colors" />
-                        }
-                      </div>
-                      <AnimatePresence>
-                        {expandedTip === i && (
-                          <motion.p
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-xs leading-relaxed overflow-hidden mt-2 text-white/75"
-                          >
-                            {tip.text}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="px-5 pb-4 flex justify-end">
-                  <button
-                    onClick={dismiss}
-                    className="text-[11px] tracking-wide text-white/50 hover:text-white hover:underline transition-colors"
-                    data-testid="button-got-it"
-                  >
-                    Got it — don't show again
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
 
 export default function Home() {
   const searchString = useSearch();
@@ -903,7 +739,6 @@ export default function Home() {
             initialCheckOut={checkOut || undefined}
             initialGuests={guests}
           />
-          <SearchTips />
         </>
       )}
 

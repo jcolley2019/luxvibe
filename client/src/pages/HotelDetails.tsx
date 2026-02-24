@@ -12,7 +12,7 @@ import {
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
-  BedDouble, Users, Maximize2, ChevronRight, CalendarDays
+  BedDouble, Users, Maximize2, ChevronRight, CalendarDays, Search
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
@@ -410,9 +410,68 @@ export default function HotelDetails() {
 
   const starCount = hotel.stars ? Math.round(hotel.stars) : null;
 
+  const compactBar = (
+    <div className="flex items-center h-9 border border-border rounded-full bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow max-w-[500px] w-full overflow-hidden">
+      {hotel && (
+        <>
+          <span className="pl-4 pr-2 text-sm font-semibold text-foreground truncate max-w-[130px] shrink-0">{hotel.name}</span>
+          <span className="text-border/70 text-sm select-none shrink-0 pr-0">|</span>
+        </>
+      )}
+      <Popover open={dateOpen} onOpenChange={(open) => {
+        setDateOpen(open);
+        if (open) { setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) }); setSelectionPhase("checkin"); }
+      }}>
+        <PopoverTrigger asChild>
+          <button className="px-3 text-sm text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors shrink-0" data-testid="button-compact-dates">
+            {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d")}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="center">
+          <div className="px-4 pt-3 pb-1 flex gap-4 text-xs font-medium border-b border-border mb-1">
+            <span className={selectionPhase === "checkin" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>Check-in</span>
+            <span className={selectionPhase === "checkout" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>Check-out</span>
+          </div>
+          <Calendar
+            mode="range"
+            numberOfMonths={2}
+            defaultMonth={pendingRange.from}
+            selected={pendingRange}
+            onSelect={(range) => {
+              const r = range as { from: Date; to?: Date } | undefined;
+              if (!r?.from) return;
+              if (selectionPhase === "checkin") {
+                setPendingRange({ from: r.from, to: undefined });
+                setSelectionPhase("checkout");
+              } else {
+                if (r.to && r.to > r.from) {
+                  setPendingRange(r);
+                  setCheckIn(format(r.from, "yyyy-MM-dd"));
+                  setCheckOut(format(r.to, "yyyy-MM-dd"));
+                  setDateOpen(false);
+                  setSelectionPhase("checkin");
+                } else {
+                  setPendingRange({ from: r.from, to: undefined });
+                }
+              }
+            }}
+            disabled={(d) => d < new Date()}
+          />
+        </PopoverContent>
+      </Popover>
+      <span className="text-border/70 text-sm select-none shrink-0">|</span>
+      <span className="px-3 text-sm text-muted-foreground whitespace-nowrap shrink-0">
+        {guests} {parseInt(guests) === 1 ? "Guest" : "Guests"}
+      </span>
+      <div className="bg-primary rounded-full p-1.5 mr-0.5 ml-auto shrink-0">
+        <Search className="w-3.5 h-3.5 text-white" />
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar centralSlot={compactBar} />
 
       <div className="container mx-auto px-4 pt-4 pb-20 max-w-5xl">
         {/* Back button */}
@@ -610,75 +669,11 @@ export default function HotelDetails() {
 
         {/* ─── Rooms Section ─── */}
         <div ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
-          <h2 className="text-xl font-bold mb-4">Choose your room</h2>
-
-          {/* Date strip */}
-          <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <Popover open={dateOpen} onOpenChange={(open) => {
-              setDateOpen(open);
-              if (open) {
-                setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) });
-                setSelectionPhase("checkin");
-              }
-            }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="flex items-center gap-3 flex-1 min-w-[280px] border border-border rounded-xl px-4 py-2.5 hover:bg-muted/40 transition-colors text-left"
-                  data-testid="button-dates"
-                >
-                  <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Dates</p>
-                    <p className="text-sm font-medium">
-                      {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 shrink-0">
-                    {differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? "s" : ""}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="px-4 pt-3 pb-1 flex gap-4 text-xs font-medium border-b border-border mb-1">
-                  <span className={selectionPhase === "checkin" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
-                    Check-in
-                  </span>
-                  <span className={selectionPhase === "checkout" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>
-                    Check-out
-                  </span>
-                </div>
-                <Calendar
-                  mode="range"
-                  numberOfMonths={2}
-                  defaultMonth={pendingRange.from}
-                  selected={pendingRange}
-                  onSelect={(range) => {
-                    const r = range as { from: Date; to?: Date } | undefined;
-                    if (!r?.from) return;
-                    if (selectionPhase === "checkin") {
-                      setPendingRange({ from: r.from, to: undefined });
-                      setSelectionPhase("checkout");
-                    } else {
-                      if (r.to && r.to > r.from) {
-                        setPendingRange(r);
-                        setCheckIn(format(r.from, "yyyy-MM-dd"));
-                        setCheckOut(format(r.to, "yyyy-MM-dd"));
-                        setDateOpen(false);
-                        setSelectionPhase("checkin");
-                      } else {
-                        setPendingRange({ from: r.from, to: undefined });
-                      }
-                    }
-                  }}
-                  disabled={(d) => d < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <div className="border border-border rounded-xl px-4 py-2.5 min-w-[160px]">
-              <p className="text-xs text-muted-foreground">Guests</p>
-              <p className="text-sm font-medium">1 Room, {guests} Adults</p>
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Choose your room</h2>
+            <span className="text-sm text-muted-foreground">
+              {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")} · {guests} {parseInt(guests) === 1 ? "guest" : "guests"} · {differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? "s" : ""}
+            </span>
           </div>
 
           {noRooms ? (
