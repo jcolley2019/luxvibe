@@ -290,7 +290,7 @@ function SearchTips() {
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem("luxvibe_tips_v1") === "dismissed"; } catch { return false; }
   });
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [expandedTip, setExpandedTip] = useState<number | null>(null);
 
   const dismiss = () => {
@@ -319,12 +319,26 @@ function SearchTips() {
               className="flex items-center gap-3 flex-1 text-left group"
               data-testid="button-toggle-tips"
             >
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <motion.div
+                className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+                animate={!panelOpen ? {
+                  boxShadow: [
+                    "0 0 0px rgba(255,255,255,0.0)",
+                    "0 0 10px rgba(255,255,255,0.55)",
+                    "0 0 0px rgba(255,255,255,0.0)",
+                  ],
+                } : { boxShadow: "0 0 0px rgba(255,255,255,0.0)" }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <Lightbulb className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-sm font-semibold tracking-wide text-white">
+              </motion.div>
+              <motion.span
+                className="text-sm font-semibold tracking-wide text-white"
+                animate={!panelOpen ? { opacity: [1, 0.65, 1] } : { opacity: 1 }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
                 Search Tips
-              </span>
+              </motion.span>
               <span className="text-[10px] uppercase tracking-widest text-white/50 font-medium hidden sm:inline">
                 · Luxvibe Guide
               </span>
