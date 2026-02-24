@@ -212,6 +212,9 @@ export default function Home() {
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
   const [starFilter, setStarFilter] = useState<number[]>([]);
+  const [includeUnrated, setIncludeUnrated] = useState(false);
+  const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
+  const [brandFilter, setBrandFilter] = useState<string[]>([]);
 
   const { data: hotels, isLoading, error } = useSearchHotels({
     destination: destination || undefined,
@@ -285,6 +288,39 @@ export default function Home() {
     if (hotels?.length) setPriceMax(priceRange.max);
   }, [priceRange.max, hotels?.length]);
 
+  const KNOWN_BRANDS = [
+    "Marriott","Sheraton","Westin","Courtyard","Residence Inn","Fairfield","SpringHill","AC Hotel",
+    "Hilton","DoubleTree","Embassy Suites","Hampton","Curio","Conrad","Waldorf","Signia",
+    "Hyatt","Andaz","Aloft","Element","Le Méridien","W Hotel",
+    "InterContinental","Holiday Inn","Kimpton","Crowne Plaza","Indigo",
+    "Best Western","Radisson","Comfort Inn","Comfort Suites","Quality Inn","Sleep Inn","Clarion",
+    "La Quinta","Ramada","Days Inn","Super 8","Wyndham","Travelodge","Howard Johnson",
+    "Four Seasons","Ritz-Carlton","St. Regis","Novotel","Sofitel","Mercure","Ibis",
+    "Loews","Omni","Hard Rock","Autograph","Tribute","Moxy","Graduate","Motto",
+  ];
+
+  function extractBrand(name: string): string {
+    const lower = name.toLowerCase();
+    for (const brand of KNOWN_BRANDS) {
+      if (lower.includes(brand.toLowerCase())) return brand;
+    }
+    return "Independent";
+  }
+
+  const brandCounts = useMemo(() => {
+    if (!hotels?.length) return new Map<string, number>();
+    const counts = new Map<string, number>();
+    for (const h of hotels) {
+      const brand = extractBrand(h.name);
+      counts.set(brand, (counts.get(brand) ?? 0) + 1);
+    }
+    return counts;
+  }, [hotels]);
+
+  const availableBrands = useMemo(() => {
+    return Array.from(brandCounts.entries()).sort((a, b) => b[1] - a[1]);
+  }, [brandCounts]);
+
   function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, DealBadge> {
     const tierPrices: Record<number, number[]> = {};
     for (const h of hotelList) {
@@ -327,12 +363,25 @@ export default function Home() {
     return sortedHotels.filter(h => {
       const price = (h as any).price as number | null;
       const stars = (h as any).stars as number | null;
+      const rating = (h as any).rating as number | null;
+
       if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
       if (price && price > priceMax) return false;
-      if (starFilter.length > 0 && stars && !starFilter.includes(Math.round(stars))) return false;
+
+      if (starFilter.length > 0 || includeUnrated) {
+        const roundedStars = stars ? Math.round(stars) : null;
+        const matchesStar = starFilter.length > 0 && roundedStars !== null && starFilter.includes(roundedStars);
+        const matchesUnrated = includeUnrated && !stars;
+        if (!matchesStar && !matchesUnrated) return false;
+      }
+
+      if (guestRatingMin !== null && (rating === null || rating < guestRatingMin)) return false;
+
+      if (brandFilter.length > 0 && !brandFilter.includes(extractBrand(h.name))) return false;
+
       return true;
     });
-  }, [sortedHotels, nameFilter, priceMax, starFilter]);
+  }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
@@ -342,12 +391,25 @@ export default function Home() {
     setStarFilter(prev => prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]);
   };
 
-  const activeFilterCount = (nameFilter ? 1 : 0) + (priceMax < priceRange.max ? 1 : 0) + starFilter.length;
+  const toggleBrandFilter = (brand: string) => {
+    setBrandFilter(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
+  };
+
+  const activeFilterCount =
+    (nameFilter ? 1 : 0) +
+    (priceMax < priceRange.max ? 1 : 0) +
+    starFilter.length +
+    (includeUnrated ? 1 : 0) +
+    (guestRatingMin !== null ? 1 : 0) +
+    brandFilter.length;
 
   const clearFilters = () => {
     setNameFilter("");
     setPriceMax(priceRange.max);
     setStarFilter([]);
+    setIncludeUnrated(false);
+    setGuestRatingMin(null);
+    setBrandFilter([]);
   };
 
   return (
@@ -367,76 +429,133 @@ export default function Home() {
           <div className="flex gap-6">
 
             {/* ── Filter Sidebar ── */}
-            <aside className="w-60 shrink-0 hidden lg:block">
-              <div className="bg-white dark:bg-card border border-border rounded-xl p-4 sticky top-4">
-                <div className="flex items-center justify-between mb-4">
+            <aside className="w-64 shrink-0 hidden lg:block">
+              <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-border">
                   <h3 className="font-bold text-base flex items-center gap-2">
                     <SlidersHorizontal className="w-4 h-4" />
                     Filters
                   </h3>
                   {activeFilterCount > 0 && (
-                    <button onClick={clearFilters} className="text-xs text-primary hover:underline flex items-center gap-1">
+                    <button onClick={clearFilters} className="text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-clear-filters">
                       <X className="w-3 h-3" />
                       Clear all
                     </button>
                   )}
                 </div>
 
-                {/* Property name */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Property name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Hilton"
-                    value={nameFilter}
-                    onChange={e => setNameFilter(e.target.value)}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                    data-testid="input-filter-name"
-                  />
-                </div>
+                <div className="p-4 flex flex-col gap-5">
 
-                {/* Price range */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">
-                    Price per night
-                  </label>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                    <span>US${priceRange.min}</span>
-                    <span>US${priceMax.toLocaleString()}</span>
+                  {/* Property name */}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-2">Property name</p>
+                    <input
+                      type="text"
+                      placeholder="For example, Hilton"
+                      value={nameFilter}
+                      onChange={e => setNameFilter(e.target.value)}
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                      data-testid="input-filter-name"
+                    />
                   </div>
-                  <input
-                    type="range"
-                    min={priceRange.min}
-                    max={priceRange.max}
-                    value={priceMax}
-                    onChange={e => setPriceMax(Number(e.target.value))}
-                    className="w-full accent-primary"
-                    data-testid="input-filter-price"
-                  />
-                </div>
 
-                {/* Star rating */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Star rating</label>
-                  <div className="flex flex-col gap-1.5">
-                    {[5, 4, 3, 2, 1].map(star => (
-                      <label key={star} className="flex items-center gap-2 cursor-pointer group">
+                  {/* Price per night */}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">Price (per night)</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      US${priceRange.min} &rarr; {priceMax >= priceRange.max ? `US$${priceRange.max.toLocaleString()}+` : `US$${priceMax.toLocaleString()}`}
+                    </p>
+                    <input
+                      type="range"
+                      min={priceRange.min}
+                      max={priceRange.max}
+                      value={priceMax}
+                      onChange={e => setPriceMax(Number(e.target.value))}
+                      className="w-full accent-primary"
+                      data-testid="input-filter-price"
+                    />
+                  </div>
+
+                  {/* Star rating */}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-2">Star rating</p>
+                    <div className="flex flex-col gap-2">
+                      {[5, 4, 3, 2, 1].map(star => (
+                        <label key={star} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={starFilter.includes(star)}
+                            onChange={() => toggleStarFilter(star)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-star-${star}`}
+                          />
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: star }).map((_, i) => (
+                              <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            ))}
+                          </div>
+                          <span className="text-sm text-foreground">{star} {star === 1 ? "star" : "stars"}</span>
+                        </label>
+                      ))}
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={starFilter.includes(star)}
-                          onChange={() => toggleStarFilter(star)}
-                          className="accent-primary rounded"
-                          data-testid={`checkbox-star-${star}`}
+                          checked={includeUnrated}
+                          onChange={() => setIncludeUnrated(v => !v)}
+                          className="accent-primary w-4 h-4 rounded"
+                          data-testid="checkbox-star-unrated"
                         />
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: star }).map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">{star} {star === 1 ? "star" : "stars"}</span>
+                        <span className="text-sm text-foreground">Unrated</span>
                       </label>
-                    ))}
+                    </div>
                   </div>
+
+                  {/* Guest rating */}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-2">Guest rating</p>
+                    <div className="flex flex-col gap-2">
+                      {([
+                        { label: "Wonderful: 9+", min: 9 },
+                        { label: "Very Good: 8+", min: 8 },
+                        { label: "Good: 7+", min: 7 },
+                        { label: "Pleasant: 6+", min: 6 },
+                      ] as { label: string; min: number }[]).map(({ label, min }) => (
+                        <label key={min} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={guestRatingMin === min}
+                            onChange={() => setGuestRatingMin(prev => prev === min ? null : min)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-rating-${min}`}
+                          />
+                          <span className="text-sm text-foreground">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Brand */}
+                  {availableBrands.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-foreground mb-2">Brand</p>
+                      <div className="flex flex-col gap-2">
+                        {availableBrands.map(([brand, count]) => (
+                          <label key={brand} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={brandFilter.includes(brand)}
+                              onChange={() => toggleBrandFilter(brand)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-brand-${brand}`}
+                            />
+                            <span className="text-sm text-foreground">{brand} ({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             </aside>
