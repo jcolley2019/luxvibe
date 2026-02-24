@@ -244,24 +244,24 @@ function HotelListCard({
 
 const TIPS = [
   {
-    icon: "🔍",
+    icon: "✦",
     title: "Pick from the dropdown for best results",
-    text: "When you type a destination, select a suggestion from the list that appears — this gives the search engine a precise location and finds far more hotels.",
+    text: "When you type a destination, select a suggestion from the list that appears — this gives the search engine a precise location and returns far more hotels.",
   },
   {
-    icon: "🎰",
+    icon: "♠",
     title: "Searching Las Vegas? Try \"Las Vegas Strip\"",
-    text: "Type \"Las Vegas Strip\" and pick that option from the dropdown to focus results on the famous Strip resorts like Bellagio, MGM Grand, and Caesars Palace.",
+    text: "Type \"Las Vegas Strip\" and choose that option from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more.",
   },
   {
     icon: "✨",
     title: "Use Vibe search for inspiration",
-    text: "Switch to the Vibe tab in the search bar and describe the kind of stay you want — like \"romantic beachfront resort\" or \"luxury casino in Las Vegas\" — and AI will find matching hotels.",
+    text: "Switch to the Vibe tab in the search bar and describe your dream stay in plain language — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it.",
   },
   {
-    icon: "⭐",
-    title: "Only 4 & 5-star hotels shown by default",
-    text: "Results are filtered to luxury properties by default. Use the star filter on the left to show 3-star or budget options too.",
+    icon: "★",
+    title: "4 & 5-star hotels shown by default",
+    text: "Results are curated to luxury properties by default. Use the star filter in the sidebar to include 3-star or budget options at any time.",
   },
 ];
 
@@ -269,7 +269,8 @@ function SearchTips() {
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem("luxvibe_tips_v1") === "dismissed"; } catch { return false; }
   });
-  const [expanded, setExpanded] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [expandedTip, setExpandedTip] = useState<number | null>(null);
 
   const dismiss = () => {
     try { localStorage.setItem("luxvibe_tips_v1", "dismissed"); } catch {}
@@ -281,70 +282,115 @@ function SearchTips() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3 }}
-        className="container mx-auto px-4 mb-2"
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.35 }}
+        className="container mx-auto px-4 mb-3"
       >
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-sm">
-              <Lightbulb className="w-4 h-4 shrink-0" />
-              Search tips
-            </div>
+        <div className="rounded-xl overflow-hidden border border-amber-500/25 shadow-lg shadow-amber-900/10"
+          style={{ background: "linear-gradient(135deg, #1c1814 0%, #0f0d0b 60%, #1a1610 100%)" }}
+        >
+          {/* Header — always visible, toggles panel */}
+          <div className="flex items-center justify-between px-5 py-3.5">
+            <button
+              onClick={() => setPanelOpen(o => !o)}
+              className="flex items-center gap-3 flex-1 text-left group"
+              data-testid="button-toggle-tips"
+            >
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: "linear-gradient(135deg, #d4af37, #f0d060)" }}
+              >
+                <Lightbulb className="w-3.5 h-3.5 text-stone-900" />
+              </div>
+              <span className="text-sm font-semibold tracking-wide" style={{ color: "#d4af37" }}>
+                Search Tips
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-amber-400/50 font-medium hidden sm:inline">
+                · Luxvibe Guide
+              </span>
+              <span className="ml-1">
+                {panelOpen
+                  ? <ChevronUp className="w-4 h-4 text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                  : <ChevronDown className="w-4 h-4 text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                }
+              </span>
+            </button>
             <button
               onClick={dismiss}
-              className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-200 transition-colors p-0.5"
+              className="text-amber-500/40 hover:text-amber-400 transition-colors p-0.5 ml-3"
               data-testid="button-dismiss-tips"
               aria-label="Dismiss tips"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {TIPS.map((tip, i) => (
-              <button
-                key={i}
-                onClick={() => setExpanded(expanded === i ? null : i)}
-                className="text-left bg-white/60 dark:bg-amber-900/20 rounded-lg px-3 py-2 hover:bg-white dark:hover:bg-amber-900/40 transition-colors border border-amber-100 dark:border-amber-800/40"
-                data-testid={`tip-item-${i}`}
+          {/* Collapsible body */}
+          <AnimatePresence>
+            {panelOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-                    <span>{tip.icon}</span>
-                    {tip.title}
-                  </span>
-                  {expanded === i
-                    ? <ChevronUp className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    : <ChevronDown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  }
-                </div>
-                <AnimatePresence>
-                  {expanded === i && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1.5 leading-relaxed overflow-hidden"
-                    >
-                      {tip.text}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </button>
-            ))}
-          </div>
+                {/* Gold divider */}
+                <div className="mx-5 h-px" style={{ background: "linear-gradient(to right, transparent, #d4af3740, transparent)" }} />
 
-          <button
-            onClick={dismiss}
-            className="mt-3 text-xs text-amber-600 dark:text-amber-400 hover:underline"
-            data-testid="button-got-it"
-          >
-            Got it, don't show again
-          </button>
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {TIPS.map((tip, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setExpandedTip(expandedTip === i ? null : i)}
+                      className="text-left rounded-lg px-4 py-3 border transition-all duration-200 group/tip"
+                      style={{
+                        background: expandedTip === i ? "rgba(212,175,55,0.08)" : "rgba(255,255,255,0.03)",
+                        borderColor: expandedTip === i ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                      }}
+                      data-testid={`tip-item-${i}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-base shrink-0 leading-none" style={{ color: "#d4af37" }}>{tip.icon}</span>
+                          <span className="text-xs font-semibold text-white/90 leading-snug">{tip.title}</span>
+                        </div>
+                        {expandedTip === i
+                          ? <ChevronUp className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "#d4af37" }} />
+                          : <ChevronDown className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white/30 group-hover/tip:text-white/60 transition-colors" />
+                        }
+                      </div>
+                      <AnimatePresence>
+                        {expandedTip === i && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-xs leading-relaxed overflow-hidden mt-2 text-white/60"
+                          >
+                            {tip.text}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="px-5 pb-4 flex justify-end">
+                  <button
+                    onClick={dismiss}
+                    className="text-[11px] tracking-wide hover:underline transition-colors"
+                    style={{ color: "#d4af3780" }}
+                    data-testid="button-got-it"
+                  >
+                    Got it — don't show again
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </AnimatePresence>
