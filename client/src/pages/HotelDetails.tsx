@@ -1107,143 +1107,149 @@ export default function HotelDetails() {
         </div>
       </div>
 
-      {/* Photo Gallery Modal */}
+      {/* Photo Gallery Modal — shared card for grid + lightbox */}
       <AnimatePresence>
-        {showAllPhotos && hotel && galleryMode === "grid" && (
+        {showAllPhotos && hotel && (
           <>
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowAllPhotos(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              onClick={() => { setShowAllPhotos(false); setGalleryMode("grid"); }}
             />
-            {/* Modal card */}
+
+            {/* Floating card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              initial={{ opacity: 0, scale: 0.96, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              exit={{ opacity: 0, scale: 0.96, y: 14 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 pointer-events-none"
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  if (galleryMode === "lightbox") setGalleryMode("grid");
+                  else { setShowAllPhotos(false); }
+                }
+                if (galleryMode === "lightbox") {
+                  if (e.key === "ArrowLeft") setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length);
+                  if (e.key === "ArrowRight") setLightboxIdx(i => (i + 1) % hotel.images.length);
+                }
+              }}
+              tabIndex={-1}
             >
               <div
                 className="pointer-events-auto w-full max-w-5xl bg-white dark:bg-card rounded-3xl shadow-2xl flex flex-col overflow-hidden"
-                style={{ maxHeight: "88vh" }}
+                style={{ maxHeight: "90vh" }}
                 onClick={e => e.stopPropagation()}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 shrink-0">
-                  <span className="font-semibold text-base text-foreground">{hotel.name}</span>
-                  <button
-                    onClick={() => setShowAllPhotos(false)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                    data-testid="button-close-gallery"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Scrollable grid */}
-                <div className="flex-1 overflow-y-auto px-4 pb-5" style={{ scrollbarWidth: "thin" }}>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                    {hotel.images.map((img, i) => (
+                {galleryMode === "grid" ? (
+                  /* ── GRID VIEW ── */
+                  <>
+                    <div className="flex items-center justify-between px-6 py-4 shrink-0">
+                      <span className="font-semibold text-base text-foreground">{hotel.name}</span>
                       <button
-                        key={i}
-                        onClick={() => { setLightboxIdx(i); setGalleryMode("lightbox"); }}
-                        className={`aspect-square overflow-hidden rounded-xl border-2 transition-all hover:opacity-90 hover:scale-[1.02] ${i === lightboxIdx ? "border-primary shadow-md shadow-primary/20" : "border-transparent"}`}
-                        data-testid={`button-gallery-thumb-${i}`}
+                        onClick={() => setShowAllPhotos(false)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                        data-testid="button-close-gallery"
                       >
-                        <img
-                          src={img}
-                          alt={`Photo ${i + 1}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                        <X className="w-5 h-5" />
                       </button>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto px-4 pb-5" style={{ scrollbarWidth: "thin" }}>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                        {hotel.images.map((img, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setLightboxIdx(i); setGalleryMode("lightbox"); }}
+                            className={`aspect-square overflow-hidden rounded-xl border-2 transition-all hover:opacity-90 hover:scale-[1.02] ${i === lightboxIdx ? "border-primary shadow-md shadow-primary/20" : "border-transparent"}`}
+                            data-testid={`button-gallery-thumb-${i}`}
+                          >
+                            <img
+                              src={img}
+                              alt={`Photo ${i + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* ── LIGHTBOX VIEW ── */
+                  <>
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-3 shrink-0">
+                      <button
+                        onClick={() => setGalleryMode("grid")}
+                        className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        data-testid="button-back-to-gallery"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to gallery
+                      </button>
+                      <button
+                        onClick={() => { setGalleryMode("grid"); setShowAllPhotos(false); }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                        data-testid="button-close-lightbox"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Main image area */}
+                    <div className="flex-1 flex items-center justify-center px-4 pb-3 relative min-h-0">
+                      <button
+                        onClick={() => setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length)}
+                        className="absolute left-5 z-10 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors shadow-lg"
+                        data-testid="button-gallery-prev"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+
+                      <div className="relative w-full flex items-center justify-center" style={{ maxHeight: "calc(90vh - 190px)" }}>
+                        <img
+                          key={lightboxIdx}
+                          src={hotel.images[lightboxIdx]}
+                          alt={`Photo ${lightboxIdx + 1}`}
+                          className="max-h-full max-w-full object-contain rounded-2xl"
+                          style={{ maxHeight: "calc(90vh - 190px)" }}
+                        />
+                        {/* Counter pill overlaid at bottom of image */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 text-white text-xs font-medium select-none">
+                          {lightboxIdx + 1} / {hotel.images.length}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setLightboxIdx(i => (i + 1) % hotel.images.length)}
+                        className="absolute right-5 z-10 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors shadow-lg"
+                        data-testid="button-gallery-next"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Thumbnail strip */}
+                    <div className="shrink-0 px-4 py-3 border-t border-border overflow-x-auto flex gap-2" style={{ scrollbarWidth: "none" }}>
+                      {hotel.images.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setLightboxIdx(i)}
+                          className={`shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === lightboxIdx ? "border-primary" : "border-transparent opacity-40 hover:opacity-75"}`}
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
-
-      {/* Lightbox — full screen */}
-      <AnimatePresence>
-        {showAllPhotos && hotel && galleryMode === "lightbox" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black flex flex-col"
-            onKeyDown={(e) => {
-              if (e.key === "Escape") { setGalleryMode("grid"); }
-              if (e.key === "ArrowLeft") setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length);
-              if (e.key === "ArrowRight") setLightboxIdx(i => (i + 1) % hotel.images.length);
-            }}
-            tabIndex={0}
-          >
-            <div className="flex items-center justify-between px-6 py-4 shrink-0">
-              <button
-                onClick={() => setGalleryMode("grid")}
-                className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
-                data-testid="button-back-to-gallery"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back to gallery
-              </button>
-              <button
-                onClick={() => { setGalleryMode("grid"); setShowAllPhotos(false); }}
-                className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                data-testid="button-close-lightbox"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center px-16 py-2 relative min-h-0">
-              <button
-                onClick={() => setLightboxIdx(i => (i - 1 + hotel.images.length) % hotel.images.length)}
-                className="absolute left-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-                data-testid="button-gallery-prev"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <div className="flex flex-col items-center max-h-full">
-                <img
-                  key={lightboxIdx}
-                  src={hotel.images[lightboxIdx]}
-                  alt={`Photo ${lightboxIdx + 1}`}
-                  className="max-h-[calc(100vh-200px)] max-w-full object-contain rounded-xl"
-                />
-                <span className="mt-3 text-sm text-white/60">
-                  {lightboxIdx + 1} / {hotel.images.length}
-                </span>
-              </div>
-              <button
-                onClick={() => setLightboxIdx(i => (i + 1) % hotel.images.length)}
-                className="absolute right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-                data-testid="button-gallery-next"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Thumbnail strip */}
-            <div className="shrink-0 px-4 py-3 overflow-x-auto flex gap-2" style={{ scrollbarWidth: "none" }}>
-              {hotel.images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setLightboxIdx(i)}
-                  className={`shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === lightboxIdx ? "border-primary" : "border-transparent opacity-40 hover:opacity-70"}`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          </motion.div>
         )}
       </AnimatePresence>
     </div>
