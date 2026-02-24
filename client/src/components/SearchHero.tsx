@@ -243,7 +243,7 @@ export function SearchHero({
                     data-testid="input-destination"
                   />
                   {showAutocomplete && places.length > 0 && (
-                    <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "300px", maxHeight: "340px", overflowY: "auto" }}>
+                    <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "240px", maxHeight: "340px", overflowY: "auto" }}>
                       {(() => {
                         const allPlaces = places as any[];
                         const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
