@@ -187,7 +187,7 @@ export async function registerRoutes(
                 price: null as number | null,
                 imageUrl: h.main_photo || h.thumbnail || null,
               }))
-              .filter((h: any) => h.rating !== null && h.rating >= 8.0 && (h.reviewCount == null || h.reviewCount >= 50))
+              .filter((h: any) => h.rating !== null && h.rating >= 8.0 && h.stars !== null && h.stars >= 4 && (h.reviewCount == null || h.reviewCount >= 50))
               .sort((a: any, b: any) => {
                 const scoreA = (a.rating ?? 0) * 2 + (a.stars ?? 0) * 0.5;
                 const scoreB = (b.rating ?? 0) * 2 + (b.stars ?? 0) * 0.5;
@@ -301,8 +301,9 @@ export async function registerRoutes(
         return null;
       };
 
-      let strip = hotels.filter(h => classify(h.name) === "strip" && h.rating && h.rating >= 7.0);
-      let downtown = hotels.filter(h => classify(h.name) === "downtown" && h.rating && h.rating >= 6.5);
+      const isLuxury = (h: any) => h.stars !== null && h.stars >= 4;
+      let strip = hotels.filter(h => classify(h.name) === "strip" && h.rating && h.rating >= 7.0 && isLuxury(h));
+      let downtown = hotels.filter(h => classify(h.name) === "downtown" && h.rating && h.rating >= 6.5 && h.stars !== null && h.stars >= 3);
 
       // Sort by rating
       const score = (h: any) => (h.rating ?? 0) * 2 + (h.stars ?? 0) * 0.5;
@@ -503,7 +504,7 @@ export async function registerRoutes(
           price: null as number | null,
           imageUrl: h.main_photo || h.thumbnail || null,
         }))
-        .filter((h: any) => h.rating !== null)
+        .filter((h: any) => h.rating !== null && h.stars !== null && h.stars >= 4)
         .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0));
 
       // Fetch rates using default dates

@@ -211,7 +211,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("recommended");
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
-  const [starFilter, setStarFilter] = useState<number[]>([]);
+  const [starFilter, setStarFilter] = useState<number[]>([4, 5]);
   const [includeUnrated, setIncludeUnrated] = useState(false);
   const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
@@ -400,18 +400,22 @@ export default function Home() {
     setBrandFilter(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
   };
 
+  const DEFAULT_STAR_FILTER = [4, 5];
+  const isDefaultStarFilter =
+    starFilter.length === DEFAULT_STAR_FILTER.length &&
+    DEFAULT_STAR_FILTER.every(s => starFilter.includes(s));
+
   const activeFilterCount =
     (nameFilter ? 1 : 0) +
     (priceMax < priceRange.max ? 1 : 0) +
-    starFilter.length +
-    (includeUnrated ? 1 : 0) +
+    (isDefaultStarFilter ? 0 : includeUnrated ? starFilter.length + 1 : starFilter.length) +
     (guestRatingMin !== null ? 1 : 0) +
     brandFilter.length;
 
   const clearFilters = () => {
     setNameFilter("");
     setPriceMax(priceRange.max);
-    setStarFilter([]);
+    setStarFilter([4, 5]);
     setIncludeUnrated(false);
     setGuestRatingMin(null);
     setBrandFilter([]);
@@ -484,7 +488,12 @@ export default function Home() {
 
                   {/* Star rating */}
                   <div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Star rating</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-foreground">Star rating</p>
+                      {isDefaultStarFilter && (
+                        <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full">Luxury</span>
+                      )}
+                    </div>
                     <div className="flex flex-col gap-2">
                       {[5, 4, 3, 2, 1].map(star => (
                         <label key={star} className="flex items-center gap-2 cursor-pointer">
@@ -577,9 +586,24 @@ export default function Home() {
                       <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
                     )}
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {isLoading ? "Searching…" : `${filteredHotels.length} properties found`}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <p className="text-sm text-muted-foreground">
+                      {isLoading ? "Searching…" : `${filteredHotels.length} properties found`}
+                    </p>
+                    {isDefaultStarFilter && !isLoading && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        Luxury &amp; 4–5★ hotels
+                        <button
+                          onClick={() => setStarFilter([])}
+                          className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-300 underline underline-offset-2"
+                          data-testid="button-show-all-ratings"
+                        >
+                          Show all
+                        </button>
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Sort */}
