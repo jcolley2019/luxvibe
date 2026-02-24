@@ -955,6 +955,15 @@ export async function registerRoutes(
         : `Welcome to ${hotelRaw.name}. Enjoy your stay in ${hotelRaw.city || "this beautiful destination"}.`;
 
       // Fetch room rates
+      const nights = (checkIn && checkOut)
+        ? Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
+        : 1;
+
+      const MEALS: Record<string, string> = {
+        RO: "No meals included", BB: "Breakfast included", HB: "Breakfast & dinner included",
+        FB: "All meals included", AI: "All inclusive", SA: "Self catering",
+      };
+
       let roomTypes: any[] = [];
       let reviewCountFromRates: number | null = null;
       if (checkIn && checkOut) {
@@ -976,12 +985,34 @@ export async function registerRoutes(
           for (const rt of rawRoomTypes) {
             if (roomTypes.length >= 15) break;
             const rate = rt.rates?.[0];
-            const price = rt.offerRetailRate?.amount || rate?.retailRate?.total?.[0]?.amount || 0;
+            const totalAmount = parseFloat(String(rt.offerRetailRate?.amount || rate?.retailRate?.total?.[0]?.amount || 0)) || 0;
             const currency = rt.offerRetailRate?.currency || rate?.retailRate?.total?.[0]?.currency || "USD";
+
+            // Suggested (pre-discount) total — LiteAPI field
+            const suggestedRaw = rt.suggestedSellingPrice?.amount ?? rate?.suggestedSellingPrice?.amount ?? null;
+            const suggestedTotal = suggestedRaw != null ? parseFloat(String(suggestedRaw)) : null;
+
+            // Per-night prices
+            const pricePerNight = parseFloat((totalAmount / nights).toFixed(2));
+            const suggestedPricePerNight = suggestedTotal ? parseFloat((suggestedTotal / nights).toFixed(2)) : null;
+            const discountPercent = (suggestedPricePerNight && pricePerNight < suggestedPricePerNight)
+              ? Math.round(((suggestedPricePerNight - pricePerNight) / suggestedPricePerNight) * 100)
+              : null;
+
+            // Taxes
+            const taxRaw = rate?.retailRate?.total?.[0]?.taxesAndFees ?? rate?.retailRate?.fees?.[0]?.amount ?? null;
+            const taxes = taxRaw != null ? parseFloat(String(taxRaw)) : null;
+
+            // Cancellation
             const cancellationPolicies = rate?.cancellationPolicies || [];
-            const cancellationPolicy = cancellationPolicies.length > 0
-              ? `Cancel by ${cancellationPolicies[0]?.cancelTime?.split("T")[0] || "check-in"}`
+            const cancelTime = cancellationPolicies.length > 0 ? (cancellationPolicies[0]?.cancelTime || null) : null;
+            const cancellationPolicy = cancelTime
+              ? `Cancel by ${cancelTime.split("T")[0] || "check-in"}`
               : undefined;
+
+            // Board / meals
+            const boardCode = rate?.boardCode || "";
+            const mealsIncluded = MEALS[boardCode] || "No meals included";
 
             const rateName = rt.name || rate?.name || "Room";
             roomTypes.push({
@@ -989,10 +1020,19 @@ export async function registerRoutes(
               mappedRoomId: rt.mappedRoomId || rt.offerId,
               name: rateName,
               boardName: rate?.boardName || "Room Only",
-              price: typeof price === "number" ? price : parseFloat(String(price)) || 0,
+              boardCode,
+              mealsIncluded,
+              price: totalAmount,
+              pricePerNight,
+              suggestedTotalPrice: suggestedTotal,
+              suggestedPricePerNight,
+              discountPercent,
+              taxes,
+              nights,
               currency,
               refundableTag: rate?.refundableTag || undefined,
               cancellationPolicy,
+              cancelTime,
               photos: findPhotosByName(rateName),
             });
           }

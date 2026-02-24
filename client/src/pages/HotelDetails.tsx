@@ -44,6 +44,15 @@ function formatRoomName(raw: string): string {
     .join(" ");
 }
 
+function formatCancelTime(iso: string | null | undefined): string {
+  if (!iso) return "check-in";
+  try {
+    return format(new Date(iso), "EEE, MMM d, h:mm aa");
+  } catch {
+    return iso.split("T")[0];
+  }
+}
+
 const FACILITY_ICONS: Record<string, any> = {
   "Restaurant": Utensils, "Parking": Car, "Fitness Center": Dumbbell, "Free WiFi": Wifi,
   "Breakfast": Coffee, "Pool": Waves, "Spa": Sparkles, "Bar": Beer,
@@ -689,139 +698,169 @@ export default function HotelDetails() {
                 const isExpanded = expandedDescMap[group.mappedRoomId] ?? false;
                 return (
                   <Card key={group.mappedRoomId} className="overflow-hidden border-border/60" data-testid={`room-group-${group.mappedRoomId}`}>
-                    <div className="grid md:grid-cols-[320px_1fr] gap-0">
-                      {/* Photo carousel */}
-                      <div className="relative h-56 md:h-auto overflow-hidden bg-muted group/photo">
-                        <img
-                          src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
-                          alt={`${group.name} - photo ${photoIdx + 1}`}
-                          className="w-full h-full object-cover transition-opacity duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
-                        />
-                        {group.photos.length > 1 && (
-                          <>
-                            <button
-                              onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length)}
-                              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
-                              data-testid={`button-room-photo-prev-${group.mappedRoomId}`}
-                            >
-                              <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
-                              data-testid={`button-room-photo-next-${group.mappedRoomId}`}
-                            >
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                              {group.photos.slice(0, 8).map((_: string, i: number) => (
-                                <button
-                                  key={i}
-                                  onClick={() => setRoomPhotoIdx(group.mappedRoomId, i)}
-                                  className={`w-1.5 h-1.5 rounded-full transition-colors ${i === photoIdx ? "bg-white" : "bg-white/40"}`}
-                                />
-                              ))}
-                            </div>
-                            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/50 text-white text-[10px]">
-                              {photoIdx + 1} / {group.photos.length}
-                            </div>
-                          </>
-                        )}
-                      </div>
+                    {/* Room name heading */}
+                    <div className="px-5 pt-4 pb-3 border-b border-border/40">
+                      <h3 className="text-sm font-semibold text-foreground">1 × {group.name}</h3>
+                    </div>
 
-                      {/* Room details */}
-                      <div className="p-5 flex flex-col">
-                        <h3 className="text-base font-semibold tracking-normal font-sans leading-snug mb-2 text-foreground">{group.name}</h3>
-
-                        {/* Quick facts row */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {group.bedTypes.map((bt, i) => (
-                            <span key={i} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                              <BedDouble className="w-3 h-3" />
-                              {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
-                            </span>
-                          ))}
-                          {group.roomSize && (
-                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                              <Maximize2 className="w-3 h-3" />
-                              {group.roomSize}
-                            </span>
-                          )}
-                          {group.maxOccupancy && (
-                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                              <Users className="w-3 h-3" />
-                              Up to {group.maxOccupancy} guests
-                            </span>
+                    <div className="flex flex-col md:flex-row">
+                      {/* ── Left: photo carousel + room details ── */}
+                      <div className="md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-border/40">
+                        {/* Photo */}
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted group/photo">
+                          <img
+                            src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
+                            alt={`${group.name} - photo ${photoIdx + 1}`}
+                            className="w-full h-full object-cover transition-opacity duration-300"
+                            onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
+                          />
+                          {group.photos.length > 1 && (
+                            <>
+                              <button
+                                onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length)}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                                data-testid={`button-room-photo-prev-${group.mappedRoomId}`}
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                                data-testid={`button-room-photo-next-${group.mappedRoomId}`}
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                              {/* Counter pill with camera icon */}
+                              <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
+                                <Camera className="w-3 h-3" />
+                                {photoIdx + 1} / {group.photos.length}
+                              </div>
+                            </>
                           )}
                         </div>
 
-                        {/* Room description */}
-                        {group.description && (
-                          <div className="mb-3">
-                            <p className={`text-sm font-sans font-normal text-foreground/65 leading-relaxed tracking-wide ${isExpanded ? "" : "line-clamp-2"}`}>
-                              {group.description}
-                            </p>
-                            {group.description.length > 120 && (
-                              <button
-                                className="text-xs text-primary mt-1 hover:underline font-medium"
-                                onClick={() => setExpandedDescMap(prev => ({ ...prev, [group.mappedRoomId]: !isExpanded }))}
-                              >
-                                {isExpanded ? "Show less" : "Read more"}
-                              </button>
+                        {/* Room details below photo */}
+                        <div className="p-4">
+                          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Room details</p>
+                          <div className="flex items-center gap-4 mb-3 text-sm text-foreground/80">
+                            {group.roomSize && (
+                              <span className="flex items-center gap-1.5">
+                                <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                {group.roomSize}
+                              </span>
+                            )}
+                            {group.maxOccupancy && (
+                              <span className="flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                                Sleeps {group.maxOccupancy}
+                              </span>
                             )}
                           </div>
-                        )}
-
-                        {/* Room amenities */}
-                        {group.amenities.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-4">
-                            {group.amenities.slice(0, 8).map((a) => (
-                              <span key={a} className="text-[10px] border border-border rounded px-1.5 py-0.5 text-muted-foreground">{a}</span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Rate options */}
-                        <div className="space-y-3 mt-auto">
-                          {group.rates.map((rate: any) => (
-                            <div
-                              key={rate.offerId}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/50 transition-colors gap-3"
-                              data-testid={`rate-${rate.offerId}`}
-                            >
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                                  <span className="font-semibold text-sm">{rate.boardName}</span>
-                                  {rate.refundableTag === "RFN" ? (
-                                    <Badge variant="outline" className="text-[10px] h-5 text-emerald-600 border-emerald-200 bg-emerald-50">Free cancellation</Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">Non-refundable</Badge>
-                                  )}
-                                </div>
-                                {rate.cancellationPolicy && (
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Info className="w-3 h-3" />
-                                    {rate.cancellationPolicy}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between sm:justify-end gap-4">
-                                <div className="text-right">
-                                  <p className="text-lg font-bold">{rate.currency} {rate.price.toLocaleString()}</p>
-                                  <p className="text-[10px] text-muted-foreground">Total for your stay</p>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSelectRate(rate)}
-                                  data-testid={`button-select-rate-${rate.offerId}`}
-                                >
-                                  Select
-                                </Button>
-                              </div>
+                          {group.bedTypes.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {group.bedTypes.map((bt, i) => (
+                                <span key={i} className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <BedDouble className="w-3 h-3" />
+                                  {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
+                                </span>
+                              ))}
                             </div>
-                          ))}
+                          )}
+                          {group.amenities.length > 0 && (
+                            <div>
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Amenities</p>
+                              <ul className="space-y-1">
+                                {group.amenities.slice(0, 6).map((a) => (
+                                  <li key={a} className="flex items-center gap-1.5 text-xs text-foreground/80">
+                                    <Check className="w-3 h-3 text-muted-foreground shrink-0" />
+                                    {a}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {group.description && (
+                            <div className="mt-3">
+                              <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+                                {group.description}
+                              </p>
+                              {group.description.length > 100 && (
+                                <button
+                                  className="text-xs text-primary mt-1 hover:underline font-medium"
+                                  onClick={() => setExpandedDescMap(prev => ({ ...prev, [group.mappedRoomId]: !isExpanded }))}
+                                >
+                                  {isExpanded ? "Show less" : "Room details"}
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
+                      </div>
+
+                      {/* ── Right: rate rows ── */}
+                      <div className="flex-1 divide-y divide-border/40">
+                        {group.rates.map((rate: any) => (
+                          <div
+                            key={rate.offerId}
+                            className="flex flex-col sm:flex-row sm:items-center gap-4 p-5"
+                            data-testid={`rate-${rate.offerId}`}
+                          >
+                            {/* Board + cancellation */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-foreground mb-0.5">{rate.boardName}</p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
+                                <Info className="w-3 h-3 shrink-0" />
+                                {rate.mealsIncluded || "No meals included"}
+                              </p>
+                              {rate.refundableTag === "RFN" ? (
+                                <p className="text-xs text-emerald-600 flex items-center gap-1">
+                                  <Check className="w-3 h-3 shrink-0" />
+                                  Free cancellation before {formatCancelTime(rate.cancelTime)}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Info className="w-3 h-3 shrink-0" />
+                                  Non-refundable
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Price section */}
+                            <div className="text-right shrink-0">
+                              {rate.discountPercent && (
+                                <span className="inline-block bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded mb-1">
+                                  {rate.discountPercent}% OFF
+                                </span>
+                              )}
+                              <div className="flex items-baseline justify-end gap-1">
+                                <span className="text-xl font-bold text-foreground">
+                                  {rate.currency} {(rate.pricePerNight ?? rate.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </span>
+                                <span className="text-xs text-muted-foreground">/night</span>
+                              </div>
+                              {rate.suggestedPricePerNight && rate.suggestedPricePerNight > (rate.pricePerNight ?? 0) && (
+                                <p className="text-sm text-muted-foreground line-through">
+                                  {rate.currency} {rate.suggestedPricePerNight.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </p>
+                              )}
+                              <p className="text-sm font-semibold text-foreground mt-0.5">
+                                {rate.currency} {rate.price.toLocaleString(undefined, { maximumFractionDigits: 0 })} Total
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                ({rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{((rate.nights ?? 2) !== 1) ? "s" : ""}, 1 Room{rate.taxes ? ` (+${rate.currency} ${rate.taxes.toLocaleString(undefined, { maximumFractionDigits: 0 })} taxes and fees)` : ""})
+                              </p>
+                            </div>
+
+                            {/* Choose room button */}
+                            <Button
+                              onClick={() => handleSelectRate(rate)}
+                              className="rounded-full px-5 shrink-0"
+                              data-testid={`button-select-rate-${rate.offerId}`}
+                            >
+                              Choose room
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </Card>
