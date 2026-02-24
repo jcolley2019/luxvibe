@@ -881,17 +881,62 @@ export async function registerRoutes(
       const normalizeName = (s: string) =>
         s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
-      const roomDataList: any[] = (hotelRaw.rooms || []).map((r: any) => ({
-        id: String(r.id),
-        name: r.roomName || r.name || "Room",
-        normalizedName: normalizeName(r.roomName || r.name || ""),
-        photos: (r.photos || []).map((p: any) => ({ url: p.hd_url || p.url || p })).filter((p: any) => p.url && typeof p.url === "string"),
-        description: r.description ? stripHtml(r.description) : null,
-        amenities: (r.roomAmenities || []).slice(0, 12).map((a: any) => a.name || a).filter(Boolean),
-        bedTypes: (r.bedTypes || []).map((b: any) => ({ type: b.bedType || b.type || "Bed", quantity: b.quantity || 1 })),
-        roomSize: r.roomSizeSquare ? `${r.roomSizeSquare} ${r.roomSizeUnit === "m2" ? "m²" : (r.roomSizeUnit || "sqm")}` : null,
-        maxOccupancy: r.maxOccupancy || r.maxAdults || null,
-      }));
+      // Photo priority scoring: bedroom photos first, bathroom second, rest after
+      const BEDROOM_KEYWORDS = ["bedroom", "bed", "sleep", "king", "queen", "twin", "double", "single", "bunk", "pillow", "mattress"];
+      const BATHROOM_KEYWORDS = ["bathroom", "bath", "shower", "tub", "jacuzzi", "toilet", "vanity", "washroom"];
+      const sortRoomPhotos = (photos: any[]): any[] => {
+        return [...photos].sort((a, b) => {
+          const catA = (a.category || a.type || a.caption || "").toLowerCase();
+          const catB = (b.category || b.type || b.caption || "").toLowerCase();
+          const urlA = (a.url || "").toLowerCase();
+          const urlB = (b.url || "").toLowerCase();
+          const combA = catA + " " + urlA;
+          const combB = catB + " " + urlB;
+          const isBedroomA = BEDROOM_KEYWORDS.some(k => combA.includes(k)) ? 0 : (BATHROOM_KEYWORDS.some(k => combA.includes(k)) ? 1 : 2);
+          const isBedroomB = BEDROOM_KEYWORDS.some(k => combB.includes(k)) ? 0 : (BATHROOM_KEYWORDS.some(k => combB.includes(k)) ? 1 : 2);
+          if (isBedroomA !== isBedroomB) return isBedroomA - isBedroomB;
+          return (a.order ?? a.orderNumber ?? 999) - (b.order ?? b.orderNumber ?? 999);
+        });
+      };
+
+      const roomDataList: any[] = (hotelRaw.rooms || []).map((r: any) => {
+        const rawAmenities: any[] = r.roomAmenities || r.amenities || [];
+        // Build flat list and grouped list from amenities
+        const amenitiesFlat: string[] = rawAmenities
+          .map((a: any) => (typeof a === "string" ? a : (a.name || a.facilityName || "")))
+          .filter(Boolean);
+        const amenityGroupsMap: Record<string, string[]> = {};
+        for (const a of rawAmenities) {
+          if (typeof a === "object" && a !== null) {
+            const name = a.name || a.facilityName || "";
+            const cat = a.type || a.facilityType || a.category || "General";
+            if (!name) continue;
+            if (!amenityGroupsMap[cat]) amenityGroupsMap[cat] = [];
+            if (!amenityGroupsMap[cat].includes(name)) amenityGroupsMap[cat].push(name);
+          }
+        }
+        const amenityGroups = Object.entries(amenityGroupsMap).map(([category, items]) => ({ category, items }));
+
+        const rawPhotos = (r.photos || []).map((p: any) => ({
+          url: p.hd_url || p.url || (typeof p === "string" ? p : ""),
+          category: p.category || p.type || p.caption || "",
+          order: p.order ?? p.orderNumber ?? 999,
+        })).filter((p: any) => p.url && typeof p.url === "string");
+        const sortedPhotos = sortRoomPhotos(rawPhotos);
+
+        return {
+          id: String(r.id),
+          name: r.roomName || r.name || "Room",
+          normalizedName: normalizeName(r.roomName || r.name || ""),
+          photos: sortedPhotos,
+          description: r.description ? stripHtml(r.description) : null,
+          amenities: amenitiesFlat,
+          amenityGroups,
+          bedTypes: (r.bedTypes || []).map((b: any) => ({ type: b.bedType || b.type || "Bed", quantity: b.quantity || 1 })),
+          roomSize: r.roomSizeSquare ? `${r.roomSizeSquare} ${r.roomSizeUnit === "m2" ? "m²" : (r.roomSizeUnit || "sqm")}` : null,
+          maxOccupancy: r.maxOccupancy || r.maxAdults || null,
+        };
+      });
 
       // Bed-type keywords — highly distinctive, worth 4x and conflict-penalized
       const BED_TYPES = ["king", "queen", "double", "twin", "single", "suite", "studio", "bunk"];

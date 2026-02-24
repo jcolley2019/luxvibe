@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
-  BedDouble, Users, Maximize2, ChevronRight, CalendarDays, Search
+  BedDouble, Users, Maximize2, ChevronRight, CalendarDays, Search,
+  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
@@ -63,6 +65,33 @@ const FACILITY_ICONS: Record<string, any> = {
   "Daily Housekeeping": Bed, "Family Rooms": Building2, "Accessible": Accessibility,
   "EV Charging": Zap, "Sauna": ShowerHead,
 };
+
+const ROOM_AMENITY_ICONS: Record<string, any> = {
+  "tv": Tv, "television": Tv,
+  "shower": ShowerHead, "shower stall": ShowerHead, "rain shower": ShowerHead,
+  "bathtub": Bath, "bath": Bath, "hot tub": Bath, "jacuzzi": Waves, "soaking tub": Bath, "tub": Bath, "spa tub": Waves,
+  "wifi": Wifi, "wi-fi": Wifi, "internet": Wifi, "wireless": Wifi,
+  "air conditioning": AirVent, "air conditioner": AirVent, "climate control": AirVent, "heating": Thermometer,
+  "hair dryer": Wind, "hairdryer": Wind, "hair drier": Wind,
+  "coffee": Coffee, "coffee maker": Coffee, "kettle": Coffee, "espresso": Coffee,
+  "minibar": Refrigerator, "refrigerator": Refrigerator, "fridge": Refrigerator, "mini fridge": Refrigerator,
+  "safe": Lock, "in-room safe": Lock, "safety deposit box": Lock,
+  "telephone": Phone, "phone": Phone,
+  "fireplace": Flame, "fire": Flame,
+  "balcony": Leaf, "terrace": Leaf,
+  "kitchen": Utensils, "kitchenette": Utensils,
+  "washing machine": ShowerHead, "dryer": Wind,
+  "private bathroom": ShowerHead, "en suite bathroom": ShowerHead,
+  "desk": Briefcase, "work desk": Briefcase,
+};
+
+function getRoomAmenityIcon(name: string): any {
+  const lower = name.toLowerCase();
+  for (const [key, icon] of Object.entries(ROOM_AMENITY_ICONS)) {
+    if (lower.includes(key)) return icon;
+  }
+  return Check;
+}
 
 type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description" | "ask-ai";
 
@@ -234,6 +263,8 @@ export default function HotelDetails() {
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [galleryMode, setGalleryMode] = useState<"grid" | "lightbox">("grid");
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [roomDetailsModal, setRoomDetailsModal] = useState<string | null>(null);
+  const [modalPhotoIdx, setModalPhotoIdx] = useState(0);
 
   const groupedRooms = useMemo(() => {
     if (!hotel) return [];
@@ -243,17 +274,18 @@ export default function HotelDetails() {
       groups[rate.mappedRoomId].push(rate);
     });
     return Object.entries(groups).map(([mappedRoomId, rates]) => {
-      const roomInfo = hotel.rooms.find(r => r.id === mappedRoomId);
-      // Primary: room data photos (if IDs match); Secondary: server-matched photos from rate; Fallback: hotel exterior
-      const photos = (roomInfo?.photos || (rates[0] as any)?.photos || []).map((p: any) => p.url).filter(Boolean);
+      const roomInfo = (hotel.rooms as any[]).find((r: any) => r.id === mappedRoomId);
+      const rawPhotos = roomInfo?.photos || (rates[0] as any)?.photos || [];
+      const photos = rawPhotos.map((p: any) => (typeof p === "string" ? p : p.url)).filter(Boolean);
       if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
       return {
         mappedRoomId,
         name: formatRoomName(roomInfo?.name || rates[0]?.name || "Standard Room"),
         photos,
         description: roomInfo?.description || null,
-        amenities: roomInfo?.amenities || [],
-        bedTypes: roomInfo?.bedTypes || [],
+        amenities: (roomInfo?.amenities || []) as string[],
+        amenityGroups: (roomInfo?.amenityGroups || []) as { category: string; items: string[] }[],
+        bedTypes: (roomInfo?.bedTypes || []) as { type: string; quantity: number }[],
         roomSize: roomInfo?.roomSize || null,
         maxOccupancy: roomInfo?.maxOccupancy || null,
         rates,
@@ -690,7 +722,6 @@ export default function HotelDetails() {
             <div className="space-y-6">
               {groupedRooms.map((group) => {
                 const photoIdx = getRoomPhotoIdx(group.mappedRoomId);
-                const isExpanded = expandedDescMap[group.mappedRoomId] ?? false;
                 return (
                   <Card key={group.mappedRoomId} className="overflow-hidden border-border/60" data-testid={`room-group-${group.mappedRoomId}`}>
                     {/* Room name heading */}
@@ -700,9 +731,11 @@ export default function HotelDetails() {
 
                     <div className="flex flex-col md:flex-row">
                       {/* ── Left: photo carousel + room details ── */}
-                      <div className="md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-border/40">
-                        {/* Photo */}
-                        <div className="relative aspect-[4/3] overflow-hidden bg-muted group/photo">
+                      <div className="md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-border/40">
+                        {/* Photo carousel */}
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted group/photo cursor-pointer"
+                          onClick={() => { setRoomDetailsModal(group.mappedRoomId); setModalPhotoIdx(photoIdx); }}
+                        >
                           <img
                             src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
                             alt={`${group.name} - photo ${photoIdx + 1}`}
@@ -712,20 +745,19 @@ export default function HotelDetails() {
                           {group.photos.length > 1 && (
                             <>
                               <button
-                                onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length)}
+                                onClick={(e) => { e.stopPropagation(); setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length); }}
                                 className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
                                 data-testid={`button-room-photo-prev-${group.mappedRoomId}`}
                               >
                                 <ChevronLeft className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length)}
+                                onClick={(e) => { e.stopPropagation(); setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length); }}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
                                 data-testid={`button-room-photo-next-${group.mappedRoomId}`}
                               >
                                 <ChevronRight className="w-4 h-4" />
                               </button>
-                              {/* Counter pill with camera icon */}
                               <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
                                 <Camera className="w-3 h-3" />
                                 {photoIdx + 1} / {group.photos.length}
@@ -734,61 +766,65 @@ export default function HotelDetails() {
                           )}
                         </div>
 
-                        {/* Room details below photo */}
-                        <div className="p-4">
-                          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Room details</p>
-                          <div className="flex items-center gap-4 mb-3 text-sm text-foreground/80">
-                            {group.roomSize && (
-                              <span className="flex items-center gap-1.5">
-                                <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                {group.roomSize}
-                              </span>
-                            )}
-                            {group.maxOccupancy && (
-                              <span className="flex items-center gap-1.5">
-                                <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                                Sleeps {group.maxOccupancy}
-                              </span>
-                            )}
-                          </div>
-                          {group.bedTypes.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              {group.bedTypes.map((bt, i) => (
-                                <span key={i} className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <BedDouble className="w-3 h-3" />
-                                  {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {group.amenities.length > 0 && (
+                        {/* Room details panel */}
+                        <div className="p-4 space-y-3">
+                          {/* Size + occupancy */}
+                          {(group.roomSize || group.maxOccupancy || group.bedTypes.length > 0) && (
                             <div>
-                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Amenities</p>
-                              <ul className="space-y-1">
-                                {group.amenities.slice(0, 6).map((a) => (
-                                  <li key={a} className="flex items-center gap-1.5 text-xs text-foreground/80">
-                                    <Check className="w-3 h-3 text-muted-foreground shrink-0" />
-                                    {a}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {group.description && (
-                            <div className="mt-3">
-                              <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
-                                {group.description}
-                              </p>
-                              {group.description.length > 100 && (
-                                <button
-                                  className="text-xs text-primary mt-1 hover:underline font-medium"
-                                  onClick={() => setExpandedDescMap(prev => ({ ...prev, [group.mappedRoomId]: !isExpanded }))}
-                                >
-                                  {isExpanded ? "Show less" : "Room details"}
-                                </button>
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Room details</p>
+                              <div className="flex items-center gap-4 text-sm text-foreground/80 mb-2">
+                                {group.roomSize && (
+                                  <span className="flex items-center gap-1.5">
+                                    <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                    {group.roomSize}
+                                  </span>
+                                )}
+                                {group.maxOccupancy && (
+                                  <span className="flex items-center gap-1.5">
+                                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                                    Sleeps {group.maxOccupancy}
+                                  </span>
+                                )}
+                              </div>
+                              {group.bedTypes.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {group.bedTypes.map((bt, i) => (
+                                    <span key={i} className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <BedDouble className="w-3 h-3" />
+                                      {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
+                                    </span>
+                                  ))}
+                                </div>
                               )}
                             </div>
                           )}
+
+                          {/* Amenities with icons */}
+                          {group.amenities.length > 0 && (
+                            <div>
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Amenities</p>
+                              <ul className="space-y-1.5">
+                                {group.amenities.slice(0, 6).map((a) => {
+                                  const AIcon = getRoomAmenityIcon(a);
+                                  return (
+                                    <li key={a} className="flex items-center gap-2 text-xs text-foreground/80">
+                                      <AIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                      {a}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Room details link */}
+                          <button
+                            className="text-xs font-semibold text-primary hover:underline underline-offset-2 mt-1"
+                            onClick={() => { setRoomDetailsModal(group.mappedRoomId); setModalPhotoIdx(photoIdx); }}
+                            data-testid={`button-room-details-${group.mappedRoomId}`}
+                          >
+                            Room details
+                          </button>
                         </div>
                       </div>
 
@@ -1286,6 +1322,134 @@ export default function HotelDetails() {
           </>
         )}
       </AnimatePresence>
+
+      {/* ─── Room Details Dialog ─── */}
+      {roomDetailsModal && (() => {
+        const group = groupedRooms.find(g => g.mappedRoomId === roomDetailsModal);
+        if (!group) return null;
+        const totalPhotos = group.photos.length;
+        const hasGroups = group.amenityGroups.length > 0;
+        return (
+          <Dialog open={true} onOpenChange={() => setRoomDetailsModal(null)}>
+            <DialogContent className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
+              <DialogHeader className="px-6 pt-5 pb-0 shrink-0">
+                <DialogTitle className="text-lg font-bold">{group.name}</DialogTitle>
+              </DialogHeader>
+
+              <div className="overflow-y-auto flex-1">
+                {/* Photo carousel */}
+                {group.photos.length > 0 && (
+                  <div className="relative w-full bg-black" style={{ aspectRatio: "16/9" }}>
+                    <img
+                      src={group.photos[modalPhotoIdx] || GALLERY_FALLBACKS[0]}
+                      alt={`${group.name} - photo ${modalPhotoIdx + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
+                    />
+                    {totalPhotos > 1 && (
+                      <>
+                        <button
+                          onClick={() => setModalPhotoIdx(i => (i - 1 + totalPhotos) % totalPhotos)}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                          data-testid="button-modal-photo-prev"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setModalPhotoIdx(i => (i + 1) % totalPhotos)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                          data-testid="button-modal-photo-next"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
+                          <Camera className="w-3 h-3" />
+                          {modalPhotoIdx + 1} / {totalPhotos}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Info section */}
+                <div className="px-6 py-5 space-y-5">
+                  {/* Size + occupancy row */}
+                  {(group.roomSize || group.maxOccupancy || group.bedTypes.length > 0) && (
+                    <div className="flex items-center gap-6 pb-4 border-b border-border">
+                      {group.roomSize && (
+                        <span className="flex items-center gap-2 text-sm">
+                          <Maximize2 className="w-4 h-4 text-muted-foreground" />
+                          {group.roomSize}
+                        </span>
+                      )}
+                      {group.maxOccupancy && (
+                        <span className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          Sleeps {group.maxOccupancy}
+                        </span>
+                      )}
+                      {group.bedTypes.map((bt, i) => (
+                        <span key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <BedDouble className="w-4 h-4" />
+                          {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Amenities — grouped if available, flat list otherwise */}
+                  {hasGroups ? (
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold">Amenities</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        {group.amenityGroups.map(({ category, items }) => (
+                          <div key={category}>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{category}</p>
+                            <ul className="space-y-1.5">
+                              {items.map(item => {
+                                const AIcon = getRoomAmenityIcon(item);
+                                return (
+                                  <li key={item} className="flex items-center gap-2 text-sm">
+                                    <AIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                                    {item}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : group.amenities.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">Amenities</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {group.amenities.map(a => {
+                          const AIcon = getRoomAmenityIcon(a);
+                          return (
+                            <div key={a} className="flex items-center gap-2 text-sm">
+                              <AIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                              {a}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Description */}
+                  {group.description && (
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <h4 className="text-sm font-semibold">About this room</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{group.description}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }
