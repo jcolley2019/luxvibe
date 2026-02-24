@@ -248,6 +248,101 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/hotels/las-vegas", async (req, res) => {
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dayAfter = new Date();
+      dayAfter.setDate(dayAfter.getDate() + 2);
+      const fmt = (d: Date) => d.toISOString().split("T")[0];
+      const defaultCheckIn = fmt(tomorrow);
+      const defaultCheckOut = fmt(dayAfter);
+
+      const STRIP_KEYWORDS = [
+        "bellagio","mgm grand","caesars","wynn","encore","venetian","palazzo","aria","vdara",
+        "mandalay bay","delano","luxor","excalibur","new york-new york","new york new york",
+        "paris las vegas","bally","horseshoe","flamingo","linq","harrah","cromwell",
+        "treasure island","mirage","resorts world","sahara","circus circus","westgate",
+        "strat","stratosphere","virgin hotels","nobu hotel","waldorf astoria las vegas",
+        "veer","park mgm","nomad","t-mobile arena","cosmopolitan","fontainebleau",
+      ];
+
+      const DOWNTOWN_KEYWORDS = [
+        "golden nugget","el cortez","the d las vegas","fremont hotel","four queens",
+        "binion","main street station","california hotel","plaza hotel","downtown grand",
+        "circa resort","circa las vegas","lady luck","vegas vic","oyo hotel","ambassador",
+        "slotzilla","container park",
+      ];
+
+      const data = await liteApiGet("/data/hotels", {
+        cityName: "Las Vegas",
+        countryCode: "US",
+        limit: "100",
+        offset: "0",
+      });
+
+      const raw: any[] = data?.data || [];
+      const hotels = raw.map((h: any) => ({
+        id: h.id,
+        name: h.name || "Hotel",
+        address: [h.address, h.city].filter(Boolean).join(", "),
+        city: "Las Vegas",
+        stars: h.stars ? parseFloat(String(h.stars)) : null,
+        rating: h.rating ? parseFloat(String(h.rating)) : null,
+        reviewCount: h.reviews_total || h.reviewCount || null,
+        price: null as number | null,
+        imageUrl: h.main_photo || h.thumbnail || null,
+      }));
+
+      const classify = (name: string): "strip" | "downtown" | null => {
+        const lower = name.toLowerCase();
+        if (STRIP_KEYWORDS.some(k => lower.includes(k))) return "strip";
+        if (DOWNTOWN_KEYWORDS.some(k => lower.includes(k))) return "downtown";
+        return null;
+      };
+
+      let strip = hotels.filter(h => classify(h.name) === "strip" && h.rating && h.rating >= 7.0);
+      let downtown = hotels.filter(h => classify(h.name) === "downtown" && h.rating && h.rating >= 6.5);
+
+      // Sort by rating
+      const score = (h: any) => (h.rating ?? 0) * 2 + (h.stars ?? 0) * 0.5;
+      strip = strip.sort((a, b) => score(b) - score(a)).slice(0, 12);
+      downtown = downtown.sort((a, b) => score(b) - score(a)).slice(0, 8);
+
+      // Fetch prices
+      const allHotels = [...strip, ...downtown];
+      if (allHotels.length > 0) {
+        try {
+          const ratesData = await liteApiPost("/hotels/rates", {
+            hotelIds: allHotels.map(h => h.id),
+            checkin: defaultCheckIn,
+            checkout: defaultCheckOut,
+            currency: "USD",
+            guestNationality: "US",
+            occupancies: [{ rooms: 1, adults: 2, children: [] }],
+          });
+          if (ratesData?.data) {
+            const priceMap = new Map<string, number>();
+            for (const hotel of ratesData.data) {
+              if (hotel.roomTypes?.length > 0) {
+                const prices = hotel.roomTypes
+                  .map((rt: any) => rt.offerRetailRate?.amount)
+                  .filter((p: any) => p && !isNaN(p));
+                if (prices.length > 0) priceMap.set(hotel.hotelId, Math.min(...prices));
+              }
+            }
+            for (const h of allHotels) h.price = priceMap.get(h.id) ?? null;
+          }
+        } catch { }
+      }
+
+      res.json({ strip, downtown });
+    } catch (err: any) {
+      console.error("Las Vegas hotels error:", err?.message || err);
+      res.status(500).json({ message: "Failed to fetch Las Vegas hotels" });
+    }
+  });
+
   app.get(api.hotels.nearby.path, async (req, res) => {
     try {
       res.set("Cache-Control", "no-store");

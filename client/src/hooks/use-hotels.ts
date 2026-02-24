@@ -81,6 +81,18 @@ export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
   });
 }
 
+export function useLasVegasHotels() {
+  return useQuery<{ strip: NearbyHotel[]; downtown: NearbyHotel[] }>({
+    queryKey: ["/api/hotels/las-vegas"],
+    queryFn: async () => {
+      const res = await fetch("/api/hotels/las-vegas");
+      if (!res.ok) throw new Error("Failed to fetch Las Vegas hotels");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 export function useSimilarHotels(id: string) {
   return useQuery({
     queryKey: [api.hotels.similar.path, id],
