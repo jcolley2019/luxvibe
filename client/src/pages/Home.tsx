@@ -288,8 +288,8 @@ function SearchTips() {
         transition={{ duration: 0.35 }}
         className="container mx-auto px-4 mb-3"
       >
-        <div className="rounded-xl overflow-hidden border border-amber-500/25 shadow-lg shadow-amber-900/10"
-          style={{ background: "linear-gradient(135deg, #0d1b3e 0%, #0a1628 60%, #0f2044 100%)" }}
+        <div className="rounded-xl overflow-hidden border border-white/15 shadow-lg shadow-blue-900/20"
+          style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #1e40af 100%)" }}
         >
           {/* Header — always visible, toggles panel */}
           <div className="flex items-center justify-between px-5 py-3.5">
@@ -298,27 +298,25 @@ function SearchTips() {
               className="flex items-center gap-3 flex-1 text-left group"
               data-testid="button-toggle-tips"
             >
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: "linear-gradient(135deg, #d4af37, #f0d060)" }}
-              >
-                <Lightbulb className="w-3.5 h-3.5 text-stone-900" />
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Lightbulb className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="text-sm font-semibold tracking-wide" style={{ color: "#d4af37" }}>
+              <span className="text-sm font-semibold tracking-wide text-white">
                 Search Tips
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-amber-400/50 font-medium hidden sm:inline">
+              <span className="text-[10px] uppercase tracking-widest text-white/50 font-medium hidden sm:inline">
                 · Luxvibe Guide
               </span>
               <span className="ml-1">
                 {panelOpen
-                  ? <ChevronUp className="w-4 h-4 text-amber-400/60 group-hover:text-amber-400 transition-colors" />
-                  : <ChevronDown className="w-4 h-4 text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                  ? <ChevronUp className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
+                  : <ChevronDown className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
                 }
               </span>
             </button>
             <button
               onClick={dismiss}
-              className="text-amber-500/40 hover:text-amber-400 transition-colors p-0.5 ml-3"
+              className="text-white/40 hover:text-white transition-colors p-0.5 ml-3"
               data-testid="button-dismiss-tips"
               aria-label="Dismiss tips"
             >
@@ -336,29 +334,29 @@ function SearchTips() {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                {/* Gold divider */}
-                <div className="mx-5 h-px" style={{ background: "linear-gradient(to right, transparent, #d4af3740, transparent)" }} />
+                {/* Divider */}
+                <div className="mx-5 h-px bg-white/20" />
 
                 <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {TIPS.map((tip, i) => (
                     <button
                       key={i}
                       onClick={() => setExpandedTip(expandedTip === i ? null : i)}
-                      className="text-left rounded-lg px-4 py-3 border transition-all duration-200 group/tip"
+                      className="text-left rounded-lg px-4 py-3 border border-white/10 transition-all duration-200 group/tip hover:bg-white/10"
                       style={{
-                        background: expandedTip === i ? "rgba(212,175,55,0.08)" : "rgba(255,255,255,0.03)",
-                        borderColor: expandedTip === i ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                        background: expandedTip === i ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
+                        borderColor: expandedTip === i ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.10)",
                       }}
                       data-testid={`tip-item-${i}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="text-base shrink-0 leading-none" style={{ color: "#d4af37" }}>{tip.icon}</span>
-                          <span className="text-xs font-semibold text-white/90 leading-snug">{tip.title}</span>
+                          <span className="text-base shrink-0 leading-none text-white">{tip.icon}</span>
+                          <span className="text-xs font-semibold text-white leading-snug">{tip.title}</span>
                         </div>
                         {expandedTip === i
-                          ? <ChevronUp className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "#d4af37" }} />
-                          : <ChevronDown className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white/30 group-hover/tip:text-white/60 transition-colors" />
+                          ? <ChevronUp className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white" />
+                          : <ChevronDown className="w-3.5 h-3.5 shrink-0 mt-0.5 text-white/40 group-hover/tip:text-white/80 transition-colors" />
                         }
                       </div>
                       <AnimatePresence>
@@ -368,7 +366,7 @@ function SearchTips() {
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="text-xs leading-relaxed overflow-hidden mt-2 text-white/60"
+                            className="text-xs leading-relaxed overflow-hidden mt-2 text-white/75"
                           >
                             {tip.text}
                           </motion.p>
@@ -381,8 +379,7 @@ function SearchTips() {
                 <div className="px-5 pb-4 flex justify-end">
                   <button
                     onClick={dismiss}
-                    className="text-[11px] tracking-wide hover:underline transition-colors"
-                    style={{ color: "#d4af3780" }}
+                    className="text-[11px] tracking-wide text-white/50 hover:text-white hover:underline transition-colors"
                     data-testid="button-got-it"
                   >
                     Got it — don't show again
