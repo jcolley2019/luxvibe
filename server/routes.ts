@@ -726,10 +726,13 @@ export async function registerRoutes(
         return res.json(results);
       }
 
+      const METADATA_LIMIT = 100;
+      const RATES_BATCH = 25;
+
       if (placeId) {
         const hotelsData = await liteApiGet("/data/hotels", {
           placeId,
-          limit: "20",
+          limit: String(METADATA_LIMIT),
           offset: "0",
         });
         hotelsMetadata = hotelsData?.data || [];
@@ -741,7 +744,7 @@ export async function registerRoutes(
         const hotelsData = await liteApiGet("/data/hotels", {
           cityName: resolved.cityName,
           countryCode: resolved.countryCode,
-          limit: "20",
+          limit: String(METADATA_LIMIT),
           offset: "0",
         });
         hotelsMetadata = hotelsData?.data || [];
@@ -751,27 +754,47 @@ export async function registerRoutes(
         return res.json([]);
       }
 
-      hotelIds = hotelsMetadata.slice(0, 20).map((h: any) => h.id);
+      // Sort by stars descending so luxury hotels are prioritised when slicing for rates
+      hotelsMetadata.sort((a: any, b: any) => {
+        const sa = a.stars ? parseFloat(String(a.stars)) : 0;
+        const sb = b.stars ? parseFloat(String(b.stars)) : 0;
+        if (sb !== sa) return sb - sa;
+        const ra = a.rating ? parseFloat(String(a.rating)) : 0;
+        const rb = b.rating ? parseFloat(String(b.rating)) : 0;
+        return rb - ra;
+      });
+
+      hotelIds = hotelsMetadata.map((h: any) => h.id);
       let ratesMap = new Map<string, number>();
 
+      // Fetch rates in parallel batches for comprehensive coverage
       try {
-        const ratesData = await liteApiPost("/hotels/rates", {
-          hotelIds,
-          checkin: checkIn,
-          checkout: checkOut,
-          currency: "USD",
-          guestNationality: "US",
-          occupancies,
-        });
-
-        if (ratesData?.data) {
-          for (const hotel of ratesData.data) {
-            if (hotel.roomTypes && hotel.roomTypes.length > 0) {
-              const prices = hotel.roomTypes
-                .map((rt: any) => rt.offerRetailRate?.amount)
-                .filter((p: any) => p && !isNaN(p));
-              if (prices.length > 0) {
-                ratesMap.set(hotel.hotelId, Math.min(...prices));
+        const batches: string[][] = [];
+        for (let i = 0; i < hotelIds.length; i += RATES_BATCH) {
+          batches.push(hotelIds.slice(i, i + RATES_BATCH));
+        }
+        const batchResults = await Promise.all(
+          batches.map(batch =>
+            liteApiPost("/hotels/rates", {
+              hotelIds: batch,
+              checkin: checkIn,
+              checkout: checkOut,
+              currency: "USD",
+              guestNationality: "US",
+              occupancies,
+            }).catch(() => null)
+          )
+        );
+        for (const ratesData of batchResults) {
+          if (ratesData?.data) {
+            for (const hotel of ratesData.data) {
+              if (hotel.roomTypes && hotel.roomTypes.length > 0) {
+                const prices = hotel.roomTypes
+                  .map((rt: any) => rt.offerRetailRate?.amount)
+                  .filter((p: any) => p && !isNaN(p));
+                if (prices.length > 0) {
+                  ratesMap.set(hotel.hotelId, Math.min(...prices));
+                }
               }
             }
           }
@@ -791,8 +814,10 @@ export async function registerRoutes(
         imageUrl: h.main_photo || h.thumbnail || null,
       }));
 
+      // Return hotels with rates first, then those without; all results included
       const withRates = results.filter((h: any) => h.price > 0);
-      res.json(withRates.length > 0 ? withRates : results);
+      const withoutRates = results.filter((h: any) => h.price === 0);
+      res.json([...withRates, ...withoutRates]);
     } catch (err: any) {
       console.error("Hotel search error:", err?.message || err);
       res.status(500).json({ message: "Failed to search hotels" });
