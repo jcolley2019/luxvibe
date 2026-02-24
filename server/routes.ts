@@ -766,6 +766,8 @@ export async function registerRoutes(
 
       hotelIds = hotelsMetadata.map((h: any) => h.id);
       let ratesMap = new Map<string, number>();
+      let boardCodesMap = new Map<string, string[]>();
+      let refundableMap = new Map<string, boolean>();
 
       // Fetch rates in parallel batches for comprehensive coverage
       try {
@@ -795,6 +797,17 @@ export async function registerRoutes(
                 if (prices.length > 0) {
                   ratesMap.set(hotel.hotelId, Math.min(...prices));
                 }
+                // Extract board codes (meal plans) and refundable status
+                const codes: string[] = [];
+                let hasRefundable = false;
+                for (const rt of hotel.roomTypes) {
+                  const code = rt.boardCode || rt.mealPlanCode;
+                  if (code && !codes.includes(code)) codes.push(code);
+                  if (rt.refundableTag === "RFN") hasRefundable = true;
+                  if (rt.cancelPolicyInfos?.some((p: any) => p.cancelTime && p.amount === 0)) hasRefundable = true;
+                }
+                if (codes.length) boardCodesMap.set(hotel.hotelId, codes);
+                if (hasRefundable) refundableMap.set(hotel.hotelId, true);
               }
             }
           }
@@ -803,16 +816,30 @@ export async function registerRoutes(
         console.error("Rates fetch failed, returning hotels without prices:", rateErr);
       }
 
-      const results = hotelsMetadata.map((h: any) => ({
-        id: h.id,
-        name: h.name || "Hotel",
-        address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
-        stars: h.stars ? parseFloat(String(h.stars)) : null,
-        rating: h.rating ? parseFloat(String(h.rating)) : null,
-        reviewCount: h.reviews_total || h.reviewCount || null,
-        price: ratesMap.get(h.id) || 0,
-        imageUrl: h.main_photo || h.thumbnail || null,
-      }));
+      const results = hotelsMetadata.map((h: any) => {
+        const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
+        const facilities: string[] = rawFacilities
+          .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+          .filter(Boolean)
+          .slice(0, 30);
+
+        return {
+          id: h.id,
+          name: h.name || "Hotel",
+          address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
+          city: h.city || "",
+          stars: h.stars ? parseFloat(String(h.stars)) : null,
+          rating: h.rating ? parseFloat(String(h.rating)) : null,
+          reviewCount: h.reviews_total || h.reviewCount || null,
+          price: ratesMap.get(h.id) || 0,
+          imageUrl: h.main_photo || h.thumbnail || null,
+          lat: h.latitude ?? h.lat ?? null,
+          lng: h.longitude ?? h.lng ?? null,
+          facilities,
+          boardCodes: boardCodesMap.get(h.id) || [],
+          refundable: refundableMap.get(h.id) || false,
+        };
+      });
 
       // Return hotels with rates first, then those without; all results included
       const withRates = results.filter((h: any) => h.price > 0);
