@@ -5,9 +5,9 @@ import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
@@ -191,6 +191,115 @@ function HotelListCard({
         </div>
       </div>
     </Link>
+  );
+}
+
+const TIPS = [
+  {
+    icon: "🔍",
+    title: "Pick from the dropdown for best results",
+    text: "When you type a destination, select a suggestion from the list that appears — this gives the search engine a precise location and finds far more hotels.",
+  },
+  {
+    icon: "🎰",
+    title: "Searching Las Vegas? Try \"Las Vegas Strip\"",
+    text: "Type \"Las Vegas Strip\" and pick that option from the dropdown to focus results on the famous Strip resorts like Bellagio, MGM Grand, and Caesars Palace.",
+  },
+  {
+    icon: "✨",
+    title: "Use Vibe search for inspiration",
+    text: "Switch to the Vibe tab in the search bar and describe the kind of stay you want — like \"romantic beachfront resort\" or \"luxury casino in Las Vegas\" — and AI will find matching hotels.",
+  },
+  {
+    icon: "⭐",
+    title: "Only 4 & 5-star hotels shown by default",
+    text: "Results are filtered to luxury properties by default. Use the star filter on the left to show 3-star or budget options too.",
+  },
+];
+
+function SearchTips() {
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem("luxvibe_tips_v1") === "dismissed"; } catch { return false; }
+  });
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const dismiss = () => {
+    try { localStorage.setItem("luxvibe_tips_v1", "dismissed"); } catch {}
+    setDismissed(true);
+  };
+
+  if (dismissed) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.3 }}
+        className="container mx-auto px-4 mb-2"
+      >
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-sm">
+              <Lightbulb className="w-4 h-4 shrink-0" />
+              Search tips
+            </div>
+            <button
+              onClick={dismiss}
+              className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-200 transition-colors p-0.5"
+              data-testid="button-dismiss-tips"
+              aria-label="Dismiss tips"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {TIPS.map((tip, i) => (
+              <button
+                key={i}
+                onClick={() => setExpanded(expanded === i ? null : i)}
+                className="text-left bg-white/60 dark:bg-amber-900/20 rounded-lg px-3 py-2 hover:bg-white dark:hover:bg-amber-900/40 transition-colors border border-amber-100 dark:border-amber-800/40"
+                data-testid={`tip-item-${i}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                    <span>{tip.icon}</span>
+                    {tip.title}
+                  </span>
+                  {expanded === i
+                    ? <ChevronUp className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    : <ChevronDown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  }
+                </div>
+                <AnimatePresence>
+                  {expanded === i && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1.5 leading-relaxed overflow-hidden"
+                    >
+                      {tip.text}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={dismiss}
+            className="mt-3 text-xs text-amber-600 dark:text-amber-400 hover:underline"
+            data-testid="button-got-it"
+          >
+            Got it, don't show again
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -427,6 +536,8 @@ export default function Home() {
         initialCheckOut={checkOut || undefined}
         initialGuests={guests}
       />
+
+      <SearchTips />
 
       {isSearchActive ? (
         <div className="container mx-auto px-4 py-8 flex-1">
