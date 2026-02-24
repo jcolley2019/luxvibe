@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
-import { useSearchHotels, useFeaturedHotels, useNearbyHotels, useLasVegasHotels } from "@/hooks/use-hotels";
+import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
 import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -226,13 +226,10 @@ export default function Home() {
   });
 
   const { data: featured, isLoading: featuredLoading } = useFeaturedHotels();
-  const { data: lasVegasData, isLoading: lasVegasLoading } = useLasVegasHotels();
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const nearbyCarouselRef = useRef<HTMLDivElement>(null);
   const recentCarouselRef = useRef<HTMLDivElement>(null);
-  const stripCarouselRef = useRef<HTMLDivElement>(null);
-  const downtownCarouselRef = useRef<HTMLDivElement>(null);
 
   type RecentHotel = { id: string; name: string; address: string; city: string; stars: number | null; rating: number | null; reviewCount: number | null; price: number | null; imageUrl: string | null };
   const [recentHotels, setRecentHotels] = useState<RecentHotel[]>([]);
@@ -389,8 +386,6 @@ export default function Home() {
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
   const nearbyDealBadges = useMemo(() => computeDealBadges(nearbyHotels ?? []), [nearbyHotels]);
-  const stripDealBadges = useMemo(() => computeDealBadges(lasVegasData?.strip ?? []), [lasVegasData?.strip]);
-  const downtownDealBadges = useMemo(() => computeDealBadges(lasVegasData?.downtown ?? []), [lasVegasData?.downtown]);
 
   const toggleStarFilter = (star: number) => {
     setStarFilter(prev => prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]);
@@ -690,70 +685,6 @@ export default function Home() {
                     <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)} />
                   </motion.div>
                 ))}
-              </div>
-            )}
-          </section>
-
-          {/* Las Vegas Strip Hotels */}
-          <section className="pb-10 container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-2xl font-bold font-heading">Las Vegas Strip Hotels</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">World-famous resorts on the Las Vegas Boulevard</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {lasVegasData?.strip?.length ? (
-                  <span className="text-muted-foreground text-sm mr-1">{lasVegasData.strip.length} properties</span>
-                ) : null}
-                <button onClick={() => scrollCarousel(stripCarouselRef, "left")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-strip-prev"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => scrollCarousel(stripCarouselRef, "right")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-strip-next"><ChevronRight className="w-4 h-4" /></button>
-              </div>
-            </div>
-            {lasVegasLoading ? (
-              <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
-            ) : lasVegasData?.strip?.length ? (
-              <div ref={stripCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                {lasVegasData.strip.map((hotel, i) => (
-                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                    <HotelCard hotel={hotel} variant="featured" dealBadge={stripDealBadges.get(hotel.id)} />
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-40 bg-muted/30 rounded-2xl border border-dashed border-border">
-                <p className="text-muted-foreground text-sm">No Strip hotels available right now.</p>
-              </div>
-            )}
-          </section>
-
-          {/* Las Vegas Downtown / Fremont Street Hotels */}
-          <section className="pb-10 container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-2xl font-bold font-heading">Downtown &amp; Fremont Street</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">Historic hotels in the heart of Old Vegas</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {lasVegasData?.downtown?.length ? (
-                  <span className="text-muted-foreground text-sm mr-1">{lasVegasData.downtown.length} properties</span>
-                ) : null}
-                <button onClick={() => scrollCarousel(downtownCarouselRef, "left")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-downtown-prev"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => scrollCarousel(downtownCarouselRef, "right")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-downtown-next"><ChevronRight className="w-4 h-4" /></button>
-              </div>
-            </div>
-            {lasVegasLoading ? (
-              <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
-            ) : lasVegasData?.downtown?.length ? (
-              <div ref={downtownCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                {lasVegasData.downtown.map((hotel, i) => (
-                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                    <HotelCard hotel={hotel} variant="featured" dealBadge={downtownDealBadges.get(hotel.id)} />
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-40 bg-muted/30 rounded-2xl border border-dashed border-border">
-                <p className="text-muted-foreground text-sm">No Downtown hotels available right now.</p>
               </div>
             )}
           </section>
