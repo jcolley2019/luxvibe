@@ -289,7 +289,7 @@ function SearchTips() {
         className="container mx-auto px-4 mb-3"
       >
         <div className="rounded-xl overflow-hidden border border-amber-500/25 shadow-lg shadow-amber-900/10"
-          style={{ background: "linear-gradient(135deg, #1c1814 0%, #0f0d0b 60%, #1a1610 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0d1b3e 0%, #0a1628 60%, #0f2044 100%)" }}
         >
           {/* Header — always visible, toggles panel */}
           <div className="flex items-center justify-between px-5 py-3.5">
