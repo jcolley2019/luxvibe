@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp, Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -34,8 +34,29 @@ const KEY_FACILITIES = [
   "Spa", "Fitness center", "Fitness facilities", "Gym",
   "Restaurant", "Bar", "Casino", "Free WiFi", "WiFi",
   "Parking", "Airport shuttle", "Business center", "Meeting rooms",
-  "Pet friendly", "24-hour front desk", "Room service", "Laundry",
-  "Non-smoking rooms", "Family rooms", "Accessible facilities",
+  "Pet friendly", "Pets allowed", "24-hour front desk", "Room service",
+  "Laundry", "Laundry service", "Non-smoking rooms", "Family rooms",
+  "Accessible facilities", "Wheelchair accessible", "Air conditioning",
+  "Microwave", "Mini bar", "Balcony", "Ocean view", "Kitchen",
+];
+
+const POPULAR_FILTER_ITEMS: Array<{
+  label: string;
+  type: "cancellation" | "facility" | "mealplan";
+  value?: string;
+}> = [
+  { label: "Free cancellation", type: "cancellation" },
+  { label: "Parking", type: "facility", value: "Parking" },
+  { label: "Breakfast included", type: "mealplan", value: "BB" },
+  { label: "Swimming pool", type: "facility", value: "Pool" },
+  { label: "Free WiFi", type: "facility", value: "Free WiFi" },
+  { label: "Fitness center", type: "facility", value: "Fitness center" },
+  { label: "Restaurant", type: "facility", value: "Restaurant" },
+  { label: "Microwave", type: "facility", value: "Microwave" },
+  { label: "Laundry service", type: "facility", value: "Laundry" },
+  { label: "Pets allowed", type: "facility", value: "Pet friendly" },
+  { label: "Wheelchair accessible", type: "facility", value: "Wheelchair accessible" },
+  { label: "Air conditioning", type: "facility", value: "Air conditioning" },
 ];
 
 function normalizeForFilter(s: string): string {
@@ -421,6 +442,9 @@ export default function Home() {
   const [distanceStripMax, setDistanceStripMax] = useState<number | null>(null);
   const [distanceFremontMax, setDistanceFremontMax] = useState<number | null>(null);
   const [distanceConventionMax, setDistanceConventionMax] = useState<number | null>(null);
+  const [neighborhoodFilter, setNeighborhoodFilter] = useState<string[]>([]);
+  const [showAllFacilities, setShowAllFacilities] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const { data: hotels, isLoading, error } = useSearchHotels({
     destination: destination || undefined,
@@ -576,9 +600,9 @@ export default function Home() {
     return Array.from(codes).sort();
   }, [hotels]);
 
-  // Available facilities from search results (intersect with KEY_FACILITIES list)
-  const availableFacilities = useMemo(() => {
-    if (!hotels?.length) return [] as string[];
+  // Available facilities from search results — returns [facility, count][] sorted by count
+  const availableFacilities = useMemo((): [string, number][] => {
+    if (!hotels?.length) return [];
     const counts = new Map<string, number>();
     for (const h of hotels) {
       const seen = new Set<string>();
@@ -591,7 +615,45 @@ export default function Home() {
         }
       }
     }
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([f]) => f);
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  }, [hotels]);
+
+  // Map center from hotel coordinates
+  const mapCenter = useMemo(() => {
+    if (!hotels?.length) return null;
+    const withCoords = hotels.filter(h => (h as any).lat && (h as any).lng);
+    if (!withCoords.length) return null;
+    const avgLat = withCoords.reduce((s, h) => s + (h as any).lat, 0) / withCoords.length;
+    const avgLng = withCoords.reduce((s, h) => s + (h as any).lng, 0) / withCoords.length;
+    return { lat: avgLat, lng: avgLng };
+  }, [hotels]);
+
+  // Neighborhood extraction and available neighborhoods
+  function extractNeighborhood(hotel: any): string {
+    const addr = (hotel.address || "").toLowerCase();
+    const city = (hotel.city || "").toLowerCase();
+    if (city.includes("henderson")) return "Henderson";
+    if (city.includes("north las vegas")) return "North Las Vegas";
+    if (city.includes("las vegas") || city === "las vegas") {
+      if (addr.includes("las vegas blvd") || addr.includes("strip")) return "The Strip";
+      if (addr.includes("fremont") || addr.includes("main st") || addr.includes("3rd st")) return "Downtown / Fremont";
+      if (addr.includes("summerlin") || addr.includes("rampart")) return "Summerlin";
+      if (addr.includes("henderson") || addr.includes("green valley")) return "Henderson";
+      return "Greater Las Vegas";
+    }
+    return hotel.city || "Other";
+  }
+
+  const availableNeighborhoods = useMemo((): [string, number][] => {
+    if (!hotels?.length) return [];
+    const counts = new Map<string, number>();
+    for (const h of hotels) {
+      const n = extractNeighborhood(h as any);
+      counts.set(n, (counts.get(n) ?? 0) + 1);
+    }
+    // Only show if there are multiple neighbourhoods
+    if (counts.size <= 1) return [];
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [hotels]);
 
   const sortedHotels = useMemo(() => {
@@ -650,10 +712,13 @@ export default function Home() {
         if (distanceConventionMax !== null && haversineMiles(lat, lng, LV_CONVENTION[0], LV_CONVENTION[1]) > distanceConventionMax) return false;
       }
 
+      // Neighborhood filter
+      if (neighborhoodFilter.length > 0 && !neighborhoodFilter.includes(extractNeighborhood(hx))) return false;
+
       return true;
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
-    freeCancellationOnly, mealPlanFilter, facilitiesFilter, distanceStripMax, distanceFremontMax, distanceConventionMax]);
+    freeCancellationOnly, mealPlanFilter, facilitiesFilter, distanceStripMax, distanceFremontMax, distanceConventionMax, neighborhoodFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
@@ -675,6 +740,27 @@ export default function Home() {
     setFacilitiesFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
+  const toggleNeighborhood = (n: string) => {
+    setNeighborhoodFilter(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]);
+  };
+
+  // Helper for popular filter toggle
+  const togglePopularFilter = (item: typeof POPULAR_FILTER_ITEMS[number]) => {
+    if (item.type === "cancellation") setFreeCancellationOnly(v => !v);
+    else if (item.type === "facility" && item.value) toggleFacility(item.value);
+    else if (item.type === "mealplan" && item.value) toggleMealPlan(item.value);
+  };
+
+  const isPopularFilterActive = (item: typeof POPULAR_FILTER_ITEMS[number]): boolean => {
+    if (item.type === "cancellation") return freeCancellationOnly;
+    if (item.type === "facility" && item.value) {
+      const normItem = normalizeForFilter(item.value);
+      return facilitiesFilter.some(f => normalizeForFilter(f) === normItem || normalizeForFilter(f).includes(normItem) || normItem.includes(normalizeForFilter(f)));
+    }
+    if (item.type === "mealplan" && item.value) return mealPlanFilter.includes(item.value);
+    return false;
+  };
+
   const DEFAULT_STAR_FILTER = [4, 5];
   const isDefaultStarFilter =
     starFilter.length === DEFAULT_STAR_FILTER.length &&
@@ -691,7 +777,8 @@ export default function Home() {
     facilitiesFilter.length +
     (distanceStripMax !== null ? 1 : 0) +
     (distanceFremontMax !== null ? 1 : 0) +
-    (distanceConventionMax !== null ? 1 : 0);
+    (distanceConventionMax !== null ? 1 : 0) +
+    neighborhoodFilter.length;
 
   const clearFilters = () => {
     setNameFilter("");
@@ -703,6 +790,7 @@ export default function Home() {
     setFreeCancellationOnly(false);
     setMealPlanFilter([]);
     setFacilitiesFilter([]);
+    setNeighborhoodFilter([]);
     setDistanceStripMax(null);
     setDistanceFremontMax(null);
     setDistanceConventionMax(null);
@@ -730,6 +818,31 @@ export default function Home() {
             <aside className="w-72 shrink-0 hidden lg:block">
               <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
 
+                {/* Show on Map thumbnail */}
+                {mapCenter && (
+                  <div className="relative overflow-hidden rounded-t-xl" style={{ height: 110 }}>
+                    <iframe
+                      title="Map preview"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.12},${mapCenter.lat - 0.08},${mapCenter.lng + 0.12},${mapCenter.lat + 0.08}&layer=mapnik`}
+                      className="w-full h-full border-0 pointer-events-none"
+                      style={{ marginTop: -30 }}
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                      <button
+                        onClick={() => {
+                          const url = `https://www.openstreetmap.org/#map=13/${mapCenter.lat}/${mapCenter.lng}`;
+                          window.open(url, "_blank", "noopener,noreferrer");
+                        }}
+                        className="flex items-center gap-2 bg-white text-foreground text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors"
+                        data-testid="button-show-on-map"
+                      >
+                        <MapIcon className="w-3.5 h-3.5" />
+                        Show on Map
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
                   <h3 className="font-bold text-base flex items-center gap-2">
@@ -748,6 +861,39 @@ export default function Home() {
                     Clear filters
                   </button>
                 </div>
+
+                {/* Popular Filters */}
+                {(() => {
+                  const facilityNames = new Set(availableFacilities.map(([f]) => normalizeForFilter(f)));
+                  const popularAvailable = POPULAR_FILTER_ITEMS.filter(item => {
+                    if (item.type === "cancellation") return true;
+                    if (item.type === "mealplan" && item.value) return availableMealPlans.includes(item.value);
+                    if (item.type === "facility" && item.value) {
+                      const normVal = normalizeForFilter(item.value);
+                      return Array.from(facilityNames).some(fn => fn.includes(normVal) || normVal.includes(fn));
+                    }
+                    return false;
+                  });
+                  if (!popularAvailable.length) return null;
+                  return (
+                    <FilterSection title="Popular filters">
+                      <div className="flex flex-col gap-2">
+                        {popularAvailable.map(item => (
+                          <label key={item.label} className="flex items-center gap-2.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isPopularFilterActive(item)}
+                              onChange={() => togglePopularFilter(item)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className="text-sm text-foreground">{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </FilterSection>
+                  );
+                })()}
 
                 {/* Property name */}
                 <FilterSection title="Property name">
@@ -899,20 +1045,55 @@ export default function Home() {
                   </FilterSection>
                 )}
 
-                {/* Facilities */}
+                {/* Facilities — with counts + show all / show less */}
                 {availableFacilities.length > 0 && (
                   <FilterSection title="Facilities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
-                      {availableFacilities.slice(0, 12).map(facility => (
+                      {(showAllFacilities ? availableFacilities : availableFacilities.slice(0, 9)).map(([facility, count]) => (
                         <label key={facility} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={facilitiesFilter.includes(facility)}
+                            checked={facilitiesFilter.some(f => normalizeForFilter(f) === normalizeForFilter(facility) || normalizeForFilter(f).includes(normalizeForFilter(facility)) || normalizeForFilter(facility).includes(normalizeForFilter(f)))}
                             onChange={() => toggleFacility(facility)}
                             className="accent-primary w-4 h-4 rounded"
                             data-testid={`checkbox-facility-${facility}`}
                           />
-                          <span className="text-sm text-foreground">{facility}</span>
+                          <span className="text-sm text-foreground flex-1">{facility}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
+                        </label>
+                      ))}
+                    </div>
+                    {availableFacilities.length > 9 && (
+                      <button
+                        onClick={() => setShowAllFacilities(v => !v)}
+                        className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
+                        data-testid="button-show-all-facilities"
+                      >
+                        {showAllFacilities ? (
+                          <><ChevronUp className="w-3 h-3" />Show less</>
+                        ) : (
+                          <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>
+                        )}
+                      </button>
+                    )}
+                  </FilterSection>
+                )}
+
+                {/* Neighborhood */}
+                {availableNeighborhoods.length > 0 && (
+                  <FilterSection title="Neighborhood" defaultOpen={false}>
+                    <div className="flex flex-col gap-2">
+                      {availableNeighborhoods.map(([neighborhood, count]) => (
+                        <label key={neighborhood} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={neighborhoodFilter.includes(neighborhood)}
+                            onChange={() => toggleNeighborhood(neighborhood)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-neighborhood-${neighborhood.toLowerCase().replace(/\s+/g, "-")}`}
+                          />
+                          <span className="text-sm text-foreground flex-1">{neighborhood}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
                         </label>
                       ))}
                     </div>
