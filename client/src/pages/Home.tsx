@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp, Map as MapIcon } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, Lightbulb, ChevronDown, ChevronUp, Map as MapIcon, Search, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -286,6 +286,52 @@ const TIPS = [
   },
 ];
 
+function fmtShortDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const [, m, d] = iso.split("-");
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${months[parseInt(m) - 1]} ${parseInt(d)}`;
+}
+
+function CompactSearchBar({
+  destination, aiSearch, checkIn, checkOut, guests, onEdit,
+}: {
+  destination?: string | null;
+  aiSearch?: string | null;
+  checkIn?: string | null;
+  checkOut?: string | null;
+  guests: string;
+  onEdit: () => void;
+}) {
+  const label = destination || aiSearch || "Search";
+  const dateStr = checkIn && checkOut
+    ? `${fmtShortDate(checkIn)} – ${fmtShortDate(checkOut)}`
+    : "Select dates";
+  const guestStr = `${guests} ${parseInt(guests) === 1 ? "Guest" : "Guests"}`;
+
+  return (
+    <div className="bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm">
+      <div className="container mx-auto px-4 py-3">
+        <button
+          onClick={onEdit}
+          className="w-full flex items-center gap-0 px-4 py-2.5 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md hover:border-primary/50 transition-all text-left group"
+          data-testid="button-edit-search"
+        >
+          <Search className="w-4 h-4 text-primary shrink-0 mr-3" />
+          <span className="text-sm font-semibold text-foreground truncate max-w-[160px]">{label}</span>
+          <span className="mx-3 text-border/70 select-none">|</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{dateStr}</span>
+          <span className="mx-3 text-border/70 select-none">|</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{guestStr}</span>
+          <div className="ml-auto bg-primary group-hover:bg-primary/90 transition-colors rounded-full p-1.5 shrink-0">
+            <Search className="w-3.5 h-3.5 text-white" />
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SearchTips() {
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem("luxvibe_tips_v1") === "dismissed"; } catch { return false; }
@@ -459,6 +505,8 @@ export default function Home() {
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string[]>([]);
   const [showAllFacilities, setShowAllFacilities] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
 
   const { data: hotels, isLoading, error } = useSearchHotels({
     destination: destination || undefined,
@@ -813,16 +861,51 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <SearchHero
-        initialDestination={destination || undefined}
-        initialPlaceId={placeId || undefined}
-        initialAiSearch={aiSearch || undefined}
-        initialCheckIn={checkIn || undefined}
-        initialCheckOut={checkOut || undefined}
-        initialGuests={guests}
-      />
 
-      <SearchTips />
+      {isSearchActive ? (
+        showSearchPanel ? (
+          <div>
+            <SearchHero
+              initialDestination={destination || undefined}
+              initialPlaceId={placeId || undefined}
+              initialAiSearch={aiSearch || undefined}
+              initialCheckIn={checkIn || undefined}
+              initialCheckOut={checkOut || undefined}
+              initialGuests={guests}
+            />
+            <div className="container mx-auto px-4 pb-2 -mt-1 flex justify-center">
+              <button
+                onClick={() => setShowSearchPanel(false)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-full hover:bg-muted"
+                data-testid="button-hide-search"
+              >
+                <ChevronUp className="w-3.5 h-3.5" /> Hide search
+              </button>
+            </div>
+          </div>
+        ) : (
+          <CompactSearchBar
+            destination={destination}
+            aiSearch={aiSearch}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+            onEdit={() => setShowSearchPanel(true)}
+          />
+        )
+      ) : (
+        <>
+          <SearchHero
+            initialDestination={destination || undefined}
+            initialPlaceId={placeId || undefined}
+            initialAiSearch={aiSearch || undefined}
+            initialCheckIn={checkIn || undefined}
+            initialCheckOut={checkOut || undefined}
+            initialGuests={guests}
+          />
+          <SearchTips />
+        </>
+      )}
 
       {isSearchActive ? (
         <div className="container mx-auto px-4 py-8 flex-1">
@@ -1170,9 +1253,9 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Sort */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Sort by:</span>
+                {/* Sort + View toggle */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
                   <select
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value as SortOption)}
@@ -1184,11 +1267,47 @@ export default function Home() {
                     <option value="price_desc">Price: High to Low</option>
                     <option value="rating">Top Rated</option>
                   </select>
+                  {/* List / Map toggle */}
+                  <div className="flex items-center gap-0.5 border border-border rounded-lg p-0.5 bg-muted/30">
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      data-testid="button-view-list"
+                    >
+                      <List className="w-3.5 h-3.5" />
+                      List
+                    </button>
+                    <button
+                      onClick={() => setViewMode("map")}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "map" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      data-testid="button-view-map"
+                    >
+                      <MapIcon className="w-3.5 h-3.5" />
+                      Map
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Hotel list */}
-              {isLoading ? (
+              {/* Hotel list or Map */}
+              {viewMode === "map" ? (
+                mapCenter ? (
+                  <div className="rounded-xl overflow-hidden border border-border shadow-sm" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
+                    <iframe
+                      title="Hotels map"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.12},${mapCenter.lat - 0.08},${mapCenter.lng + 0.12},${mapCenter.lat + 0.08}&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
+                      className="w-full h-full border-0"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30" style={{ height: 400 }}>
+                    <div className="text-center">
+                      <MapIcon className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                      <p className="text-muted-foreground text-sm">Map unavailable — no hotel coordinates found.</p>
+                    </div>
+                  </div>
+                )
+              ) : isLoading ? (
                 <div className="flex items-center justify-center h-64">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
