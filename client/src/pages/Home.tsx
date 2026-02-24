@@ -254,7 +254,7 @@ const TIPS = [
     text: "Type \"Las Vegas Strip\" and choose that option from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more.",
   },
   {
-    icon: "✨",
+    icon: "✧",
     title: "Use Vibe search for inspiration",
     text: "Switch to the Vibe tab in the search bar and describe your dream stay in plain language — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it.",
   },
