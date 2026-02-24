@@ -59,6 +59,7 @@ Preferred communication style: Simple, everyday language.
 ### LiteAPI Travel API
 - **Purpose**: Provides real-time hotel search, hotel details, room rates, and availability
 - **Base URL**: `https://api.liteapi.travel/v3.0`
+- **Booking Base URL**: `https://book.liteapi.travel/v3.0`
 - **Authentication**: API key via `X-API-Key` header
 - **Environment Variable**: `LITEAPI_KEY` (required)
 - **Usage**: Server-side only - the backend proxies requests to LiteAPI and transforms responses for the frontend
@@ -73,6 +74,11 @@ Preferred communication style: Simple, everyday language.
 - **Purpose**: User authentication via Replit's OAuth/OIDC flow
 - **Flow**: Login redirects to `/api/login`, callback handled by Passport.js, user info upserted to `users` table
 
+### LiteAPI Payment SDK
+- **Script URL**: `https://payment-wrapper.liteapi.travel/dist/liteAPIPayment.js?v=a1`
+- **Public Key**: `"sandbox"` for sandbox keys (sand_ prefix), `"live"` for prod keys
+- **Flow**: Prebook returns `secretKey` → SDK initialized with secretKey → user pays → redirect to `/booking-confirmation?prebookId=...&transactionId=...` → book API called
+
 ### Key npm Packages
 - `express` - HTTP server
 - `drizzle-orm` + `drizzle-kit` - Database ORM and migration tooling
@@ -83,3 +89,4 @@ Preferred communication style: Simple, everyday language.
 - `react-day-picker` + `date-fns` - Date selection and formatting
 - `wouter` - Client-side routing
 - shadcn/ui ecosystem (Radix UI, Tailwind CSS, class-variance-authority)
+- `react-i18next` + `i18next` - Internationalization (15 languages: EN, FR, ES, DE, IT, PT, NL, TR, RU, JA, ZH, KO, AR, EL, RO)

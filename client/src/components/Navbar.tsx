@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/context/preferences";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -83,6 +84,7 @@ const GUIDE_TIPS = [
 
 function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { currency, language, setCurrency, setLanguage } = usePreferences();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"language" | "currency">("language");
   const [langSearch, setLangSearch] = useState("");
 
@@ -96,18 +98,18 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
         <div className="p-6">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-xl font-bold">Choose a language and currency</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{t("nav.choose_lang_currency")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex gap-6 border-b border-border mb-5">
-            {(["language", "currency"] as const).map(t => (
+            {(["language", "currency"] as const).map(tabKey => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`pb-3 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-                data-testid={`tab-${t}`}
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
+                className={`pb-3 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${tab === tabKey ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                data-testid={`tab-${tabKey}`}
               >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+                {tabKey === "language" ? t("nav.language") : t("nav.currency")}
               </button>
             ))}
           </div>
@@ -118,7 +120,7 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search for a language"
+                  placeholder={t("nav.search_language")}
                   value={langSearch}
                   onChange={e => setLangSearch(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
@@ -167,6 +169,7 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
 }
 
 function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const handleLogin = () => {
     window.location.href = "/api/login";
   };
@@ -185,9 +188,9 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           </div>
 
           <div className="text-center mb-7">
-            <h2 className="text-xl font-bold text-foreground mb-2">Sign in and start booking</h2>
+            <h2 className="text-xl font-bold text-foreground mb-2">{t("nav.sign_in")}</h2>
             <p className="text-sm text-muted-foreground">
-              Discover luxury hotels and manage your reservations with ease.
+              {t("nav.sign_in_sub")}
             </p>
           </div>
 
@@ -196,7 +199,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             className="w-full h-11 text-sm font-semibold rounded-full"
             data-testid="button-login-continue"
           >
-            Continue with Replit
+            {t("nav.continue_replit")}
           </Button>
 
           <div className="flex items-center gap-3 my-5">
@@ -220,6 +223,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
   const { currency } = usePreferences();
+  const { t } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
@@ -337,7 +341,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               </Link>
               {keysTooltip && (
                 <div className="absolute top-11 right-0 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  Manage my bookings
+                  {t("nav.manage_bookings")}
                 </div>
               )}
             </div>
@@ -366,19 +370,19 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                   <DropdownMenuItem asChild>
                     <Link href="/my-bookings" className="cursor-pointer">
                       <CalendarDays className="mr-2 h-4 w-4" />
-                      My Bookings
+                      {t("nav.my_bookings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
-                      Profile
+                      {t("nav.profile")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => logout()} className="text-destructive cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    {t("nav.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -388,7 +392,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 className="ml-1 h-9 px-5 rounded-full text-sm font-semibold"
                 data-testid="button-login"
               >
-                Login
+                {t("nav.login")}
               </Button>
             )}
           </div>

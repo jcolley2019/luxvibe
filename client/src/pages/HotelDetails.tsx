@@ -19,6 +19,7 @@ import {
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const GALLERY_FALLBACKS = [
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
@@ -95,22 +96,22 @@ function getRoomAmenityIcon(name: string): any {
 
 type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description" | "ask-ai";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "facilities", label: "Facilities" },
-  { id: "rooms", label: "Rooms" },
-  { id: "reviews", label: "Reviews" },
-  { id: "description", label: "Description" },
-  { id: "ask-ai", label: "Ask AI" },
+const TABS: { id: TabId; labelKey: string }[] = [
+  { id: "overview", labelKey: "hotel.overview" },
+  { id: "facilities", labelKey: "hotel.amenities" },
+  { id: "rooms", labelKey: "hotel.rooms" },
+  { id: "reviews", labelKey: "hotel.reviews" },
+  { id: "description", labelKey: "hotel.overview" },
+  { id: "ask-ai", labelKey: "hotel.ask_ai" },
 ];
 
-function getRatingLabel(r: number) {
-  if (r >= 9.5) return "Exceptional";
-  if (r >= 9.0) return "Superb";
-  if (r >= 8.5) return "Fabulous";
-  if (r >= 8.0) return "Very Good";
-  if (r >= 7.0) return "Good";
-  return "Okay";
+function getRatingKey(r: number) {
+  if (r >= 9.0) return "hotel.exceptional";
+  if (r >= 8.5) return "hotel.fabulous";
+  if (r >= 8.0) return "hotel.wonderful";
+  if (r >= 7.0) return "hotel.very_good";
+  if (r >= 6.0) return "hotel.good";
+  return "hotel.good";
 }
 
 function getRatingColor(r: number) {
@@ -226,6 +227,7 @@ function getGallery(hotelId: string, images: string[]) {
 }
 
 export default function HotelDetails() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
@@ -587,7 +589,7 @@ export default function HotelDetails() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 } ${tab.id === "ask-ai" ? "text-purple-500 hover:text-purple-600" : ""}`}
               >
-                {tab.label}
+                {t(tab.labelKey)}
                 {tab.id === "ask-ai" && (
                   <span className="ml-1.5 text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full">Beta</span>
                 )}
@@ -657,7 +659,7 @@ export default function HotelDetails() {
                 {hotel.rating.toFixed(0)}
               </span>
               <div>
-                <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
+                <p className="font-semibold">{t(getRatingKey(hotel.rating))}</p>
                 {effectiveReviewCount && (
                   <p className="text-sm text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
                 )}
@@ -964,7 +966,7 @@ export default function HotelDetails() {
                             <span className={`text-white text-xs font-bold px-1.5 py-0.5 rounded ${getRatingColor(sh.rating)}`}>
                               {sh.rating.toFixed(1)}
                             </span>
-                            <span className="text-xs text-muted-foreground">{sh.reviewCount ? `${sh.reviewCount.toLocaleString()} reviews` : getRatingLabel(sh.rating)}</span>
+                            <span className="text-xs text-muted-foreground">{sh.reviewCount ? `${sh.reviewCount.toLocaleString()} reviews` : t(getRatingKey(sh.rating))}</span>
                           </div>
                         ) : <span />}
                         {sh.price && (
@@ -1044,7 +1046,7 @@ export default function HotelDetails() {
                         {hotel.rating.toFixed(1)}
                       </span>
                       <div>
-                        <p className="font-semibold">{getRatingLabel(hotel.rating)}</p>
+                        <p className="font-semibold">{t(getRatingKey(hotel.rating))}</p>
                         {effectiveReviewCount && (
                           <p className="text-sm text-muted-foreground">{effectiveReviewCount.toLocaleString()} reviews</p>
                         )}

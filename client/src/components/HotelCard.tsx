@@ -3,6 +3,7 @@ import { MapPin, Heart, Tag, ThumbsUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
+import { useTranslation } from "react-i18next";
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
@@ -18,14 +19,14 @@ interface HotelCardProps {
   dealBadge?: DealBadge;
 }
 
-function getRatingLabel(rating: number | null): string {
-  if (!rating) return "New";
-  if (rating >= 9.0) return "Exceptional";
-  if (rating >= 8.5) return "Fabulous";
-  if (rating >= 8.0) return "Wonderful";
-  if (rating >= 7.0) return "Very Good";
-  if (rating >= 6.0) return "Good";
-  return "Reviewed";
+function getRatingKey(rating: number | null): string {
+  if (!rating) return "hotel.new";
+  if (rating >= 9.0) return "hotel.exceptional";
+  if (rating >= 8.5) return "hotel.fabulous";
+  if (rating >= 8.0) return "hotel.wonderful";
+  if (rating >= 7.0) return "hotel.very_good";
+  if (rating >= 6.0) return "hotel.good";
+  return "hotel.good";
 }
 
 function StarDisplay({ stars }: { stars: number | null }) {
@@ -75,6 +76,7 @@ function getWishlistKey(hotelId: string) {
 
 export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge }: HotelCardProps) {
   const { currency } = usePreferences();
+  const { t } = useTranslation();
   const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
   if (reviewCount) params.set("reviewCount", String(reviewCount));
   const detailsUrl = `/hotel/${hotel.id}?${params.toString()}`;
 
-  const label = getRatingLabel(hotel.rating);
+  const label = t(getRatingKey(hotel.rating));
   const rawPrice = "price" in hotel ? (hotel as any).price as number | null : null;
   const price = rawPrice && rawPrice > 0 ? rawPrice : null;
   const nights = getNights(checkIn, checkOut) ?? 1;
@@ -183,11 +185,11 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             {price !== null ? (
               <div className="text-right shrink-0">
                 <div className="text-sm font-bold text-foreground">{new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(price)}</div>
-                <div className="text-xs text-muted-foreground">incl. taxes</div>
+                <div className="text-xs text-muted-foreground">{t("hotel.incl_taxes")}</div>
               </div>
             ) : (
               <div className="text-right shrink-0">
-                <div className="text-sm font-semibold text-primary">Check rates</div>
+                <div className="text-sm font-semibold text-primary">{t("hotel.check_rates")}</div>
               </div>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { queryClient } from "@/lib/queryClient";
+import i18n from "@/i18n";
 
 export interface Preferences {
   currency: string;
@@ -38,6 +39,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const setLanguage = (l: string) => {
     _setLanguage(l);
     try { localStorage.setItem("lv_language", l); } catch {}
+    i18n.changeLanguage(l);
     queryClient.invalidateQueries();
   };
 

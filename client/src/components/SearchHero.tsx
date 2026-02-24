@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -65,6 +66,7 @@ export function SearchHero({
   initialCheckOut,
   initialGuests,
 }: SearchHeroProps) {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [mode, setMode] = useState<"destination" | "vibe">(initialAiSearch ? "vibe" : "destination");
   const [destination, setDestination] = useState(initialDestination || "");
@@ -137,9 +139,9 @@ export function SearchHero({
   const totalGuests = totalAdults + totalChildren;
 
   const guestsLabel = (() => {
-    const roomPart = `${rooms.length} Room${rooms.length !== 1 ? "s" : ""}`;
-    const adultPart = `${totalAdults} Adult${totalAdults !== 1 ? "s" : ""}`;
-    const childPart = totalChildren > 0 ? `, ${totalChildren} Child${totalChildren !== 1 ? "ren" : ""}` : "";
+    const roomPart = `${rooms.length} ${rooms.length !== 1 ? t("hotel.room_plural") : t("hotel.room")}`;
+    const adultPart = `${totalAdults} ${totalAdults !== 1 ? t("search.adult_plural") : t("search.adult")}`;
+    const childPart = totalChildren > 0 ? `, ${totalChildren} ${totalChildren !== 1 ? t("search.child_plural") : t("search.child")}` : "";
     return `${roomPart}, ${adultPart}${childPart}`;
   })();
 
@@ -192,7 +194,7 @@ export function SearchHero({
     ? date.to
       ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
       : format(date.from, "MMM d")
-    : "Add dates";
+    : t("search.add_dates");
 
   const calendarContent = (nMonths: number) => (
     <Calendar
@@ -225,13 +227,13 @@ export function SearchHero({
   const guestsPopoverContent = (
     <PopoverContent className="w-72 p-0" align="end">
       <div className="px-5 pt-5 pb-3 border-b border-border">
-        <h3 className="font-bold text-base">Configuring Rooms</h3>
+        <h3 className="font-bold text-base">{t("search.guests")}</h3>
       </div>
       <div className="max-h-80 overflow-y-auto divide-y divide-border">
         {rooms.map((room, idx) => (
           <div key={idx} className="px-5 py-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-sm">Room {idx + 1}</span>
+              <span className="font-semibold text-sm">{t("hotel.room")} {idx + 1}</span>
               <div className="flex items-center gap-1">
                 {rooms.length > 1 && (
                   <button
@@ -255,12 +257,12 @@ export function SearchHero({
             {expandedRooms[idx] && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Adults</div>
+                  <div className="text-sm font-medium">{t("search.adults")}</div>
                   <Counter value={room.adults} min={1} max={10} onChange={(v) => updateRoom(idx, "adults", v)} testIdPrefix={`room-${idx}-adults`} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-medium">Children</div>
+                    <div className="text-sm font-medium">{t("search.children")}</div>
                     <div className="text-xs text-muted-foreground">Ages 0 to 17</div>
                   </div>
                   <Counter value={room.children} min={0} max={6} onChange={(v) => updateRoom(idx, "children", v)} testIdPrefix={`room-${idx}-children`} />
@@ -277,14 +279,14 @@ export function SearchHero({
           className="flex-1 py-2 rounded-full border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           data-testid="button-add-room"
         >
-          Add room
+          + {t("hotel.room")}
         </button>
         <button
           onClick={() => setGuestsOpen(false)}
           className="flex-1 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           data-testid="button-done-guests"
         >
-          Done
+          {t("search.done")}
         </button>
       </div>
     </PopoverContent>
@@ -403,9 +405,9 @@ export function SearchHero({
                   >
                     <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
                     <div>
-                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Check-in</div>
+                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">{t("search.checkin")}</div>
                       <div className="text-sm text-gray-800 dark:text-foreground font-medium">
-                        {date?.from ? format(date.from, "dd MMM") : "Add date"}
+                        {date?.from ? format(date.from, "dd MMM") : t("search.add_dates")}
                       </div>
                     </div>
                   </button>
@@ -418,9 +420,9 @@ export function SearchHero({
                   >
                     <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
                     <div>
-                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Check-out</div>
+                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">{t("search.checkout")}</div>
                       <div className="text-sm text-gray-800 dark:text-foreground font-medium">
-                        {date?.to ? format(date.to, "dd MMM") : "Add date"}
+                        {date?.to ? format(date.to, "dd MMM") : t("search.add_dates")}
                       </div>
                     </div>
                   </button>
@@ -453,7 +455,7 @@ export function SearchHero({
                 data-testid="button-toggle-mode"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                {mode === "destination" ? "Try AI vibe search instead" : "Switch to destination search"}
+                {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
               </button>
             </div>
 
@@ -465,7 +467,7 @@ export function SearchHero({
                 data-testid="button-search"
               >
                 <Search className="w-4 h-4" />
-                Search
+                {t("search.search")}
               </button>
             </div>
           </div>
@@ -476,7 +478,7 @@ export function SearchHero({
             {/* Where / Vibe input */}
             <div className="flex-[2] flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide text-left">
-                {mode === "destination" ? "Where" : "Vibe"}
+                {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
               </span>
               {mode === "destination" ? (
                 <>
@@ -555,7 +557,7 @@ export function SearchHero({
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
                   data-testid="button-dates"
                 >
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Dates</span>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.checkin")} / {t("search.checkout")}</span>
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
                 </button>
               </PopoverTrigger>
@@ -573,7 +575,7 @@ export function SearchHero({
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
                   data-testid="button-guests"
                 >
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Guests</span>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.guests")}</span>
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
                 </button>
               </PopoverTrigger>
@@ -597,7 +599,7 @@ export function SearchHero({
             data-testid="button-toggle-mode-desktop"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            {mode === "destination" ? "Try AI vibe search instead" : "Switch to destination search"}
+            {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
           </button>
         </div>
       </div>

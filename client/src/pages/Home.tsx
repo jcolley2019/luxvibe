@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
@@ -312,6 +313,7 @@ function CompactSearchBar({
 
 
 export default function Home() {
+  const { t } = useTranslation();
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
 
@@ -1188,7 +1190,7 @@ export default function Home() {
           {/* Featured / Recommended Hotels */}
           <section className="pt-10 pb-10 container mx-auto px-4">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold font-heading">Recommended Hotels</h2>
+              <h2 className="text-2xl font-bold font-heading">{t("home.recommended")}</h2>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-sm mr-1">Handpicked for you</span>
                 <button onClick={() => scrollCarousel(carouselRef, "left")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-carousel-prev">
@@ -1237,7 +1239,7 @@ export default function Home() {
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-2xl font-bold font-heading">Hotels Near You</h2>
+                  <h2 className="text-2xl font-bold font-heading">{t("home.nearby")}</h2>
                   {nearbyHotels && nearbyHotels.length > 0 && nearbyHotels[0].city && (
                     <p className="text-sm text-muted-foreground mt-0.5">Showing hotels in <span className="font-medium text-foreground">{nearbyHotels[0].city}</span></p>
                   )}
