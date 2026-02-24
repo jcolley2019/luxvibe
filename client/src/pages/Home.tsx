@@ -820,20 +820,20 @@ export default function Home() {
 
                 {/* Show on Map thumbnail */}
                 {mapCenter && (
-                  <div className="relative overflow-hidden rounded-t-xl" style={{ height: 110 }}>
+                  <div className="relative overflow-hidden rounded-t-xl" style={{ height: 195 }}>
                     <iframe
                       title="Map preview"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.12},${mapCenter.lat - 0.08},${mapCenter.lng + 0.12},${mapCenter.lat + 0.08}&layer=mapnik`}
-                      className="w-full h-full border-0 pointer-events-none"
-                      style={{ marginTop: -30 }}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.10},${mapCenter.lat - 0.07},${mapCenter.lng + 0.10},${mapCenter.lat + 0.07}&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
+                      className="w-full border-0 pointer-events-none"
+                      style={{ height: 260, marginTop: -30 }}
                     />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
                       <button
                         onClick={() => {
                           const url = `https://www.openstreetmap.org/#map=13/${mapCenter.lat}/${mapCenter.lng}`;
                           window.open(url, "_blank", "noopener,noreferrer");
                         }}
-                        className="flex items-center gap-2 bg-white text-foreground text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors"
+                        className="flex items-center gap-2 bg-white text-foreground text-xs font-semibold px-4 py-2 rounded-full shadow-xl hover:bg-primary hover:text-primary-foreground transition-colors whitespace-nowrap border border-border/20"
                         data-testid="button-show-on-map"
                       >
                         <MapIcon className="w-3.5 h-3.5" />
