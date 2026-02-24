@@ -28,6 +28,22 @@ const GALLERY_FALLBACKS = [
   "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?w=800&q=80",
 ];
 
+const LOWERCASE_WORDS = new Set(["a", "an", "the", "and", "or", "of", "in", "at", "with", "by", "from", "for", "to", "but", "nor", "on", "up"]);
+
+function formatRoomName(raw: string): string {
+  return raw
+    .replace(/[._\-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .map((word, i) => {
+      const lower = word.toLowerCase();
+      if (i !== 0 && LOWERCASE_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
+
 const FACILITY_ICONS: Record<string, any> = {
   "Restaurant": Utensils, "Parking": Car, "Fitness Center": Dumbbell, "Free WiFi": Wifi,
   "Breakfast": Coffee, "Pool": Waves, "Spa": Sparkles, "Bar": Beer,
@@ -224,7 +240,7 @@ export default function HotelDetails() {
       if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
       return {
         mappedRoomId,
-        name: roomInfo?.name || rates[0]?.name || "Standard Room",
+        name: formatRoomName(roomInfo?.name || rates[0]?.name || "Standard Room"),
         photos,
         description: roomInfo?.description || null,
         amenities: roomInfo?.amenities || [],
@@ -716,7 +732,7 @@ export default function HotelDetails() {
 
                       {/* Room details */}
                       <div className="p-5 flex flex-col">
-                        <h3 className="text-lg font-bold mb-2">{group.name}</h3>
+                        <h3 className="text-base font-semibold tracking-normal font-sans leading-snug mb-2 text-foreground">{group.name}</h3>
 
                         {/* Quick facts row */}
                         <div className="flex flex-wrap gap-2 mb-3">
