@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/context/preferences";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -81,9 +82,8 @@ const GUIDE_TIPS = [
 ];
 
 function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { currency, language, setCurrency, setLanguage } = usePreferences();
   const [tab, setTab] = useState<"language" | "currency">("language");
-  const [selectedLang, setSelectedLang] = useState("EN");
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [langSearch, setLangSearch] = useState("");
 
   const filteredLangs = LANGUAGES.filter(l =>
@@ -129,8 +129,8 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
                 {filteredLangs.map(lang => (
                   <button
                     key={lang.code}
-                    onClick={() => { setSelectedLang(lang.code); onClose(); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${selectedLang === lang.code ? "border-primary bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/40"}`}
+                    onClick={() => { setLanguage(lang.code); onClose(); }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${language === lang.code ? "border-primary bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/40"}`}
                     data-testid={`lang-option-${lang.code}`}
                   >
                     <span className="text-2xl leading-none">{lang.flag}</span>
@@ -147,8 +147,8 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
               {CURRENCIES.map(cur => (
                 <button
                   key={cur.code}
-                  onClick={() => { setSelectedCurrency(cur.code); onClose(); }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${selectedCurrency === cur.code ? "border-primary bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/40"}`}
+                  onClick={() => { setCurrency(cur.code); onClose(); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${currency === cur.code ? "border-primary bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/40"}`}
                   data-testid={`currency-option-${cur.code}`}
                 >
                   <span className="text-lg font-bold text-muted-foreground w-6 text-center">{cur.symbol}</span>
@@ -219,6 +219,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
+  const { currency } = usePreferences();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
@@ -265,11 +266,12 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             {/* Language / Currency */}
             <button
               onClick={() => setLangOpen(true)}
-              className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+              className="h-9 px-2.5 rounded-full border border-border flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
               title="Language & Currency"
               data-testid="button-language"
             >
-              <Globe className="w-4 h-4" />
+              <Globe className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold tracking-wide">{currency}</span>
             </button>
 
             {/* Lightbulb — site guide */}

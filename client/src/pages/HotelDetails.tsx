@@ -969,7 +969,7 @@ export default function HotelDetails() {
                         ) : <span />}
                         {sh.price && (
                           <div className="text-right">
-                            <span className="font-bold text-sm">US${sh.price.toLocaleString()}</span>
+                            <span className="font-bold text-sm">{sh.price.toLocaleString("en", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</span>
                             <p className="text-xs text-muted-foreground">1 room × {nights || 1} night incl. taxes</p>
                           </div>
                         )}

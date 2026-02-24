@@ -156,6 +156,7 @@ export async function registerRoutes(
 
   app.get(api.hotels.featured.path, async (req, res) => {
     try {
+      const { currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dayAfter = new Date();
@@ -212,8 +213,8 @@ export async function registerRoutes(
               hotelIds: batch,
               checkin: defaultCheckIn,
               checkout: defaultCheckOut,
-              currency: "USD",
-              guestNationality: "US",
+              currency,
+              guestNationality,
               occupancies: [{ rooms: 1, adults: 2, children: [] }],
             });
             if (ratesData?.data) {
@@ -250,6 +251,7 @@ export async function registerRoutes(
 
   app.get("/api/hotels/las-vegas", async (req, res) => {
     try {
+      const { currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dayAfter = new Date();
@@ -318,8 +320,8 @@ export async function registerRoutes(
             hotelIds: allHotels.map(h => h.id),
             checkin: defaultCheckIn,
             checkout: defaultCheckOut,
-            currency: "USD",
-            guestNationality: "US",
+            currency,
+            guestNationality,
             occupancies: [{ rooms: 1, adults: 2, children: [] }],
           });
           if (ratesData?.data) {
@@ -347,7 +349,7 @@ export async function registerRoutes(
   app.get(api.hotels.nearby.path, async (req, res) => {
     try {
       res.set("Cache-Control", "no-store");
-      const { lat, lng } = req.query as Record<string, string>;
+      const { lat, lng, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
       if (!lat || !lng) {
         return res.status(400).json({ message: "lat and lng are required" });
       }
@@ -538,8 +540,8 @@ export async function registerRoutes(
           hotelIds,
           checkin: fmt(tomorrow),
           checkout: fmt(dayAfter),
-          currency: "USD",
-          guestNationality: "US",
+          currency,
+          guestNationality,
           occupancies: [{ rooms: 1, adults: 2, children: [] }],
         });
         if (ratesData?.data) {
@@ -677,7 +679,7 @@ export async function registerRoutes(
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig } = req.query as Record<string, string>;
+      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
 
       if ((!destination && !placeId && !aiSearch) || !checkIn || !checkOut) {
         return res.status(400).json({ message: "destination/placeId/aiSearch, checkIn, checkOut are required" });
@@ -713,8 +715,8 @@ export async function registerRoutes(
           aiSearch,
           checkin: checkIn,
           checkout: checkOut,
-          currency: "USD",
-          guestNationality: "US",
+          currency,
+          guestNationality,
           occupancies,
         });
 
@@ -800,8 +802,8 @@ export async function registerRoutes(
               hotelIds: batch,
               checkin: checkIn,
               checkout: checkOut,
-              currency: "USD",
-              guestNationality: "US",
+              currency,
+              guestNationality,
               occupancies,
             }).catch(() => null)
           )
@@ -873,7 +875,7 @@ export async function registerRoutes(
   app.get(api.hotels.get.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
-      const { checkIn, checkOut, guests } = req.query as Record<string, string>;
+      const { checkIn, checkOut, guests, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
 
       const hotelsData = await liteApiGet("/data/hotel", { hotelId });
       const hotelRaw = hotelsData?.data?.[0] ?? hotelsData?.data;
@@ -1037,8 +1039,8 @@ export async function registerRoutes(
             hotelIds: [hotelId],
             checkin: checkIn,
             checkout: checkOut,
-            currency: "USD",
-            guestNationality: "US",
+            currency,
+            guestNationality,
             occupancies: [{ rooms: 1, adults: guestCount, children: [] }],
           });
 

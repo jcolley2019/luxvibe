@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { MapPin, Heart, Tag, ThumbsUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse } from "@shared/routes";
+import { usePreferences } from "@/context/preferences";
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
@@ -73,6 +74,7 @@ function getWishlistKey(hotelId: string) {
 }
 
 export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge }: HotelCardProps) {
+  const { currency } = usePreferences();
   const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
@@ -180,7 +182,7 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             {/* Price */}
             {price !== null ? (
               <div className="text-right shrink-0">
-                <div className="text-sm font-bold text-foreground">US${price.toLocaleString()}</div>
+                <div className="text-sm font-bold text-foreground">{new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(price)}</div>
                 <div className="text-xs text-muted-foreground">incl. taxes</div>
               </div>
             ) : (

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse } from "@shared/routes";
+import { usePreferences, LANG_TO_NATIONALITY } from "@/context/preferences";
 
 export type HotelReview = {
   name: string;
@@ -26,10 +27,12 @@ export type NearbyHotel = {
 };
 
 export function useFeaturedHotels() {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.featured.path],
+    queryKey: [api.hotels.featured.path, currency, guestNationality],
     queryFn: async () => {
-      const res = await fetch(api.hotels.featured.path);
+      const res = await fetch(`${api.hotels.featured.path}?currency=${currency}&guestNationality=${guestNationality}`);
       if (!res.ok) throw new Error("Failed to fetch featured hotels");
       return api.hotels.featured.responses[200].parse(await res.json());
     },
@@ -45,8 +48,10 @@ export function useSearchHotels(params: {
   checkOut: string;
   guests?: string;
 }) {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.search.path, params],
+    queryKey: [api.hotels.search.path, params, currency, guestNationality],
     queryFn: async () => {
       const url = buildUrl(api.hotels.search.path);
       const queryParams = new URLSearchParams();
@@ -56,6 +61,8 @@ export function useSearchHotels(params: {
       queryParams.set("checkIn", params.checkIn);
       queryParams.set("checkOut", params.checkOut);
       if (params.guests) queryParams.set("guests", params.guests);
+      queryParams.set("currency", currency);
+      queryParams.set("guestNationality", guestNationality);
 
       const res = await fetch(`${url}?${queryParams.toString()}`);
       if (!res.ok) {
@@ -69,10 +76,14 @@ export function useSearchHotels(params: {
 }
 
 export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery<NearbyHotel[]>({
-    queryKey: [api.hotels.nearby.path, coords],
+    queryKey: [api.hotels.nearby.path, coords, currency, guestNationality],
     queryFn: async () => {
-      const res = await fetch(`${api.hotels.nearby.path}?lat=${coords!.lat}&lng=${coords!.lng}`);
+      const res = await fetch(
+        `${api.hotels.nearby.path}?lat=${coords!.lat}&lng=${coords!.lng}&currency=${currency}&guestNationality=${guestNationality}`
+      );
       if (!res.ok) throw new Error("Failed to fetch nearby hotels");
       return res.json();
     },
@@ -82,10 +93,12 @@ export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
 }
 
 export function useLasVegasHotels() {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery<{ strip: NearbyHotel[]; downtown: NearbyHotel[] }>({
-    queryKey: ["/api/hotels/las-vegas"],
+    queryKey: ["/api/hotels/las-vegas", currency, guestNationality],
     queryFn: async () => {
-      const res = await fetch("/api/hotels/las-vegas");
+      const res = await fetch(`/api/hotels/las-vegas?currency=${currency}&guestNationality=${guestNationality}`);
       if (!res.ok) throw new Error("Failed to fetch Las Vegas hotels");
       return res.json();
     },
@@ -122,16 +135,19 @@ export function useHotelReviews(id: string) {
 }
 
 export function useHotel(id: string, params?: { checkIn?: string; checkOut?: string; guests?: string }) {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.get.path, id, params],
+    queryKey: [api.hotels.get.path, id, params, currency, guestNationality],
     queryFn: async () => {
       let url = buildUrl(api.hotels.get.path, { id });
       const queryParams = new URLSearchParams();
       if (params?.checkIn) queryParams.set("checkIn", params.checkIn);
       if (params?.checkOut) queryParams.set("checkOut", params.checkOut);
       if (params?.guests) queryParams.set("guests", params.guests);
-      const qs = queryParams.toString();
-      if (qs) url += `?${qs}`;
+      queryParams.set("currency", currency);
+      queryParams.set("guestNationality", guestNationality);
+      url += `?${queryParams.toString()}`;
       const res = await fetch(url);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch hotel details");
