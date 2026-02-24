@@ -29,6 +29,12 @@ export function Footer() {
 
             {/* Nav links */}
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
+                About
+              </Link>
+              <Link href="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-support">
+                Support
+              </Link>
               <button
                 onClick={() => setTermsOpen(true)}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"

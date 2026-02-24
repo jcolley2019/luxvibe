@@ -1087,6 +1087,27 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/bookings/lookup", async (req, res) => {
+    try {
+      const id = parseInt(req.query.id as string, 10);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid booking ID" });
+      const booking = await storage.getBookingById(id);
+      if (!booking) return res.status(404).json({ message: "Booking not found" });
+      res.json({
+        id: booking.id,
+        hotelName: booking.hotelName,
+        roomType: booking.roomType,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        guests: booking.guests,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+      });
+    } catch {
+      res.status(500).json({ message: "Failed to look up booking" });
+    }
+  });
+
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

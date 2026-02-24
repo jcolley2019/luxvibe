@@ -9,6 +9,7 @@ import HotelDetails from "@/pages/HotelDetails";
 import Checkout from "@/pages/Checkout";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
+import ManageBooking from "@/pages/ManageBooking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
+      <Route path="/manage-booking" component={ManageBooking} />
       <Route component={NotFound} />
     </Switch>
   );
