@@ -444,25 +444,49 @@ export async function registerRoutes(
         geoDistSq({ lat: userLat, lng: userLng }, a) - geoDistSq({ lat: userLat, lng: userLng }, b)
       );
 
-      // Helper to fetch hotels for a city
-      const fetchHotelsForCity = async (city: string, country: string) => {
+      const MIN_NEARBY = 20;
+      const MAX_NEARBY = 24;
+
+      // Helper to fetch and normalise hotels for a city
+      const fetchHotelsForCity = async (city: string, country: string, displayCity?: string) => {
         const data = await liteApiGet("/data/hotels", {
           cityName: city,
           countryCode: country,
-          limit: "25",
+          limit: "50",
           offset: "0",
         });
-        return (data?.data || []) as any[];
+        return ((data?.data || []) as any[]).map((h: any) => ({
+          id: h.id,
+          name: h.name || "Hotel",
+          address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
+          city: displayCity || h.city || city,
+          stars: h.stars ? parseFloat(String(h.stars)) : null,
+          rating: h.rating ? parseFloat(String(h.rating)) : null,
+          reviewCount: h.reviews_total || h.reviewCount || null,
+          price: null as number | null,
+          imageUrl: h.main_photo || h.thumbnail || null,
+        })).filter((h: any) => h.stars !== null && h.stars >= 3);
+      };
+
+      const seenIds = new Set<string>();
+      const mergeHotels = (list: any[], incoming: any[]) => {
+        for (const h of incoming) {
+          if (!seenIds.has(h.id)) {
+            seenIds.add(h.id);
+            list.push(h);
+          }
+        }
       };
 
       let hotelsList: any[] = [];
 
       // Try geocoded city first (if we got one)
       if (cityName) {
-        hotelsList = await fetchHotelsForCity(cityName, countryCode);
+        const primary = await fetchHotelsForCity(cityName, countryCode);
+        mergeHotels(hotelsList, primary);
 
-        // If no hotels found, try zoom=8 (region level) for a bigger city name
-        if (hotelsList.length === 0) {
+        // If few hotels found, try zoom=8 (region level) for a bigger city name
+        if (hotelsList.length < MIN_NEARBY) {
           try {
             const regionRes = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=8`,
@@ -473,39 +497,34 @@ export async function registerRoutes(
             const fallbackCity = regionAddr.city || regionAddr.town || regionAddr.village || regionAddr.state_district || "";
             if (fallbackCity && fallbackCity !== cityName) {
               console.log(`[nearby] Fallback city from zoom=8: ${fallbackCity}`);
-              hotelsList = await fetchHotelsForCity(fallbackCity, countryCode);
+              const regionHotels = await fetchHotelsForCity(fallbackCity, countryCode);
+              mergeHotels(hotelsList, regionHotels);
             }
           } catch { }
         }
       }
 
-      // Final fallback: find nearest well-covered city by lat/lng distance
-      if (hotelsList.length === 0) {
-        for (const city of sortedFallbacks) {
-          hotelsList = await fetchHotelsForCity(city.cityName, city.countryCode);
-          if (hotelsList.length > 0) {
-            console.log(`[nearby] Nearest known city fallback: ${city.cityName}`);
-            break;
-          }
-        }
+      // Keep pulling from nearest known cities until we have MIN_NEARBY
+      for (const city of sortedFallbacks) {
+        if (hotelsList.length >= MIN_NEARBY) break;
+        try {
+          console.log(`[nearby] Supplementing from: ${city.cityName}`);
+          const extra = await fetchHotelsForCity(city.cityName, city.countryCode);
+          mergeHotels(hotelsList, extra);
+        } catch { }
       }
 
       if (hotelsList.length === 0) return res.json([]);
 
+      // Sort: prefer 4+ stars first, then by rating, cap at MAX_NEARBY
       const nearby = hotelsList
-        .map((h: any) => ({
-          id: h.id,
-          name: h.name || "Hotel",
-          address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
-          city: h.city || cityName,
-          stars: h.stars ? parseFloat(String(h.stars)) : null,
-          rating: h.rating ? parseFloat(String(h.rating)) : null,
-          reviewCount: h.reviews_total || h.reviewCount || null,
-          price: null as number | null,
-          imageUrl: h.main_photo || h.thumbnail || null,
-        }))
-        .filter((h: any) => h.rating !== null && h.stars !== null && h.stars >= 4)
-        .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0));
+        .sort((a: any, b: any) => {
+          const starsA = (a.stars ?? 0) >= 4 ? 1 : 0;
+          const starsB = (b.stars ?? 0) >= 4 ? 1 : 0;
+          if (starsB !== starsA) return starsB - starsA;
+          return (b.rating ?? 0) - (a.rating ?? 0);
+        })
+        .slice(0, MAX_NEARBY);
 
       // Fetch rates using default dates
       try {
