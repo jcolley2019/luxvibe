@@ -349,73 +349,59 @@ export function SearchHero({
         <div className="flex w-full bg-white dark:bg-card rounded-full border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
           <div className="flex-[2] flex flex-col justify-center px-3 py-0.5 min-w-0 relative" ref={autocompleteRef}>
             <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-left leading-tight">
-              {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
+              {t("search.destination_tab")}
             </span>
-            {mode === "destination" ? (
-              <>
-                <input
-                  type="text"
-                  placeholder="Enter a destination"
-                  className="text-xs text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate w-full"
-                  value={destination}
-                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                  onFocus={() => setShowAutocomplete(true)}
-                  onKeyDown={handleKeyDown}
-                  data-testid="input-destination-navbar"
-                />
-                {showAutocomplete && places.length > 0 && (
-                  <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "240px", maxHeight: "340px", overflowY: "auto" }}>
-                    {(() => {
-                      const allPlaces = places as any[];
-                      const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
-                      const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
-                      return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
-                        const types: string[] = place.types || [];
-                        const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
-                        const isAirport = types.includes("airport");
-                        const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
-                        const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
-                        const name: string = place.displayName || place.placeId;
-                        const query = destination.toLowerCase();
-                        const matchStart = name.toLowerCase().indexOf(query);
-                        const boldedName = matchStart >= 0 ? (
-                          <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
-                        ) : name;
-                        return (
-                          <button
-                            key={place.placeId}
-                            className={`w-full text-left px-3 py-2 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
-                            onClick={() => {
-                              if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); setShowAutocomplete(false); }
-                              else { setDestination(name); setPlaceId(place.placeId); setShowAutocomplete(false); }
-                            }}
-                          >
-                            <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-                              <PlaceIcon className="w-3.5 h-3.5 text-gray-500 dark:text-muted-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-xs font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
-                              {place.formattedAddress && (
-                                <div className="text-[10px] text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      });
-                    })()}
-                  </div>
-                )}
-              </>
-            ) : (
-              <input
-                type="text"
-                placeholder="e.g. 'romantic beachfront resort'"
-                className="text-xs text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate w-full"
-                value={aiSearch}
-                onChange={(e) => setAiSearch(e.target.value)}
-                onKeyDown={handleKeyDown}
-                data-testid="input-vibe-navbar"
-              />
+            <input
+              type="text"
+              placeholder="Enter a destination"
+              className="text-xs text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate w-full"
+              value={destination}
+              onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+              onFocus={() => setShowAutocomplete(true)}
+              onKeyDown={handleKeyDown}
+              data-testid="input-destination-navbar"
+            />
+            {showAutocomplete && places.length > 0 && (
+              <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "240px", maxHeight: "340px", overflowY: "auto" }}>
+                {(() => {
+                  const allPlaces = places as any[];
+                  const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
+                  const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
+                  return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
+                    const types: string[] = place.types || [];
+                    const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
+                    const isAirport = types.includes("airport");
+                    const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
+                    const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+                    const name: string = place.displayName || place.placeId;
+                    const query = destination.toLowerCase();
+                    const matchStart = name.toLowerCase().indexOf(query);
+                    const boldedName = matchStart >= 0 ? (
+                      <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
+                    ) : name;
+                    return (
+                      <button
+                        key={place.placeId}
+                        className={`w-full text-left px-3 py-2 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
+                        onClick={() => {
+                          if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); setShowAutocomplete(false); }
+                          else { setDestination(name); setPlaceId(place.placeId); setShowAutocomplete(false); }
+                        }}
+                      >
+                        <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+                          <PlaceIcon className="w-3.5 h-3.5 text-gray-500 dark:text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
+                          {place.formattedAddress && (
+                            <div className="text-[10px] text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
             )}
           </div>
 
@@ -459,14 +445,6 @@ export function SearchHero({
             <Search className="w-4 h-4" />
           </button>
         </div>
-        <button
-          onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-          className="flex mt-1.5 items-center gap-1 text-muted-foreground hover:text-foreground text-[10px] transition-colors"
-          data-testid="button-toggle-mode-navbar"
-        >
-          <Sparkles className="w-3 h-3" />
-          {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
-        </button>
       </div>
     );
   }
