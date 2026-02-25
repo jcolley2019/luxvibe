@@ -229,6 +229,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [keysTooltip, setKeysTooltip] = useState(false);
   const [langTooltip, setLangTooltip] = useState(false);
   const [guideTooltip, setGuideTooltip] = useState(false);
+  const [loginTooltip, setLoginTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -403,13 +404,22 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                onClick={() => setLoginOpen(true)}
-                className="ml-1 h-9 px-5 rounded-full text-sm font-semibold"
-                data-testid="button-login"
-              >
-                {t("nav.login")}
-              </Button>
+              <div className="relative">
+                <Button
+                  onClick={() => setLoginOpen(true)}
+                  onMouseEnter={() => setLoginTooltip(true)}
+                  onMouseLeave={() => setLoginTooltip(false)}
+                  className="ml-1 h-9 px-5 rounded-full text-sm font-semibold"
+                  data-testid="button-login"
+                >
+                  {t("nav.login")}
+                </Button>
+                {loginTooltip && (
+                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                    {t("nav.login_tooltip")}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

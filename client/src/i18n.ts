@@ -19,6 +19,7 @@ const resources = {
         sign_in: "Sign in and start booking",
         sign_in_sub: "Discover luxury hotels and manage your reservations with ease.",
         continue_replit: "Continue with Replit",
+        login_tooltip: "Sign in with Replit to book hotels",
       },
       search: {
         hero_title: "Find your perfect stay",
@@ -205,6 +206,7 @@ const resources = {
         sign_in: "Connectez-vous et commencez à réserver",
         sign_in_sub: "Découvrez des hôtels de luxe et gérez vos réservations facilement.",
         continue_replit: "Continuer avec Replit",
+        login_tooltip: "Connectez-vous avec Replit pour réserver",
       },
       search: {
         hero_title: "Trouvez le séjour idéal",
@@ -391,6 +393,7 @@ const resources = {
         sign_in: "Inicia sesión y empieza a reservar",
         sign_in_sub: "Descubre hoteles de lujo y gestiona tus reservas fácilmente.",
         continue_replit: "Continuar con Replit",
+        login_tooltip: "Inicia sesión con Replit para reservar",
       },
       search: {
         hero_title: "Encuentra tu estancia perfecta",
@@ -577,6 +580,7 @@ const resources = {
         sign_in: "Anmelden und buchen",
         sign_in_sub: "Entdecken Sie Luxushotels und verwalten Sie Ihre Buchungen mühelos.",
         continue_replit: "Mit Replit fortfahren",
+        login_tooltip: "Mit Replit anmelden und buchen",
       },
       search: {
         hero_title: "Finden Sie Ihren perfekten Aufenthalt",
@@ -763,6 +767,7 @@ const resources = {
         sign_in: "Accedi e inizia a prenotare",
         sign_in_sub: "Scopri hotel di lusso e gestisci le tue prenotazioni con facilità.",
         continue_replit: "Continua con Replit",
+        login_tooltip: "Accedi con Replit per prenotare",
       },
       search: {
         hero_title: "Trova il tuo soggiorno perfetto",
@@ -949,6 +954,7 @@ const resources = {
         sign_in: "Inicie sessão e comece a reservar",
         sign_in_sub: "Descubra hotéis de luxo e gira as suas reservas com facilidade.",
         continue_replit: "Continuar com o Replit",
+        login_tooltip: "Entre com Replit para reservar",
       },
       search: {
         hero_title: "Encontre a sua estadia perfeita",
@@ -1135,6 +1141,7 @@ const resources = {
         sign_in: "Log in en begin met boeken",
         sign_in_sub: "Ontdek luxehotels en beheer uw reserveringen eenvoudig.",
         continue_replit: "Doorgaan met Replit",
+        login_tooltip: "Log in met Replit om te boeken",
       },
       search: {
         hero_title: "Vind uw perfecte verblijf",
@@ -1321,6 +1328,7 @@ const resources = {
         sign_in: "Giriş yapın ve rezervasyon yapmaya başlayın",
         sign_in_sub: "Lüks otelleri keşfedin ve rezervasyonlarınızı kolayca yönetin.",
         continue_replit: "Replit ile devam et",
+        login_tooltip: "Rezervasyon için Replit ile giriş yapın",
       },
       search: {
         hero_title: "Mükemmel konaklamanızı bulun",
@@ -1507,6 +1515,7 @@ const resources = {
         sign_in: "Войдите и начните бронировать",
         sign_in_sub: "Откройте для себя роскошные отели и управляйте бронированиями легко.",
         continue_replit: "Продолжить с Replit",
+        login_tooltip: "Войдите через Replit для бронирования",
       },
       search: {
         hero_title: "Найдите идеальное жильё",
@@ -1693,6 +1702,7 @@ const resources = {
         sign_in: "سجّل دخولك وابدأ الحجز",
         sign_in_sub: "اكتشف الفنادق الفاخرة وأدر حجوزاتك بسهولة.",
         continue_replit: "المتابعة مع Replit",
+        login_tooltip: "Replitでログインして予約",
       },
       search: {
         hero_title: "ابحث عن إقامتك المثالية",
@@ -1879,6 +1889,7 @@ const resources = {
         sign_in: "ログインして予約を始める",
         sign_in_sub: "高級ホテルを発見し、予約を簡単に管理しましょう。",
         continue_replit: "Replitで続ける",
+        login_tooltip: "使用Replit登录即可预订",
       },
       search: {
         hero_title: "理想の滞在先を見つけよう",
@@ -2065,6 +2076,7 @@ const resources = {
         sign_in: "登录并开始预订",
         sign_in_sub: "探索豪华酒店，轻松管理您的预订。",
         continue_replit: "使用Replit继续",
+        login_tooltip: "Replit으로 로그인하여 예약하세요",
       },
       search: {
         hero_title: "找到您的完美住所",
@@ -2251,6 +2263,7 @@ const resources = {
         sign_in: "로그인하고 예약을 시작하세요",
         sign_in_sub: "럭셔리 호텔을 발견하고 예약을 쉽게 관리하세요.",
         continue_replit: "Replit으로 계속",
+        login_tooltip: "سجّل الدخول عبر Replit للحجز",
       },
       search: {
         hero_title: "완벽한 숙소를 찾아보세요",
@@ -2437,6 +2450,7 @@ const resources = {
         sign_in: "Συνδεθείτε και ξεκινήστε να κάνετε κρατήσεις",
         sign_in_sub: "Ανακαλύψτε πολυτελή ξενοδοχεία και διαχειριστείτε τις κρατήσεις σας εύκολα.",
         continue_replit: "Συνέχεια με Replit",
+        login_tooltip: "Συνδεθείτε με Replit για κράτηση",
       },
       search: {
         hero_title: "Βρείτε την τέλεια διαμονή",
@@ -2623,6 +2637,7 @@ const resources = {
         sign_in: "Autentifică-te și începe să rezervi",
         sign_in_sub: "Descoperă hoteluri de lux și gestionează rezervările cu ușurință.",
         continue_replit: "Continuă cu Replit",
+        login_tooltip: "Conectați-vă cu Replit pentru a rezerva",
       },
       search: {
         hero_title: "Găsește sejurul perfect",
