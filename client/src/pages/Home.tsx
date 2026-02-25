@@ -374,7 +374,11 @@ export default function Home() {
   const scrollCarousel = (ref: React.RefObject<HTMLDivElement>, dir: "left" | "right") => {
     if (!ref.current) return;
     const cardWidth = ref.current.firstElementChild?.clientWidth ?? 300;
-    ref.current.scrollBy({ left: dir === "right" ? cardWidth + 20 : -(cardWidth + 20), behavior: "smooth" });
+    const gap = 20;
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? 1 : 4;
+    const scrollAmount = count * cardWidth + (count - 1) * gap;
+    ref.current.scrollBy({ left: dir === "right" ? scrollAmount : -scrollAmount, behavior: "smooth" });
   };
 
   type GeoStatus = "idle" | "loading" | "granted" | "denied";
