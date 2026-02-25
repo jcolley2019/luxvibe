@@ -276,13 +276,17 @@ export default function HotelDetails() {
       const rawPhotos = firstRate?.photos || [];
       const photos = rawPhotos.map((p: any) => (typeof p === "string" ? p : p.url)).filter(Boolean);
       if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
+      const displayName = firstRate?.roomName
+        ? formatRoomName(firstRate.roomName)
+        : formatRoomName(firstRate?.name || "Standard Room");
       return {
         mappedRoomId,
-        name: formatRoomName(firstRate?.name || "Standard Room"),
+        name: displayName,
         photos,
-        description: null as string | null,
+        description: (firstRate?.roomDescription || null) as string | null,
         amenities: (firstRate?.roomAmenities || []) as string[],
-        amenityGroups: [] as { category: string; items: string[] }[],
+        amenitiesFull: (firstRate?.roomAmenitiesFull || firstRate?.roomAmenities || []) as string[],
+        amenityGroups: (firstRate?.roomAmenityGroups || []) as { category: string; items: string[] }[],
         bedTypes: (firstRate?.bedTypes || []) as { type: string; quantity: number }[],
         roomSize: firstRate?.roomSize || null,
         maxOccupancy: firstRate?.maxOccupancy || null,
@@ -782,7 +786,7 @@ export default function HotelDetails() {
                         {group.rates.map((rate: any) => {
                           const fmtPrice = (v: number) => new Intl.NumberFormat("en", { style: "currency", currency: rate.currency, maximumFractionDigits: 0 }).format(v);
                           const nightCount = rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn));
-                          const hasMeals = rate.boardCode && rate.boardCode !== "RO";
+                          const hasMeals = (rate.boardCode && rate.boardCode !== "RO") || (rate.mealsIncluded && rate.mealsIncluded !== "No meals included");
                           return (
                             <div
                               key={rate.offerId}
@@ -1284,11 +1288,16 @@ export default function HotelDetails() {
         if (!group) return null;
         const totalPhotos = group.photos.length;
         const hasGroups = group.amenityGroups.length > 0;
+        const POPULAR_KEYWORDS = ["tv", "television", "hair dryer", "hairdryer", "private bathroom", "free wifi", "wifi", "wi-fi", "bedsheets", "bed sheets", "air conditioning", "minibar", "coffee", "safe", "balcony", "terrace"];
+        const popularAmenities = (group.amenitiesFull || group.amenities).filter(a => {
+          const lower = a.toLowerCase();
+          return POPULAR_KEYWORDS.some(k => lower.includes(k));
+        }).slice(0, 6);
         return (
           <Dialog open={true} onOpenChange={() => setRoomDetailsModal(null)}>
             <DialogContent className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
-              <DialogHeader className="px-6 pt-5 pb-0 shrink-0">
-                <DialogTitle className="text-lg font-bold">{group.name}</DialogTitle>
+              <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b border-border/40">
+                <DialogTitle className="text-lg font-bold">{t("hotel.room_details")}</DialogTitle>
               </DialogHeader>
 
               <div className="overflow-y-auto flex-1">
@@ -1305,20 +1314,19 @@ export default function HotelDetails() {
                       <>
                         <button
                           onClick={() => setModalPhotoIdx(i => (i - 1 + totalPhotos) % totalPhotos)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 dark:bg-black/50 text-foreground dark:text-white flex items-center justify-center hover:bg-white dark:hover:bg-black/70 transition-colors shadow-sm"
                           data-testid="button-modal-photo-prev"
                         >
                           <ChevronLeft className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setModalPhotoIdx(i => (i + 1) % totalPhotos)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 dark:bg-black/50 text-foreground dark:text-white flex items-center justify-center hover:bg-white dark:hover:bg-black/70 transition-colors shadow-sm"
                           data-testid="button-modal-photo-next"
                         >
                           <ChevronRight className="w-5 h-5" />
                         </button>
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-                          <Camera className="w-3 h-3" />
                           {modalPhotoIdx + 1} / {totalPhotos}
                         </div>
                       </>
@@ -1326,60 +1334,73 @@ export default function HotelDetails() {
                   </div>
                 )}
 
-                {/* Info section */}
-                <div className="px-6 py-5 space-y-5">
-                  {/* Size + occupancy row */}
-                  {(group.roomSize || group.maxOccupancy || group.bedTypes.length > 0) && (
-                    <div className="flex items-center gap-6 pb-4 border-b border-border">
+                {/* Room name + Size/occupancy */}
+                <div className="px-6 pt-5 pb-4 border-b border-border/40">
+                  <h3 className="text-base font-bold mb-2">{group.name}</h3>
+                  {(group.roomSize || group.maxOccupancy) && (
+                    <div className="flex items-center gap-5 text-sm text-muted-foreground">
                       {group.roomSize && (
-                        <span className="flex items-center gap-2 text-sm">
-                          <Maximize2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="flex items-center gap-1.5">
+                          <Maximize2 className="w-4 h-4" />
                           {group.roomSize}
                         </span>
                       )}
                       {group.maxOccupancy && (
-                        <span className="flex items-center gap-2 text-sm">
-                          <Users className="w-4 h-4 text-muted-foreground" />
+                        <span className="flex items-center gap-1.5">
+                          <Users className="w-4 h-4" />
                           {t("hotel.sleeps", { count: group.maxOccupancy })}
                         </span>
                       )}
-                      {group.bedTypes.map((bt, i) => (
-                        <span key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <BedDouble className="w-4 h-4" />
-                          {bt.quantity > 1 ? `${bt.quantity}× ` : ""}{bt.type}
-                        </span>
-                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="px-6 py-5 space-y-5">
+                  {/* Popular amenities row */}
+                  {popularAmenities.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-3">{t("hotel.popular_amenities", "Popular amenities")}</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {popularAmenities.map(a => {
+                          const AIcon = getRoomAmenityIcon(a);
+                          return (
+                            <div key={a} className="flex items-center gap-2 text-sm">
+                              <AIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                              {a}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
                   {/* Amenities — grouped if available, flat list otherwise */}
                   {hasGroups ? (
                     <div className="space-y-4">
-                      <h4 className="text-sm font-semibold">{t("hotel.amenities")}</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                        {group.amenityGroups.map(({ category, items }) => (
-                          <div key={category}>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{category}</p>
-                            <ul className="space-y-1.5">
-                              {items.map(item => {
-                                const AIcon = getRoomAmenityIcon(item);
-                                return (
-                                  <li key={item} className="flex items-center gap-2 text-sm">
-                                    <AIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                                    {item}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                        {group.amenityGroups.map(({ category, items }) => {
+                          const CatIcon = getRoomAmenityIcon(category);
+                          return (
+                            <div key={category}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <CatIcon className="w-4 h-4 text-muted-foreground" />
+                                <p className="text-sm font-semibold">{category}</p>
+                              </div>
+                              <ul className="space-y-1">
+                                {items.map(item => (
+                                  <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  ) : group.amenities.length > 0 ? (
+                  ) : (group.amenitiesFull || group.amenities).length > 0 ? (
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-2 gap-2">
-                        {group.amenities.map(a => {
+                        {(group.amenitiesFull || group.amenities).map(a => {
                           const AIcon = getRoomAmenityIcon(a);
                           return (
                             <div key={a} className="flex items-center gap-2 text-sm">

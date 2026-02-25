@@ -926,17 +926,36 @@ export async function registerRoutes(
         const amenitiesFlat: string[] = rawAmenities
           .map((a: any) => (typeof a === "string" ? a : (a.name || a.facilityName || "")))
           .filter(Boolean);
-        const amenityGroupsMap: Record<string, string[]> = {};
-        for (const a of rawAmenities) {
-          if (typeof a === "object" && a !== null) {
-            const name = a.name || a.facilityName || "";
-            const cat = a.type || a.facilityType || a.category || "General";
-            if (!name) continue;
-            if (!amenityGroupsMap[cat]) amenityGroupsMap[cat] = [];
-            if (!amenityGroupsMap[cat].includes(name)) amenityGroupsMap[cat].push(name);
+        const AMENITY_CATEGORIES: Record<string, string[]> = {
+          "Internet": ["wifi", "wi-fi", "internet", "wireless", "laptop", "broadband"],
+          "Services": ["coffee", "tea maker", "espresso", "room service", "housekeeping", "turndown", "safety deposit", "safe", "massage", "crib", "infant", "composting", "towel", "bed sheet", "cleaning"],
+          "Bathroom": ["bathroom", "bathtub", "shower", "bathrobe", "slippers", "soap", "shampoo", "toiletries", "toilet", "grab bar", "accessible bath"],
+          "Activities": [],
+          "Climate": ["air conditioning", "heating", "blackout", "drapes", "curtains", "energy-saving"],
+          "Entertainment": ["tv", "television", "streaming"],
+        };
+        const categorizeAmenity = (name: string): string => {
+          const lower = name.toLowerCase();
+          const apiCat = rawAmenities.find((a: any) => (a.name || a.facilityName) === name);
+          if (apiCat && typeof apiCat === "object") {
+            const explicitCat = apiCat.type || apiCat.facilityType || apiCat.category;
+            if (explicitCat && explicitCat !== "General") return explicitCat;
           }
+          for (const [cat, keywords] of Object.entries(AMENITY_CATEGORIES)) {
+            if (keywords.some(k => lower.includes(k))) return cat;
+          }
+          return "General";
+        };
+        const amenityGroupsMap: Record<string, string[]> = {};
+        for (const name of amenitiesFlat) {
+          const cat = categorizeAmenity(name);
+          if (!amenityGroupsMap[cat]) amenityGroupsMap[cat] = [];
+          if (!amenityGroupsMap[cat].includes(name)) amenityGroupsMap[cat].push(name);
         }
-        const amenityGroups = Object.entries(amenityGroupsMap).map(([category, items]) => ({ category, items }));
+        const categoryOrder = ["General", "Internet", "Services", "Bathroom", "Climate", "Entertainment", "Activities"];
+        const amenityGroups = Object.entries(amenityGroupsMap)
+          .sort(([a], [b]) => (categoryOrder.indexOf(a) === -1 ? 99 : categoryOrder.indexOf(a)) - (categoryOrder.indexOf(b) === -1 ? 99 : categoryOrder.indexOf(b)))
+          .map(([category, items]) => ({ category, items }));
 
         const rawPhotos = (r.photos || []).map((p: any) => ({
           url: p.hd_url || p.url || (typeof p === "string" ? p : ""),
@@ -1120,7 +1139,16 @@ export async function registerRoutes(
               : undefined;
             const boardCode = rate?.boardCode || rt.boardCode || rate?.mealPlanCode || "";
             const boardName = rate?.boardName || "Room Only";
-            const mealsIncluded = MEALS[boardCode] || (boardCode ? boardCode : "No meals included");
+            const boardNameLower = boardName.toLowerCase();
+            let mealsIncluded = MEALS[boardCode] || "";
+            if (!mealsIncluded) {
+              if (boardNameLower.includes("breakfast")) mealsIncluded = "Breakfast";
+              else if (boardNameLower.includes("all inclusive")) mealsIncluded = "All inclusive";
+              else if (boardNameLower.includes("half board")) mealsIncluded = "Breakfast & dinner included";
+              else if (boardNameLower.includes("full board")) mealsIncluded = "All meals included";
+              else if (boardCode) mealsIncluded = boardCode;
+              else mealsIncluded = "No meals included";
+            }
             const rateName = rt.name || rate?.name || "Room";
             return {
               offerId: rt.offerId,
@@ -1191,9 +1219,13 @@ export async function registerRoutes(
                 cancellationPolicy: parsed.cancellationPolicy,
                 cancelTime: parsed.cancelTime,
                 photos,
+                roomName: matchedRoom?.name || null,
+                roomDescription: matchedRoom?.description || null,
                 roomSize: matchedRoom?.roomSize || null,
                 maxOccupancy: matchedRoom?.maxOccupancy || null,
                 roomAmenities: (matchedRoom?.amenities || []).slice(0, 10),
+                roomAmenitiesFull: matchedRoom?.amenities || [],
+                roomAmenityGroups: matchedRoom?.amenityGroups || [],
                 bedTypes: matchedRoom?.bedTypes || [],
               });
             }
