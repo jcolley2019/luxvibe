@@ -451,7 +451,7 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 510 }}>
+      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 638 }}>
 
         {/* Split photo background */}
         <div className="absolute inset-0 flex">
