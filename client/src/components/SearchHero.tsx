@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users } from "lucide-react";
+import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users, Star } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -346,7 +346,7 @@ export function SearchHero({
   if (variant === "navbar") {
     return (
       <div className="hidden md:flex flex-col items-center w-full max-w-2xl">
-        <div className="flex w-full bg-white dark:bg-card rounded-full border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
+        <div className="flex w-full bg-white dark:bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
           <div className="flex-[2] flex flex-col justify-center px-3 py-0.5 min-w-0 relative" ref={autocompleteRef}>
             <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-left leading-tight">
               {t("search.destination_tab")}
@@ -439,7 +439,7 @@ export function SearchHero({
 
           <button
             onClick={handleSearch}
-            className="shrink-0 w-8 h-8 m-0.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow"
+            className="shrink-0 w-8 h-8 m-0.5 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow"
             data-testid="button-search-navbar"
           >
             <Search className="w-4 h-4" />
@@ -451,20 +451,20 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 460 }}>
+      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 340 }}>
 
         {/* Split photo background */}
         <div className="absolute inset-0 flex">
-          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=80')" }} />
-          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=900&q=80')" }} />
+          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1540541338287-41700c1d9c97?w=900&q=80')" }} />
+          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1455587734955-081b22074882?w=900&q=80')" }} />
         </div>
-        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-black/40" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-10 text-center">
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
-            Same Stays. Better Prices.
+            Luxury Stays. Unbeatable Rates.
           </h1>
-          <p className="text-white/80 text-base mb-6">2 Million Hotels Worldwide</p>
+          <p className="text-white/80 text-base mb-5">2 Million Hotels Worldwide</p>
 
           {/* ── MOBILE search card (shown below md) ── */}
           <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
@@ -581,7 +581,7 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-full shadow-xl items-stretch overflow-visible px-1 py-1 gap-0">
+          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl items-stretch overflow-visible px-1 py-1 gap-0">
 
             {/* Where / Vibe input */}
             <div className="flex-[2] flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
@@ -693,7 +693,7 @@ export function SearchHero({
             {/* Search button */}
             <button
               onClick={handleSearch}
-              className="shrink-0 w-11 h-11 m-0.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow"
+              className="shrink-0 w-11 h-11 m-0.5 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow"
               data-testid="button-search-desktop"
             >
               <Search className="w-5 h-5" />
@@ -703,12 +703,33 @@ export function SearchHero({
           {/* Vibe toggle — desktop only (mobile is inside the card) */}
           <button
             onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-            className="hidden md:flex mt-4 items-center gap-1.5 text-white/70 hover:text-white text-xs transition-colors"
+            className="hidden md:flex mt-3 items-center gap-1.5 text-white/70 hover:text-white text-xs transition-colors"
             data-testid="button-toggle-mode-desktop"
           >
             <Sparkles className="w-3.5 h-3.5" />
             {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
           </button>
+
+          {/* Stats bar */}
+          <div className="hidden md:flex mt-4 items-center gap-6 text-white/90 text-sm">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-white/70" />
+              <span className="font-semibold">2M+</span>
+              <span className="text-white/70">{t("search.stat_hotels")}</span>
+            </div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-white/70" />
+              <span className="font-semibold">190+</span>
+              <span className="text-white/70">{t("search.stat_countries")}</span>
+            </div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-white/70 fill-white/70" />
+              <span className="font-semibold">4.8/5</span>
+              <span className="text-white/70">{t("search.stat_rating")}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
