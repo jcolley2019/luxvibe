@@ -854,8 +854,8 @@ export async function registerRoutes(
           reviewCount: h.reviews_total || h.reviewCount || null,
           price: ratesMap.get(h.id) || 0,
           imageUrl: h.main_photo || h.thumbnail || null,
-          lat: h.latitude ?? h.lat ?? null,
-          lng: h.longitude ?? h.lng ?? null,
+          lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
+          lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
           facilities,
           boardCodes: boardCodesMap.get(h.id) || [],
           refundable: refundableMap.get(h.id) || false,
@@ -882,7 +882,6 @@ export async function registerRoutes(
       if (!hotelRaw) {
         return res.status(404).json({ message: "Hotel not found" });
       }
-      console.log(`[hotel-details] lat/lng fields:`, { latitude: hotelRaw.latitude, lat: hotelRaw.lat, longitude: hotelRaw.longitude, lng: hotelRaw.lng, hotelLocation: hotelRaw.hotelLocation, location: hotelRaw.location });
 
       const images: string[] = [];
       if (hotelRaw.hotelImages && Array.isArray(hotelRaw.hotelImages)) {
@@ -1120,8 +1119,8 @@ export async function registerRoutes(
         reviewCount: (hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count)
           ? Number(hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count) || null
           : reviewCountFromRates,
-        lat: hotelRaw.latitude ?? hotelRaw.lat ?? null,
-        lng: hotelRaw.longitude ?? hotelRaw.lng ?? null,
+        lat: hotelRaw.location?.latitude ?? hotelRaw.latitude ?? hotelRaw.lat ?? null,
+        lng: hotelRaw.location?.longitude ?? hotelRaw.longitude ?? hotelRaw.lng ?? null,
         checkinTime: hotelRaw.checkinCheckoutTimes?.checkin_start || null,
         checkoutTime: hotelRaw.checkinCheckoutTimes?.checkout || null,
         images,
@@ -1188,8 +1187,8 @@ export async function registerRoutes(
         reviewCount: h.reviews_total || null,
         price: null,
         imageUrl: h.main_photo || h.thumbnail || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
-        lat: h.latitude ?? h.lat ?? null,
-        lng: h.longitude ?? h.lng ?? null,
+        lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
+        lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
       }));
       res.json(results);
     } catch (err: any) {
