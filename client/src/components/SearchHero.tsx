@@ -59,6 +59,20 @@ function Counter({
   );
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export function SearchHero({
   initialDestination,
   initialPlaceId,
@@ -70,6 +84,7 @@ export function SearchHero({
 }: SearchHeroProps) {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const isMobile = useIsMobile();
   const [mode, setMode] = useState<"destination" | "vibe">(initialAiSearch ? "vibe" : "destination");
   const [destination, setDestination] = useState(initialDestination || "");
   const [placeId, setPlaceId] = useState(initialPlaceId || "");
@@ -505,7 +520,7 @@ export function SearchHero({
             </div>
 
             {/* Dates row — two side-by-side cells sharing one popover */}
-            <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (!open) setSelectionPhase("checkin"); }}>
+            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (!open) setSelectionPhase("checkin"); }}>
               <div className="flex border-b border-gray-100 dark:border-border">
                 <PopoverTrigger asChild>
                   <button
@@ -544,7 +559,7 @@ export function SearchHero({
             </Popover>
 
             {/* Guests row */}
-            <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
+            <Popover open={guestsOpen && isMobile} onOpenChange={setGuestsOpen}>
               <PopoverTrigger asChild>
                 <button
                   className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
@@ -661,7 +676,7 @@ export function SearchHero({
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
             {/* Dates */}
-            <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setSelectionPhase("checkin"); }}>
+            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setSelectionPhase("checkin"); }}>
               <PopoverTrigger asChild>
                 <button
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
@@ -679,7 +694,7 @@ export function SearchHero({
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
             {/* Guests */}
-            <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
+            <Popover open={guestsOpen && !isMobile} onOpenChange={setGuestsOpen}>
               <PopoverTrigger asChild>
                 <button
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
