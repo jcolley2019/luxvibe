@@ -1337,14 +1337,15 @@ export default function HotelDetails() {
         if (!group) return null;
         const totalPhotos = group.photos.length;
         const hasGroups = group.amenityGroups.length > 0;
+        const allAmenities: string[] = group.amenitiesFull?.length > 0 ? group.amenitiesFull : group.amenities;
         const POPULAR_KEYWORDS = ["tv", "television", "hair dryer", "hairdryer", "private bathroom", "free wifi", "wifi", "wi-fi", "bedsheets", "bed sheets", "air conditioning", "minibar", "coffee", "safe", "balcony", "terrace"];
-        const popularAmenities = (group.amenitiesFull || group.amenities).filter(a => {
+        const popularAmenities = allAmenities.filter(a => {
           const lower = a.toLowerCase();
           return POPULAR_KEYWORDS.some(k => lower.includes(k));
         }).slice(0, 6);
         return (
           <Dialog open={true} onOpenChange={() => setRoomDetailsModal(null)}>
-            <DialogContent className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
+            <DialogContent className="max-w-2xl !grid-rows-[auto_1fr] p-0 overflow-hidden max-h-[90vh]">
               <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b border-border/40">
                 <DialogTitle className="text-lg font-bold">{t("hotel.room_details")}</DialogTitle>
               </DialogHeader>
@@ -1423,35 +1424,33 @@ export default function HotelDetails() {
                     </div>
                   )}
 
-                  {/* All amenities — grouped by category like Zzzello */}
-                  {hasGroups && (
-                    <div className="space-y-5">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                        {group.amenityGroups.map(({ category, items }) => {
-                          const CatIcon = getRoomAmenityIcon(category);
-                          return (
-                            <div key={category}>
-                              <div className="flex items-center gap-2 mb-2">
-                                <CatIcon className="w-4 h-4 text-muted-foreground" />
-                                <p className="text-sm font-semibold">{category}</p>
-                              </div>
-                              <ul className="space-y-1">
-                                {items.map(item => (
-                                  <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
-                                ))}
-                              </ul>
+                  {/* All amenities — categorized groups, then full flat list */}
+                  {group.amenityGroups.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                      {group.amenityGroups.map(({ category, items }) => {
+                        const CatIcon = getRoomAmenityIcon(category);
+                        return (
+                          <div key={category}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <CatIcon className="w-4 h-4 text-muted-foreground" />
+                              <p className="text-sm font-semibold">{category}</p>
                             </div>
-                          );
-                        })}
-                      </div>
+                            <ul className="space-y-1">
+                              {items.map(item => (
+                                <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
-                  {!hasGroups && (group.amenitiesFull || group.amenities).length > 0 && (
+                  {group.amenityGroups.length === 0 && allAmenities.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold mb-3">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-2 gap-2">
-                        {(group.amenitiesFull || group.amenities).map(a => {
+                        {allAmenities.map(a => {
                           const AIcon = getRoomAmenityIcon(a);
                           return (
                             <div key={a} className="flex items-center gap-2 text-sm">
