@@ -1119,6 +1119,8 @@ export async function registerRoutes(
         reviewCount: (hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count)
           ? Number(hotelRaw.reviews_total || hotelRaw.reviewCount || hotelRaw.review_count) || null
           : reviewCountFromRates,
+        lat: hotelRaw.latitude ?? hotelRaw.lat ?? null,
+        lng: hotelRaw.longitude ?? hotelRaw.lng ?? null,
         checkinTime: hotelRaw.checkinCheckoutTimes?.checkin_start || null,
         checkoutTime: hotelRaw.checkinCheckoutTimes?.checkout || null,
         images,
@@ -1185,6 +1187,8 @@ export async function registerRoutes(
         reviewCount: h.reviews_total || null,
         price: null,
         imageUrl: h.main_photo || h.thumbnail || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+        lat: h.latitude ?? h.lat ?? null,
+        lng: h.longitude ?? h.lng ?? null,
       }));
       res.json(results);
     } catch (err: any) {

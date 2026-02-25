@@ -19,6 +19,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { HotelMap } from "@/components/HotelMap";
 
 const GALLERY_FALLBACKS = [
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
@@ -261,6 +262,7 @@ export default function HotelDetails() {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [roomDetailsModal, setRoomDetailsModal] = useState<string | null>(null);
   const [modalPhotoIdx, setModalPhotoIdx] = useState(0);
+  const [showMap, setShowMap] = useState(false);
 
   const groupedRooms = useMemo(() => {
     if (!hotel) return [];
@@ -480,7 +482,7 @@ export default function HotelDetails() {
               <MapPin className="w-3.5 h-3.5" />
               {hotel.address}
               <span className="mx-1">·</span>
-              <button className="underline underline-offset-2 hover:text-foreground transition-colors">{t("hotel.show_map")}</button>
+              <button onClick={() => setShowMap(true)} className="underline underline-offset-2 hover:text-foreground transition-colors" data-testid="button-show-map">{t("hotel.show_map")}</button>
             </p>
           </div>
           <button
@@ -1397,6 +1399,38 @@ export default function HotelDetails() {
           </Dialog>
         );
       })()}
+
+      {showMap && (
+        <HotelMap
+          hotel={{
+            id: hotel.id,
+            name: hotel.name,
+            lat: hotel.lat,
+            lng: hotel.lng,
+            price: hotel.roomTypes?.[0]?.price ?? null,
+            rating: hotel.rating,
+            stars: hotel.stars,
+            imageUrl: hotel.images?.[0] ?? null,
+            address: hotel.address,
+          }}
+          nearbyHotels={similarHotels.map((h: any) => ({
+            id: h.id,
+            name: h.name,
+            lat: h.lat ?? null,
+            lng: h.lng ?? null,
+            price: h.price,
+            rating: h.rating,
+            stars: h.stars,
+            imageUrl: h.imageUrl,
+          }))}
+          currency={hotel.roomTypes?.[0]?.currency || "USD"}
+          onClose={() => setShowMap(false)}
+          onHotelClick={(id) => {
+            setShowMap(false);
+            setLocation(`/hotel/${id}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`);
+          }}
+        />
+      )}
     </div>
   );
 }

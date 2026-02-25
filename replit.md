@@ -90,3 +90,4 @@ Preferred communication style: Simple, everyday language.
 - `wouter` - Client-side routing
 - shadcn/ui ecosystem (Radix UI, Tailwind CSS, class-variance-authority)
 - `react-i18next` + `i18next` - Internationalization (15 languages: EN, FR, ES, DE, IT, PT, NL, TR, RU, JA, ZH, KO, AR, EL, RO)
+- `leaflet` + `@types/leaflet` - Interactive maps for hotel location display
