@@ -456,7 +456,7 @@ export function SearchHero({
         {/* Split photo background */}
         <div className="absolute inset-0 flex">
           <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80')" }} />
-          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80')" }} />
+          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80')", transform: "scale(1.25)", transformOrigin: "center center" }} />
         </div>
         <div className="absolute inset-0 bg-black/40" />
 
