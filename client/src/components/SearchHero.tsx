@@ -460,7 +460,7 @@ export function SearchHero({
             <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=1200&q=80')", transform: "scale(1.5)", transformOrigin: "center center" }} />
           </div>
         </div>
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
