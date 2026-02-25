@@ -1004,6 +1004,40 @@ export async function registerRoutes(
         return bestPhotos;
       };
 
+      const findRoomByName = (rateName: string): any | null => {
+        const rateWords = normalizeName(rateName).split(" ").filter(w => w.length > 2);
+        const rateBedTypes = rateWords.filter(w => BED_TYPES.includes(w));
+
+        let bestScore = -Infinity;
+        let bestRoom: any = null;
+
+        for (const room of roomDataList) {
+          const roomWords: string[] = room.normalizedName.split(" ").filter((w: string) => w.length > 2);
+          const roomWordSet = new Set<string>(roomWords);
+          const roomBedTypes = roomWords.filter((w: string) => BED_TYPES.includes(w));
+
+          let score = 0;
+          for (const w of rateWords) {
+            if (roomWordSet.has(w)) {
+              score += BED_TYPES.includes(w) ? 4 : 1;
+            }
+          }
+
+          if (rateBedTypes.length > 0 && roomBedTypes.length > 0) {
+            const rateBedSet = new Set<string>(rateBedTypes);
+            for (const rbt of roomBedTypes) {
+              if (!rateBedSet.has(rbt)) score -= 6;
+            }
+          }
+
+          if (score > 0 && score > bestScore) {
+            bestScore = score;
+            bestRoom = room;
+          }
+        }
+        return bestRoom;
+      };
+
       // Strip normalizedName before sending to client
       const rooms: any[] = roomDataList.map(({ normalizedName, ...rest }) => rest);
 
@@ -1065,25 +1099,43 @@ export async function registerRoutes(
               ? Math.round(((suggestedPricePerNight - pricePerNight) / suggestedPricePerNight) * 100)
               : null;
 
-            // Taxes
-            const taxRaw = rate?.retailRate?.total?.[0]?.taxesAndFees ?? rate?.retailRate?.fees?.[0]?.amount ?? null;
-            const taxes = taxRaw != null ? parseFloat(String(taxRaw)) : null;
+            // Taxes — check multiple locations in the API response
+            let taxes: number | null = null;
+            const taxDirect = rate?.retailRate?.total?.[0]?.taxesAndFees;
+            if (taxDirect != null) {
+              taxes = parseFloat(String(taxDirect));
+            } else {
+              const txItems: any[] = rt.retailRate?.taxesAndFees || rate?.retailRate?.taxesAndFees || [];
+              if (Array.isArray(txItems) && txItems.length > 0) {
+                taxes = parseFloat(txItems.reduce((sum: number, t: any) => sum + (parseFloat(String(t.amount || 0)) || 0), 0).toFixed(2));
+              } else {
+                const feeRaw = rate?.retailRate?.fees?.[0]?.amount;
+                if (feeRaw != null) taxes = parseFloat(String(feeRaw));
+              }
+            }
 
             // Cancellation
-            const cancellationPolicies = rate?.cancellationPolicies || [];
+            const cancellationPoliciesRaw = rate?.cancellationPolicies;
+            const cancellationPolicies = Array.isArray(cancellationPoliciesRaw)
+              ? cancellationPoliciesRaw
+              : cancellationPoliciesRaw?.cancelPolicyInfos || [];
+            const refundableTag = rate?.refundableTag
+              || (cancellationPoliciesRaw && !Array.isArray(cancellationPoliciesRaw) ? cancellationPoliciesRaw.refundableTag : undefined)
+              || (cancellationPolicies.length > 0 ? "NRFN" : undefined);
             const cancelTime = cancellationPolicies.length > 0 ? (cancellationPolicies[0]?.cancelTime || null) : null;
             const cancellationPolicy = cancelTime
               ? `Cancel by ${cancelTime.split("T")[0] || "check-in"}`
               : undefined;
 
             // Board / meals
-            const boardCode = rate?.boardCode || "";
-            const mealsIncluded = MEALS[boardCode] || "No meals included";
+            const boardCode = rate?.boardCode || rt.boardCode || rate?.mealPlanCode || "";
+            const mealsIncluded = MEALS[boardCode] || (boardCode ? boardCode : "No meals included");
 
             const rateName = rt.name || rate?.name || "Room";
+            const matchedRoom = findRoomByName(rateName);
             roomTypes.push({
               offerId: rt.offerId,
-              mappedRoomId: rt.mappedRoomId || rt.offerId,
+              mappedRoomId: matchedRoom ? String(matchedRoom.id) : (rt.mappedRoomId || rt.offerId),
               name: rateName,
               boardName: rate?.boardName || "Room Only",
               boardCode,
@@ -1096,7 +1148,7 @@ export async function registerRoutes(
               taxes,
               nights,
               currency,
-              refundableTag: rate?.refundableTag || undefined,
+              refundableTag: refundableTag || undefined,
               cancellationPolicy,
               cancelTime,
               photos: findPhotosByName(rateName),

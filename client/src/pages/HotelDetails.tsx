@@ -788,10 +788,17 @@ export default function HotelDetails() {
                             {/* Board + cancellation */}
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm text-foreground mb-0.5">{rate.boardName}</p>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
-                                <Info className="w-3 h-3 shrink-0" />
-                                {rate.mealsIncluded || t("hotel.no_meals")}
-                              </p>
+                              {rate.boardCode && rate.boardCode !== "RO" ? (
+                                <p className="text-xs text-emerald-600 flex items-center gap-1 mb-1.5">
+                                  <Check className="w-3 h-3 shrink-0" />
+                                  {rate.mealsIncluded || rate.boardName}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
+                                  <Info className="w-3 h-3 shrink-0" />
+                                  {rate.mealsIncluded || t("hotel.no_meals")}
+                                </p>
+                              )}
                               {rate.refundableTag === "RFN" ? (
                                 <p className="text-xs text-emerald-600 flex items-center gap-1">
                                   <Check className="w-3 h-3 shrink-0" />
