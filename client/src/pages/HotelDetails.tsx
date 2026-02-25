@@ -757,7 +757,7 @@ export default function HotelDetails() {
                             <div>
                               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("hotel.amenities")}</p>
                               <ul className="space-y-1.5">
-                                {group.amenities.slice(0, 6).map((a) => {
+                                {group.amenities.slice(0, 2).map((a) => {
                                   const AIcon = getRoomAmenityIcon(a);
                                   return (
                                     <li key={a} className="flex items-center gap-2 text-xs text-foreground/80">
