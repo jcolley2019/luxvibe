@@ -222,11 +222,13 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
-  const { currency } = usePreferences();
+  const { currency, language } = usePreferences();
   const { t } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
+  const [langTooltip, setLangTooltip] = useState(false);
+  const [guideTooltip, setGuideTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -268,26 +270,40 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
           {/* Right side icons */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Language / Currency */}
-            <button
-              onClick={() => setLangOpen(true)}
-              className="h-9 px-2.5 rounded-full border border-border flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-              title="Language & Currency"
-              data-testid="button-language"
-            >
-              <Globe className="w-4 h-4 shrink-0" />
-              <span className="text-xs font-semibold tracking-wide">{currency}</span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(true)}
+                onMouseEnter={() => setLangTooltip(true)}
+                onMouseLeave={() => setLangTooltip(false)}
+                className="h-9 px-2.5 rounded-full border border-border flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                data-testid="button-language"
+              >
+                <Globe className="w-4 h-4 shrink-0" />
+                <span className="text-xs font-semibold tracking-wide">{language}</span>
+              </button>
+              {langTooltip && (
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                  {t("nav.language_currency")}
+                </div>
+              )}
+            </div>
 
             {/* Lightbulb — site guide */}
             <div className="relative" ref={tipsRef}>
               <button
                 onClick={() => setTipsOpen(o => !o)}
+                onMouseEnter={() => setGuideTooltip(true)}
+                onMouseLeave={() => setGuideTooltip(false)}
                 className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${tipsOpen ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"}`}
-                title="Luxvibe Guide"
                 data-testid="button-site-guide"
               >
                 <Lightbulb className="w-4 h-4" />
               </button>
+              {guideTooltip && !tipsOpen && (
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                  Luxvibe Guide
+                </div>
+              )}
 
               {tipsOpen && (
                 <div className="absolute top-11 right-0 w-80 bg-white dark:bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
@@ -340,7 +356,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 </button>
               </Link>
               {keysTooltip && (
-                <div className="absolute top-11 right-0 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
                   {t("nav.manage_bookings")}
                 </div>
               )}
