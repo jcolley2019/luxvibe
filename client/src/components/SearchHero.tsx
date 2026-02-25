@@ -451,18 +451,18 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 638 }}>
+      <div className="relative w-full rounded-2xl" style={{ minHeight: 638 }}>
 
         {/* Split photo background */}
-        <div className="absolute inset-0 flex">
+        <div className="absolute inset-0 flex rounded-2xl overflow-hidden">
           <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80')" }} />
           <div className="flex-1 overflow-hidden">
             <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=1200&q=80')", transform: "scale(1.5)", transformOrigin: "center center" }} />
           </div>
         </div>
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none rounded-2xl" />
 
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center">
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: 638 }}>
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
             Luxury Stays. Unbeatable Rates.
           </h1>
