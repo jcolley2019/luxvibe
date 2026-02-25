@@ -460,11 +460,11 @@ export function SearchHero({
         </div>
         <div className="absolute inset-0 bg-black/40" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
             Luxury Stays. Unbeatable Rates.
           </h1>
-          <p className="text-white/80 text-base mb-5">2 Million Hotels Worldwide</p>
+          <p className="text-white/80 text-base mb-8">2 Million Hotels Worldwide</p>
 
           {/* ── MOBILE search card (shown below md) ── */}
           <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
