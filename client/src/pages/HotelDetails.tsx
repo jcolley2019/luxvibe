@@ -1349,7 +1349,7 @@ export default function HotelDetails() {
                 <DialogTitle className="text-lg font-bold">{t("hotel.room_details")}</DialogTitle>
               </DialogHeader>
 
-              <div className="overflow-y-auto flex-1">
+              <div className="overflow-y-auto flex-1 scrollbar-thin" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
                 {/* Photo carousel */}
                 {group.photos.length > 0 && (
                   <div className="relative w-full bg-black" style={{ aspectRatio: "16/9" }}>
@@ -1423,27 +1423,31 @@ export default function HotelDetails() {
                     </div>
                   )}
 
-                  {/* Flat Amenities list + Grouped categories side by side */}
-                  {hasGroups ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                      {group.amenityGroups.map(({ category, items }) => {
-                        const CatIcon = getRoomAmenityIcon(category);
-                        return (
-                          <div key={category}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <CatIcon className="w-4 h-4 text-muted-foreground" />
-                              <p className="text-sm font-semibold">{category}</p>
+                  {/* All amenities — grouped by category like Zzzello */}
+                  {hasGroups && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                        {group.amenityGroups.map(({ category, items }) => {
+                          const CatIcon = getRoomAmenityIcon(category);
+                          return (
+                            <div key={category}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <CatIcon className="w-4 h-4 text-muted-foreground" />
+                                <p className="text-sm font-semibold">{category}</p>
+                              </div>
+                              <ul className="space-y-1">
+                                {items.map(item => (
+                                  <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
+                                ))}
+                              </ul>
                             </div>
-                            <ul className="space-y-1">
-                              {items.map(item => (
-                                <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  ) : (group.amenitiesFull || group.amenities).length > 0 ? (
+                  )}
+
+                  {!hasGroups && (group.amenitiesFull || group.amenities).length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold mb-3">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-2 gap-2">
@@ -1458,7 +1462,7 @@ export default function HotelDetails() {
                         })}
                       </div>
                     </div>
-                  ) : null}
+                  )}
 
                   {/* Description */}
                   {group.description && (
