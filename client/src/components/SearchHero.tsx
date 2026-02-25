@@ -713,21 +713,21 @@ export function SearchHero({
           {/* Stats bar */}
           <div className="hidden md:flex mt-4 items-center gap-6 text-white/90 text-sm">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-white/70" />
+              <Building2 className="w-4 h-4 text-white" />
               <span className="font-semibold">2M+</span>
-              <span className="text-white/70">{t("search.stat_hotels")}</span>
+              <span className="text-white">{t("search.stat_hotels")}</span>
             </div>
             <div className="w-px h-4 bg-white/30" />
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white/70" />
+              <MapPin className="w-4 h-4 text-white" />
               <span className="font-semibold">190+</span>
-              <span className="text-white/70">{t("search.stat_countries")}</span>
+              <span className="text-white">{t("search.stat_countries")}</span>
             </div>
             <div className="w-px h-4 bg-white/30" />
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-white/70 fill-white/70" />
+              <Star className="w-4 h-4 text-white fill-white" />
               <span className="font-semibold">4.8/5</span>
-              <span className="text-white/70">{t("search.stat_rating")}</span>
+              <span className="text-white">{t("search.stat_rating")}</span>
             </div>
           </div>
         </div>
