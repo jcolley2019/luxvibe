@@ -464,7 +464,7 @@ export function SearchHero({
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
             Luxury Stays. Unbeatable Rates.
           </h1>
-          <p className="text-white/80 text-base mb-8">2 Million Hotels Worldwide</p>
+          <p className="text-white/80 text-lg mb-8 tracking-wide">Discover stays that redefine extraordinary</p>
 
           {/* ── MOBILE search card (shown below md) ── */}
           <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
