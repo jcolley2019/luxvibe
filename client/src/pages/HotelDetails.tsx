@@ -272,20 +272,20 @@ export default function HotelDetails() {
       groups[rate.mappedRoomId].push(rate);
     });
     return Object.entries(groups).map(([mappedRoomId, rates]) => {
-      const roomInfo = (hotel.rooms as any[]).find((r: any) => r.id === mappedRoomId);
-      const rawPhotos = roomInfo?.photos || (rates[0] as any)?.photos || [];
+      const firstRate = rates[0] as any;
+      const rawPhotos = firstRate?.photos || [];
       const photos = rawPhotos.map((p: any) => (typeof p === "string" ? p : p.url)).filter(Boolean);
       if (photos.length === 0) photos.push(hotel.images[0] || GALLERY_FALLBACKS[0]);
       return {
         mappedRoomId,
-        name: formatRoomName(roomInfo?.name || rates[0]?.name || "Standard Room"),
+        name: formatRoomName(firstRate?.name || "Standard Room"),
         photos,
-        description: roomInfo?.description || null,
-        amenities: (roomInfo?.amenities || []) as string[],
-        amenityGroups: (roomInfo?.amenityGroups || []) as { category: string; items: string[] }[],
-        bedTypes: (roomInfo?.bedTypes || []) as { type: string; quantity: number }[],
-        roomSize: roomInfo?.roomSize || null,
-        maxOccupancy: roomInfo?.maxOccupancy || null,
+        description: null as string | null,
+        amenities: (firstRate?.roomAmenities || []) as string[],
+        amenityGroups: [] as { category: string; items: string[] }[],
+        bedTypes: (firstRate?.bedTypes || []) as { type: string; quantity: number }[],
+        roomSize: firstRate?.roomSize || null,
+        maxOccupancy: firstRate?.maxOccupancy || null,
         rates,
       };
     });

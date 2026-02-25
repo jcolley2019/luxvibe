@@ -1133,9 +1133,10 @@ export async function registerRoutes(
 
             const rateName = rt.name || rate?.name || "Room";
             const matchedRoom = findRoomByName(rateName);
+            const nameGroupId = normalizeName(rateName).replace(/\s+/g, "_");
             roomTypes.push({
               offerId: rt.offerId,
-              mappedRoomId: matchedRoom ? String(matchedRoom.id) : (rt.mappedRoomId || rt.offerId),
+              mappedRoomId: nameGroupId,
               name: rateName,
               boardName: rate?.boardName || "Room Only",
               boardCode,
@@ -1152,6 +1153,10 @@ export async function registerRoutes(
               cancellationPolicy,
               cancelTime,
               photos: findPhotosByName(rateName),
+              roomSize: matchedRoom?.roomSize || null,
+              maxOccupancy: matchedRoom?.maxOccupancy || null,
+              roomAmenities: (matchedRoom?.amenities || []).slice(0, 10),
+              bedTypes: matchedRoom?.bedTypes || [],
             });
           }
         } catch (rateErr) {
