@@ -882,6 +882,7 @@ export async function registerRoutes(
       if (!hotelRaw) {
         return res.status(404).json({ message: "Hotel not found" });
       }
+      console.log(`[hotel-details] lat/lng fields:`, { latitude: hotelRaw.latitude, lat: hotelRaw.lat, longitude: hotelRaw.longitude, lng: hotelRaw.lng, hotelLocation: hotelRaw.hotelLocation, location: hotelRaw.location });
 
       const images: string[] = [];
       if (hotelRaw.hotelImages && Array.isArray(hotelRaw.hotelImages)) {
