@@ -373,11 +373,7 @@ export default function Home() {
 
   const scrollCarousel = (ref: React.RefObject<HTMLDivElement>, dir: "left" | "right") => {
     if (!ref.current) return;
-    const cardWidth = ref.current.firstElementChild?.clientWidth ?? 300;
-    const gap = 20;
-    const isMobile = window.innerWidth < 768;
-    const count = isMobile ? 1 : 4;
-    const scrollAmount = count * cardWidth + (count - 1) * gap;
+    const scrollAmount = ref.current.clientWidth;
     ref.current.scrollBy({ left: dir === "right" ? scrollAmount : -scrollAmount, behavior: "smooth" });
   };
 
