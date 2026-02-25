@@ -13,7 +13,7 @@ import {
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
   BedDouble, Users, Maximize2, ChevronRight, CalendarDays,
-  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent
+  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
@@ -654,11 +654,60 @@ export default function HotelDetails() {
 
         {/* ─── Rooms Section ─── */}
         <div ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">{t("hotel.choose_your_room")}</h2>
-            <span className="text-sm text-muted-foreground">
-              {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")} · {guests} {parseInt(guests) === 1 ? t("search.guest") : t("search.guest_plural")} · {differenceInDays(parseISO(checkOut), parseISO(checkIn))} {differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? t("hotel.nights") : t("hotel.night")}
-            </span>
+          <h2 className="text-xl font-bold mb-4">{t("hotel.choose_your_room")}</h2>
+
+          {/* Savings tip */}
+          {(() => {
+            const maxDiscount = hotel.roomTypes.reduce((max: number, r: any) => Math.max(max, r.discountPercent || 0), 0);
+            if (maxDiscount < 2) return null;
+            const suggestedCheckIn = format(addDays(parseISO(checkIn), 3), "MMMM dd");
+            const suggestedCheckOut = format(addDays(parseISO(checkOut), 3), "MMMM dd");
+            return (
+              <div className="flex items-center gap-3 rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/10 px-4 py-3 mb-4" data-testid="savings-tip">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                </div>
+                <p className="text-sm text-foreground/80 flex-1">
+                  {t("hotel.savings_tip", { percent: maxDiscount, dateRange: `${suggestedCheckIn} – ${suggestedCheckOut}`, defaultValue: `You can save up to {{percent}}% by adjusting your dates to {{dateRange}}.` })}
+                </p>
+                <button
+                  className="text-sm font-semibold text-primary hover:underline underline-offset-2 whitespace-nowrap"
+                  onClick={() => {
+                    const newCheckIn = format(addDays(parseISO(checkIn), 3), "yyyy-MM-dd");
+                    const newCheckOut = format(addDays(parseISO(checkOut), 3), "yyyy-MM-dd");
+                    setLocation(`/hotel/${id}?checkIn=${newCheckIn}&checkOut=${newCheckOut}&guests=${guests}`);
+                    window.location.reload();
+                  }}
+                  data-testid="button-change-dates"
+                >
+                  {t("hotel.change_my_dates", "Change my dates")}
+                </button>
+              </div>
+            );
+          })()}
+
+          {/* Change search bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-6 p-3 rounded-lg border border-border bg-muted/30" data-testid="change-search-bar">
+            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
+              <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span>{format(parseISO(checkIn), "dd MMM")}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
+              <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span>{format(parseISO(checkOut), "dd MMM")}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
+              <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span>1 {t("hotel.room")}, {guests} {parseInt(guests) === 1 ? t("search.guest") : t("search.guest_plural")}</span>
+            </div>
+            <Button
+              onClick={() => scrollToSection("overview")}
+              className="rounded-full gap-2 shrink-0"
+              data-testid="button-change-search"
+            >
+              <Search className="w-4 h-4" />
+              {t("hotel.change_search", "Change search")}
+            </Button>
           </div>
 
           {noRooms ? (
@@ -1358,7 +1407,7 @@ export default function HotelDetails() {
                 <div className="px-6 py-5 space-y-5">
                   {/* Popular amenities row */}
                   {popularAmenities.length > 0 && (
-                    <div>
+                    <div className="pb-4 border-b border-border/40">
                       <h4 className="text-sm font-semibold mb-3">{t("hotel.popular_amenities", "Popular amenities")}</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {popularAmenities.map(a => {
@@ -1374,31 +1423,29 @@ export default function HotelDetails() {
                     </div>
                   )}
 
-                  {/* Amenities — grouped if available, flat list otherwise */}
+                  {/* Flat Amenities list + Grouped categories side by side */}
                   {hasGroups ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                        {group.amenityGroups.map(({ category, items }) => {
-                          const CatIcon = getRoomAmenityIcon(category);
-                          return (
-                            <div key={category}>
-                              <div className="flex items-center gap-2 mb-2">
-                                <CatIcon className="w-4 h-4 text-muted-foreground" />
-                                <p className="text-sm font-semibold">{category}</p>
-                              </div>
-                              <ul className="space-y-1">
-                                {items.map(item => (
-                                  <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
-                                ))}
-                              </ul>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                      {group.amenityGroups.map(({ category, items }) => {
+                        const CatIcon = getRoomAmenityIcon(category);
+                        return (
+                          <div key={category}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <CatIcon className="w-4 h-4 text-muted-foreground" />
+                              <p className="text-sm font-semibold">{category}</p>
                             </div>
-                          );
-                        })}
-                      </div>
+                            <ul className="space-y-1">
+                              {items.map(item => (
+                                <li key={item} className="text-sm text-muted-foreground pl-6">{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (group.amenitiesFull || group.amenities).length > 0 ? (
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">{t("hotel.amenities")}</h4>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-3">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-2 gap-2">
                         {(group.amenitiesFull || group.amenities).map(a => {
                           const AIcon = getRoomAmenityIcon(a);
@@ -1415,7 +1462,7 @@ export default function HotelDetails() {
 
                   {/* Description */}
                   {group.description && (
-                    <div className="space-y-2 pt-2 border-t border-border">
+                    <div className="space-y-2 pt-4 border-t border-border">
                       <h4 className="text-sm font-semibold">{t("hotel.about_this_room")}</h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">{group.description}</p>
                     </div>
