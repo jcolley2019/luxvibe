@@ -1082,24 +1082,18 @@ export async function registerRoutes(
           const rcVal = ratesHotel.reviews_total ?? ratesHotel.reviewCount ?? ratesHotel.review_count;
           if (rcVal != null) reviewCountFromRates = Number(rcVal) || null;
           const rawRoomTypes: any[] = ratesHotel.roomTypes || [];
-          for (const rt of rawRoomTypes) {
-            if (roomTypes.length >= 15) break;
+
+          const parseRate = (rt: any) => {
             const rate = rt.rates?.[0];
             const totalAmount = parseFloat(String(rt.offerRetailRate?.amount || rate?.retailRate?.total?.[0]?.amount || 0)) || 0;
-            const currency = rt.offerRetailRate?.currency || rate?.retailRate?.total?.[0]?.currency || "USD";
-
-            // Suggested (pre-discount) total — LiteAPI field
+            const cur = rt.offerRetailRate?.currency || rate?.retailRate?.total?.[0]?.currency || "USD";
             const suggestedRaw = rt.suggestedSellingPrice?.amount ?? rate?.suggestedSellingPrice?.amount ?? null;
             const suggestedTotal = suggestedRaw != null ? parseFloat(String(suggestedRaw)) : null;
-
-            // Per-night prices
             const pricePerNight = parseFloat((totalAmount / nights).toFixed(2));
             const suggestedPricePerNight = suggestedTotal ? parseFloat((suggestedTotal / nights).toFixed(2)) : null;
             const discountPercent = (suggestedPricePerNight && pricePerNight < suggestedPricePerNight)
               ? Math.round(((suggestedPricePerNight - pricePerNight) / suggestedPricePerNight) * 100)
               : null;
-
-            // Taxes — check multiple locations in the API response
             let taxes: number | null = null;
             const taxDirect = rate?.retailRate?.total?.[0]?.taxesAndFees;
             if (taxDirect != null) {
@@ -1113,8 +1107,6 @@ export async function registerRoutes(
                 if (feeRaw != null) taxes = parseFloat(String(feeRaw));
               }
             }
-
-            // Cancellation
             const cancellationPoliciesRaw = rate?.cancellationPolicies;
             const cancellationPolicies = Array.isArray(cancellationPoliciesRaw)
               ? cancellationPoliciesRaw
@@ -1126,19 +1118,14 @@ export async function registerRoutes(
             const cancellationPolicy = cancelTime
               ? `Cancel by ${cancelTime.split("T")[0] || "check-in"}`
               : undefined;
-
-            // Board / meals
             const boardCode = rate?.boardCode || rt.boardCode || rate?.mealPlanCode || "";
+            const boardName = rate?.boardName || "Room Only";
             const mealsIncluded = MEALS[boardCode] || (boardCode ? boardCode : "No meals included");
-
             const rateName = rt.name || rate?.name || "Room";
-            const matchedRoom = findRoomByName(rateName);
-            const nameGroupId = normalizeName(rateName).replace(/\s+/g, "_");
-            roomTypes.push({
+            return {
               offerId: rt.offerId,
-              mappedRoomId: nameGroupId,
-              name: rateName,
-              boardName: rate?.boardName || "Room Only",
+              rateName,
+              boardName,
               boardCode,
               mealsIncluded,
               price: totalAmount,
@@ -1148,16 +1135,68 @@ export async function registerRoutes(
               discountPercent,
               taxes,
               nights,
-              currency,
+              currency: cur,
               refundableTag: refundableTag || undefined,
               cancellationPolicy,
               cancelTime,
-              photos: findPhotosByName(rateName),
-              roomSize: matchedRoom?.roomSize || null,
-              maxOccupancy: matchedRoom?.maxOccupancy || null,
-              roomAmenities: (matchedRoom?.amenities || []).slice(0, 10),
-              bedTypes: matchedRoom?.bedTypes || [],
+            };
+          };
+
+          const allParsed = rawRoomTypes.map(parseRate);
+
+          const roomGroups: Record<string, { nameGroupId: string; rateName: string; boardRates: Record<string, typeof allParsed[0]> }> = {};
+          for (const parsed of allParsed) {
+            const nameGroupId = normalizeName(parsed.rateName).replace(/\s+/g, "_");
+            const boardKey = parsed.boardName.toLowerCase();
+            if (!roomGroups[nameGroupId]) {
+              roomGroups[nameGroupId] = { nameGroupId, rateName: parsed.rateName, boardRates: {} };
+            }
+            const existing = roomGroups[nameGroupId].boardRates[boardKey];
+            if (!existing || parsed.price < existing.price) {
+              roomGroups[nameGroupId].boardRates[boardKey] = parsed;
+            }
+          }
+
+          const sortedGroups = Object.values(roomGroups).sort((a, b) => {
+            const aMin = Math.min(...Object.values(a.boardRates).map(r => r.price));
+            const bMin = Math.min(...Object.values(b.boardRates).map(r => r.price));
+            return aMin - bMin;
+          });
+
+          for (const group of sortedGroups.slice(0, 20)) {
+            const matchedRoom = findRoomByName(group.rateName);
+            const photos = findPhotosByName(group.rateName);
+            const boardOrder = ["room only", "breakfast included"];
+            const sortedBoards = Object.entries(group.boardRates).sort(([a], [b]) => {
+              const ai = boardOrder.indexOf(a); const bi = boardOrder.indexOf(b);
+              return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
             });
+            for (const [, parsed] of sortedBoards) {
+              roomTypes.push({
+                offerId: parsed.offerId,
+                mappedRoomId: group.nameGroupId,
+                name: parsed.rateName,
+                boardName: parsed.boardName,
+                boardCode: parsed.boardCode,
+                mealsIncluded: parsed.mealsIncluded,
+                price: parsed.price,
+                pricePerNight: parsed.pricePerNight,
+                suggestedTotalPrice: parsed.suggestedTotalPrice,
+                suggestedPricePerNight: parsed.suggestedPricePerNight,
+                discountPercent: parsed.discountPercent,
+                taxes: parsed.taxes,
+                nights: parsed.nights,
+                currency: parsed.currency,
+                refundableTag: parsed.refundableTag,
+                cancellationPolicy: parsed.cancellationPolicy,
+                cancelTime: parsed.cancelTime,
+                photos,
+                roomSize: matchedRoom?.roomSize || null,
+                maxOccupancy: matchedRoom?.maxOccupancy || null,
+                roomAmenities: (matchedRoom?.amenities || []).slice(0, 10),
+                bedTypes: matchedRoom?.bedTypes || [],
+              });
+            }
           }
         } catch (rateErr) {
           console.error("Rates fetch for hotel details failed:", rateErr);
