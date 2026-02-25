@@ -129,21 +129,21 @@ function generateCategoryScores(rating: number) {
   const vary = (offset: number) =>
     Math.min(10, Math.max(5.0, parseFloat((rating + offset).toFixed(1))));
   return [
-    { name: "Cleanliness", score: vary(-0.5) },
-    { name: "Service", score: vary(0.5) },
-    { name: "Location", score: vary(0.8) },
-    { name: "Room Quality", score: vary(-0.2) },
-    { name: "Amenities", score: vary(0.2) },
-    { name: "Value for Money", score: vary(-1.0) },
-    { name: "Food and Beverage", score: vary(-0.3) },
-    { name: "Overall Experience", score: vary(0) },
+    { nameKey: "hotel.cat_cleanliness", score: vary(-0.5) },
+    { nameKey: "hotel.cat_service", score: vary(0.5) },
+    { nameKey: "hotel.cat_location", score: vary(0.8) },
+    { nameKey: "hotel.cat_room_quality", score: vary(-0.2) },
+    { nameKey: "hotel.cat_amenities", score: vary(0.2) },
+    { nameKey: "hotel.cat_value", score: vary(-1.0) },
+    { nameKey: "hotel.cat_food", score: vary(-0.3) },
+    { nameKey: "hotel.cat_overall", score: vary(0) },
   ];
 }
 
 function generateHighlights(name: string, description: string, amenities: string[]) {
   const desc = description.toLowerCase();
   const lower = (s: string) => s.toLowerCase();
-  const highlights: { icon: string; title: string; text: string }[] = [];
+  const highlights: { icon: string; titleKey: string; text: string }[] = [];
 
   const locationWords = ["downtown", "heart of", "steps from", "near", "waterfront", "beachfront", "park", "views", "view", "central", "walking distance"];
   const diningWords = ["restaurant", "dining", "cuisine", "michelin", "culinary", "gastronomy", "breakfast"];
@@ -155,7 +155,7 @@ function generateHighlights(name: string, description: string, amenities: string
     const match = sentences.find(s => locationWords.some(w => lower(s).includes(w))) || "";
     highlights.push({
       icon: "📍",
-      title: "Prime Location",
+      titleKey: "hotel.highlight_location",
       text: match.trim() || `${name} is ideally located for exploring the surrounding area and top attractions.`,
     });
   }
@@ -163,7 +163,7 @@ function generateHighlights(name: string, description: string, amenities: string
   if (diningWords.some(w => desc.includes(w)) || amenities.some(a => diningWords.some(w => lower(a).includes(w)))) {
     highlights.push({
       icon: "🍽️",
-      title: "Exceptional Dining",
+      titleKey: "hotel.highlight_dining",
       text: `Indulge in exquisite cuisine at ${name}'s acclaimed restaurants, where expertly crafted menus and impeccable service create unforgettable dining experiences.`,
     });
   }
@@ -171,7 +171,7 @@ function generateHighlights(name: string, description: string, amenities: string
   if (wellnessWords.some(w => desc.includes(w)) || amenities.some(a => wellnessWords.some(w => lower(a).includes(w)))) {
     highlights.push({
       icon: "🧖",
-      title: "Luxury Wellness",
+      titleKey: "hotel.highlight_wellness",
       text: `Rejuvenate at the hotel's world-class spa and wellness facilities, featuring premium treatments and amenities designed for ultimate relaxation.`,
     });
   }
@@ -179,19 +179,19 @@ function generateHighlights(name: string, description: string, amenities: string
   if (businessWords.some(w => desc.includes(w)) || amenities.some(a => businessWords.some(w => lower(a).includes(w)))) {
     highlights.push({
       icon: "💼",
-      title: "Business Ready",
+      titleKey: "hotel.highlight_business",
       text: `${name} offers state-of-the-art conference facilities and business services, making it the ideal destination for both corporate events and productive stays.`,
     });
   }
 
   while (highlights.length < 3) {
     const fallbacks = [
-      { icon: "🏨", title: "Exceptional Comfort", text: `${name} offers meticulously appointed rooms and suites combining timeless elegance with modern amenities for the perfect luxury retreat.` },
-      { icon: "⭐", title: "Award-Winning Service", text: `Experience the hallmark of luxury hospitality with ${name}'s dedicated staff, committed to ensuring every moment of your stay exceeds expectations.` },
-      { icon: "🌆", title: "Stunning Views", text: `Enjoy breathtaking vistas from the comfort of beautifully designed rooms and suites at ${name}, creating unforgettable memories.` },
+      { icon: "🏨", titleKey: "hotel.highlight_comfort", text: `${name} offers meticulously appointed rooms and suites combining timeless elegance with modern amenities for the perfect luxury retreat.` },
+      { icon: "⭐", titleKey: "hotel.highlight_service", text: `Experience the hallmark of luxury hospitality with ${name}'s dedicated staff, committed to ensuring every moment of your stay exceeds expectations.` },
+      { icon: "🌆", titleKey: "hotel.highlight_views", text: `Enjoy breathtaking vistas from the comfort of beautifully designed rooms and suites at ${name}, creating unforgettable memories.` },
     ];
     const next = fallbacks[highlights.length % fallbacks.length];
-    if (!highlights.find(h => h.title === next.title)) highlights.push(next);
+    if (!highlights.find(h => h.titleKey === next.titleKey)) highlights.push(next);
     else break;
   }
 
@@ -426,8 +426,8 @@ export default function HotelDetails() {
   if (error || !hotel) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-lg text-destructive">Hotel not found</p>
-        <Button onClick={() => window.history.back()}>Go Back</Button>
+        <p className="text-lg text-destructive">{t("hotel.hotel_not_found")}</p>
+        <Button onClick={() => window.history.back()}>{t("hotel.go_back")}</Button>
       </div>
     );
   }
@@ -495,7 +495,7 @@ export default function HotelDetails() {
       </Popover>
       <span className="text-border/70 text-sm select-none shrink-0">|</span>
       <span className="px-3 text-sm text-muted-foreground whitespace-nowrap shrink-0">
-        {guests} {parseInt(guests) === 1 ? "Guest" : "Guests"}
+        {guests} {parseInt(guests) === 1 ? t("search.guest_singular") : t("search.guests")}
       </span>
       <div className="bg-primary rounded-full p-1.5 mr-0.5 ml-auto shrink-0">
         <Search className="w-3.5 h-3.5 text-white" />
@@ -515,7 +515,7 @@ export default function HotelDetails() {
           data-testid="button-back"
         >
           <ChevronLeft className="w-4 h-4" />
-          See all properties
+          {t("hotel.see_all_properties")}
         </button>
 
         {/* Hotel Header */}
@@ -535,7 +535,7 @@ export default function HotelDetails() {
               <MapPin className="w-3.5 h-3.5" />
               {hotel.address}
               <span className="mx-1">·</span>
-              <button className="underline underline-offset-2 hover:text-foreground transition-colors">Show Map</button>
+              <button className="underline underline-offset-2 hover:text-foreground transition-colors">{t("hotel.show_map")}</button>
             </p>
           </div>
           <button
@@ -544,7 +544,7 @@ export default function HotelDetails() {
             data-testid="button-wishlist"
           >
             <Heart className={`w-4 h-4 ${wishlist ? "fill-red-500 text-red-500" : ""}`} />
-            {wishlist ? "Saved" : "Save"}
+            {wishlist ? t("hotel.saved") : t("hotel.save")}
           </button>
         </div>
 
@@ -564,7 +564,7 @@ export default function HotelDetails() {
                 <div className="absolute inset-0 bg-black/40 hover:bg-black/50 transition-colors flex items-center justify-center">
                   <span className="text-white text-sm font-medium flex items-center gap-1.5">
                     <Camera className="w-4 h-4" />
-                    {hotel.images.length > 5 ? `+${hotel.images.length - 4} photos` : "Show all pictures"}
+                    {hotel.images.length > 5 ? `+${hotel.images.length - 4} ${t("hotel.photos")}` : t("hotel.show_all_pictures")}
                   </span>
                 </div>
               )}
@@ -591,7 +591,7 @@ export default function HotelDetails() {
               >
                 {t(tab.labelKey)}
                 {tab.id === "ask-ai" && (
-                  <span className="ml-1.5 text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full">Beta</span>
+                  <span className="ml-1.5 text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full">{t("hotel.beta")}</span>
                 )}
               </button>
             ))}
@@ -602,13 +602,13 @@ export default function HotelDetails() {
             className="text-sm px-4 hidden md:flex"
             data-testid="button-select-room"
           >
-            Select a room
+            {t("hotel.select_room")}
           </Button>
         </div>
 
         {/* ─── Overview Section ─── */}
         <div ref={sectionRefs.overview} className="pt-8">
-          <h2 className="text-xl font-bold mb-4">Smart highlights</h2>
+          <h2 className="text-xl font-bold mb-4">{t("hotel.smart_highlights")}</h2>
           <div className="grid md:grid-cols-3 gap-4 mb-10">
             {highlights.map((h, i) => (
               <motion.div
@@ -620,7 +620,7 @@ export default function HotelDetails() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">{h.icon}</span>
-                  <span className="font-semibold text-sm">{h.title}</span>
+                  <span className="font-semibold text-sm">{t(h.titleKey)}</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{h.text}</p>
               </motion.div>
@@ -631,8 +631,8 @@ export default function HotelDetails() {
         {/* ─── Facilities Section ─── */}
         <div ref={sectionRefs.facilities} className="pb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Popular facilities</h2>
-            <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">See all facilities</button>
+            <h2 className="text-xl font-bold">{t("hotel.popular_facilities")}</h2>
+            <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">{t("hotel.see_all_facilities")}</button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-3">
             {hotel.amenities.slice(0, 15).map((amenity) => {
@@ -651,8 +651,8 @@ export default function HotelDetails() {
         {hotel.rating && (
           <div className="pb-10 border-t border-border pt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Review highlights</h2>
-              <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">Read all reviews</button>
+              <h2 className="text-xl font-bold">{t("hotel.review_highlights")}</h2>
+              <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">{t("hotel.read_all_reviews")}</button>
             </div>
             <div className="flex items-center gap-3 mb-4">
               <span className={`text-white text-base font-bold w-9 h-9 rounded-full flex items-center justify-center ${getRatingColor(hotel.rating)}`}>
@@ -661,27 +661,27 @@ export default function HotelDetails() {
               <div>
                 <p className="font-semibold">{t(getRatingKey(hotel.rating))}</p>
                 {effectiveReviewCount && (
-                  <p className="text-sm text-muted-foreground">Based on {effectiveReviewCount.toLocaleString()} reviews</p>
+                  <p className="text-sm text-muted-foreground">{t("hotel.based_on_reviews", { count: effectiveReviewCount.toLocaleString() })}</p>
                 )}
               </div>
             </div>
             <div className="mb-4">
-              <p className="text-sm font-medium mb-2">What did guests like the most</p>
+              <p className="text-sm font-medium mb-2">{t("hotel.guests_liked")}</p>
               <div className="flex flex-wrap gap-2">
-                {["Excellent service", "Great location", "Beautiful rooms"].map(tag => (
-                  <span key={tag} className="text-sm px-3 py-1 bg-muted rounded-full">"{tag}"</span>
+                {["hotel.tag_service", "hotel.tag_location", "hotel.tag_rooms"].map(tagKey => (
+                  <span key={tagKey} className="text-sm px-3 py-1 bg-muted rounded-full">"{t(tagKey)}"</span>
                 ))}
               </div>
             </div>
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="font-semibold text-sm">Categories</p>
+                <p className="font-semibold text-sm">{t("hotel.categories")}</p>
               </div>
               <div className="grid md:grid-cols-3 gap-x-8 gap-y-3">
-                {categoryScores.map(({ name, score }) => (
-                  <div key={name}>
+                {categoryScores.map(({ nameKey, score }) => (
+                  <div key={nameKey}>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-muted-foreground">{name}</span>
+                      <span className="text-muted-foreground">{t(nameKey)}</span>
                       <span className="font-medium">{score}</span>
                     </div>
                     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -695,7 +695,7 @@ export default function HotelDetails() {
               </div>
               <p className="text-xs text-purple-500 mt-4 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                This sentiment is generated from{effectiveReviewCount ? ` ${effectiveReviewCount.toLocaleString()}` : ""} reviews summarized by AI.
+                {t("hotel.ai_sentiment", { count: effectiveReviewCount ? effectiveReviewCount.toLocaleString() : "" })}
               </p>
             </div>
           </div>
@@ -704,9 +704,9 @@ export default function HotelDetails() {
         {/* ─── Rooms Section ─── */}
         <div ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Choose your room</h2>
+            <h2 className="text-xl font-bold">{t("hotel.choose_your_room")}</h2>
             <span className="text-sm text-muted-foreground">
-              {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")} · {guests} {parseInt(guests) === 1 ? "guest" : "guests"} · {differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? "s" : ""}
+              {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d, yyyy")} · {guests} {parseInt(guests) === 1 ? t("search.guest") : t("search.guest_plural")} · {differenceInDays(parseISO(checkOut), parseISO(checkIn))} {differenceInDays(parseISO(checkOut), parseISO(checkIn)) !== 1 ? t("hotel.nights") : t("hotel.night")}
             </span>
           </div>
 
@@ -716,8 +716,8 @@ export default function HotelDetails() {
                 <X className="w-4 h-4 text-red-500" />
               </div>
               <div>
-                <p className="font-semibold text-sm">This hotel is fully booked for your selected dates</p>
-                <p className="text-sm text-muted-foreground">We've found these available alternatives that match your preferences. Check them out below or adjust your dates.</p>
+                <p className="font-semibold text-sm">{t("hotel.fully_booked")}</p>
+                <p className="text-sm text-muted-foreground">{t("hotel.fully_booked_sub")}</p>
               </div>
             </div>
           ) : (
@@ -773,7 +773,7 @@ export default function HotelDetails() {
                           {/* Size + occupancy */}
                           {(group.roomSize || group.maxOccupancy || group.bedTypes.length > 0) && (
                             <div>
-                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Room details</p>
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("hotel.room_details")}</p>
                               <div className="flex items-center gap-4 text-sm text-foreground/80 mb-2">
                                 {group.roomSize && (
                                   <span className="flex items-center gap-1.5">
@@ -784,7 +784,7 @@ export default function HotelDetails() {
                                 {group.maxOccupancy && (
                                   <span className="flex items-center gap-1.5">
                                     <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                                    Sleeps {group.maxOccupancy}
+                                    {t("hotel.sleeps", { count: group.maxOccupancy })}
                                   </span>
                                 )}
                               </div>
@@ -804,7 +804,7 @@ export default function HotelDetails() {
                           {/* Amenities with icons */}
                           {group.amenities.length > 0 && (
                             <div>
-                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Amenities</p>
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("hotel.amenities")}</p>
                               <ul className="space-y-1.5">
                                 {group.amenities.slice(0, 6).map((a) => {
                                   const AIcon = getRoomAmenityIcon(a);
@@ -825,7 +825,7 @@ export default function HotelDetails() {
                             onClick={() => { setRoomDetailsModal(group.mappedRoomId); setModalPhotoIdx(photoIdx); }}
                             data-testid={`button-room-details-${group.mappedRoomId}`}
                           >
-                            Room details
+                            {t("hotel.room_details")}
                           </button>
                         </div>
                       </div>
@@ -843,17 +843,17 @@ export default function HotelDetails() {
                               <p className="font-semibold text-sm text-foreground mb-0.5">{rate.boardName}</p>
                               <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
                                 <Info className="w-3 h-3 shrink-0" />
-                                {rate.mealsIncluded || "No meals included"}
+                                {rate.mealsIncluded || t("hotel.no_meals")}
                               </p>
                               {rate.refundableTag === "RFN" ? (
                                 <p className="text-xs text-emerald-600 flex items-center gap-1">
                                   <Check className="w-3 h-3 shrink-0" />
-                                  Free cancellation before {formatCancelTime(rate.cancelTime)}
+                                  {t("hotel.free_cancel_before", { date: formatCancelTime(rate.cancelTime) })}
                                 </p>
                               ) : (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                                   <Info className="w-3 h-3 shrink-0" />
-                                  Non-refundable
+                                  {t("hotel.non_refundable")}
                                 </p>
                               )}
                             </div>
@@ -869,7 +869,7 @@ export default function HotelDetails() {
                                 <span className="text-xl font-bold text-foreground">
                                   {rate.currency} {(rate.pricePerNight ?? rate.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                 </span>
-                                <span className="text-xs text-muted-foreground">/night</span>
+                                <span className="text-xs text-muted-foreground">{t("hotel.per_night_short")}</span>
                               </div>
                               {rate.suggestedPricePerNight && rate.suggestedPricePerNight > (rate.pricePerNight ?? 0) && (
                                 <p className="text-sm text-muted-foreground line-through">
@@ -877,10 +877,10 @@ export default function HotelDetails() {
                                 </p>
                               )}
                               <p className="text-sm font-semibold text-foreground mt-0.5">
-                                {rate.currency} {rate.price.toLocaleString(undefined, { maximumFractionDigits: 0 })} Total
+                                {rate.currency} {rate.price.toLocaleString(undefined, { maximumFractionDigits: 0 })} {t("hotel.total")}
                               </p>
                               <p className="text-[11px] text-muted-foreground">
-                                ({rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn))} night{((rate.nights ?? 2) !== 1) ? "s" : ""}, 1 Room{rate.taxes ? ` (+${rate.currency} ${rate.taxes.toLocaleString(undefined, { maximumFractionDigits: 0 })} taxes and fees)` : ""})
+                                ({rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn))} {((rate.nights ?? 2) !== 1) ? t("hotel.nights") : t("hotel.night")}, 1 {t("hotel.room")}{rate.taxes ? ` (+${rate.currency} ${rate.taxes.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${t("hotel.taxes_and_fees")})` : ""})
                               </p>
                             </div>
 
@@ -890,7 +890,7 @@ export default function HotelDetails() {
                               className="rounded-full px-5 shrink-0"
                               data-testid={`button-select-rate-${rate.offerId}`}
                             >
-                              Choose room
+                              {t("hotel.choose_room")}
                             </Button>
                           </div>
                         ))}
@@ -908,7 +908,7 @@ export default function HotelDetails() {
           <div className="border-t border-border pt-8 pb-10">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-xl font-bold">Similar properties</h2>
+                <h2 className="text-xl font-bold">{t("hotel.similar_properties")}</h2>
                 {checkIn && <span className="text-sm text-muted-foreground">{format(parseISO(checkIn), "MMM d")} - {format(parseISO(checkOut), "MMM d")}</span>}
               </div>
               <div className="flex gap-2">
@@ -988,10 +988,10 @@ export default function HotelDetails() {
         <div ref={sectionRefs["ask-ai"]} className="border-t border-border pt-8 pb-10">
           <div className="border border-purple-200 dark:border-purple-800/40 rounded-2xl p-6 bg-gradient-to-br from-purple-50/50 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10">
             <div className="flex items-start justify-between mb-1">
-              <h2 className="text-xl font-bold">Ask AI about this hotel</h2>
+              <h2 className="text-xl font-bold">{t("hotel.ask_ai")}</h2>
               <span className="text-xs bg-red-100 text-red-500 dark:bg-red-950/30 px-2 py-1 rounded-full flex items-center gap-1 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                Beta version
+                {t("hotel.beta")}
               </span>
             </div>
             <p className="text-sm text-muted-foreground mb-5">Get instant answers about property information and amenities.</p>
@@ -1010,7 +1010,7 @@ export default function HotelDetails() {
             </div>
             {aiAnswer && (
               <div className="mb-4 p-4 bg-white dark:bg-muted/40 rounded-xl border border-border text-sm leading-relaxed">
-                <p className="font-medium text-purple-600 text-xs mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Answer</p>
+                <p className="font-medium text-purple-600 text-xs mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> {t("hotel.ai_answer")}</p>
                 {aiAnswer}
               </div>
             )}
@@ -1021,7 +1021,7 @@ export default function HotelDetails() {
                 value={aiInput}
                 onChange={e => setAiInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleAiSubmit()}
-                placeholder="Ask anything..."
+                placeholder={t("hotel.ask_anything")}
                 className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
                 data-testid="input-ai-question"
               />
@@ -1034,7 +1034,7 @@ export default function HotelDetails() {
 
         {/* ─── Guest Reviews ─── */}
         <div ref={sectionRefs.reviews} className="border-t border-border pt-8 pb-10">
-          <h2 className="text-xl font-bold mb-4">Guest reviews</h2>
+          <h2 className="text-xl font-bold mb-4">{t("hotel.guest_reviews")}</h2>
           {(hotel.rating || reviews.length > 0) ? (
             <div className="md:grid md:grid-cols-[260px_1fr] gap-8">
               {/* Left panel – score summary */}
@@ -1048,15 +1048,15 @@ export default function HotelDetails() {
                       <div>
                         <p className="font-semibold">{t(getRatingKey(hotel.rating))}</p>
                         {effectiveReviewCount && (
-                          <p className="text-sm text-muted-foreground">{effectiveReviewCount.toLocaleString()} reviews</p>
+                          <p className="text-sm text-muted-foreground">{t("hotel.reviews_count", { count: effectiveReviewCount.toLocaleString() })}</p>
                         )}
                       </div>
                     </div>
                     <div className="space-y-2.5 mb-5">
-                      {categoryScores.slice(0, 6).map(({ name, score }) => (
-                        <div key={name}>
+                      {categoryScores.slice(0, 6).map(({ nameKey, score }) => (
+                        <div key={nameKey}>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-muted-foreground">{name}</span>
+                            <span className="text-muted-foreground">{t(nameKey)}</span>
                             <span className="font-medium">{score}</span>
                           </div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -1069,17 +1069,17 @@ export default function HotelDetails() {
                 )}
                 {(hotel.checkinTime || hotel.checkoutTime) && (
                   <div className="border border-border rounded-xl p-4 space-y-2">
-                    <p className="text-sm font-semibold mb-1">Check-in / Check-out</p>
+                    <p className="text-sm font-semibold mb-1">{t("hotel.checkin_checkout")}</p>
                     {hotel.checkinTime && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 shrink-0" />
-                        <span>Check-in from <span className="font-medium text-foreground">{hotel.checkinTime}</span></span>
+                        <span>{t("hotel.checkin_from")} <span className="font-medium text-foreground">{hotel.checkinTime}</span></span>
                       </div>
                     )}
                     {hotel.checkoutTime && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 shrink-0" />
-                        <span>Check-out by <span className="font-medium text-foreground">{hotel.checkoutTime}</span></span>
+                        <span>{t("hotel.checkout_by")} <span className="font-medium text-foreground">{hotel.checkoutTime}</span></span>
                       </div>
                     )}
                   </div>
@@ -1091,7 +1091,7 @@ export default function HotelDetails() {
                 {reviewsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-8">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading reviews…
+                    {t("hotel.loading_reviews")}
                   </div>
                 ) : (
                   <>
@@ -1150,11 +1150,11 @@ export default function HotelDetails() {
                           onClick={() => setShowAllReviews(!showAllReviews)}
                           data-testid="button-load-reviews"
                         >
-                          {showAllReviews ? "Show less" : `Load more reviews`}
+                          {showAllReviews ? t("hotel.show_less") : t("hotel.load_more")}
                         </Button>
                         {effectiveReviewCount && (
                           <span className="text-sm text-muted-foreground">
-                            Showing {showAllReviews ? reviews.length : Math.min(4, reviews.length)} of {effectiveReviewCount.toLocaleString()} reviews
+                            {t("hotel.showing_reviews", { shown: showAllReviews ? reviews.length : Math.min(4, reviews.length), total: effectiveReviewCount.toLocaleString() })}
                           </span>
                         )}
                       </div>
@@ -1164,13 +1164,13 @@ export default function HotelDetails() {
               </div>
             </div>
           ) : (
-            <p className="text-muted-foreground">No reviews available for this hotel yet.</p>
+            <p className="text-muted-foreground">{t("hotel.no_reviews_yet")}</p>
           )}
         </div>
 
         {/* ─── Property Description ─── */}
         <div ref={sectionRefs.description} className="border-t border-border pt-8 pb-10">
-          <h2 className="text-xl font-bold mb-4">Property Description</h2>
+          <h2 className="text-xl font-bold mb-4">{t("hotel.property_description")}</h2>
           <div className="text-sm text-muted-foreground leading-relaxed space-y-4">
             {hotel.description.split(/\n+/).filter(Boolean).map((para, i) => (
               <p key={i}>{para}</p>
@@ -1261,7 +1261,7 @@ export default function HotelDetails() {
                         data-testid="button-back-to-gallery"
                       >
                         <ChevronLeft className="w-4 h-4" />
-                        Back to gallery
+                        {t("hotel.back_to_gallery")}
                       </button>
                       <button
                         onClick={() => { setGalleryMode("grid"); setShowAllPhotos(false); }}
@@ -1387,7 +1387,7 @@ export default function HotelDetails() {
                       {group.maxOccupancy && (
                         <span className="flex items-center gap-2 text-sm">
                           <Users className="w-4 h-4 text-muted-foreground" />
-                          Sleeps {group.maxOccupancy}
+                          {t("hotel.sleeps", { count: group.maxOccupancy })}
                         </span>
                       )}
                       {group.bedTypes.map((bt, i) => (
@@ -1402,7 +1402,7 @@ export default function HotelDetails() {
                   {/* Amenities — grouped if available, flat list otherwise */}
                   {hasGroups ? (
                     <div className="space-y-4">
-                      <h4 className="text-sm font-semibold">Amenities</h4>
+                      <h4 className="text-sm font-semibold">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                         {group.amenityGroups.map(({ category, items }) => (
                           <div key={category}>
@@ -1424,7 +1424,7 @@ export default function HotelDetails() {
                     </div>
                   ) : group.amenities.length > 0 ? (
                     <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">Amenities</h4>
+                      <h4 className="text-sm font-semibold">{t("hotel.amenities")}</h4>
                       <div className="grid grid-cols-2 gap-2">
                         {group.amenities.map(a => {
                           const AIcon = getRoomAmenityIcon(a);
@@ -1442,7 +1442,7 @@ export default function HotelDetails() {
                   {/* Description */}
                   {group.description && (
                     <div className="space-y-2 pt-2 border-t border-border">
-                      <h4 className="text-sm font-semibold">About this room</h4>
+                      <h4 className="text-sm font-semibold">{t("hotel.about_this_room")}</h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">{group.description}</p>
                     </div>
                   )}
