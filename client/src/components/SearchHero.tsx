@@ -451,12 +451,12 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 340 }}>
+      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: 510 }}>
 
         {/* Split photo background */}
         <div className="absolute inset-0 flex">
-          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1540541338287-41700c1d9c97?w=900&q=80')" }} />
-          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1455587734955-081b22074882?w=900&q=80')" }} />
+          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=1200&q=80')" }} />
+          <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80')" }} />
         </div>
         <div className="absolute inset-0 bg-black/40" />
 
