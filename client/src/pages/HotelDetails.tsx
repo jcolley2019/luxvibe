@@ -779,75 +779,74 @@ export default function HotelDetails() {
 
                       {/* ── Right: rate rows ── */}
                       <div className="flex-1 divide-y divide-border/40">
-                        {group.rates.map((rate: any) => (
-                          <div
-                            key={rate.offerId}
-                            className="flex flex-col sm:flex-row sm:items-center gap-4 p-5"
-                            data-testid={`rate-${rate.offerId}`}
-                          >
-                            {/* Board + cancellation */}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm text-foreground mb-0.5">{rate.boardName}</p>
-                              {rate.boardCode && rate.boardCode !== "RO" ? (
-                                <p className="text-xs text-emerald-600 flex items-center gap-1 mb-1.5">
-                                  <Check className="w-3 h-3 shrink-0" />
-                                  {rate.mealsIncluded || rate.boardName}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
-                                  <Info className="w-3 h-3 shrink-0" />
-                                  {rate.mealsIncluded || t("hotel.no_meals")}
-                                </p>
-                              )}
-                              {rate.refundableTag === "RFN" ? (
-                                <p className="text-xs text-emerald-600 flex items-center gap-1">
-                                  <Check className="w-3 h-3 shrink-0" />
-                                  {t("hotel.free_cancel_before", { date: formatCancelTime(rate.cancelTime) })}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Info className="w-3 h-3 shrink-0" />
-                                  {t("hotel.non_refundable")}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Price section */}
-                            <div className="text-right shrink-0">
-                              {rate.discountPercent && (
-                                <span className="inline-block bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded mb-1">
-                                  {rate.discountPercent}% OFF
-                                </span>
-                              )}
-                              <div className="flex items-baseline justify-end gap-1">
-                                <span className="text-xl font-bold text-foreground">
-                                  {rate.currency} {(rate.pricePerNight ?? rate.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                </span>
-                                <span className="text-xs text-muted-foreground">{t("hotel.per_night_short")}</span>
-                              </div>
-                              {rate.suggestedPricePerNight && rate.suggestedPricePerNight > (rate.pricePerNight ?? 0) && (
-                                <p className="text-sm text-muted-foreground line-through">
-                                  {rate.currency} {rate.suggestedPricePerNight.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                </p>
-                              )}
-                              <p className="text-sm font-semibold text-foreground mt-0.5">
-                                {rate.currency} {rate.price.toLocaleString(undefined, { maximumFractionDigits: 0 })} {t("hotel.total")}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground">
-                                ({rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn))} {((rate.nights ?? 2) !== 1) ? t("hotel.nights") : t("hotel.night")}, 1 {t("hotel.room")}{rate.taxes ? ` (+${rate.currency} ${rate.taxes.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${t("hotel.taxes_and_fees")})` : ""})
-                              </p>
-                            </div>
-
-                            {/* Choose room button */}
-                            <Button
-                              onClick={() => handleSelectRate(rate)}
-                              className="rounded-full px-5 shrink-0"
-                              data-testid={`button-select-rate-${rate.offerId}`}
+                        {group.rates.map((rate: any) => {
+                          const fmtPrice = (v: number) => new Intl.NumberFormat("en", { style: "currency", currency: rate.currency, maximumFractionDigits: 0 }).format(v);
+                          const nightCount = rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn));
+                          const hasMeals = rate.boardCode && rate.boardCode !== "RO";
+                          return (
+                            <div
+                              key={rate.offerId}
+                              className="flex flex-col sm:flex-row sm:items-center gap-4 p-5"
+                              data-testid={`rate-${rate.offerId}`}
                             >
-                              {t("hotel.choose_room")}
-                            </Button>
-                          </div>
-                        ))}
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <p className="font-bold text-sm text-foreground">{rate.boardName}</p>
+                                {hasMeals ? (
+                                  <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+                                    <Check className="w-3.5 h-3.5 shrink-0" />
+                                    {rate.mealsIncluded || rate.boardName}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <Info className="w-3.5 h-3.5 shrink-0" />
+                                    {rate.mealsIncluded || t("hotel.no_meals")}
+                                  </p>
+                                )}
+                                {rate.refundableTag === "RFN" ? (
+                                  <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+                                    <Check className="w-3.5 h-3.5 shrink-0" />
+                                    {t("hotel.free_cancel_before", { date: formatCancelTime(rate.cancelTime) })}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <Info className="w-3.5 h-3.5 shrink-0" />
+                                    {t("hotel.non_refundable")}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="text-right shrink-0 min-w-[140px]">
+                                {rate.discountPercent != null && rate.discountPercent > 0 && (
+                                  <span className="inline-block bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded mb-1">
+                                    {rate.discountPercent}% OFF
+                                  </span>
+                                )}
+                                <div className="flex items-baseline justify-end gap-0.5">
+                                  <span className="text-xl font-bold text-foreground">
+                                    {fmtPrice(rate.pricePerNight ?? rate.price)}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">/{t("hotel.night")}</span>
+                                </div>
+                                {rate.suggestedPricePerNight != null && rate.suggestedPricePerNight > (rate.pricePerNight ?? rate.price) && (
+                                  <p className="text-sm text-muted-foreground line-through">
+                                    {fmtPrice(rate.suggestedPricePerNight)}
+                                  </p>
+                                )}
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                  ({nightCount} {nightCount !== 1 ? t("hotel.nights") : t("hotel.night")}, 1 {t("hotel.room")}{rate.taxes ? ` (+${fmtPrice(rate.taxes)} ${t("hotel.taxes_and_fees")})` : ""})
+                                </p>
+                              </div>
+
+                              <Button
+                                onClick={() => handleSelectRate(rate)}
+                                className="rounded-full px-6 shrink-0"
+                                data-testid={`button-select-rate-${rate.offerId}`}
+                              >
+                                {t("hotel.choose_room")}
+                              </Button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </Card>
