@@ -2,18 +2,17 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useHotel, useSimilarHotels, useHotelReviews } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
+import { SearchHero } from "@/components/SearchHero";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
-  BedDouble, Users, Maximize2, ChevronRight, CalendarDays, Search,
+  BedDouble, Users, Maximize2, ChevronRight, CalendarDays,
   Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -241,15 +240,10 @@ export default function HotelDetails() {
   const defaultCheckIn = format(addDays(new Date(), 1), "yyyy-MM-dd");
   const defaultCheckOut = format(addDays(new Date(), 2), "yyyy-MM-dd");
 
-  const [checkIn, setCheckIn] = useState(checkInParam || defaultCheckIn);
-  const [checkOut, setCheckOut] = useState(checkOutParam || defaultCheckOut);
-  const [guests] = useState(guestsParam);
-  const [dateOpen, setDateOpen] = useState(false);
-  const [pendingRange, setPendingRange] = useState<{ from: Date; to?: Date }>({
-    from: parseISO(checkInParam || defaultCheckIn),
-    to: parseISO(checkOutParam || defaultCheckOut),
-  });
-  const [selectionPhase, setSelectionPhase] = useState<"checkin" | "checkout">("checkin");
+  const checkIn = checkInParam || defaultCheckIn;
+  const checkOut = checkOutParam || defaultCheckOut;
+  const guests = guestsParam;
+
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
@@ -445,62 +439,13 @@ export default function HotelDetails() {
   const starCount = hotel.stars ? Math.round(hotel.stars) : null;
 
   const compactBar = (
-    <div className="flex items-center h-9 border border-border rounded-full bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow max-w-[500px] w-full overflow-hidden">
-      {hotel && (
-        <>
-          <span className="pl-4 pr-2 text-sm font-semibold text-foreground truncate max-w-[130px] shrink-0">{hotel.name}</span>
-          <span className="text-border/70 text-sm select-none shrink-0 pr-0">|</span>
-        </>
-      )}
-      <Popover open={dateOpen} onOpenChange={(open) => {
-        setDateOpen(open);
-        if (open) { setPendingRange({ from: parseISO(checkIn), to: parseISO(checkOut) }); setSelectionPhase("checkin"); }
-      }}>
-        <PopoverTrigger asChild>
-          <button className="px-3 text-sm text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors shrink-0" data-testid="button-compact-dates">
-            {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d")}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
-          <div className="px-4 pt-3 pb-1 flex gap-4 text-xs font-medium border-b border-border mb-1">
-            <span className={selectionPhase === "checkin" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>Check-in</span>
-            <span className={selectionPhase === "checkout" ? "text-primary underline underline-offset-4" : "text-muted-foreground"}>Check-out</span>
-          </div>
-          <Calendar
-            mode="range"
-            numberOfMonths={2}
-            defaultMonth={pendingRange.from}
-            selected={pendingRange}
-            onSelect={(range) => {
-              const r = range as { from: Date; to?: Date } | undefined;
-              if (!r?.from) return;
-              if (selectionPhase === "checkin") {
-                setPendingRange({ from: r.from, to: undefined });
-                setSelectionPhase("checkout");
-              } else {
-                if (r.to && r.to > r.from) {
-                  setPendingRange(r);
-                  setCheckIn(format(r.from, "yyyy-MM-dd"));
-                  setCheckOut(format(r.to, "yyyy-MM-dd"));
-                  setDateOpen(false);
-                  setSelectionPhase("checkin");
-                } else {
-                  setPendingRange({ from: r.from, to: undefined });
-                }
-              }
-            }}
-            disabled={(d) => d < new Date()}
-          />
-        </PopoverContent>
-      </Popover>
-      <span className="text-border/70 text-sm select-none shrink-0">|</span>
-      <span className="px-3 text-sm text-muted-foreground whitespace-nowrap shrink-0">
-        {guests} {parseInt(guests) === 1 ? t("search.guest_singular") : t("search.guests")}
-      </span>
-      <div className="bg-primary rounded-full p-1.5 mr-0.5 ml-auto shrink-0">
-        <Search className="w-3.5 h-3.5 text-white" />
-      </div>
-    </div>
+    <SearchHero
+      variant="navbar"
+      initialDestination={hotel?.name}
+      initialCheckIn={checkIn}
+      initialCheckOut={checkOut}
+      initialGuests={guests}
+    />
   );
 
   return (
