@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse } from "@shared/routes";
+import { api, buildUrl, type HotelSearchResponse, type HotelDetailsResponse, type HotelFeaturedResponse, type SemanticHotel } from "@shared/routes";
 import { usePreferences, LANG_TO_NATIONALITY } from "@/context/preferences";
 
 export type HotelReview = {
@@ -12,6 +12,17 @@ export type HotelReview = {
   cons: string | null;
   source: string | null;
   country: string | null;
+};
+
+export type ReviewSentiment = {
+  categories: Record<string, number>;
+  pros: string[];
+  cons: string[];
+};
+
+export type ReviewsResponse = {
+  reviews: HotelReview[];
+  sentiment: ReviewSentiment | null;
 };
 
 export type NearbyHotel = {
@@ -121,16 +132,34 @@ export function useSimilarHotels(id: string) {
 }
 
 export function useHotelReviews(id: string) {
-  return useQuery<HotelReview[]>({
-    queryKey: ["/api/hotels/:id/reviews", id],
+  return useQuery<ReviewsResponse>({
+    queryKey: ["/api/hotels/reviews", id],
     queryFn: async () => {
       const url = buildUrl(api.hotels.reviews.path, { id });
       const res = await fetch(url);
-      if (!res.ok) return [];
-      return res.json();
+      if (!res.ok) return { reviews: [], sentiment: null };
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return { reviews: data, sentiment: null };
+      }
+      return data as ReviewsResponse;
     },
     enabled: !!id,
     staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useSemanticSearch(query: string) {
+  return useQuery<SemanticHotel[]>({
+    queryKey: ["/api/hotels/semantic-search", query],
+    queryFn: async () => {
+      const res = await fetch(`/api/hotels/semantic-search?query=${encodeURIComponent(query)}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!query && query.length >= 3,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

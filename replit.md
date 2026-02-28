@@ -26,7 +26,9 @@ Preferred communication style: Simple, everyday language.
 - **Key API Endpoints**:
   - `GET /api/places?q=...` - Places autocomplete via LiteAPI
   - `GET /api/hotels/search` - Search hotels via LiteAPI (supports destination, placeId, aiSearch)
+  - `GET /api/hotels/semantic-search?query=...` - AI semantic search via LiteAPI Agentic (returns hotels with tags, persona, style, story)
   - `GET /api/hotels/:id` - Get hotel details + rates via LiteAPI
+  - `GET /api/hotels/:id/reviews` - Get hotel reviews with AI sentiment analysis (categories, pros, cons)
   - `POST /api/hotels/prebook` - Prebook a rate via LiteAPI (returns secretKey for Payment SDK)
   - `POST /api/hotels/book` - Complete booking via LiteAPI with transactionId from payment
   - `GET /api/bookings` - Get user's bookings (authenticated)
@@ -63,6 +65,10 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: API key via `X-API-Key` header
 - **Environment Variable**: `LITEAPI_KEY` (required)
 - **Usage**: Server-side only - the backend proxies requests to LiteAPI and transforms responses for the frontend
+- **Agentic AI Features** (LiteAPI Agentic tier):
+  - `GET /data/hotels/semantic-search?query=...` — AI-powered natural language hotel discovery with semantic tags, persona, style, and story attributes
+  - `GET /data/reviews?hotelId=...&getSentiment=true` — AI sentiment analysis of 1000+ reviews returning category scores (1-10), AI-generated pros and cons lists
+  - Powers the floating AI Concierge chat widget (`AiAssistant.tsx`) and "Discover by Vibe" section on home page
 
 ### PostgreSQL Database
 - **Environment Variable**: `DATABASE_URL` (required, connection string)

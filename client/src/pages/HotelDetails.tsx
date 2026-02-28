@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useHotel, useSimilarHotels, useHotelReviews } from "@/hooks/use-hotels";
+import { useHotel, useSimilarHotels, useHotelReviews, type ReviewSentiment } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { Button } from "@/components/ui/button";
@@ -249,7 +249,9 @@ export default function HotelDetails() {
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
   const { data: similarHotels = [] } = useSimilarHotels(id!);
-  const { data: realReviews = [], isLoading: reviewsLoading } = useHotelReviews(id!);
+  const { data: reviewsData, isLoading: reviewsLoading } = useHotelReviews(id!);
+  const realReviews = reviewsData?.reviews ?? [];
+  const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [wishlist, setWishlist] = useState(false);
@@ -434,9 +436,25 @@ export default function HotelDetails() {
 
   const gallery = getGallery(hotel.id, hotel.images);
   const highlights = generateHighlights(hotel.name, hotel.description, hotel.amenities);
-  const categoryScores = hotel.rating ? generateCategoryScores(hotel.rating) : [];
+  const SENTIMENT_LABELS: Record<string, string> = {
+    cleanliness: "Cleanliness", location: "Location", staff: "Staff",
+    facilities: "Facilities", value: "Value", comfort: "Comfort",
+    amenities: "Amenities", service: "Service", room: "Room Quality",
+    food: "Food & Dining", wifi: "WiFi", "value for money": "Value",
+  };
+  const sentimentCategoryScores = aiSentiment && Object.keys(aiSentiment.categories).length > 0
+    ? Object.entries(aiSentiment.categories).map(([key, score]) => ({
+      nameKey: key,
+      name: SENTIMENT_LABELS[key.toLowerCase()] || key.charAt(0).toUpperCase() + key.slice(1),
+      score,
+      isReal: true,
+    }))
+    : null;
+  const categoryScores = sentimentCategoryScores
+    || (hotel.rating ? generateCategoryScores(hotel.rating) : []);
   const reviews = realReviews.length > 0 ? realReviews : (hotel.rating ? generateReviews(hotel.rating) : []);
   const usingRealReviews = realReviews.length > 0;
+  const hasSentiment = aiSentiment !== null && (Object.keys(aiSentiment.categories).length > 0 || aiSentiment.pros.length > 0 || aiSentiment.cons.length > 0);
   const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn)) || 1;
   const noRooms = groupedRooms.length === 0;
 
@@ -616,24 +634,63 @@ export default function HotelDetails() {
                 )}
               </div>
             </div>
-            <div className="mb-4">
-              <p className="text-sm font-medium mb-2">{t("hotel.guests_liked")}</p>
-              <div className="flex flex-wrap gap-2">
-                {["hotel.tag_service", "hotel.tag_location", "hotel.tag_rooms"].map(tagKey => (
-                  <span key={tagKey} className="text-sm px-3 py-1 bg-muted rounded-full">"{t(tagKey)}"</span>
-                ))}
+
+            {hasSentiment && (aiSentiment!.pros.length > 0 || aiSentiment!.cons.length > 0) ? (
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                {aiSentiment!.pros.length > 0 && (
+                  <div className="space-y-2" data-testid="sentiment-pros">
+                    <p className="text-sm font-medium text-emerald-600 flex items-center gap-1.5">
+                      <Check className="w-4 h-4" />
+                      {t("hotel.guests_liked")}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {aiSentiment!.pros.map((pro, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                          {pro}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiSentiment!.cons.length > 0 && (
+                  <div className="space-y-2" data-testid="sentiment-cons">
+                    <p className="text-sm font-medium text-amber-600 flex items-center gap-1.5">
+                      <AlertCircle className="w-4 h-4" />
+                      {t("hotel.guests_disliked", { defaultValue: "Areas for Improvement" })}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {aiSentiment!.cons.map((con, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                          {con}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">{t("hotel.guests_liked")}</p>
+                <div className="flex flex-wrap gap-2">
+                  {["hotel.tag_service", "hotel.tag_location", "hotel.tag_rooms"].map(tagKey => (
+                    <span key={tagKey} className="text-sm px-3 py-1 bg-muted rounded-full">"{t(tagKey)}"</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="font-semibold text-sm">{t("hotel.categories")}</p>
               </div>
               <div className="grid md:grid-cols-3 gap-x-8 gap-y-3">
-                {categoryScores.map(({ nameKey, score }) => (
-                  <div key={nameKey}>
+                {categoryScores.map(({ nameKey, name, score, isReal }) => (
+                  <div key={nameKey} data-testid={`category-score-${nameKey}`}>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-muted-foreground">{t(nameKey)}</span>
-                      <span className="font-medium">{score}</span>
+                      <span className="text-muted-foreground">{name || t(nameKey)}</span>
+                      <span className="font-medium">{typeof score === "number" ? score.toFixed(1) : score}</span>
                     </div>
                     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
@@ -644,9 +701,11 @@ export default function HotelDetails() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-purple-500 mt-4 flex items-center gap-1">
+              <p className="text-xs text-purple-500 mt-4 flex items-center gap-1" data-testid="text-ai-powered">
                 <Sparkles className="w-3 h-3" />
-                {t("hotel.ai_sentiment", { count: effectiveReviewCount ? effectiveReviewCount.toLocaleString() : "" })}
+                {hasSentiment
+                  ? t("hotel.powered_by_ai", { defaultValue: "Powered by AI" })
+                  : t("hotel.ai_sentiment", { count: effectiveReviewCount ? effectiveReviewCount.toLocaleString() : "" })}
               </p>
             </div>
           </div>
@@ -1059,11 +1118,11 @@ export default function HotelDetails() {
                       </div>
                     </div>
                     <div className="space-y-2.5 mb-5">
-                      {categoryScores.slice(0, 6).map(({ nameKey, score }) => (
+                      {categoryScores.slice(0, 6).map(({ nameKey, name, score, isReal }) => (
                         <div key={nameKey}>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-muted-foreground">{t(nameKey)}</span>
-                            <span className="font-medium">{score}</span>
+                            <span className="text-muted-foreground">{isReal ? name : t(nameKey)}</span>
+                            <span className="font-medium">{typeof score === "number" ? score.toFixed(1) : score}</span>
                           </div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${getBarColor(score)}`} style={{ width: `${(score / 10) * 100}%` }} />

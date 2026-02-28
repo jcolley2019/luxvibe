@@ -1265,9 +1265,9 @@ export async function registerRoutes(
   app.get("/api/hotels/:id/reviews", async (req, res) => {
     try {
       const hotelId = req.params.id;
-      const reviewsData = await liteApiGet("/data/reviews", { hotelId, limit: "10" });
+      const reviewsData = await liteApiGet("/data/reviews", { hotelId, limit: "10", getSentiment: "true" });
       const raw: any[] = Array.isArray(reviewsData?.data) ? reviewsData.data : [];
-      res.json(raw.map((r: any) => ({
+      const reviews = raw.map((r: any) => ({
         name: r.name || "Guest",
         score: typeof r.averageScore === "number" ? r.averageScore : null,
         type: r.type?.replace(/review category /i, "") || null,
@@ -1277,7 +1277,27 @@ export async function registerRoutes(
         cons: r.cons || null,
         source: r.source || null,
         country: r.country || null,
-      })));
+      }));
+
+      let sentiment: { categories: Record<string, number>; pros: string[]; cons: string[] } | null = null;
+      const rawSentiment = reviewsData?.sentiment;
+      if (rawSentiment && typeof rawSentiment === "object") {
+        const categories: Record<string, number> = {};
+        if (rawSentiment.categories && typeof rawSentiment.categories === "object") {
+          for (const [key, val] of Object.entries(rawSentiment.categories)) {
+            if (typeof val === "number") {
+              categories[key] = val;
+            }
+          }
+        }
+        const pros = Array.isArray(rawSentiment.pros) ? rawSentiment.pros.filter((p: any) => typeof p === "string") : [];
+        const cons = Array.isArray(rawSentiment.cons) ? rawSentiment.cons.filter((c: any) => typeof c === "string") : [];
+        if (Object.keys(categories).length > 0 || pros.length > 0 || cons.length > 0) {
+          sentiment = { categories, pros, cons };
+        }
+      }
+
+      res.json({ reviews, sentiment });
     } catch (err: any) {
       console.error("Reviews error:", err?.message || err);
       res.status(500).json({ message: "Failed to get reviews" });
@@ -1375,6 +1395,35 @@ export async function registerRoutes(
         });
       }
       res.status(500).json({ message: "Failed to create booking" });
+    }
+  });
+
+  app.get("/api/hotels/semantic-search", async (req, res) => {
+    try {
+      const query = req.query.query as string;
+      if (!query) {
+        return res.status(400).json({ message: "Query parameter is required" });
+      }
+      const data = await liteApiGet("/data/hotels/semantic-search", { query });
+      const hotels = Array.isArray(data?.data) ? data.data : [];
+      const results = hotels.map((h: any) => ({
+        id: h.id || h.hotelId || "",
+        name: h.name || "Hotel",
+        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        city: h.city || null,
+        country: h.country || null,
+        photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
+        relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
+        semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
+        persona: h.persona || null,
+        style: h.style || null,
+        locationType: h.location_type || h.locationType || null,
+        story: h.story || h.contextual_story || null,
+      }));
+      res.json(results);
+    } catch (err: any) {
+      console.error("Semantic search error:", err?.message || err);
+      res.status(500).json({ message: "Failed to perform semantic search" });
     }
   });
 

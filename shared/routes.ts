@@ -255,6 +255,44 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   return url;
 }
 
+export const semanticSearchSchema = z.array(z.object({
+  id: z.string(),
+  name: z.string(),
+  address: z.string().nullable(),
+  city: z.string().nullable(),
+  country: z.string().nullable(),
+  photo: z.string().nullable(),
+  relevanceScore: z.number().nullable(),
+  semanticTags: z.array(z.string()).optional(),
+  persona: z.string().nullable().optional(),
+  style: z.string().nullable().optional(),
+  locationType: z.string().nullable().optional(),
+  story: z.string().nullable().optional(),
+}));
+
+export type SemanticHotel = z.infer<typeof semanticSearchSchema>[0];
+
+export const reviewSentimentSchema = z.object({
+  reviews: z.array(z.object({
+    name: z.string(),
+    score: z.number().nullable(),
+    type: z.string().nullable(),
+    date: z.string().nullable(),
+    headline: z.string().nullable(),
+    pros: z.string().nullable(),
+    cons: z.string().nullable(),
+    source: z.string().nullable(),
+    country: z.string().nullable(),
+  })),
+  sentiment: z.object({
+    categories: z.record(z.string(), z.number()).nullable(),
+    pros: z.array(z.string()),
+    cons: z.array(z.string()),
+  }).nullable(),
+});
+
+export type ReviewSentimentResponse = z.infer<typeof reviewSentimentSchema>;
+
 export type HotelSearchResponse = z.infer<typeof api.hotels.search.responses[200]>;
 export type HotelDetailsResponse = z.infer<typeof api.hotels.get.responses[200]>;
 export type HotelFeaturedResponse = z.infer<typeof api.hotels.featured.responses[200]>;

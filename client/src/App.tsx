@@ -12,6 +12,7 @@ import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
 import ManageBooking from "@/pages/ManageBooking";
 import NotFound from "@/pages/not-found";
+import { AiAssistant } from "@/components/AiAssistant";
 
 function Router() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Router />
             <Footer />
           </div>
+          <AiAssistant />
           <Toaster />
         </TooltipProvider>
       </PreferencesProvider>

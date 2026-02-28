@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useSearch } from "wouter";
+import { useSearch, useLocation } from "wouter";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, MapPin, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List, Sparkles, Palmtree, Building2, Briefcase, Waves, Compass, Dumbbell, Gem, PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -311,6 +311,70 @@ function CompactSearchBar({
   );
 }
 
+
+const VIBE_CARDS = [
+  { label: "Romantic Getaway", query: "romantic getaway hotel with couples spa", icon: Heart, gradient: "from-rose-500 to-pink-600" },
+  { label: "Family Adventure", query: "family-friendly hotel with kids activities and pool", icon: Palmtree, gradient: "from-emerald-500 to-teal-600" },
+  { label: "Business Travel", query: "business hotel with meeting rooms and fast wifi", icon: Briefcase, gradient: "from-slate-600 to-slate-800" },
+  { label: "Beach Paradise", query: "beachfront resort with ocean view and pool", icon: Waves, gradient: "from-sky-400 to-blue-600" },
+  { label: "City Explorer", query: "boutique hotel in city center near attractions", icon: Compass, gradient: "from-amber-500 to-orange-600" },
+  { label: "Wellness Retreat", query: "wellness spa resort with yoga and meditation", icon: Dumbbell, gradient: "from-violet-500 to-purple-600" },
+  { label: "Luxury Escape", query: "luxury five star hotel with premium amenities", icon: Gem, gradient: "from-yellow-500 to-amber-600" },
+  { label: "Budget Friendly", query: "affordable comfortable hotel good value", icon: PiggyBank, gradient: "from-green-500 to-emerald-600" },
+];
+
+function DiscoverByVibe() {
+  const [, setLocation] = useLocation();
+  const { t } = useTranslation();
+
+  const handleVibeClick = (query: string) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 3);
+    const checkIn = tomorrow.toISOString().split("T")[0];
+    const checkOut = dayAfter.toISOString().split("T")[0];
+    const params = new URLSearchParams({
+      aiSearch: query,
+      checkIn,
+      checkOut,
+      guests: "2",
+    });
+    setLocation(`/?${params.toString()}`);
+  };
+
+  return (
+    <section className="pb-10 container mx-auto px-4" data-testid="section-discover-vibe">
+      <div className="flex items-center gap-2 mb-5">
+        <Sparkles className="w-5 h-5 text-primary" />
+        <h2 className="text-2xl font-bold font-heading">Discover Hotels by Vibe</h2>
+        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI-Powered</span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {VIBE_CARDS.map((vibe, i) => {
+          const Icon = vibe.icon;
+          return (
+            <motion.button
+              key={vibe.label}
+              onClick={() => handleVibeClick(vibe.query)}
+              className={`relative overflow-hidden rounded-xl p-5 text-left text-white bg-gradient-to-br ${vibe.gradient} hover:shadow-lg transition-shadow duration-300 group`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+              data-testid={`button-vibe-${vibe.label.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              <Icon className="w-8 h-8 mb-3 opacity-90 group-hover:scale-110 transition-transform duration-300" />
+              <div className="text-sm font-bold leading-tight">{vibe.label}</div>
+              <div className="absolute top-2 right-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Icon className="w-16 h-16" />
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   const { t } = useTranslation();
@@ -1220,6 +1284,9 @@ export default function Home() {
               </div>
             )}
           </section>
+
+          {/* Discover by Vibe */}
+          <DiscoverByVibe />
 
           {/* Recently Viewed */}
           {recentHotels.length > 0 && (
