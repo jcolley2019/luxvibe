@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { MapPin, Heart } from "lucide-react";
+import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing } from "lucide-react";
 import type { DealBadge } from "@/components/HotelCard";
 
 export interface ListHotel {
@@ -13,6 +13,38 @@ export interface ListHotel {
   reviewCount?: number | null;
   price?: number | null;
   imageUrl?: string | null;
+  facilities?: string[];
+}
+
+const FACILITY_ICON_MAP: Record<string, { icon: React.ElementType; label: string }> = {
+  wifi: { icon: Wifi, label: "WiFi" },
+  "free wifi": { icon: Wifi, label: "Free WiFi" },
+  internet: { icon: Wifi, label: "WiFi" },
+  pool: { icon: Waves, label: "Pool" },
+  "swimming pool": { icon: Waves, label: "Pool" },
+  gym: { icon: Dumbbell, label: "Gym" },
+  fitness: { icon: Dumbbell, label: "Fitness" },
+  restaurant: { icon: Utensils, label: "Restaurant" },
+  dining: { icon: Utensils, label: "Dining" },
+  parking: { icon: Car, label: "Parking" },
+  bar: { icon: Wine, label: "Bar" },
+  spa: { icon: Sparkles, label: "Spa" },
+  "airport shuttle": { icon: PlaneTakeoff, label: "Airport Shuttle" },
+  "room service": { icon: BellRing, label: "Room Service" },
+};
+
+function getFacilityPills(facilities: string[] | undefined): Array<{ icon: React.ElementType; label: string }> {
+  if (!facilities?.length) return [];
+  const pills: Array<{ icon: React.ElementType; label: string }> = [];
+  for (const f of facilities) {
+    const key = f.toLowerCase();
+    const match = FACILITY_ICON_MAP[key] ?? Object.entries(FACILITY_ICON_MAP).find(([k]) => key.includes(k))?.[1];
+    if (match && !pills.some((p) => p.label === match.label)) {
+      pills.push(match);
+    }
+    if (pills.length === 3) break;
+  }
+  return pills;
 }
 
 function getRatingLabel(rating: number | null): string {
@@ -93,6 +125,8 @@ export function HotelListCard({
   const label = getRatingLabel(hotel.rating ?? null);
 
   const discountPct = dealInfo?.discount;
+  const originalPrice = price && discountPct ? Math.round(price / (1 - discountPct / 100)) : null;
+  const facilityPills = getFacilityPills((hotel as any).facilities);
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
@@ -126,10 +160,20 @@ export function HotelListCard({
           <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors mt-1 mb-1 line-clamp-1">
             {hotel.name}
           </h3>
-          <div className="flex items-center text-xs text-muted-foreground mb-3">
+          <div className="flex items-center text-xs text-muted-foreground mb-2">
             <MapPin className="w-3 h-3 mr-1 shrink-0" />
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
+          {facilityPills.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-1">
+              {facilityPills.map(({ icon: Icon, label }) => (
+                <span key={label} className="text-xs px-2 py-0.5 rounded-full border border-border flex items-center gap-1 text-muted-foreground">
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Price + CTA */}
@@ -157,6 +201,9 @@ export function HotelListCard({
             )}
             {price ? (
               <>
+                {originalPrice && (
+                  <div className="text-sm text-muted-foreground line-through">US${originalPrice.toLocaleString()}</div>
+                )}
                 <div className="text-xl font-bold text-foreground">US${price.toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">/ night</div>
                 {totalPrice && nights > 1 && (
