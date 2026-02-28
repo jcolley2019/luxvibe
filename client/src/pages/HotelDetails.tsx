@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useHotel, useSimilarHotels, useHotelReviews, type ReviewSentiment } from "@/hooks/use-hotels";
+import { useHotel, useSimilarHotels, useHotelReviews, type ReviewSentiment, askHotelAI } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
 import { SearchHero } from "@/components/SearchHero";
 import { Button } from "@/components/ui/button";
@@ -226,6 +226,7 @@ export default function HotelDetails() {
   const [wishlist, setWishlist] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [similarIdx, setSimilarIdx] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
@@ -337,38 +338,24 @@ export default function HotelDetails() {
     }
   };
 
-  const handleAiSubmit = (question?: string) => {
+  const handleAiSubmit = async (question?: string) => {
     const q = question || aiInput;
     if (!q.trim() || !hotel) return;
-    setAiInput(q);
-    const desc = hotel.description.toLowerCase();
-    const amenities = hotel.amenities.join(", ");
-    let answer = "";
-    if (/park|parking/i.test(q)) {
-      answer = hotel.amenities.includes("Parking")
-        ? `Yes, ${hotel.name} offers parking facilities. Please contact the hotel for rates and availability.`
-        : `Parking information is not listed for ${hotel.name}. We recommend contacting the hotel directly.`;
-    } else if (/wifi|internet/i.test(q)) {
-      answer = hotel.amenities.includes("Free WiFi")
-        ? `Yes, ${hotel.name} offers complimentary Free WiFi throughout the property.`
-        : `WiFi availability is not confirmed. Please check with the hotel directly.`;
-    } else if (/pool|swim/i.test(q)) {
-      answer = hotel.amenities.includes("Pool")
-        ? `${hotel.name} features a swimming pool for guests to enjoy.`
-        : `A pool is not listed in the hotel's facilities. Please contact the hotel for more information.`;
-    } else if (/restaurant|dining|food|eat/i.test(q)) {
-      answer = hotel.amenities.some(a => ["Restaurant", "Bar", "Breakfast"].includes(a))
-        ? `${hotel.name} offers dining options including: ${hotel.amenities.filter(a => ["Restaurant", "Bar", "Breakfast"].includes(a)).join(", ")}.`
-        : `Dining information: ${desc.includes("restaurant") ? "The hotel has restaurant facilities on-site." : "Please contact the hotel for dining options."}`;
-    } else if (/amenities|facilities/i.test(q)) {
-      answer = `${hotel.name} offers the following facilities: ${amenities}.`;
-    } else {
-      const sentences = hotel.description.split(/[.!?]/).filter(s => s.length > 20);
-      const match = sentences.find(s => q.split(" ").some(w => w.length > 3 && s.toLowerCase().includes(w.toLowerCase())));
-      answer = match ? match.trim() + "." : `For detailed information about "${q}", we recommend contacting ${hotel.name} directly or checking their official website.`;
+
+    if (question) setAiInput(q);
+    setAiAnswer("");
+    setIsAiLoading(true);
+
+    try {
+      const answer = await askHotelAI(hotel.id, q, hotel.name, hotel.description, hotel.amenities);
+      setAiAnswer(answer);
+      setAiInput("");
+    } catch (err: any) {
+      console.error("AI Concierge error:", err);
+      setAiAnswer("I'm sorry, I'm having trouble connecting to the concierge service right now. Please try again later.");
+    } finally {
+      setIsAiLoading(false);
     }
-    setAiAnswer(answer);
-    setAiInput("");
   };
 
   const handleSelectRate = (rate: any) => {
@@ -1040,10 +1027,19 @@ export default function HotelDetails() {
                 </button>
               ))}
             </div>
-            {aiAnswer && (
+            {(aiAnswer || isAiLoading) && (
               <div className="mb-4 p-4 bg-white dark:bg-muted/40 rounded-xl border border-border text-sm leading-relaxed">
-                <p className="font-medium text-purple-600 text-xs mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> {t("hotel.ai_answer")}</p>
-                {aiAnswer}
+                <p className="font-medium text-purple-600 text-xs mb-1 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> {t("hotel.ai_answer")}
+                </p>
+                {isAiLoading ? (
+                  <div className="flex items-center gap-2 text-muted-foreground italic">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                    <span>Thinking...</span>
+                  </div>
+                ) : (
+                  aiAnswer
+                )}
               </div>
             )}
             <div className="flex items-center gap-2 bg-white dark:bg-muted/40 border border-border rounded-xl px-4 py-3">
