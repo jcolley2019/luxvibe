@@ -194,3 +194,27 @@ export function useHotel(id: string, params?: { checkIn?: string; checkOut?: str
     enabled: !!id,
   });
 }
+
+export async function askHotelAI(
+  hotelId: string,
+  question: string,
+  hotelName: string,
+  description: string,
+  amenities: string[]
+): Promise<string> {
+  const res = await fetch(`/api/hotels/${hotelId}/ask`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ question, hotelName, description, amenities }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Failed to get answer from AI");
+  }
+
+  const data = await res.json();
+  return data.answer;
+}
