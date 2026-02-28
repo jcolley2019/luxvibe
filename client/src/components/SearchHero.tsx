@@ -127,6 +127,8 @@ export function SearchHero({
   );
   const [dateOpen, setDateOpen] = useState(false);
   const [selectionPhase, setSelectionPhase] = useState<"checkin" | "checkout">("checkin");
+  const [stagedCheckIn, setStagedCheckIn] = useState<Date | undefined>(undefined);
+  const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
   const [guestsOpen, setGuestsOpen] = useState(false);
 
   const initialAdults = parseInt(initialGuests || "2");
@@ -213,32 +215,81 @@ export function SearchHero({
       : format(date.from, "MMM d")
     : t("search.add_dates");
 
+  const handleCalendarOpen = () => {
+    setSelectionPhase("checkin");
+    setStagedCheckIn(undefined);
+    setHoveredDate(undefined);
+  };
+
+  const handleDayClick = (day: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (day < today) return;
+
+    if (selectionPhase === "checkin") {
+      setStagedCheckIn(day);
+      setSelectionPhase("checkout");
+      setHoveredDate(undefined);
+    } else {
+      if (!stagedCheckIn || day <= stagedCheckIn) return;
+      setDate({ from: stagedCheckIn, to: day });
+      setStagedCheckIn(undefined);
+      setHoveredDate(undefined);
+      setDateOpen(false);
+      setSelectionPhase("checkin");
+    }
+  };
+
+  const calendarSelected = (() => {
+    if (selectionPhase === "checkin") {
+      return undefined;
+    }
+    if (stagedCheckIn) {
+      const endDate = hoveredDate && hoveredDate > stagedCheckIn ? hoveredDate : stagedCheckIn;
+      return { from: stagedCheckIn, to: endDate !== stagedCheckIn ? endDate : undefined };
+    }
+    return undefined;
+  })();
+
   const calendarContent = (nMonths: number) => (
-    <Calendar
-      initialFocus
-      mode="range"
-      defaultMonth={date?.from}
-      selected={date}
-      onSelect={(range) => {
-        const r = range as { from: Date; to?: Date } | undefined;
-        if (!r?.from) return;
-        if (selectionPhase === "checkin") {
-          setDate({ from: r.from, to: undefined });
-          setSelectionPhase("checkout");
-        } else {
-          if (r.to && r.to > r.from) {
-            setDate(r);
-            setDateOpen(false);
-            setSelectionPhase("checkin");
-          } else {
-            setDate({ from: r.from, to: undefined });
-            setSelectionPhase("checkout");
+    <div data-testid="calendar-dropdown">
+      <div className="px-4 pt-4 pb-2" data-testid="calendar-instruction-label">
+        <p
+          className="text-base font-semibold text-foreground transition-all duration-200 ease-in-out"
+          style={{ minHeight: "1.5rem" }}
+        >
+          {selectionPhase === "checkin"
+            ? t("search.when_checkin", "When do you want to check in?")
+            : t("search.when_checkout", "When do you want to check out?")}
+        </p>
+      </div>
+      <Calendar
+        initialFocus
+        mode="range"
+        defaultMonth={stagedCheckIn || date?.from || new Date()}
+        selected={calendarSelected}
+        onSelect={() => {}}
+        onDayClick={handleDayClick}
+        onDayMouseEnter={(day: Date) => {
+          if (selectionPhase === "checkout" && stagedCheckIn && day > stagedCheckIn) {
+            setHoveredDate(day);
           }
-        }
-      }}
-      numberOfMonths={nMonths}
-      disabled={(d) => d < new Date()}
-    />
+        }}
+        onDayMouseLeave={() => {
+          if (selectionPhase === "checkout") {
+            setHoveredDate(undefined);
+          }
+        }}
+        numberOfMonths={nMonths}
+        disabled={(d) => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (d < today) return true;
+          if (selectionPhase === "checkout" && stagedCheckIn && d <= stagedCheckIn) return true;
+          return false;
+        }}
+      />
+    </div>
   );
 
   const guestsPopoverContent = (
@@ -422,7 +473,7 @@ export function SearchHero({
 
           <div className="w-px bg-gray-200 self-stretch my-1.5" />
 
-          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setSelectionPhase("checkin"); }}>
+          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
             <PopoverTrigger asChild>
               <button
                 className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
@@ -520,12 +571,11 @@ export function SearchHero({
             </div>
 
             {/* Dates row — two side-by-side cells sharing one popover */}
-            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (!open) setSelectionPhase("checkin"); }}>
+            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
               <div className="flex border-b border-gray-100 dark:border-border">
                 <PopoverTrigger asChild>
                   <button
                     className="flex-1 flex items-center gap-2 px-4 py-3 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
-                    onClick={() => setSelectionPhase("checkin")}
                     data-testid="button-checkin-mobile"
                   >
                     <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
@@ -540,7 +590,6 @@ export function SearchHero({
                 <PopoverTrigger asChild>
                   <button
                     className="flex-1 flex items-center gap-2 px-4 py-3 text-left active:bg-gray-50 transition-colors"
-                    onClick={() => setSelectionPhase("checkout")}
                     data-testid="button-checkout-mobile"
                   >
                     <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
@@ -676,7 +725,7 @@ export function SearchHero({
             <div className="w-px bg-gray-200 self-stretch my-2" />
 
             {/* Dates */}
-            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setSelectionPhase("checkin"); }}>
+            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
               <PopoverTrigger asChild>
                 <button
                   className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
