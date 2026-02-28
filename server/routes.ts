@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+import Anthropic from "@anthropic-ai/sdk";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -1315,6 +1316,47 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
       res.status(500).json({ message: "Failed to get hotel details" });
+    }
+  });
+
+  app.post("/api/hotels/:id/ask", async (req, res) => {
+    try {
+      const { question, hotelName, description, amenities } = req.body as {
+        question: string;
+        hotelName: string;
+        description: string;
+        amenities: string[];
+      };
+
+      if (!question?.trim()) {
+        return res.status(400).json({ message: "question is required" });
+      }
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+      });
+
+      const userMessage = `Hotel: ${hotelName}
+
+Description: ${description || "Not available"}
+
+Amenities: ${amenities?.length ? amenities.join(", ") : "Not listed"}
+
+Guest question: ${question}`;
+
+      const message = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 8192,
+        system: "You are a helpful hotel concierge assistant. Answer questions about this specific hotel based only on the information provided. Be concise and helpful in 2-3 sentences. If the information needed isn't available, say so politely.",
+        messages: [{ role: "user", content: userMessage }],
+      });
+
+      const answer = message.content[0]?.type === "text" ? message.content[0].text : "I'm sorry, I couldn't generate a response.";
+      res.json({ answer });
+    } catch (err: any) {
+      console.error("Hotel ask error:", err?.message || err);
+      res.status(500).json({ message: "Failed to get answer" });
     }
   });
 
