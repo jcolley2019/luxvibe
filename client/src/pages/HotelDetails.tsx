@@ -125,21 +125,6 @@ function getBarColor(score: number) {
   return score >= 8.0 ? "bg-emerald-500" : "bg-amber-400";
 }
 
-function generateCategoryScores(rating: number) {
-  const vary = (offset: number) =>
-    Math.min(10, Math.max(5.0, parseFloat((rating + offset).toFixed(1))));
-  return [
-    { nameKey: "hotel.cat_cleanliness", score: vary(-0.5) },
-    { nameKey: "hotel.cat_service", score: vary(0.5) },
-    { nameKey: "hotel.cat_location", score: vary(0.8) },
-    { nameKey: "hotel.cat_room_quality", score: vary(-0.2) },
-    { nameKey: "hotel.cat_amenities", score: vary(0.2) },
-    { nameKey: "hotel.cat_value", score: vary(-1.0) },
-    { nameKey: "hotel.cat_food", score: vary(-0.3) },
-    { nameKey: "hotel.cat_overall", score: vary(0) },
-  ];
-}
-
 function generateHighlights(name: string, description: string, amenities: string[]) {
   const desc = description.toLowerCase();
   const lower = (s: string) => s.toLowerCase();
@@ -196,22 +181,6 @@ function generateHighlights(name: string, description: string, amenities: string
   }
 
   return highlights.slice(0, 3);
-}
-
-function generateReviews(rating: number) {
-  const highScoreReviews = [
-    { name: "Emily", type: "couple", date: "Fri, 14 Feb", score: 10, title: "Absolutely perfect stay", text: "From the moment we arrived, everything was flawless. The staff were incredibly attentive and the room was stunning. We'll definitely be back." },
-    { name: "James", type: "solo traveller", date: "Thu, 13 Feb", score: 9, title: "Outstanding in every way", text: "The service was exceptional and the facilities are truly world-class. Highly recommend to anyone looking for a luxury experience." },
-    { name: "Sophie", type: "couple", date: "Wed, 12 Feb", score: 10, title: "Unforgettable experience", text: "Fantastic" },
-    { name: "Marcus", type: "business", date: "Mon, 10 Feb", score: 9, title: "", text: "Excellent location and very comfortable rooms. The breakfast was superb and the staff were always helpful. Perfect for business travel." },
-  ];
-  const midScoreReviews = [
-    { name: "David", type: "couple", date: "Fri, 13 Feb", score: 8, title: "Very good stay overall", text: "Great location and comfortable rooms. Service was friendly. Some minor issues with noise but overall a positive experience." },
-    { name: "Kymberlee", type: "couple", date: "Thu, 12 Feb", score: 9, title: "", text: "Fantastic" },
-    { name: "John", type: "solo traveller", date: "Wed, 11 Feb", score: 7, title: "Everything was good except the breakfast", text: "The breakfast was very poor. Each item was cold and I was really unhappy with it. The room itself was comfortable though." },
-    { name: "MOTOKI", type: "solo traveller", date: "Tue, 11 Feb", score: 7, title: "", text: "Decent hotel in a great location. Room was clean and staff polite. Value for money could be better." },
-  ];
-  return rating >= 8.5 ? highScoreReviews : midScoreReviews;
 }
 
 function getGallery(hotelId: string, images: string[]) {
@@ -450,10 +419,8 @@ export default function HotelDetails() {
       isReal: true,
     }))
     : null;
-  const categoryScores = sentimentCategoryScores
-    || (hotel.rating ? generateCategoryScores(hotel.rating) : []);
-  const reviews = realReviews.length > 0 ? realReviews : (hotel.rating ? generateReviews(hotel.rating) : []);
-  const usingRealReviews = realReviews.length > 0;
+  const categoryScores = sentimentCategoryScores || [];
+  const reviews = realReviews;
   const hasSentiment = aiSentiment !== null && (Object.keys(aiSentiment.categories).length > 0 || aiSentiment.pros.length > 0 || aiSentiment.cons.length > 0);
   const nights = differenceInDays(parseISO(checkOut), parseISO(checkIn)) || 1;
   const noRooms = groupedRooms.length === 0;
