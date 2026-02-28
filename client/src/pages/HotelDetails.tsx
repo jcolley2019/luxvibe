@@ -1071,7 +1071,7 @@ export default function HotelDetails() {
             <div className="md:grid md:grid-cols-[260px_1fr] gap-8">
               {/* Left panel – score summary */}
               <div>
-                {hotel.rating && (
+                {hotel.rating && categoryScores.length > 0 && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <span className={`text-white text-base font-bold w-12 h-12 rounded-xl flex items-center justify-center text-xl ${getRatingColor(hotel.rating)}`}>
