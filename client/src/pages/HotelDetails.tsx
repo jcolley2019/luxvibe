@@ -220,6 +220,7 @@ export default function HotelDetails() {
   const { data: similarHotels = [] } = useSimilarHotels(id!, { checkIn, checkOut, guests });
   const { data: reviewsData, isLoading: reviewsLoading } = useHotelReviews(id!);
   const realReviews = reviewsData?.reviews ?? [];
+  const usingRealReviews = realReviews.length > 0;
   const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
