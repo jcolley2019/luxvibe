@@ -8,23 +8,62 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integra
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
 
-async function liteApiGet(path: string, params?: Record<string, string>) {
+class ApiCache {
+  private cache = new Map<string, { value: any; expiry: number }>();
+
+  get(key: string) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    if (Date.now() > item.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+    return item.value;
+  }
+
+  set(key: string, value: any, ttlMs: number) {
+    this.cache.set(key, { value, expiry: Date.now() + ttlMs });
+  }
+}
+
+const apiCache = new ApiCache();
+
+async function liteApiGet(path: string, params?: Record<string, string>, ttlMs?: number) {
   const url = new URL(`${LITEAPI_BASE}${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v) url.searchParams.set(k, v);
     });
   }
+
+  const cacheKey = url.toString();
+  if (ttlMs) {
+    const cached = apiCache.get(cacheKey);
+    if (cached) return cached;
+  }
+
   const res = await fetch(url.toString(), {
     headers: {
       "accept": "application/json",
       "X-API-Key": process.env.LITEAPI_KEY!,
     },
   });
-  return res.json();
+  const data = await res.json();
+
+  if (ttlMs && res.ok) {
+    apiCache.set(cacheKey, data, ttlMs);
+  }
+
+  return data;
 }
 
-async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BASE) {
+async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BASE, ttlMs?: number) {
+  const cacheKey = `${baseUrl}${path}:${JSON.stringify(body)}`;
+  if (ttlMs) {
+    const cached = apiCache.get(cacheKey);
+    if (cached) return cached;
+  }
+
   const res = await fetch(`${baseUrl}${path}`, {
     method: "POST",
     headers: {
@@ -38,6 +77,11 @@ async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BA
   if (!res.ok) {
     throw new Error(data?.error || data?.message || "LiteAPI request failed");
   }
+
+  if (ttlMs) {
+    apiCache.set(cacheKey, data, ttlMs);
+  }
+
   return data;
 }
 
@@ -634,7 +678,8 @@ export async function registerRoutes(
       if (!q) return res.json([]);
 
       // Step 1: Get place suggestions from LiteAPI (backed by Google Places)
-      const placesData = await liteApiGet("/data/places", { textQuery: q });
+      // Cache places for 1 hour
+      const placesData = await liteApiGet("/data/places", { textQuery: q }, 3600000);
       const places = (placesData?.data || []).map((p: any) => ({
         placeId: p.placeId,
         displayName: p.displayName || p.name || p.placeId,
@@ -718,7 +763,7 @@ export async function registerRoutes(
           currency,
           guestNationality,
           occupancies,
-        });
+        }, LITEAPI_BASE, 900000); // 15 minute cache
 
         if (!ratesData?.data || ratesData.data.length === 0) {
           return res.json([]);
