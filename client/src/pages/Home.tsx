@@ -1052,8 +1052,21 @@ export default function Home() {
                   </div>
                 )
               ) : isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="flex flex-col gap-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="animate-pulse border border-border rounded-xl overflow-hidden flex h-[180px] bg-card">
+                      <div className="w-[220px] shrink-0 bg-muted" />
+                      <div className="flex-1 p-4 flex flex-col justify-center space-y-3">
+                        <div className="h-4 bg-muted rounded w-3/4" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                        <div className="h-3 bg-muted rounded w-1/3" />
+                      </div>
+                      <div className="w-[200px] shrink-0 p-4 border-l border-border flex flex-col items-end justify-center space-y-3">
+                        <div className="h-4 bg-muted rounded w-1/2" />
+                        <div className="h-8 bg-muted rounded w-full mt-auto" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : error ? (
                 <div className="text-center py-16 bg-muted/30 rounded-2xl border border-dashed border-border">
