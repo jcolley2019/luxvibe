@@ -117,11 +117,20 @@ export function useLasVegasHotels() {
   });
 }
 
-export function useSimilarHotels(id: string) {
+export function useSimilarHotels(id: string, params?: { checkIn?: string; checkOut?: string; guests?: string }) {
+  const { currency, language } = usePreferences();
+  const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.similar.path, id],
+    queryKey: [api.hotels.similar.path, id, params?.checkIn, params?.checkOut, params?.guests, currency, guestNationality],
     queryFn: async () => {
-      const url = buildUrl(api.hotels.similar.path, { id });
+      let url = buildUrl(api.hotels.similar.path, { id });
+      const qs = new URLSearchParams();
+      if (params?.checkIn) qs.set("checkIn", params.checkIn);
+      if (params?.checkOut) qs.set("checkOut", params.checkOut);
+      if (params?.guests) qs.set("guests", params.guests);
+      qs.set("currency", currency);
+      qs.set("guestNationality", guestNationality);
+      url += `?${qs.toString()}`;
       const res = await fetch(url);
       if (!res.ok) return [];
       return api.hotels.similar.responses[200].parse(await res.json());

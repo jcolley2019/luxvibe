@@ -248,7 +248,7 @@ export default function HotelDetails() {
 
   const { data: hotel, isLoading, error } = useHotel(id!, { checkIn, checkOut, guests });
   const effectiveReviewCount = hotel?.reviewCount ?? reviewCountParam;
-  const { data: similarHotels = [] } = useSimilarHotels(id!);
+  const { data: similarHotels = [] } = useSimilarHotels(id!, { checkIn, checkOut, guests });
   const { data: reviewsData, isLoading: reviewsLoading } = useHotelReviews(id!);
   const realReviews = reviewsData?.reviews ?? [];
   const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;

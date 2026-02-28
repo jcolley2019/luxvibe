@@ -1307,6 +1307,15 @@ export async function registerRoutes(
   app.get(api.hotels.similar.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
+      const fmtDate = (d: Date) => d.toISOString().split("T")[0];
+      const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
+      const dayAfterTmrw = new Date(); dayAfterTmrw.setDate(dayAfterTmrw.getDate() + 2);
+      const checkIn = (req.query.checkIn as string) || fmtDate(tmrw);
+      const checkOut = (req.query.checkOut as string) || fmtDate(dayAfterTmrw);
+      const guests = parseInt((req.query.guests as string) || "2", 10);
+      const currency = (req.query.currency as string) || "USD";
+      const guestNationality = (req.query.guestNationality as string) || "US";
+
       const hotelData = await liteApiGet("/data/hotel", { hotelId });
       const hotelRaw = hotelData?.data?.[0] ?? hotelData?.data;
       if (!hotelRaw?.city || !hotelRaw?.countryCode) {
@@ -1333,11 +1342,44 @@ export async function registerRoutes(
         stars: h.stars ? parseFloat(String(h.stars)) : null,
         rating: h.rating ? parseFloat(String(h.rating)) : null,
         reviewCount: h.reviews_total || null,
-        price: null,
+        price: null as number | null,
         imageUrl: h.main_photo || h.thumbnail || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
         lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
         lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
       }));
+
+      try {
+        const hotelIds = results.map((h: any) => h.id);
+        if (hotelIds.length > 0) {
+          const ratesData = await liteApiPost("/hotels/rates", {
+            hotelIds,
+            checkin: checkIn,
+            checkout: checkOut,
+            currency,
+            guestNationality,
+            occupancies: [{ rooms: 1, adults: guests, children: [] }],
+          });
+          if (ratesData?.data) {
+            const priceMap = new Map<string, number>();
+            for (const hotel of ratesData.data) {
+              if (hotel.roomTypes?.length > 0) {
+                const prices = hotel.roomTypes
+                  .map((rt: any) => rt.offerRetailRate?.amount)
+                  .filter((p: any) => p && !isNaN(p));
+                if (prices.length > 0) {
+                  priceMap.set(hotel.hotelId, Math.min(...prices));
+                }
+              }
+            }
+            for (const hotel of results) {
+              hotel.price = priceMap.get(hotel.id) ?? null;
+            }
+          }
+        }
+      } catch (rateErr: any) {
+        console.error("Similar hotels rates error:", rateErr?.message || rateErr);
+      }
+
       res.json(results);
     } catch (err: any) {
       console.error("Similar hotels error:", err?.message || err);
