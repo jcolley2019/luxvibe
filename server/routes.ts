@@ -731,6 +731,10 @@ export async function registerRoutes(
     try {
       const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
 
+      const cacheKey = `search_${destination || placeId || aiSearch}_${checkIn}_${checkOut}_${currency}_${guestNationality}`;
+      const cached = apiCache.get(cacheKey);
+      if (cached) return res.json(cached);
+
       if ((!destination && !placeId && !aiSearch) || !checkIn || !checkOut) {
         return res.status(400).json({ message: "destination/placeId/aiSearch, checkIn, checkOut are required" });
       }
@@ -915,7 +919,9 @@ export async function registerRoutes(
       // Return hotels with rates first, then those without; all results included
       const withRates = results.filter((h: any) => h.price > 0);
       const withoutRates = results.filter((h: any) => h.price === 0);
-      res.json([...withRates, ...withoutRates]);
+      const finalResults = [...withRates, ...withoutRates];
+      apiCache.set(cacheKey, finalResults, 300000);
+      res.json(finalResults);
     } catch (err: any) {
       console.error("Hotel search error:", err?.message || err);
       res.status(500).json({ message: "Failed to search hotels" });
