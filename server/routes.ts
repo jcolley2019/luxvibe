@@ -959,6 +959,25 @@ export async function registerRoutes(
       const normalizeName = (s: string) =>
         s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
+      // French-to-English room type word translation applied before scoring
+      // Accents are folded first so "supérieure" → "superieure" before lookup
+      const ACCENT_MAP: Record<string, string> = {
+        "à":"a","â":"a","á":"a","ä":"a","è":"e","é":"e","ê":"e","ë":"e",
+        "î":"i","ï":"i","ô":"o","ö":"o","ù":"u","û":"u","ü":"u","ç":"c","ñ":"n",
+      };
+      const foldAccents = (s: string) => s.replace(/[àâáäèéêëîïôöùûüçñ]/gi, c => ACCENT_MAP[c.toLowerCase()] ?? c);
+
+      const FR_TO_EN: Record<string, string> = {
+        "classique": "classic", "chambre": "room", "superieure": "superior",
+        "double": "double", "simple": "single",
+        "suite": "suite", "deluxe": "deluxe", "standard": "standard",
+        "grand": "grand", "grande": "grand", "petit": "small", "petite": "small",
+        "confort": "comfort", "privilege": "privilege",
+        "prestige": "prestige", "executive": "executive", "junior": "junior",
+      };
+      const translateFrench = (s: string): string =>
+        normalizeName(foldAccents(s)).split(" ").map(w => FR_TO_EN[w] ?? w).join(" ");
+
       // Photo priority scoring: bedroom photos first, bathroom second, rest after
       const BEDROOM_KEYWORDS = ["bedroom", "bed", "sleep", "king", "queen", "twin", "double", "single", "bunk", "pillow", "mattress"];
       const BATHROOM_KEYWORDS = ["bathroom", "bath", "shower", "tub", "jacuzzi", "toilet", "vanity", "washroom"];
@@ -1040,7 +1059,7 @@ export async function registerRoutes(
 
       // Name-based photo finder: weighted keyword scoring with conflict penalty
       const findPhotosByName = (rateName: string): { url: string }[] => {
-        const rateWords = normalizeName(rateName).split(" ").filter(w => w.length > 2);
+        const rateWords = translateFrench(rateName).split(" ").filter(w => w.length > 2);
         const rateBedTypes = rateWords.filter(w => BED_TYPES.includes(w));
 
         let bestScore = -Infinity;
@@ -1048,7 +1067,7 @@ export async function registerRoutes(
 
         for (const room of roomDataList) {
           if (!room.photos.length) continue;
-          const roomWords: string[] = room.normalizedName.split(" ").filter((w: string) => w.length > 2);
+          const roomWords: string[] = translateFrench(room.normalizedName).split(" ").filter((w: string) => w.length > 2);
           const roomWordSet = new Set<string>(roomWords);
           const roomBedTypes = roomWords.filter((w: string) => BED_TYPES.includes(w));
 
@@ -1077,18 +1096,39 @@ export async function registerRoutes(
             bestPhotos = room.photos;
           }
         }
+
+        // Fallback: if no scored match, find first room with photos whose category
+        // roughly matches the rate's general type (suite→suite, double→double, single→single)
+        if (bestPhotos.length === 0) {
+          const CATEGORY_KEYS = ["suite", "double", "single", "twin", "king", "queen", "studio"];
+          const rateCategory = CATEGORY_KEYS.find(k => rateWords.includes(k));
+          for (const room of roomDataList) {
+            if (!room.photos.length) continue;
+            const roomWords = translateFrench(room.normalizedName).split(" ");
+            if (!rateCategory || roomWords.includes(rateCategory)) {
+              bestPhotos = room.photos;
+              break;
+            }
+          }
+          // Last resort: first room with any photos
+          if (bestPhotos.length === 0) {
+            const anyRoom = roomDataList.find((r: any) => r.photos.length > 0);
+            if (anyRoom) bestPhotos = anyRoom.photos;
+          }
+        }
+
         return bestPhotos;
       };
 
       const findRoomByName = (rateName: string): any | null => {
-        const rateWords = normalizeName(rateName).split(" ").filter(w => w.length > 2);
+        const rateWords = translateFrench(rateName).split(" ").filter(w => w.length > 2);
         const rateBedTypes = rateWords.filter(w => BED_TYPES.includes(w));
 
         let bestScore = -Infinity;
         let bestRoom: any = null;
 
         for (const room of roomDataList) {
-          const roomWords: string[] = room.normalizedName.split(" ").filter((w: string) => w.length > 2);
+          const roomWords: string[] = translateFrench(room.normalizedName).split(" ").filter((w: string) => w.length > 2);
           const roomWordSet = new Set<string>(roomWords);
           const roomBedTypes = roomWords.filter((w: string) => BED_TYPES.includes(w));
 
