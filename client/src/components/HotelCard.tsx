@@ -1,9 +1,10 @@
 import { Link } from "wouter";
-import { MapPin, Heart, Tag, ThumbsUp } from "lucide-react";
+import { MapPin, Heart, Tag, ThumbsUp, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
-import type { HotelSearchResponse, HotelFeaturedResponse } from "@shared/routes";
+import type { HotelSearchResponse, HotelFeaturedResponse, SemanticHotel } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
@@ -11,7 +12,7 @@ type FeaturedHotel = HotelFeaturedResponse[0];
 export type DealBadge = "great-deal" | "good-value" | null;
 
 interface HotelCardProps {
-  hotel: SearchHotel | FeaturedHotel;
+  hotel: SearchHotel | FeaturedHotel | SemanticHotel;
   checkIn?: string;
   checkOut?: string;
   guests?: string;
@@ -155,10 +156,32 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             {hotel.name}
           </h3>
 
-          <div className="flex items-center text-muted-foreground text-xs mb-4">
+          <div className="flex items-center text-muted-foreground text-xs mb-2">
             <MapPin className="w-3 h-3 mr-1 shrink-0 text-muted-foreground" />
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
+
+          {/* Semantic Badges */}
+          {(hotel as any).persona || (hotel as any).style || ((hotel as any).semanticTags && (hotel as any).semanticTags.length > 0) ? (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {(hotel as any).persona && (
+                <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800 flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  {(hotel as any).persona}
+                </Badge>
+              )}
+              {(hotel as any).style && (
+                <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                  {(hotel as any).style}
+                </Badge>
+              )}
+              {(hotel as any).semanticTags?.slice(0, 2).map((tag: string) => (
+                <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
 
           {/* Bottom row: rating left, price right */}
           <div className="mt-auto flex items-end justify-between gap-2 flex-wrap">

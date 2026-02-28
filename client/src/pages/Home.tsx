@@ -143,14 +143,14 @@ function HotelListCard({
   checkIn,
   checkOut,
   guests,
-  dealBadge,
+  dealInfo,
   nights,
 }: {
   hotel: ListHotel;
   checkIn?: string;
   checkOut?: string;
   guests?: string;
-  dealBadge?: DealBadge;
+  dealInfo?: { type: DealBadge, discount: number | null };
   nights: number;
 }) {
   const [wishlisted, setWishlisted] = useState(false);
@@ -177,7 +177,7 @@ function HotelListCard({
   const totalPrice = price ? price * nights : null;
   const label = getRatingLabel(hotel.rating ?? null);
 
-  const discountPct = dealBadge === "great-deal" ? 12 : dealBadge === "good-value" ? 7 : null;
+  const discountPct = dealInfo?.discount;
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
@@ -198,9 +198,9 @@ function HotelListCard({
           >
             <Heart className={`w-4 h-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
           </button>
-          {dealBadge && (
-            <div className={`absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded text-white text-[11px] font-bold ${dealBadge === "great-deal" ? "bg-emerald-500" : "bg-sky-500"}`}>
-              {dealBadge === "great-deal" ? "Great Deal" : "Good Value"}
+          {dealInfo?.type && (
+            <div className={`absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded text-white text-[11px] font-bold ${dealInfo.type === "great-deal" ? "bg-emerald-500" : "bg-sky-500"}`}>
+              {dealInfo.type === "great-deal" ? "Great Deal" : "Good Value"}
             </div>
           )}
         </div>
@@ -237,7 +237,7 @@ function HotelListCard({
           <div className="text-right mt-auto">
             {discountPct && (
               <div className="inline-block bg-emerald-500 text-white text-[11px] font-bold px-2 py-0.5 rounded mb-1">
-                {discountPct}% off
+                {discountPct}% OFF
               </div>
             )}
             {price ? (
@@ -522,7 +522,7 @@ export default function Home() {
     return Array.from(brandCounts.entries()).sort((a, b) => b[1] - a[1]);
   }, [brandCounts]);
 
-  function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, DealBadge> {
+  function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, { type: DealBadge, discount: number | null }> {
     const tierPrices: Record<number, number[]> = {};
     for (const h of hotelList) {
       const price = (h as any).price as number | null;
@@ -537,16 +537,27 @@ export default function Home() {
     for (const [tier, prices] of Object.entries(tierPrices)) {
       tierAvg[Number(tier)] = prices.reduce((s, p) => s + p, 0) / prices.length;
     }
-    const map = new Map<string, DealBadge>();
+    const map = new Map<string, { type: DealBadge, discount: number | null }>();
     for (const h of hotelList) {
       const price = (h as any).price as number | null;
       const stars = (h as any).stars as number | null;
-      if (!price || price <= 0 || !stars) { map.set(h.id, null); continue; }
+      if (!price || price <= 0 || !stars) { 
+        map.set(h.id, { type: null, discount: null }); 
+        continue; 
+      }
       const avg = tierAvg[Math.round(stars)];
-      if (!avg) { map.set(h.id, null); continue; }
-      if (price < avg * 0.85) map.set(h.id, "great-deal");
-      else if (price < avg * 0.92) map.set(h.id, "good-value");
-      else map.set(h.id, null);
+      if (!avg) { 
+        map.set(h.id, { type: null, discount: null }); 
+        continue; 
+      }
+      const ratio = price / avg;
+      if (ratio < 0.85) {
+        map.set(h.id, { type: "great-deal", discount: Math.round((1 - ratio) * 100) });
+      } else if (ratio < 0.92) {
+        map.set(h.id, { type: "good-value", discount: Math.round((1 - ratio) * 100) });
+      } else {
+        map.set(h.id, { type: null, discount: null });
+      }
     }
     return map;
   }
@@ -1246,7 +1257,7 @@ export default function Home() {
                         checkIn={checkIn || undefined}
                         checkOut={checkOut || undefined}
                         guests={guests}
-                        dealBadge={searchDealBadges.get(hotel.id)}
+                        dealInfo={searchDealBadges.get(hotel.id)}
                         nights={nights}
                       />
                     </motion.div>
@@ -1278,7 +1289,7 @@ export default function Home() {
               <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {featured?.map((hotel, i) => (
                   <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                    <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)} />
+                    <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)?.type} />
                   </motion.div>
                 ))}
               </div>
@@ -1339,7 +1350,7 @@ export default function Home() {
                 <div ref={nearbyCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                      <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)} />
+                      <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)?.type} />
                     </motion.div>
                   ))}
                 </div>
