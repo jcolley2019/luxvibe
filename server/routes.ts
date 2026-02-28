@@ -1054,6 +1054,8 @@ export async function registerRoutes(
         };
       });
 
+      console.log('[room-photos-debug]', roomDataList.map(r => ({ name: r.name, photoCount: r.photos.length })));
+
       // Bed-type keywords — highly distinctive, worth 4x and conflict-penalized
       const BED_TYPES = ["king", "queen", "double", "twin", "single", "suite", "studio", "bunk"];
 
