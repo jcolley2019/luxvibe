@@ -150,7 +150,7 @@ function HotelListCard({
   checkIn?: string;
   checkOut?: string;
   guests?: string;
-  dealInfo?: { type: DealBadge, discount: number | null };
+  dealInfo?: { type: DealBadge; discount: number } | null;
   nights: number;
 }) {
   const [wishlisted, setWishlisted] = useState(false);
@@ -522,7 +522,7 @@ export default function Home() {
     return Array.from(brandCounts.entries()).sort((a, b) => b[1] - a[1]);
   }, [brandCounts]);
 
-  function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, { type: DealBadge, discount: number | null }> {
+  function computeDealBadges(hotelList: Array<{ id: string; price?: number | null; stars?: number | null }>): Map<string, { type: DealBadge; discount: number } | null> {
     const tierPrices: Record<number, number[]> = {};
     for (const h of hotelList) {
       const price = (h as any).price as number | null;
@@ -537,26 +537,27 @@ export default function Home() {
     for (const [tier, prices] of Object.entries(tierPrices)) {
       tierAvg[Number(tier)] = prices.reduce((s, p) => s + p, 0) / prices.length;
     }
-    const map = new Map<string, { type: DealBadge, discount: number | null }>();
+    const map = new Map<string, { type: DealBadge; discount: number } | null>();
     for (const h of hotelList) {
       const price = (h as any).price as number | null;
       const stars = (h as any).stars as number | null;
       if (!price || price <= 0 || !stars) { 
-        map.set(h.id, { type: null, discount: null }); 
+        map.set(h.id, null); 
         continue; 
       }
       const avg = tierAvg[Math.round(stars)];
       if (!avg) { 
-        map.set(h.id, { type: null, discount: null }); 
+        map.set(h.id, null); 
         continue; 
       }
       const ratio = price / avg;
+      const discount = Math.round(((avg - price) / avg) * 100);
       if (ratio < 0.85) {
-        map.set(h.id, { type: "great-deal", discount: Math.round((1 - ratio) * 100) });
+        map.set(h.id, { type: "great-deal", discount });
       } else if (ratio < 0.92) {
-        map.set(h.id, { type: "good-value", discount: Math.round((1 - ratio) * 100) });
+        map.set(h.id, { type: "good-value", discount });
       } else {
-        map.set(h.id, { type: null, discount: null });
+        map.set(h.id, null);
       }
     }
     return map;
