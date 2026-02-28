@@ -201,6 +201,10 @@ export async function registerRoutes(
   app.get(api.hotels.featured.path, async (req, res) => {
     try {
       const { currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
+      const cacheKey = `featured_${currency}_${guestNationality}`;
+      const cached = apiCache.get(cacheKey);
+      if (cached) return res.json(cached);
+
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dayAfter = new Date();
@@ -286,6 +290,7 @@ export async function registerRoutes(
         return scoreB - scoreA;
       });
 
+      apiCache.set(cacheKey, results, 600000);
       res.json(results);
     } catch (err: any) {
       console.error("Featured hotels error:", err?.message || err);
