@@ -496,7 +496,7 @@ export function SearchHero({
                 <span className="text-xs text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center">
+            <PopoverContent className="w-auto p-0" align="center">
               {calendarContent(2)}
             </PopoverContent>
           </Popover>
