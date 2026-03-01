@@ -327,28 +327,11 @@ export function SearchHero({
           className="w-full"
           showOutsideDays={true}
           classNames={{
-            months: "flex flex-row gap-6 w-full",
-            month: "flex-1 min-w-0",
-            caption: "flex justify-center pt-1 relative items-center mb-3",
-            caption_label: "text-base font-bold text-foreground",
-            nav: "space-x-1 flex items-center",
-            nav_button: "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-border rounded-lg transition-all flex items-center justify-center",
-            nav_button_previous: "absolute left-0",
-            nav_button_next: "absolute right-0",
-            table: "w-full border-collapse",
-            head_row: "flex w-full",
-            head_cell: "flex-1 text-center text-muted-foreground font-semibold text-xs uppercase tracking-wider py-1",
-            row: "flex w-full mt-1",
-            cell: "flex-1 text-center text-sm relative p-0 [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-primary/10 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full focus-within:relative focus-within:z-20",
-            day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-full transition-all flex items-center justify-center text-sm mx-auto",
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-bold rounded-full",
+            months: "flex flex-row justify-center gap-8",
+            caption_label: "text-base font-bold",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
             day_today: "text-primary font-bold",
-            day_outside: "text-muted-foreground opacity-40",
-            day_disabled: "text-muted-foreground opacity-25 cursor-not-allowed",
-            day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-primary rounded-none",
-            day_range_start: "day-range-start rounded-full",
-            day_range_end: "day-range-end rounded-full",
-            day_hidden: "invisible",
           }}
           defaultMonth={stagedCheckIn || date?.from || new Date()}
           selected={calendarSelected}
@@ -634,18 +617,20 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl overflow-hidden" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '70vh' : 638 }}>
 
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-          style={{ 
-            backgroundImage: `url('${isMobile 
-              ? "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80" 
-              : "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80"}')`
-          }} 
-        />
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        {/* Background Image — overflow-hidden only on the image layer so calendar dropdown can extend below */}
+        <div className="absolute inset-0 rounded-2xl overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-all duration-700"
+            style={{ 
+              backgroundImage: `url('${isMobile 
+                ? "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80" 
+                : "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80"}')`
+            }} 
+          />
+          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '70vh' : 638 }}>
           <div className="mb-8">
