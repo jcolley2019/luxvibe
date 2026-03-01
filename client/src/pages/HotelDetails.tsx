@@ -874,30 +874,36 @@ export default function HotelDetails() {
                         <div className="relative aspect-[4/3] overflow-hidden bg-muted group/photo cursor-pointer"
                           onClick={() => { setRoomDetailsModal(group.mappedRoomId); setModalPhotoIdx(photoIdx); }}
                         >
-                          <img
-                            src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
-                            alt={`${group.name} - photo ${photoIdx + 1}`}
-                            className="w-full h-full object-cover transition-opacity duration-300"
-                            onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
-                          />
+                          <AnimatePresence mode="wait">
+                            <motion.img
+                              key={photoIdx}
+                              src={group.photos[photoIdx] || GALLERY_FALLBACKS[0]}
+                              alt={`${group.name} - photo ${photoIdx + 1}`}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).src = GALLERY_FALLBACKS[0]; }}
+                            />
+                          </AnimatePresence>
                           {group.photos.length > 1 && (
                             <>
                               <button
                                 onClick={(e) => { e.stopPropagation(); setRoomPhotoIdx(group.mappedRoomId, (photoIdx - 1 + group.photos.length) % group.photos.length); }}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
                                 data-testid={`button-room-photo-prev-${group.mappedRoomId}`}
                               >
-                                <ChevronLeft className="w-4 h-4" />
+                                <ChevronLeft className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); setRoomPhotoIdx(group.mappedRoomId, (photoIdx + 1) % group.photos.length); }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-black/70"
                                 data-testid={`button-room-photo-next-${group.mappedRoomId}`}
                               >
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRight className="w-5 h-5" />
                               </button>
-                              <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
-                                <Camera className="w-3 h-3" />
+                              <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-1 rounded font-medium backdrop-blur-sm">
                                 {photoIdx + 1} / {group.photos.length}
                               </div>
                             </>
