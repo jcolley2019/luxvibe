@@ -15,11 +15,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
-// Las Vegas landmark coordinates
-const LV_STRIP: [number, number] = [36.1095, -115.1740];
-const LV_FREMONT: [number, number] = [36.1711, -115.1433];
-const LV_CONVENTION: [number, number] = [36.1340, -115.1524];
-
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3958.8;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -226,9 +221,9 @@ export default function Home() {
   const [freeCancellationOnly, setFreeCancellationOnly] = useState(false);
   const [mealPlanFilter, setMealPlanFilter] = useState<string[]>([]);
   const [facilitiesFilter, setFacilitiesFilter] = useState<string[]>([]);
-  const [distanceStripMax, setDistanceStripMax] = useState<number | null>(null);
-  const [distanceFremontMax, setDistanceFremontMax] = useState<number | null>(null);
-  const [distanceConventionMax, setDistanceConventionMax] = useState<number | null>(null);
+  const [landmarks, setLandmarks] = useState<{ name: string; lat: number; lng: number }[]>([]);
+  const [landmarksLoading, setLandmarksLoading] = useState(false);
+  const [landmarkDistances, setLandmarkDistances] = useState<Record<string, number | null>>({});
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string[]>([]);
   const [showAllFacilities, setShowAllFacilities] = useState(false);
   const [showAllBrands, setShowAllBrands] = useState(false);
@@ -394,13 +389,24 @@ export default function Home() {
     return map;
   }
 
-  // Las Vegas detection — enables distance filters
-  const isLasVegas = useMemo(() => {
-    const dest = (destination || "").toLowerCase();
-    return dest.includes("las vegas") || dest.includes("vegas") ||
-      placeId === "ChIJ0X31pIK3voARo3mz1ebVzDo" ||
-      placeId === "ChIJ69QoNDjEyIARTIMmDF0Z4kM";
-  }, [destination, placeId]);
+  // Fetch landmarks dynamically when destination changes
+  useEffect(() => {
+    const city = destination || "";
+    if (!city.trim() || !isSearchActive) {
+      setLandmarks([]);
+      setLandmarkDistances({});
+      return;
+    }
+    setLandmarksLoading(true);
+    fetch(`/api/landmarks/${encodeURIComponent(city)}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: { name: string; lat: number; lng: number }[]) => {
+        setLandmarks(Array.isArray(data) ? data : []);
+        setLandmarkDistances({});
+      })
+      .catch(() => setLandmarks([]))
+      .finally(() => setLandmarksLoading(false));
+  }, [destination, isSearchActive]);
 
 
   // Available facilities from search results — returns [facility, count][] sorted by count
@@ -605,11 +611,12 @@ export default function Home() {
         if (!matched) return false;
       }
 
-      // Distance filters (Las Vegas only — skip if no coords)
+      // Dynamic landmark distance filters
       if (lat !== null && lng !== null) {
-        if (distanceStripMax !== null && haversineMiles(lat, lng, LV_STRIP[0], LV_STRIP[1]) > distanceStripMax) return false;
-        if (distanceFremontMax !== null && haversineMiles(lat, lng, LV_FREMONT[0], LV_FREMONT[1]) > distanceFremontMax) return false;
-        if (distanceConventionMax !== null && haversineMiles(lat, lng, LV_CONVENTION[0], LV_CONVENTION[1]) > distanceConventionMax) return false;
+        for (const lm of landmarks) {
+          const maxDist = landmarkDistances[lm.name];
+          if (maxDist != null && haversineMiles(lat, lng, lm.lat, lm.lng) > maxDist) return false;
+        }
       }
 
       // Neighborhood filter
@@ -618,7 +625,7 @@ export default function Home() {
       return true;
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
-    freeCancellationOnly, mealPlanFilter, facilitiesFilter, distanceStripMax, distanceFremontMax, distanceConventionMax,
+    freeCancellationOnly, mealPlanFilter, facilitiesFilter, landmarks, landmarkDistances,
     neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
@@ -671,9 +678,7 @@ export default function Home() {
     facilitiesFilter.length +
     propertyTypeFilter.length +
     roomAmenitiesFilter.length +
-    (distanceStripMax !== null ? 1 : 0) +
-    (distanceFremontMax !== null ? 1 : 0) +
-    (distanceConventionMax !== null ? 1 : 0) +
+    Object.values(landmarkDistances).filter(v => v != null).length +
     neighborhoodFilter.length;
 
   const clearFilters = () => {
@@ -690,9 +695,7 @@ export default function Home() {
     setPropertyTypeFilter([]);
     setRoomAmenitiesFilter([]);
     setNeighborhoodFilter([]);
-    setDistanceStripMax(null);
-    setDistanceFremontMax(null);
-    setDistanceConventionMax(null);
+    setLandmarkDistances({});
   };
 
   return (
@@ -857,32 +860,39 @@ export default function Home() {
                   </div>
                 </FilterSection>
 
-                {/* 4. Distance from landmarks — Las Vegas only */}
-                {isLasVegas && (
+                {/* 4. Distance from landmarks — dynamic per destination */}
+                {(landmarksLoading || landmarks.length > 0) && (
                   <FilterSection title="Distance from landmarks">
-                    <div className="flex flex-col gap-3">
-                      {([
-                        { label: "The Strip", value: distanceStripMax, set: setDistanceStripMax, testId: "distance-strip" },
-                        { label: "Fremont St", value: distanceFremontMax, set: setDistanceFremontMax, testId: "distance-fremont" },
-                        { label: "Convention", value: distanceConventionMax, set: setDistanceConventionMax, testId: "distance-convention" },
-                      ] as const).map(({ label, value, set, testId }) => (
-                        <div key={label} className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-medium text-muted-foreground truncate shrink-0 w-16">{label}</span>
-                          <div className="flex gap-1 overflow-x-auto no-scrollbar">
-                            {([0.5, 1, 2, 5] as const).map(miles => (
-                              <button
-                                key={miles}
-                                onClick={() => (set as any)(value === miles ? null : miles)}
-                                className={`text-[10px] px-1.5 py-1 rounded border whitespace-nowrap transition-colors ${value === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
-                                data-testid={`${testId}-${miles}`}
-                              >
-                                &lt;{miles}m
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    {landmarksLoading ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Detecting landmarks…</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {landmarks.map((lm) => {
+                          const selected = landmarkDistances[lm.name] ?? null;
+                          const shortName = lm.name.length > 14 ? lm.name.slice(0, 13) + "…" : lm.name;
+                          return (
+                            <div key={lm.name} className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-medium text-muted-foreground truncate shrink-0 w-16" title={lm.name}>{shortName}</span>
+                              <div className="flex gap-1">
+                                {([0.5, 1, 2, 5] as const).map(miles => (
+                                  <button
+                                    key={miles}
+                                    onClick={() => setLandmarkDistances(prev => ({ ...prev, [lm.name]: prev[lm.name] === miles ? null : miles }))}
+                                    className={`text-[10px] px-1.5 py-1 rounded border whitespace-nowrap transition-colors ${selected === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
+                                    data-testid={`landmark-distance-${lm.name.toLowerCase().replace(/\s+/g, "-")}-${miles}`}
+                                  >
+                                    &lt;{miles}m
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </FilterSection>
                 )}
 

@@ -1484,6 +1484,47 @@ Guest question: ${question}`;
     }
   });
 
+  app.get("/api/landmarks/:city", async (req, res) => {
+    try {
+      const city = req.params.city;
+      const cacheKey = `landmarks_${city.toLowerCase()}`;
+      const cached = apiCache.get(cacheKey);
+      if (cached) return res.json(cached);
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+      });
+
+      const message = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 512,
+        system: "You are a travel geography expert. Return ONLY valid JSON, no markdown, no explanation.",
+        messages: [{
+          role: "user",
+          content: `List the 6 most famous tourist landmarks or popular neighborhoods in ${city} that hotel guests would want to be near. Return ONLY a JSON array of objects with name, lat, lng fields. Example format: [{"name":"Eiffel Tower","lat":48.8584,"lng":2.2945}]. Use accurate real-world coordinates.`,
+        }],
+      });
+
+      const text = message.content[0]?.type === "text" ? message.content[0].text.trim() : "[]";
+      let landmarks: { name: string; lat: number; lng: number }[] = [];
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          landmarks = parsed.filter((l: any) => l.name && typeof l.lat === "number" && typeof l.lng === "number");
+        }
+      } catch {
+        landmarks = [];
+      }
+
+      apiCache.set(cacheKey, landmarks, 86400000); // 24h
+      res.json(landmarks);
+    } catch (err: any) {
+      console.error("Landmarks error:", err?.message || err);
+      res.json([]);
+    }
+  });
+
   app.get("/api/hotels/:id/reviews", async (req, res) => {
     try {
       const hotelId = req.params.id;
