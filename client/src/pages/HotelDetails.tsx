@@ -94,7 +94,7 @@ function getRoomAmenityIcon(name: string): any {
   return Check;
 }
 
-type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description" | "ask-ai";
+type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description";
 
 const TABS: { id: TabId; labelKey: string }[] = [
   { id: "overview", labelKey: "hotel.overview" },
@@ -102,7 +102,6 @@ const TABS: { id: TabId; labelKey: string }[] = [
   { id: "rooms", labelKey: "hotel.rooms" },
   { id: "reviews", labelKey: "hotel.reviews" },
   { id: "description", labelKey: "hotel.overview" },
-  { id: "ask-ai", labelKey: "hotel.ask_ai" },
 ];
 
 function getRatingKey(r: number) {
@@ -228,6 +227,7 @@ export default function HotelDetails() {
   const [aiInput, setAiInput] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [similarIdx, setSimilarIdx] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
@@ -280,7 +280,6 @@ export default function HotelDetails() {
     rooms: useRef<HTMLDivElement>(null),
     reviews: useRef<HTMLDivElement>(null),
     description: useRef<HTMLDivElement>(null),
-    "ask-ai": useRef<HTMLDivElement>(null),
   };
 
   const navRef = useRef<HTMLDivElement>(null);
@@ -288,6 +287,12 @@ export default function HotelDetails() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setAiModalOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
   useEffect(() => {
@@ -511,14 +516,20 @@ export default function HotelDetails() {
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
-                } ${tab.id === "ask-ai" ? "text-purple-500 hover:text-purple-600" : ""}`}
+                }`}
               >
                 {t(tab.labelKey)}
-                {tab.id === "ask-ai" && (
-                  <span className="ml-1.5 text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full">{t("hotel.beta")}</span>
-                )}
               </button>
             ))}
+            <button
+              onClick={() => { setAiAnswer(""); setAiInput(""); setAiModalOpen(true); }}
+              data-testid="button-ask-ai"
+              className="ml-2 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors flex items-center gap-1.5 my-auto"
+            >
+              <Sparkles className="w-3 h-3" />
+              {t("hotel.ask_ai")}
+              <span className="text-[9px] bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-200 px-1 py-0.5 rounded-full">{t("hotel.beta")}</span>
+            </button>
           </div>
           <Button
             size="sm"
@@ -1004,62 +1015,93 @@ export default function HotelDetails() {
           </div>
         )}
 
-        {/* ─── Ask AI ─── */}
-        <div ref={sectionRefs["ask-ai"]} className="border-t border-border pt-8 pb-10">
-          <div className="border border-purple-200 dark:border-purple-800/40 rounded-2xl p-6 bg-gradient-to-br from-purple-50/50 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10">
-            <div className="flex items-start justify-between mb-1">
-              <h2 className="text-xl font-bold">{t("hotel.ask_ai")}</h2>
-              <span className="text-xs bg-red-100 text-red-500 dark:bg-red-950/30 px-2 py-1 rounded-full flex items-center gap-1 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                {t("hotel.beta")}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground mb-5">Get instant answers about property information and amenities.</p>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {["Does the hotel have parking?", "Does the hotel offer any amenities?", "What dining options are available?"].map(q => (
-                <button
-                  key={q}
-                  onClick={() => handleAiSubmit(q)}
-                  className="flex items-center gap-1.5 text-xs border border-border rounded-full px-3 py-1.5 hover:bg-white dark:hover:bg-muted transition-colors bg-white/60 dark:bg-muted/40"
-                  data-testid={`button-ai-suggestion`}
-                >
-                  <Sparkles className="w-3 h-3 text-purple-400" />
-                  {q}
-                </button>
-              ))}
-            </div>
-            {(aiAnswer || isAiLoading) && (
-              <div className="mb-4 p-4 bg-white dark:bg-muted/40 rounded-xl border border-border text-sm leading-relaxed">
-                <p className="font-medium text-purple-600 text-xs mb-1 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> {t("hotel.ai_answer")}
-                </p>
-                {isAiLoading ? (
-                  <div className="flex items-center gap-2 text-muted-foreground italic">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-                    <span>Thinking...</span>
+        {/* ─── Ask AI Modal ─── */}
+        {aiModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setAiModalOpen(false); }}
+            data-testid="modal-ask-ai-overlay"
+          >
+            <div className="bg-white dark:bg-card rounded-xl shadow-2xl w-full max-w-2xl flex flex-col" data-testid="modal-ask-ai">
+              {/* Header */}
+              <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-border">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="w-5 h-5 text-purple-500" />
+                    <h2 className="text-lg font-bold">Ask AI about this hotel</h2>
+                    <span className="text-[10px] bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full font-semibold">{t("hotel.beta")}</span>
                   </div>
-                ) : (
-                  aiAnswer
-                )}
+                  <p className="text-sm text-muted-foreground">Get instant answers with AI powered search of property information and reviews</p>
+                </div>
+                <button
+                  onClick={() => setAiModalOpen(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors ml-4 mt-0.5"
+                  data-testid="button-close-ai-modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            )}
-            <div className="flex items-center gap-2 bg-white dark:bg-muted/40 border border-border rounded-xl px-4 py-3">
-              <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
-              <input
-                type="text"
-                value={aiInput}
-                onChange={e => setAiInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleAiSubmit()}
-                placeholder={t("hotel.ask_anything")}
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-                data-testid="input-ai-question"
-              />
-              <button onClick={() => handleAiSubmit()} className="text-muted-foreground hover:text-purple-500 transition-colors">
-                <Send className="w-4 h-4" />
-              </button>
+
+              {/* Body */}
+              <div className="px-6 py-5 flex flex-col gap-4">
+                {/* Suggested chips */}
+                <div className="flex flex-wrap gap-2">
+                  {["Does the hotel have parking?", "Does the hotel offer any amenities?", "What dining options are available?"].map(q => (
+                    <button
+                      key={q}
+                      onClick={() => handleAiSubmit(q)}
+                      className="flex items-center gap-1.5 text-xs border border-border rounded-full px-3 py-1.5 hover:bg-muted transition-colors bg-background"
+                      data-testid="button-ai-suggestion"
+                    >
+                      <Sparkles className="w-3 h-3 text-purple-400" />
+                      {q}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Answer area */}
+                {(aiAnswer || isAiLoading) && (
+                  <div className="p-4 bg-purple-50/60 dark:bg-purple-950/20 rounded-xl border border-purple-100 dark:border-purple-900/40 text-sm leading-relaxed">
+                    <p className="font-semibold text-purple-600 text-xs mb-2 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> {t("hotel.ai_answer")}
+                    </p>
+                    {isAiLoading ? (
+                      <div className="flex items-center gap-2 text-muted-foreground italic">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                        <span>Thinking...</span>
+                      </div>
+                    ) : (
+                      <span className="text-foreground">{aiAnswer}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Input */}
+                <div className="flex items-center gap-2 border border-border rounded-xl px-4 py-3 bg-muted/30 focus-within:border-purple-300 transition-colors">
+                  <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={aiInput}
+                    onChange={e => setAiInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleAiSubmit()}
+                    placeholder={t("hotel.ask_anything", "Ask anything...")}
+                    className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+                    autoFocus
+                    data-testid="input-ai-question"
+                  />
+                  <button
+                    onClick={() => handleAiSubmit()}
+                    disabled={!aiInput.trim() || isAiLoading}
+                    className="text-muted-foreground hover:text-purple-500 transition-colors disabled:opacity-40"
+                    data-testid="button-ai-send"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ─── Guest Reviews ─── */}
         <div ref={sectionRefs.reviews} className="border-t border-border pt-8 pb-10">
