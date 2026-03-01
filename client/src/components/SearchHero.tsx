@@ -694,14 +694,14 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex flex-col w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible px-3 pb-3">
+          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0">
 
-            {/* Top row: three equal sections */}
-            <div className="flex items-stretch">
+            {/* Combined row */}
+            <div className="flex-1 flex items-center gap-0">
 
               {/* Destination / Vibe section */}
-              <div className="flex-1 relative px-4 py-3 border-r border-border" ref={autocompleteRef}>
-                <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center mb-2">
+              <div className="flex-[1.2] relative px-4 py-2 border-r border-border" ref={autocompleteRef}>
+                <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
                   {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
                 </span>
                 {mode === "destination" ? (
@@ -710,7 +710,7 @@ export function SearchHero({
                     <input
                       type="text"
                       placeholder="Where do you want to go?"
-                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate"
+                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
                       value={destination}
                       onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
                       onFocus={() => setShowAutocomplete(true)}
@@ -724,7 +724,7 @@ export function SearchHero({
                     <input
                       type="text"
                       placeholder="e.g. 'romantic beachfront resort'"
-                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate"
+                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
                       value={aiSearch}
                       onChange={(e) => setAiSearch(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -732,59 +732,21 @@ export function SearchHero({
                     />
                   </div>
                 )}
-                {showAutocomplete && places.length > 0 && mode === "destination" && (
-                  <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "280px", maxHeight: "340px", overflowY: "auto" }}>
-                    {(() => {
-                      const allPlaces = places as any[];
-                      const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
-                      const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
-                      return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
-                        const types: string[] = place.types || [];
-                        const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
-                        const isAirport = types.includes("airport");
-                        const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
-                        const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
-                        const name: string = place.displayName || place.placeId;
-                        const query = destination.toLowerCase();
-                        const matchStart = name.toLowerCase().indexOf(query);
-                        const boldedName = matchStart >= 0 ? (
-                          <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
-                        ) : name;
-                        return (
-                          <button
-                            key={place.placeId}
-                            className={`w-full text-left px-4 py-2.5 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
-                            onClick={() => {
-                              if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); setShowAutocomplete(false); }
-                              else { setDestination(name); setPlaceId(place.placeId); setShowAutocomplete(false); }
-                            }}
-                          >
-                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-                              <PlaceIcon className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-sm font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
-                              {place.formattedAddress && (
-                                <div className="text-xs text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      });
-                    })()}
-                  </div>
-                )}
+                {showAutocomplete && places.length > 0 && mode === "destination" && autocompleteList}
               </div>
 
               {/* Dates section */}
               <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex flex-col items-center justify-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors border-r border-border"
-                    data-testid="button-dates"
+                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
+                    data-testid="button-dates-desktop"
                   >
-                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{t("search.dates", "Dates")}</span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-foreground">{dateLabel}</span>
+                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.checkin")} / {t("search.checkout")}</span>
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
+                    </div>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
@@ -796,29 +758,28 @@ export function SearchHero({
               <Popover open={guestsOpen && !isMobile} onOpenChange={setGuestsOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex flex-col items-center justify-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors"
-                    data-testid="button-guests"
+                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
+                    data-testid="button-guests-desktop"
                   >
-                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{t("search.guests")}</span>
+                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.guests")}</span>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
+                      <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
                     </div>
                   </button>
                 </PopoverTrigger>
                 {guestsPopoverContent}
               </Popover>
-            </div>
 
-            {/* Bottom row: full-width search button */}
+            {/* Desktop Search Button */}
             <button
               onClick={handleSearch}
-              className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-1"
+              className="shrink-0 w-12 h-12 m-1 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all shadow-md hover:shadow-lg"
               data-testid="button-search-desktop"
             >
-              <Search className="w-4 h-4" />
-              {t("search.search")} →
+              <Search className="w-6 h-6" />
             </button>
+            </div>
           </div>
 
           {/* Vibe toggle — desktop only (mobile is inside the card) */}
