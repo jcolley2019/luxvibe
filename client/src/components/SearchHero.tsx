@@ -694,13 +694,13 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0">
+          <div className="hidden md:flex relative w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0">
 
             {/* Combined row */}
             <div className="flex-1 flex items-center gap-0">
 
               {/* Destination / Vibe section */}
-              <div className="flex-[1.2] relative px-4 py-2 border-r border-border" ref={autocompleteRef}>
+              <div className="flex-[1.2] px-4 py-2 border-r border-border" ref={autocompleteRef}>
                 <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
                   {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
                 </span>
@@ -732,14 +732,13 @@ export function SearchHero({
                     />
                   </div>
                 )}
-                {showAutocomplete && places.length > 0 && mode === "destination" && autocompleteList}
               </div>
 
               {/* Dates section */}
               <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
+                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
                     data-testid="button-dates-desktop"
                   >
                     <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.checkin")} / {t("search.checkout")}</span>
@@ -749,16 +748,13 @@ export function SearchHero({
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center">
-                  {calendarContent(2)}
-                </PopoverContent>
               </Popover>
 
               {/* Guests section */}
               <Popover open={guestsOpen && !isMobile} onOpenChange={setGuestsOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
+                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
                     data-testid="button-guests-desktop"
                   >
                     <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.guests")}</span>
@@ -768,18 +764,137 @@ export function SearchHero({
                     </div>
                   </button>
                 </PopoverTrigger>
-                {guestsPopoverContent}
               </Popover>
 
-            {/* Desktop Search Button */}
-            <button
-              onClick={handleSearch}
-              className="shrink-0 w-12 h-12 m-1 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all shadow-md hover:shadow-lg"
-              data-testid="button-search-desktop"
-            >
-              <Search className="w-6 h-6" />
-            </button>
+              {/* Desktop Search Button */}
+              <button
+                onClick={handleSearch}
+                className="shrink-0 w-10 h-10 m-1 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all shadow-md hover:shadow-lg"
+                data-testid="button-search-desktop"
+              >
+                <Search className="w-5 h-5" />
+              </button>
             </div>
+
+            {/* Destination autocomplete dropdown — aligned to left edge of search bar */}
+            {showAutocomplete && places.length > 0 && mode === "destination" && (
+              <div className="absolute top-full left-0 z-50 mt-1 w-80 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden" style={{ maxHeight: "340px", overflowY: "auto" }}>
+                {(() => {
+                  const allPlaces = places as any[];
+                  const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
+                  const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
+                  return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
+                    const types: string[] = place.types || [];
+                    const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
+                    const isAirport = types.includes("airport");
+                    const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
+                    const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+                    const name: string = place.displayName || place.placeId;
+                    const query = destination.toLowerCase();
+                    const matchStart = name.toLowerCase().indexOf(query);
+                    const boldedName = matchStart >= 0 ? (
+                      <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
+                    ) : name;
+                    return (
+                      <button
+                        key={place.placeId}
+                        className={`w-full text-left px-4 py-2.5 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
+                        onClick={() => {
+                          if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); setShowAutocomplete(false); }
+                          else { setDestination(name); setPlaceId(place.placeId); setShowAutocomplete(false); }
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+                          <PlaceIcon className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
+                          {place.formattedAddress && (
+                            <div className="text-xs text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+
+            {/* Calendar dropdown — full width of search bar */}
+            {dateOpen && !isMobile && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+                {calendarContent(2)}
+              </div>
+            )}
+
+            {/* Guests dropdown — right-aligned to search bar */}
+            {guestsOpen && !isMobile && (
+              <div className="absolute top-full right-0 z-50 mt-1 w-72 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+                <div className="px-5 pt-5 pb-3 border-b border-border">
+                  <h3 className="font-bold text-base">{t("search.guests")}</h3>
+                </div>
+                <div className="max-h-80 overflow-y-auto divide-y divide-border">
+                  {rooms.map((room, idx) => (
+                    <div key={idx} className="px-5 py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-sm">{t("hotel.room")} {idx + 1}</span>
+                        <div className="flex items-center gap-1">
+                          {rooms.length > 1 && (
+                            <button
+                              onClick={() => removeRoom(idx)}
+                              className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors rounded"
+                              data-testid={`button-remove-room-${idx}`}
+                              title="Remove room"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => toggleRoom(idx)}
+                            className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded"
+                            data-testid={`button-toggle-room-${idx}`}
+                          >
+                            {expandedRooms[idx] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      {expandedRooms[idx] && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium">{t("search.adults")}</div>
+                            <Counter value={room.adults} min={1} max={10} onChange={(v) => updateRoom(idx, "adults", v)} testIdPrefix={`room-${idx}-adults`} />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium">{t("search.children")}</div>
+                              <div className="text-xs text-muted-foreground">Ages 0 to 17</div>
+                            </div>
+                            <Counter value={room.children} min={0} max={6} onChange={(v) => updateRoom(idx, "children", v)} testIdPrefix={`room-${idx}-children`} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 px-5 py-4 border-t border-border">
+                  <button
+                    onClick={addRoom}
+                    disabled={rooms.length >= 5}
+                    className="flex-1 py-2 rounded-full border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-testid="button-add-room"
+                  >
+                    + {t("hotel.room")}
+                  </button>
+                  <button
+                    onClick={() => setGuestsOpen(false)}
+                    className="flex-1 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                    data-testid="button-done-guests"
+                  >
+                    {t("search.done")}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Vibe toggle — desktop only (mobile is inside the card) */}
