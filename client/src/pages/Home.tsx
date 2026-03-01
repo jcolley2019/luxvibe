@@ -216,10 +216,10 @@ export default function Home() {
   const isSearchActive = !!((destination || placeId || aiSearch) && checkIn && checkOut);
   const nights = getNights(checkIn || undefined, checkOut || undefined);
 
-  const [sortBy, setSortBy] = useState<SortOption>("recommended");
+  const [sortBy, setSortBy] = useState<SortOption>("rating");
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
-  const [starFilter, setStarFilter] = useState<number[]>([3, 4, 5]);
+  const [starFilter, setStarFilter] = useState<number[]>([]);
   const [includeUnrated, setIncludeUnrated] = useState(false);
   const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
@@ -654,10 +654,7 @@ export default function Home() {
     return hotels.filter(h => { const c: string[] = (h as any).boardCodes || []; return codes.some(k => c.includes(k)); }).length;
   };
 
-  const DEFAULT_STAR_FILTER = [4, 5];
-  const isDefaultStarFilter =
-    starFilter.length === DEFAULT_STAR_FILTER.length &&
-    DEFAULT_STAR_FILTER.every(s => starFilter.includes(s));
+  const isDefaultStarFilter = starFilter.length === 0;
 
   const activeFilterCount =
     (nameFilter ? 1 : 0) +
@@ -678,7 +675,8 @@ export default function Home() {
   const clearFilters = () => {
     setNameFilter("");
     setPriceMax(priceRange.max);
-    setStarFilter([4, 5]);
+    setSortBy("rating");
+    setStarFilter([]);
     setIncludeUnrated(false);
     setGuestRatingMin(null);
     setBrandFilter([]);
