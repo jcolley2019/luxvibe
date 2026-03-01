@@ -658,13 +658,13 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex flex-col w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible">
+          <div className="hidden md:flex flex-col w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible px-3 pb-3">
 
             {/* Top row: three equal sections */}
             <div className="flex items-stretch">
 
               {/* Destination / Vibe section */}
-              <div className="flex-1 relative px-6 py-4 border-r border-border" ref={autocompleteRef}>
+              <div className="flex-1 relative px-4 py-3 border-r border-border" ref={autocompleteRef}>
                 <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center mb-2">
                   {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
                 </span>
@@ -744,7 +744,7 @@ export function SearchHero({
               <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex flex-col items-center justify-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors border-r border-border"
+                    className="flex-1 flex flex-col items-center justify-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors border-r border-border"
                     data-testid="button-dates"
                   >
                     <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{t("search.dates", "Dates")}</span>
@@ -760,7 +760,7 @@ export function SearchHero({
               <Popover open={guestsOpen && !isMobile} onOpenChange={setGuestsOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex flex-col items-center justify-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors"
+                    className="flex-1 flex flex-col items-center justify-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors"
                     data-testid="button-guests"
                   >
                     <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{t("search.guests")}</span>
@@ -777,7 +777,7 @@ export function SearchHero({
             {/* Bottom row: full-width search button */}
             <button
               onClick={handleSearch}
-              className="w-full py-3.5 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-b-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-3.5 bg-gray-900 hover:bg-black dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-1"
               data-testid="button-search-desktop"
             >
               <Search className="w-4 h-4" />
