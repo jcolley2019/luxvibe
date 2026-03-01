@@ -997,10 +997,10 @@ export default function HotelDetails() {
                                     {rate.mealsIncluded || t("hotel.no_meals")}
                                   </p>
                                 )}
-                                {rate.refundableTag === "RFN" ? (
+                                {rate.refundableTag === "RFN" || rate.refundable || rate.cancellationPolicy ? (
                                   <p className="text-xs text-emerald-600 flex items-center gap-1.5">
                                     <Check className="w-3.5 h-3.5 shrink-0" />
-                                    {t("hotel.free_cancel_before", { date: formatCancelTime(rate.cancelTime) })}
+                                    {t("hotel.free_cancel")}
                                   </p>
                                 ) : (
                                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
