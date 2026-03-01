@@ -822,11 +822,13 @@ export function SearchHero({
           {/* Vibe toggle — desktop only (mobile is inside the card) */}
           <button
             onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-            className="hidden md:flex mt-3 items-center gap-1.5 text-white/70 hover:text-white text-xs transition-colors"
+            className="hidden md:flex mt-6 items-center gap-2 text-white hover:text-white/90 transition-colors"
             data-testid="button-toggle-mode-desktop"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
+            <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+            <span className="text-sm font-semibold tracking-wide uppercase">
+              {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
+            </span>
           </button>
         </div>
       </div>
