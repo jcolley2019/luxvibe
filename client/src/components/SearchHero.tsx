@@ -555,7 +555,7 @@ export function SearchHero({
             <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
               Luxury Stays. Unbeatable Rates.
             </h1>
-            <p className="text-white/80 text-lg tracking-wide">Discover stays that redefine extraordinary</p>
+            <p className="text-white text-lg font-medium tracking-wide">Discover stays that redefine extraordinary</p>
 
             {/* Stats bar */}
             <div className="hidden md:flex mt-6 items-center justify-center gap-6 text-white/90 text-sm">
