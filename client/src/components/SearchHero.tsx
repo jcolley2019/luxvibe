@@ -474,14 +474,14 @@ export function SearchHero({
           <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
             <PopoverTrigger asChild>
               <button
-                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
+                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
                 data-testid="button-dates-navbar"
               >
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.checkin")} / {t("search.checkout")}</span>
                 <span className="text-xs text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
+            <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center">
               {calendarContent(2)}
             </PopoverContent>
           </Popover>
@@ -568,7 +568,7 @@ export function SearchHero({
 
             {/* Dates row — two side-by-side cells sharing one popover */}
             <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
-              <div className="flex border-b border-gray-100 dark:border-border">
+              <div className="flex border-b border-gray-100 dark:border-border relative">
                 <PopoverTrigger asChild>
                   <button
                     className="flex-1 flex items-center gap-2 px-4 py-3 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
@@ -598,7 +598,7 @@ export function SearchHero({
                   </button>
                 </PopoverTrigger>
               </div>
-              <PopoverContent className="w-auto p-0" align="center" side="bottom">
+              <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center" side="bottom">
                 {calendarContent(1)}
               </PopoverContent>
             </Popover>
@@ -722,14 +722,14 @@ export function SearchHero({
             <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
+                  className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
                   data-testid="button-dates"
                 >
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.checkin")} / {t("search.checkout")}</span>
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
+              <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center">
                 {calendarContent(2)}
               </PopoverContent>
             </Popover>
