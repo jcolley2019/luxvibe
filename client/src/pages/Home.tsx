@@ -857,26 +857,26 @@ export default function Home() {
                   </div>
                 </FilterSection>
 
-                {/* 4. Distance from landmarks — Las Vegas only, unchanged */}
+                {/* 4. Distance from landmarks — Las Vegas only */}
                 {isLasVegas && (
                   <FilterSection title="Distance from landmarks">
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                       {([
                         { label: "The Strip", value: distanceStripMax, set: setDistanceStripMax, testId: "distance-strip" },
-                        { label: "Fremont Street", value: distanceFremontMax, set: setDistanceFremontMax, testId: "distance-fremont" },
-                        { label: "Convention Center", value: distanceConventionMax, set: setDistanceConventionMax, testId: "distance-convention" },
+                        { label: "Fremont St", value: distanceFremontMax, set: setDistanceFremontMax, testId: "distance-fremont" },
+                        { label: "Convention", value: distanceConventionMax, set: setDistanceConventionMax, testId: "distance-convention" },
                       ] as const).map(({ label, value, set, testId }) => (
-                        <div key={label}>
-                          <p className="text-xs font-medium text-foreground mb-1.5">{label}</p>
-                          <div className="grid grid-cols-2 gap-1">
+                        <div key={label} className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium text-muted-foreground truncate shrink-0 w-16">{label}</span>
+                          <div className="flex gap-1 overflow-x-auto no-scrollbar">
                             {([0.5, 1, 2, 5] as const).map(miles => (
                               <button
                                 key={miles}
                                 onClick={() => (set as any)(value === miles ? null : miles)}
-                                className={`text-xs px-2 py-1.5 rounded-md border transition-colors ${value === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50"}`}
+                                className={`text-[10px] px-1.5 py-1 rounded border whitespace-nowrap transition-colors ${value === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
                                 data-testid={`${testId}-${miles}`}
                               >
-                                &lt; {miles} mi
+                                &lt;{miles}m
                               </button>
                             ))}
                           </div>

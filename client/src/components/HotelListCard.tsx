@@ -128,6 +128,8 @@ export function HotelListCard({
   const totalPrice = price ? price * nights : null;
   const label = getRatingLabel(hotel.rating ?? null);
 
+  console.log(`[HotelListCard] ${hotel.name}: distance=${hotel.distance}, facilities=${hotel.facilities?.length}`);
+
   const discountPct = dealInfo?.discount;
   const originalPrice = price && discountPct ? Math.round(price / (1 - discountPct / 100)) : null;
   const facilityPills = getFacilityPills((hotel as any).facilities);
