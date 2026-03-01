@@ -1284,23 +1284,30 @@ export async function registerRoutes(
             }
           }
 
-          // Aggressive deduplication: merge groups that share the same significant words
-          const finalGroups: Record<string, { nameGroupId: string; rateName: string; boardRates: Record<string, typeof allParsed[0]> }> = {};
-          for (const group of Object.values(roomGroups)) {
+          // Deduplicate similar room groups (e.g. "Deluxe King" vs "Deluxe King Room")
+          const groups = Object.values(roomGroups);
+          const mergedGroups: typeof groups = [];
+          for (const group of groups) {
             const sigWords = group.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
-            const key = sigWords || group.nameGroupId;
-            if (!finalGroups[key]) {
-              finalGroups[key] = group;
-            } else {
-              for (const [bk, rate] of Object.entries(group.boardRates)) {
-                if (!finalGroups[key].boardRates[bk] || rate.price < finalGroups[key].boardRates[bk].price) {
-                  finalGroups[key].boardRates[bk] = rate;
+            let found = false;
+            if (sigWords) {
+              for (const mg of mergedGroups) {
+                const mgSigWords = mg.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
+                if (sigWords === mgSigWords) {
+                  for (const [bk, rate] of Object.entries(group.boardRates)) {
+                    if (!mg.boardRates[bk] || rate.price < mg.boardRates[bk].price) {
+                      mg.boardRates[bk] = rate;
+                    }
+                  }
+                  found = true;
+                  break;
                 }
               }
             }
+            if (!found) mergedGroups.push(group);
           }
 
-          const sortedGroups = Object.values(finalGroups).sort((a, b) => {
+          const sortedGroups = mergedGroups.sort((a, b) => {
             const aMin = Math.min(...Object.values(a.boardRates).map(r => r.price));
             const bMin = Math.min(...Object.values(b.boardRates).map(r => r.price));
             return aMin - bMin;
@@ -1350,20 +1357,6 @@ export async function registerRoutes(
         }
       }
 
-      // Final deduplication: if two cards match the same physical room AND have the same
-      // significant word pattern in their rate name, keep only the cheapest one.
-      const finalRoomTypes: any[] = [];
-      const seenPhysical = new Map<string, any>();
-      for (const rt of roomTypes) {
-        const sigWords = rt.mappedRoomId.split("_").filter((w: string) => w.length > 3).sort().join("_");
-        const key = `${rt.roomName || "unknown"}_${sigWords || rt.mappedRoomId}`;
-        const existing = seenPhysical.get(key);
-        if (!existing || rt.price < existing.price) {
-          seenPhysical.set(key, rt);
-        }
-      }
-      const dedupedRoomTypes = Array.from(seenPhysical.values());
-
       res.json({
         id: hotelRaw.id,
         name: hotelRaw.name || "Hotel",
@@ -1383,7 +1376,7 @@ export async function registerRoutes(
         images,
         amenities,
         rooms,
-        roomTypes: dedupedRoomTypes,
+        roomTypes,
       });
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
