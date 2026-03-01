@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint } from "lucide-react";
+import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint, Footprints } from "lucide-react";
 import type { DealBadge } from "@/components/HotelCard";
 
 export interface ListHotel {
@@ -14,6 +14,7 @@ export interface ListHotel {
   price?: number | null;
   imageUrl?: string | null;
   facilities?: string[];
+  distance?: number | null;
 }
 
 const FACILITY_ICON_MAP: Record<string, { icon: React.ElementType; label: string }> = {
@@ -163,15 +164,21 @@ export function HotelListCard({
           <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors mt-1 mb-1 line-clamp-1">
             {hotel.name}
           </h3>
-          <div className="flex items-center text-xs text-muted-foreground mb-2">
+          <div className="flex items-center text-xs text-muted-foreground mb-1">
             <MapPin className="w-3 h-3 mr-1 shrink-0" />
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
+          {hotel.distance != null && (
+            <div className="flex items-center text-xs text-muted-foreground mb-2">
+              <Footprints className="w-3 h-3 mr-1 shrink-0" />
+              <span>{hotel.distance.toFixed(1)} mi from centre</span>
+            </div>
+          )}
           {facilityPills.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-1">
-              {facilityPills.map(({ icon: Icon, label }) => (
-                <span key={label} className="text-xs px-2 py-0.5 rounded-full border border-border flex items-center gap-1 text-muted-foreground">
-                  <Icon className="w-3 h-3" />
+              {facilityPills.slice(0, 2).map(({ icon: Icon, label }) => (
+                <span key={label} className="text-[10px] px-2 py-0.5 rounded-full border border-border flex items-center gap-1 text-muted-foreground bg-muted/30">
+                  <Icon className="w-2.5 h-2.5" />
                   {label}
                 </span>
               ))}

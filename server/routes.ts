@@ -935,6 +935,7 @@ export async function registerRoutes(
           reviewCount: h.reviews_total || h.reviewCount || null,
           price: ratesMap.get(h.id) || 0,
           imageUrl: h.main_photo || h.thumbnail || null,
+          distance: h.distance_from_city_center || h.distance || null,
           lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
           lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
           facilities,
