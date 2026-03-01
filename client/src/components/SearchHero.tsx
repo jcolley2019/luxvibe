@@ -310,21 +310,12 @@ export function SearchHero({
 
   const calendarContent = (nMonths: number) => (
     <div data-testid="calendar-dropdown" className="bg-white dark:bg-card">
-      <div className="px-6 pt-6 pb-2 text-center" data-testid="calendar-instruction-label">
-        <p
-          className="text-xl font-bold text-foreground transition-all duration-200 ease-in-out font-heading"
-          style={{ minHeight: "2rem" }}
-        >
-          {selectionPhase === "checkin"
-            ? t("search.when_checkin", "When do you want to check in?")
-            : t("search.when_checkout", "When do you want to check out?")}
-        </p>
-      </div>
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 pt-4">
         <Calendar
           initialFocus
           mode="range"
           className="w-full"
+          style={{ width: '100%' }}
           showOutsideDays={true}
           classNames={{
             months: "flex flex-row justify-center gap-8",
@@ -859,7 +850,7 @@ export function SearchHero({
             </div>
 
             {dateOpen && !isMobile && (
-              <div className="absolute top-[calc(100%+12px)] left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-[24px] shadow-2xl overflow-hidden min-h-[400px]">
+              <div className="absolute left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden" style={{ top: 'calc(100% + 8px)' }}>
                 {calendarContent(2)}
               </div>
             )}
