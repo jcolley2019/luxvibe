@@ -1284,43 +1284,29 @@ export async function registerRoutes(
             }
           }
 
-          // Deduplicate similar room groups (e.g. "Deluxe King" vs "Deluxe King Room")
-          const groups = Object.values(roomGroups);
-          const mergedGroups: typeof groups = [];
-          for (const group of groups) {
+          // Aggressive deduplication: merge groups that share the same significant words
+          const finalGroups: Record<string, { nameGroupId: string; rateName: string; boardRates: Record<string, typeof allParsed[0]> }> = {};
+          for (const group of Object.values(roomGroups)) {
             const sigWords = group.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
-            let found = false;
-            if (sigWords) {
-              for (const mg of mergedGroups) {
-                const mgSigWords = mg.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
-                if (sigWords === mgSigWords) {
-                  for (const [bk, rate] of Object.entries(group.boardRates)) {
-                    if (!mg.boardRates[bk] || rate.price < mg.boardRates[bk].price) {
-                      mg.boardRates[bk] = rate;
-                    }
-                  }
-                  found = true;
-                  break;
+            const key = sigWords || group.nameGroupId;
+            if (!finalGroups[key]) {
+              finalGroups[key] = group;
+            } else {
+              for (const [bk, rate] of Object.entries(group.boardRates)) {
+                if (!finalGroups[key].boardRates[bk] || rate.price < finalGroups[key].boardRates[bk].price) {
+                  finalGroups[key].boardRates[bk] = rate;
                 }
               }
             }
-            if (!found) mergedGroups.push(group);
           }
 
-          const sortedGroups = mergedGroups.sort((a, b) => {
+          const sortedGroups = Object.values(finalGroups).sort((a, b) => {
             const aMin = Math.min(...Object.values(a.boardRates).map(r => r.price));
             const bMin = Math.min(...Object.values(b.boardRates).map(r => r.price));
             return aMin - bMin;
           });
 
-          const seenGroupIds = new Set<string>();
-          const dedupedGroups = sortedGroups.filter(group => {
-            if (seenGroupIds.has(group.nameGroupId)) return false;
-            seenGroupIds.add(group.nameGroupId);
-            return true;
-          });
-
-          for (const group of dedupedGroups.slice(0, 20)) {
+          for (const group of sortedGroups.slice(0, 20)) {
             const matchedRoom = findRoomByName(group.rateName);
             const photos = findPhotosByName(group.rateName);
             const boardOrder = ["room only", "breakfast included"];
