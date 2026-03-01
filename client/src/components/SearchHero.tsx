@@ -86,7 +86,18 @@ export function SearchHero({
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
   const [mode, setMode] = useState<"destination" | "vibe">(initialAiSearch ? "vibe" : "destination");
-  const [destination, setDestination] = useState(initialDestination || "");
+  const [destination, setDestination] = useState(() => {
+    // If we're on a hotel page or coming from one, initialDestination might be the hotel name
+    // We want to detect if it's a hotel name and clear it if so.
+    if (!initialDestination) return "";
+    const isHotel = initialDestination.toLowerCase().includes("hotel") || 
+                    initialDestination.toLowerCase().includes("resort") ||
+                    initialDestination.toLowerCase().includes("villa");
+    // Also check if we are currently on a hotel details page
+    const isOnHotelPage = window.location.pathname.startsWith("/hotel/");
+    if (isOnHotelPage && isHotel) return "";
+    return initialDestination;
+  });
   const [placeId, setPlaceId] = useState(initialPlaceId || "");
   const [aiSearch, setAiSearch] = useState(initialAiSearch || "");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
