@@ -777,7 +777,7 @@ export function SearchHero({
             {/* Bottom row: full-width search button */}
             <button
               onClick={handleSearch}
-              className="w-full py-3.5 bg-gray-900 hover:bg-black dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-1"
+              className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-1"
               data-testid="button-search-desktop"
             >
               <Search className="w-4 h-4" />
