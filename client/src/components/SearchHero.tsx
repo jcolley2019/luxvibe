@@ -825,9 +825,9 @@ export function SearchHero({
             className="hidden md:flex mt-6 items-center gap-2 text-white hover:text-white/90 transition-colors"
             data-testid="button-toggle-mode-desktop"
           >
-            <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-            <span className="text-sm font-semibold tracking-wide uppercase">
-              {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
+            <Sparkles className="w-4 h-4 text-white animate-pulse" />
+            <span className="text-lg font-medium tracking-wide">
+              {mode === "destination" ? "Search by Vibe" : "Search by Destination"}
             </span>
           </button>
         </div>
