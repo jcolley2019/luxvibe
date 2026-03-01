@@ -528,30 +528,32 @@ export default function HotelDetails() {
           ref={navRef}
           className={`sticky top-16 z-30 bg-background border-b border-border flex items-center justify-between py-0 mt-0 -mx-4 px-4 transition-shadow ${navSticky ? "shadow-sm" : ""}`}
         >
-          <div className="flex items-center gap-0">
-            {TABS.map((tab) => (
+          <div className="flex-1 overflow-x-auto min-w-0" style={{ scrollbarWidth: "none" }}>
+            <div className="flex items-center gap-0 min-w-max">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => scrollToSection(tab.id)}
+                  data-testid={`tab-${tab.id}`}
+                  className={`px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t(tab.labelKey)}
+                </button>
+              ))}
               <button
-                key={tab.id}
-                onClick={() => scrollToSection(tab.id)}
-                data-testid={`tab-${tab.id}`}
-                className={`px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                onClick={() => { setAiAnswer(""); setAiInput(""); setAiModalOpen(true); }}
+                data-testid="button-ask-ai"
+                className="ml-2 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors flex items-center gap-1.5 my-auto shrink-0"
               >
-                {t(tab.labelKey)}
+                <Sparkles className="w-3 h-3" />
+                {t("hotel.ask_ai")}
+                <span className="text-[9px] bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-200 px-1 py-0.5 rounded-full">{t("hotel.beta")}</span>
               </button>
-            ))}
-            <button
-              onClick={() => { setAiAnswer(""); setAiInput(""); setAiModalOpen(true); }}
-              data-testid="button-ask-ai"
-              className="ml-2 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors flex items-center gap-1.5 my-auto"
-            >
-              <Sparkles className="w-3 h-3" />
-              {t("hotel.ask_ai")}
-              <span className="text-[9px] bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-200 px-1 py-0.5 rounded-full">{t("hotel.beta")}</span>
-            </button>
+            </div>
           </div>
           <Button
             size="sm"

@@ -136,10 +136,10 @@ export function HotelListCard({
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
-      <div className="group bg-white dark:bg-card border border-border rounded-xl overflow-hidden flex hover:shadow-md transition-all duration-200 cursor-pointer">
+      <div className="group bg-white dark:bg-card border border-border rounded-xl overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-all duration-200 cursor-pointer">
 
         {/* Photo */}
-        <div className="relative w-[220px] shrink-0 overflow-hidden bg-muted">
+        <div className="relative w-full h-48 sm:w-[220px] sm:h-auto shrink-0 overflow-hidden bg-muted">
           <img
             src={hotel.imageUrl || getFallbackImage(hotel.id)}
             alt={hotel.name}
@@ -186,10 +186,42 @@ export function HotelListCard({
               ))}
             </div>
           )}
+
+          {/* Price + CTA — mobile only (shown below details, above sm breakpoint hidden) */}
+          <div className="sm:hidden mt-auto pt-3 border-t border-border flex items-center justify-between gap-3">
+            <div>
+              {discountPct && (
+                <div className="inline-block bg-emerald-500 text-white text-[11px] font-bold px-2 py-0.5 rounded mb-1">
+                  {discountPct}% OFF
+                </div>
+              )}
+              {price ? (
+                <>
+                  {originalPrice && originalPrice > price && (
+                    <div className="text-xs text-muted-foreground line-through">{originalPrice.toLocaleString()}</div>
+                  )}
+                  <div className="text-lg font-bold text-foreground">US${price.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground">/ night · incl. taxes</div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">Check rates</div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {hotel.rating && (
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center">
+                  {hotel.rating % 1 === 0 ? hotel.rating.toFixed(0) : hotel.rating.toFixed(1)}
+                </div>
+              )}
+              <div className="px-3 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg">
+                See availability
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Price + CTA */}
-        <div className="w-[200px] shrink-0 p-4 flex flex-col items-end justify-between border-l border-border">
+        {/* Price + CTA — desktop only */}
+        <div className="hidden sm:flex w-[200px] shrink-0 p-4 flex-col items-end justify-between border-l border-border">
           {/* Rating badge top right */}
           <div className="flex items-center gap-2 mb-2 self-end">
             <div className="text-right">

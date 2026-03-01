@@ -1131,7 +1131,7 @@ export default function Home() {
               {/* Header row */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold font-heading">
+                  <h2 className="text-base sm:text-xl font-bold font-heading line-clamp-2">
                     {aiSearch ? (
                       <>Vibe: <span className="text-primary capitalize">{aiSearch}</span></>
                     ) : (
@@ -1143,7 +1143,7 @@ export default function Home() {
                       {isLoading ? "Searching…" : `${filteredHotels.length} properties found`}
                     </p>
                     {isDefaultStarFilter && !isLoading && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                      <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         Luxury &amp; 4–5★ hotels
                         <button
