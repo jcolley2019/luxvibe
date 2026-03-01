@@ -309,56 +309,92 @@ export function SearchHero({
   })();
 
   const calendarContent = (nMonths: number) => (
-    <div data-testid="calendar-dropdown">
-      <div className="px-4 pt-4 pb-2" data-testid="calendar-instruction-label">
+    <div data-testid="calendar-dropdown" className="bg-white dark:bg-card">
+      <div className="px-6 pt-6 pb-2 text-center" data-testid="calendar-instruction-label">
         <p
-          className="text-base font-semibold text-foreground transition-all duration-200 ease-in-out"
-          style={{ minHeight: "1.5rem" }}
+          className="text-xl font-bold text-foreground transition-all duration-200 ease-in-out font-heading"
+          style={{ minHeight: "2rem" }}
         >
           {selectionPhase === "checkin"
             ? t("search.when_checkin", "When do you want to check in?")
             : t("search.when_checkout", "When do you want to check out?")}
         </p>
       </div>
-      <Calendar
-        initialFocus
-        mode="range"
-        className="w-full"
-        defaultMonth={stagedCheckIn || date?.from || new Date()}
-        selected={calendarSelected}
-        onSelect={() => {}}
-        onDayClick={handleDayClick}
-        onDayMouseEnter={(day: Date) => {
-          if (selectionPhase === "checkout" && stagedCheckIn && day > stagedCheckIn) {
-            setHoveredDate(day);
-          }
-        }}
-        onDayMouseLeave={() => {
-          if (selectionPhase === "checkout") {
-            setHoveredDate(undefined);
-          }
-        }}
-        numberOfMonths={nMonths}
-        disabled={(d) => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          if (d < today) return true;
-          if (selectionPhase === "checkout" && stagedCheckIn && d <= stagedCheckIn) return true;
-          return false;
-        }}
-      />
+      <div className="p-6">
+        <Calendar
+          initialFocus
+          mode="range"
+          className="w-full"
+          showOutsideDays={false}
+          classNames={{
+            months: "flex flex-col md:flex-row space-y-4 md:space-x-12 md:space-y-0 justify-center",
+            month: "space-y-6 w-full max-w-[380px]",
+            caption: "flex justify-center pt-1 relative items-center mb-8",
+            caption_label: "text-xl font-bold text-foreground font-heading",
+            nav: "space-x-1 flex items-center",
+            nav_button: "h-12 w-12 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border rounded-xl transition-all flex items-center justify-center",
+            nav_button_previous: "absolute left-0",
+            nav_button_next: "absolute right-0",
+            table: "w-full border-collapse",
+            head_row: "flex w-full justify-between mb-4",
+            head_cell: "text-muted-foreground rounded-md w-12 font-semibold text-[0.9rem] uppercase tracking-widest",
+            row: "flex w-full mt-3 justify-between",
+            cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
+            day: "h-12 w-12 p-0 font-medium aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-xl transition-all flex items-center justify-center text-base",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-bold shadow-lg",
+            day_today: "text-primary font-bold border-2 border-primary/20",
+            day_outside: "text-muted-foreground opacity-20",
+            day_disabled: "text-muted-foreground opacity-10 cursor-not-allowed",
+            day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-primary rounded-none",
+            day_range_start: "rounded-l-xl rounded-r-none",
+            day_range_end: "rounded-r-xl rounded-l-none",
+            day_hidden: "invisible",
+          }}
+          defaultMonth={stagedCheckIn || date?.from || new Date()}
+          selected={calendarSelected}
+          onSelect={() => {}}
+          onDayClick={handleDayClick}
+          onDayMouseEnter={(day: Date) => {
+            if (selectionPhase === "checkout" && stagedCheckIn && day > stagedCheckIn) {
+              setHoveredDate(day);
+            }
+          }}
+          onDayMouseLeave={() => {
+            if (selectionPhase === "checkout") {
+              setHoveredDate(undefined);
+            }
+          }}
+          numberOfMonths={nMonths}
+          disabled={(d) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (d < today) return true;
+            if (selectionPhase === "checkout" && stagedCheckIn && d <= stagedCheckIn) return true;
+            return false;
+          }}
+        />
+      </div>
       {(stagedCheckIn || date?.from) && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border text-sm text-muted-foreground">
-          <span>
-            {format(stagedCheckIn || date!.from!, "MMM d")}
-            {date?.to && !stagedCheckIn ? ` → ${format(date.to, "MMM d")}` : ""}
-          </span>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground bg-primary/10 px-3 py-1 rounded-full">
+              {format(stagedCheckIn || date!.from!, "MMM d, yyyy")}
+            </span>
+            {date?.to && !stagedCheckIn && (
+              <>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-semibold text-foreground bg-primary/10 px-3 py-1 rounded-full">
+                  {format(date.to, "MMM d, yyyy")}
+                </span>
+              </>
+            )}
+          </div>
           <button
             onClick={() => { setDate(undefined); setStagedCheckIn(undefined); setHoveredDate(undefined); setSelectionPhase("checkin"); }}
-            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            className="text-primary hover:underline transition-colors font-bold"
             data-testid="button-clear-dates"
           >
-            Clear
+            Clear dates
           </button>
         </div>
       )}
@@ -838,7 +874,7 @@ export function SearchHero({
             </div>
 
             {dateOpen && !isMobile && (
-              <div className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden min-h-[300px]">
+              <div className="absolute top-[calc(100%+12px)] left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-[24px] shadow-2xl overflow-hidden min-h-[400px]">
                 {calendarContent(2)}
               </div>
             )}
