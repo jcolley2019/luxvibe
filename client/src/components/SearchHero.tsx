@@ -646,7 +646,7 @@ export function SearchHero({
           <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl items-stretch overflow-visible px-1 py-1 gap-0">
 
             {/* Where / Vibe input */}
-            <div className="flex-[2] flex flex-col justify-center px-4 py-1.5 min-w-0 relative border-r border-border" ref={autocompleteRef}>
+            <div className="flex-1 flex flex-col justify-center px-4 py-1.5 min-w-0 relative border-r border-border" ref={autocompleteRef}>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide text-left">
                 {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
               </span>
@@ -729,7 +729,7 @@ export function SearchHero({
                   <span className="text-sm text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center">
+              <PopoverContent className="w-auto p-0" align="center">
                 {calendarContent(2)}
               </PopoverContent>
             </Popover>
