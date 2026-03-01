@@ -42,23 +42,22 @@ const KEY_FACILITIES = [
   "Microwave", "Mini bar", "Balcony", "Ocean view", "Kitchen",
 ];
 
-const POPULAR_FILTER_ITEMS: Array<{
-  label: string;
-  type: "cancellation" | "facility" | "mealplan";
-  value?: string;
-}> = [
-  { label: "Free cancellation", type: "cancellation" },
-  { label: "Parking", type: "facility", value: "Parking" },
-  { label: "Breakfast included", type: "mealplan", value: "BB" },
-  { label: "Swimming pool", type: "facility", value: "Pool" },
-  { label: "Free WiFi", type: "facility", value: "Free WiFi" },
-  { label: "Fitness center", type: "facility", value: "Fitness center" },
-  { label: "Restaurant", type: "facility", value: "Restaurant" },
-  { label: "Microwave", type: "facility", value: "Microwave" },
-  { label: "Laundry service", type: "facility", value: "Laundry" },
-  { label: "Pets allowed", type: "facility", value: "Pet friendly" },
-  { label: "Wheelchair accessible", type: "facility", value: "Wheelchair accessible" },
-  { label: "Air conditioning", type: "facility", value: "Air conditioning" },
+const KEY_ROOM_AMENITIES = [
+  "Air conditioning", "Flat-screen TV", "Mini bar", "Safe", "Hairdryer",
+  "Bathtub", "Shower", "Coffee maker", "Microwave", "Refrigerator",
+  "Balcony", "Kitchen", "Washing machine", "Iron", "Work desk",
+  "Telephone", "Bathrobe", "Slippers", "Sea view", "City view",
+];
+
+const FIXED_MEAL_PLANS: { label: string; codes: string[] }[] = [
+  { label: "Breakfast included", codes: ["BB"] },
+  { label: "Lunch included", codes: [] },
+  { label: "Dinner included", codes: ["HB"] },
+  { label: "All meals included", codes: ["FB", "AI"] },
+];
+
+const PROPERTY_TYPE_ORDER = [
+  "Hotel", "Resort", "Apartment", "Holiday home", "Motel", "Villa", "Condo", "Bed and breakfast",
 ];
 
 function normalizeForFilter(s: string): string {
@@ -230,6 +229,12 @@ export default function Home() {
   const [distanceConventionMax, setDistanceConventionMax] = useState<number | null>(null);
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string[]>([]);
   const [showAllFacilities, setShowAllFacilities] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string[]>([]);
+  const [showAllPropertyTypes, setShowAllPropertyTypes] = useState(false);
+  const [roomAmenitiesFilter, setRoomAmenitiesFilter] = useState<string[]>([]);
+  const [showAllRoomAmenities, setShowAllRoomAmenities] = useState(false);
+  const [showAllNeighborhoods, setShowAllNeighborhoods] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [showSearchPanel, setShowSearchPanel] = useState(false);
@@ -395,17 +400,6 @@ export default function Home() {
       placeId === "ChIJ69QoNDjEyIARTIMmDF0Z4kM";
   }, [destination, placeId]);
 
-  // Available meal plan codes from search results
-  const availableMealPlans = useMemo(() => {
-    if (!hotels?.length) return [] as string[];
-    const codes = new Set<string>();
-    for (const h of hotels) {
-      for (const code of ((h as any).boardCodes || []) as string[]) {
-        if (MEAL_PLAN_LABELS[code]) codes.add(code);
-      }
-    }
-    return Array.from(codes).sort();
-  }, [hotels]);
 
   // Available facilities from search results — returns [facility, count][] sorted by count
   const availableFacilities = useMemo((): [string, number][] => {
@@ -458,8 +452,50 @@ export default function Home() {
       const n = extractNeighborhood(h as any);
       counts.set(n, (counts.get(n) ?? 0) + 1);
     }
-    // Only show if there are multiple neighbourhoods
     if (counts.size <= 1) return [];
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  }, [hotels]);
+
+  function extractPropertyType(hotel: any): string {
+    const name = (hotel.name || "").toLowerCase();
+    if (name.includes("resort")) return "Resort";
+    if (name.includes("apartment") || name.includes("apts")) return "Apartment";
+    if (name.includes("motel")) return "Motel";
+    if (name.includes("villa")) return "Villa";
+    if (name.includes("condo") || name.includes("condominium")) return "Condo";
+    if (name.includes("bed and breakfast") || name.includes("b&b") || /\binn\b/.test(name)) return "Bed and breakfast";
+    if (name.includes("holiday home") || name.includes("vacation home") || name.includes("holiday apartment")) return "Holiday home";
+    return "Hotel";
+  }
+
+  const availablePropertyTypes = useMemo((): [string, number][] => {
+    if (!hotels?.length) return [];
+    const counts = new Map<string, number>();
+    for (const h of hotels) {
+      const type = extractPropertyType(h as any);
+      counts.set(type, (counts.get(type) ?? 0) + 1);
+    }
+    return PROPERTY_TYPE_ORDER.filter(t => counts.has(t)).map(t => [t, counts.get(t)!]);
+  }, [hotels]);
+
+  const availableRoomAmenities = useMemo((): [string, number][] => {
+    if (!hotels?.length) return [];
+    const counts = new Map<string, number>();
+    for (const h of hotels) {
+      const hx = h as any;
+      const amenities: string[] = [];
+      for (const rt of (hx.roomTypes || [])) for (const a of (rt.amenities || [])) amenities.push(a);
+      for (const a of (hx.amenities || [])) amenities.push(a);
+      const seen = new Set<string>();
+      for (const a of amenities) {
+        const norm = normalizeForFilter(a);
+        const match = KEY_ROOM_AMENITIES.find(ka => normalizeForFilter(ka) === norm || norm.includes(normalizeForFilter(ka)) || normalizeForFilter(ka).includes(norm));
+        if (match && !seen.has(match)) {
+          seen.add(match);
+          counts.set(match, (counts.get(match) ?? 0) + 1);
+        }
+      }
+    }
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [hotels]);
 
@@ -497,10 +533,29 @@ export default function Home() {
       // Free cancellation
       if (freeCancellationOnly && !hx.refundable) return false;
 
-      // Meal plans
+      // Meal plans (match by label → codes)
       if (mealPlanFilter.length > 0) {
-        const codes: string[] = hx.boardCodes || [];
-        if (!mealPlanFilter.some(mp => codes.includes(mp))) return false;
+        const hCodes: string[] = hx.boardCodes || [];
+        const matched = mealPlanFilter.some(label => {
+          const opt = FIXED_MEAL_PLANS.find(p => p.label === label);
+          if (!opt || !opt.codes.length) return false;
+          return opt.codes.some(c => hCodes.includes(c));
+        });
+        if (!matched) return false;
+      }
+
+      // Property type
+      if (propertyTypeFilter.length > 0 && !propertyTypeFilter.includes(extractPropertyType(hx))) return false;
+
+      // Room amenities
+      if (roomAmenitiesFilter.length > 0) {
+        const amenities: string[] = [];
+        for (const rt of (hx.roomTypes || [])) for (const a of (rt.amenities || [])) amenities.push(normalizeForFilter(a));
+        for (const a of (hx.amenities || [])) amenities.push(normalizeForFilter(a));
+        const matched = roomAmenitiesFilter.every(req =>
+          amenities.some(a => a.includes(normalizeForFilter(req)) || normalizeForFilter(req).includes(a))
+        );
+        if (!matched) return false;
       }
 
       // Facilities
@@ -525,7 +580,8 @@ export default function Home() {
       return true;
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
-    freeCancellationOnly, mealPlanFilter, facilitiesFilter, distanceStripMax, distanceFremontMax, distanceConventionMax, neighborhoodFilter]);
+    freeCancellationOnly, mealPlanFilter, facilitiesFilter, distanceStripMax, distanceFremontMax, distanceConventionMax,
+    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
@@ -539,10 +595,6 @@ export default function Home() {
     setBrandFilter(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
   };
 
-  const toggleMealPlan = (code: string) => {
-    setMealPlanFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
-  };
-
   const toggleFacility = (f: string) => {
     setFacilitiesFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
@@ -551,21 +603,21 @@ export default function Home() {
     setNeighborhoodFilter(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]);
   };
 
-  // Helper for popular filter toggle
-  const togglePopularFilter = (item: typeof POPULAR_FILTER_ITEMS[number]) => {
-    if (item.type === "cancellation") setFreeCancellationOnly(v => !v);
-    else if (item.type === "facility" && item.value) toggleFacility(item.value);
-    else if (item.type === "mealplan" && item.value) toggleMealPlan(item.value);
+  const togglePropertyType = (type: string) => {
+    setPropertyTypeFilter(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
   };
 
-  const isPopularFilterActive = (item: typeof POPULAR_FILTER_ITEMS[number]): boolean => {
-    if (item.type === "cancellation") return freeCancellationOnly;
-    if (item.type === "facility" && item.value) {
-      const normItem = normalizeForFilter(item.value);
-      return facilitiesFilter.some(f => normalizeForFilter(f) === normItem || normalizeForFilter(f).includes(normItem) || normItem.includes(normalizeForFilter(f)));
-    }
-    if (item.type === "mealplan" && item.value) return mealPlanFilter.includes(item.value);
-    return false;
+  const toggleRoomAmenity = (a: string) => {
+    setRoomAmenitiesFilter(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+  };
+
+  const toggleMealPlanLabel = (label: string) => {
+    setMealPlanFilter(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
+  };
+
+  const getMealPlanCount = (codes: string[]): number => {
+    if (!hotels?.length || !codes.length) return 0;
+    return hotels.filter(h => { const c: string[] = (h as any).boardCodes || []; return codes.some(k => c.includes(k)); }).length;
   };
 
   const DEFAULT_STAR_FILTER = [4, 5];
@@ -582,6 +634,8 @@ export default function Home() {
     (freeCancellationOnly ? 1 : 0) +
     mealPlanFilter.length +
     facilitiesFilter.length +
+    propertyTypeFilter.length +
+    roomAmenitiesFilter.length +
     (distanceStripMax !== null ? 1 : 0) +
     (distanceFremontMax !== null ? 1 : 0) +
     (distanceConventionMax !== null ? 1 : 0) +
@@ -597,6 +651,8 @@ export default function Home() {
     setFreeCancellationOnly(false);
     setMealPlanFilter([]);
     setFacilitiesFilter([]);
+    setPropertyTypeFilter([]);
+    setRoomAmenitiesFilter([]);
     setNeighborhoodFilter([]);
     setDistanceStripMax(null);
     setDistanceFremontMax(null);
@@ -703,44 +759,7 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Popular Filters */}
-                <FilterSection title="Popular filters">
-                  <div className="flex flex-col gap-2">
-                    {[
-                      { label: "Parking", type: "facility" as const, value: "Parking" },
-                      { label: "Breakfast included", type: "facility" as const, value: "Breakfast" },
-                      { label: "Swimming pool", type: "facility" as const, value: "Pool" },
-                      { label: "Free WiFi", type: "facility" as const, value: "Free WiFi" },
-                      { label: "Free cancellation", type: "cancellation" as const },
-                    ].map((item) => {
-                      const isChecked = item.type === "cancellation" 
-                        ? freeCancellationOnly 
-                        : facilitiesFilter.includes(item.value!);
-                      return (
-                        <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (item.type === "cancellation") {
-                                setFreeCancellationOnly(e.target.checked);
-                              } else {
-                                const val = item.value!;
-                                if (e.target.checked) setFacilitiesFilter(prev => [...prev, val]);
-                                else setFacilitiesFilter(prev => prev.filter(f => f !== val));
-                              }
-                            }}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </FilterSection>
-
-                {/* Property name */}
+                {/* 1. Property name */}
                 <FilterSection title="Property name">
                   <input
                     type="text"
@@ -752,8 +771,8 @@ export default function Home() {
                   />
                 </FilterSection>
 
-                {/* Price per night */}
-                <FilterSection title="Price per night">
+                {/* 2. Price (per night) */}
+                <FilterSection title="Price (per night)">
                   <p className="text-xs text-muted-foreground mb-2">
                     US${priceRange.min} → {priceMax >= priceRange.max ? `US$${priceRange.max.toLocaleString()}+` : `US$${priceMax.toLocaleString()}`}
                   </p>
@@ -768,7 +787,53 @@ export default function Home() {
                   />
                 </FilterSection>
 
-                {/* Distance from landmarks — Las Vegas only */}
+                {/* 3. Popular filters — 7 fixed items */}
+                <FilterSection title="Popular filters">
+                  <div className="flex flex-col gap-2">
+                    {([
+                      { label: "Free cancellation", kind: "cancel" },
+                      { label: "Parking", kind: "facility", value: "Parking" },
+                      { label: "Breakfast included", kind: "facility", value: "Breakfast" },
+                      { label: "Swimming pool", kind: "facility", value: "Pool" },
+                      { label: "Free WiFi", kind: "facility", value: "Free WiFi" },
+                      { label: "Hotels", kind: "type", value: "Hotel" },
+                      { label: "Apartments", kind: "type", value: "Apartment" },
+                    ] as { label: string; kind: string; value?: string }[]).map(item => {
+                      const isChecked =
+                        item.kind === "cancel" ? freeCancellationOnly :
+                        item.kind === "type" ? propertyTypeFilter.includes(item.value!) :
+                        facilitiesFilter.some(f => {
+                          const n = normalizeForFilter(f);
+                          const v = normalizeForFilter(item.value!);
+                          return n === v || n.includes(v) || v.includes(n);
+                        });
+                      return (
+                        <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={e => {
+                              if (item.kind === "cancel") { setFreeCancellationOnly(e.target.checked); }
+                              else if (item.kind === "type") { togglePropertyType(item.value!); }
+                              else {
+                                if (e.target.checked) setFacilitiesFilter(prev => [...prev, item.value!]);
+                                else setFacilitiesFilter(prev => prev.filter(f => {
+                                  const n = normalizeForFilter(f); const v = normalizeForFilter(item.value!);
+                                  return !(n === v || n.includes(v) || v.includes(n));
+                                }));
+                              }
+                            }}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                          />
+                          <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FilterSection>
+
+                {/* 4. Distance from landmarks — Las Vegas only, unchanged */}
                 {isLasVegas && (
                   <FilterSection title="Distance from landmarks">
                     <div className="flex flex-col gap-4">
@@ -797,7 +862,73 @@ export default function Home() {
                   </FilterSection>
                 )}
 
-                {/* Star Rating */}
+                {/* 5. Reservation policy — free cancellation only */}
+                <FilterSection title="Reservation policy">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={freeCancellationOnly}
+                      onChange={() => setFreeCancellationOnly(v => !v)}
+                      className="accent-primary w-4 h-4 rounded"
+                      data-testid="checkbox-free-cancellation"
+                    />
+                    <span className="text-sm text-foreground">Free cancellation</span>
+                  </label>
+                </FilterSection>
+
+                {/* 6. Brand — first 9, show all X */}
+                {availableBrands.length > 0 && (
+                  <FilterSection title="Brand" defaultOpen={false}>
+                    <div className="flex flex-col gap-2">
+                      {(showAllBrands ? availableBrands : availableBrands.slice(0, 9)).map(([brand, count]) => (
+                        <label key={brand} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={brandFilter.includes(brand)}
+                            onChange={() => toggleBrandFilter(brand)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-brand-${brand}`}
+                          />
+                          <span className="text-sm text-foreground flex-1">{brand}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
+                        </label>
+                      ))}
+                    </div>
+                    {availableBrands.length > 9 && (
+                      <button onClick={() => setShowAllBrands(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-brands">
+                        {showAllBrands ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableBrands.length}</>}
+                      </button>
+                    )}
+                  </FilterSection>
+                )}
+
+                {/* 7. Property type — with counts, first 9 */}
+                {availablePropertyTypes.length > 0 && (
+                  <FilterSection title="Property type" defaultOpen={false}>
+                    <div className="flex flex-col gap-2">
+                      {(showAllPropertyTypes ? availablePropertyTypes : availablePropertyTypes.slice(0, 9)).map(([type, count]) => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={propertyTypeFilter.includes(type)}
+                            onChange={() => togglePropertyType(type)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-type-${type.toLowerCase().replace(/\s+/g, "-")}`}
+                          />
+                          <span className="text-sm text-foreground flex-1">{type}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
+                        </label>
+                      ))}
+                    </div>
+                    {availablePropertyTypes.length > 9 && (
+                      <button onClick={() => setShowAllPropertyTypes(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-types">
+                        {showAllPropertyTypes ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availablePropertyTypes.length}</>}
+                      </button>
+                    )}
+                  </FilterSection>
+                )}
+
+                {/* 8. Star rating — unchanged */}
                 <FilterSection title="Star rating">
                   <div className="flex flex-col gap-2">
                     {[5, 4, 3, 2, 1].map(star => (
@@ -821,19 +952,36 @@ export default function Home() {
                       </label>
                     ))}
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={includeUnrated}
-                        onChange={() => setIncludeUnrated(v => !v)}
-                        className="accent-primary w-4 h-4 rounded"
-                        data-testid="checkbox-star-unrated"
-                      />
+                      <input type="checkbox" checked={includeUnrated} onChange={() => setIncludeUnrated(v => !v)} className="accent-primary w-4 h-4 rounded" data-testid="checkbox-star-unrated" />
                       <span className="text-sm text-foreground">Unrated</span>
                     </label>
                   </div>
                 </FilterSection>
 
-                {/* Guest Rating */}
+                {/* 9. Meal plans — 4 named options with counts */}
+                <FilterSection title="Meal plans" defaultOpen={false}>
+                  <div className="flex flex-col gap-2">
+                    {FIXED_MEAL_PLANS.map(opt => {
+                      const count = getMealPlanCount(opt.codes);
+                      return (
+                        <label key={opt.label} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={mealPlanFilter.includes(opt.label)}
+                            onChange={() => toggleMealPlanLabel(opt.label)}
+                            disabled={!opt.codes.length}
+                            className="accent-primary w-4 h-4 rounded disabled:opacity-40"
+                            data-testid={`checkbox-meal-${opt.label.toLowerCase().replace(/\s+/g, "-")}`}
+                          />
+                          <span className={`text-sm flex-1 ${!opt.codes.length ? "text-muted-foreground" : "text-foreground"}`}>{opt.label}</span>
+                          {opt.codes.length > 0 && <span className="text-xs text-muted-foreground">({count})</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FilterSection>
+
+                {/* 10. Guest rating — unchanged */}
                 <FilterSection title="Guest rating" defaultOpen={false}>
                   <div className="flex flex-col gap-2">
                     {([
@@ -856,27 +1004,33 @@ export default function Home() {
                   </div>
                 </FilterSection>
 
-                {/* Meal Plans */}
-                {availableMealPlans.length > 0 && (
-                  <FilterSection title="Meal plans" defaultOpen={false}>
+                {/* 11. Room amenities — first 9, show all X */}
+                {availableRoomAmenities.length > 0 && (
+                  <FilterSection title="Room amenities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
-                      {availableMealPlans.map(code => (
-                        <label key={code} className="flex items-center gap-2 cursor-pointer">
+                      {(showAllRoomAmenities ? availableRoomAmenities : availableRoomAmenities.slice(0, 9)).map(([amenity, count]) => (
+                        <label key={amenity} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={mealPlanFilter.includes(code)}
-                            onChange={() => toggleMealPlan(code)}
+                            checked={roomAmenitiesFilter.includes(amenity)}
+                            onChange={() => toggleRoomAmenity(amenity)}
                             className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-meal-${code}`}
+                            data-testid={`checkbox-amenity-${amenity.toLowerCase().replace(/\s+/g, "-")}`}
                           />
-                          <span className="text-sm text-foreground">{MEAL_PLAN_LABELS[code] || code}</span>
+                          <span className="text-sm text-foreground flex-1">{amenity}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
                         </label>
                       ))}
                     </div>
+                    {availableRoomAmenities.length > 9 && (
+                      <button onClick={() => setShowAllRoomAmenities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-amenities">
+                        {showAllRoomAmenities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableRoomAmenities.length}</>}
+                      </button>
+                    )}
                   </FilterSection>
                 )}
 
-                {/* Facilities — with counts + show all / show less */}
+                {/* 12. Facilities — first 9, show all X */}
                 {availableFacilities.length > 0 && (
                   <FilterSection title="Facilities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
@@ -884,7 +1038,10 @@ export default function Home() {
                         <label key={facility} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={facilitiesFilter.some(f => normalizeForFilter(f) === normalizeForFilter(facility) || normalizeForFilter(f).includes(normalizeForFilter(facility)) || normalizeForFilter(facility).includes(normalizeForFilter(f)))}
+                            checked={facilitiesFilter.some(f => {
+                              const nf = normalizeForFilter(f); const nk = normalizeForFilter(facility);
+                              return nf === nk || nf.includes(nk) || nk.includes(nf);
+                            })}
                             onChange={() => toggleFacility(facility)}
                             className="accent-primary w-4 h-4 rounded"
                             data-testid={`checkbox-facility-${facility}`}
@@ -895,26 +1052,18 @@ export default function Home() {
                       ))}
                     </div>
                     {availableFacilities.length > 9 && (
-                      <button
-                        onClick={() => setShowAllFacilities(v => !v)}
-                        className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
-                        data-testid="button-show-all-facilities"
-                      >
-                        {showAllFacilities ? (
-                          <><ChevronUp className="w-3 h-3" />Show less</>
-                        ) : (
-                          <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>
-                        )}
+                      <button onClick={() => setShowAllFacilities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-facilities">
+                        {showAllFacilities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>}
                       </button>
                     )}
                   </FilterSection>
                 )}
 
-                {/* Neighborhood */}
+                {/* 13. Neighborhood — first 9, show all X */}
                 {availableNeighborhoods.length > 0 && (
                   <FilterSection title="Neighborhood" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
-                      {availableNeighborhoods.map(([neighborhood, count]) => (
+                      {(showAllNeighborhoods ? availableNeighborhoods : availableNeighborhoods.slice(0, 9)).map(([neighborhood, count]) => (
                         <label key={neighborhood} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -928,27 +1077,11 @@ export default function Home() {
                         </label>
                       ))}
                     </div>
-                  </FilterSection>
-                )}
-
-                {/* Brand */}
-                {availableBrands.length > 0 && (
-                  <FilterSection title="Brand" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {availableBrands.map(([brand, count]) => (
-                        <label key={brand} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={brandFilter.includes(brand)}
-                            onChange={() => toggleBrandFilter(brand)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-brand-${brand}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{brand}</span>
-                          <span className="text-xs text-muted-foreground">{count}</span>
-                        </label>
-                      ))}
-                    </div>
+                    {availableNeighborhoods.length > 9 && (
+                      <button onClick={() => setShowAllNeighborhoods(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-neighborhoods">
+                        {showAllNeighborhoods ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableNeighborhoods.length}</>}
+                      </button>
+                    )}
                   </FilterSection>
                 )}
 
