@@ -704,37 +704,41 @@ export default function Home() {
                 </div>
 
                 {/* Popular Filters */}
-                {(() => {
-                  const facilityNames = new Set(availableFacilities.map(([f]) => normalizeForFilter(f)));
-                  const popularAvailable = POPULAR_FILTER_ITEMS.filter(item => {
-                    if (item.type === "cancellation") return true;
-                    if (item.type === "mealplan" && item.value) return availableMealPlans.includes(item.value);
-                    if (item.type === "facility" && item.value) {
-                      const normVal = normalizeForFilter(item.value);
-                      return Array.from(facilityNames).some(fn => fn.includes(normVal) || normVal.includes(fn));
-                    }
-                    return false;
-                  });
-                  if (!popularAvailable.length) return null;
-                  return (
-                    <FilterSection title="Popular filters">
-                      <div className="flex flex-col gap-2">
-                        {popularAvailable.map(item => (
-                          <label key={item.label} className="flex items-center gap-2.5 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={isPopularFilterActive(item)}
-                              onChange={() => togglePopularFilter(item)}
-                              className="accent-primary w-4 h-4 rounded"
-                              data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                            />
-                            <span className="text-sm text-foreground">{item.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </FilterSection>
-                  );
-                })()}
+                <FilterSection title="Popular filters">
+                  <div className="flex flex-col gap-2">
+                    {[
+                      { label: "Parking", type: "facility" as const, value: "Parking" },
+                      { label: "Breakfast included", type: "facility" as const, value: "Breakfast" },
+                      { label: "Swimming pool", type: "facility" as const, value: "Pool" },
+                      { label: "Free WiFi", type: "facility" as const, value: "Free WiFi" },
+                      { label: "Free cancellation", type: "cancellation" as const },
+                    ].map((item) => {
+                      const isChecked = item.type === "cancellation" 
+                        ? freeCancellationOnly 
+                        : facilitiesFilter.includes(item.value!);
+                      return (
+                        <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (item.type === "cancellation") {
+                                setFreeCancellationOnly(e.target.checked);
+                              } else {
+                                const val = item.value!;
+                                if (e.target.checked) setFacilitiesFilter(prev => [...prev, val]);
+                                else setFacilitiesFilter(prev => prev.filter(f => f !== val));
+                              }
+                            }}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                          />
+                          <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FilterSection>
 
                 {/* Property name */}
                 <FilterSection title="Property name">
@@ -762,20 +766,6 @@ export default function Home() {
                     className="w-full accent-primary"
                     data-testid="input-filter-price"
                   />
-                </FilterSection>
-
-                {/* Reservation Policy */}
-                <FilterSection title="Reservation policy">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={freeCancellationOnly}
-                      onChange={() => setFreeCancellationOnly(v => !v)}
-                      className="accent-primary w-4 h-4 rounded"
-                      data-testid="checkbox-free-cancellation"
-                    />
-                    <span className="text-sm text-foreground">Free Cancellation</span>
-                  </label>
                 </FilterSection>
 
                 {/* Distance from landmarks — Las Vegas only */}
