@@ -323,6 +323,7 @@ export function SearchHero({
       <Calendar
         initialFocus
         mode="range"
+        className="w-full"
         defaultMonth={stagedCheckIn || date?.from || new Date()}
         selected={calendarSelected}
         onSelect={() => {}}
@@ -752,7 +753,7 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0" ref={searchBarRef}>
+          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative" ref={searchBarRef}>
 
             {/* Combined row */}
             <div className="flex-1 flex items-center gap-0">
@@ -807,14 +808,6 @@ export function SearchHero({
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="p-0"
-                  align="start"
-                  alignOffset={-destSectionWidth}
-                  style={searchBarWidth > 0 ? { width: searchBarWidth } : undefined}
-                >
-                  {calendarContent(2)}
-                </PopoverContent>
               </Popover>
 
               {/* Guests section */}
@@ -843,6 +836,12 @@ export function SearchHero({
               <Search className="w-6 h-6" />
             </button>
             </div>
+
+            {dateOpen && !isMobile && (
+              <div className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden min-h-[300px]">
+                {calendarContent(2)}
+              </div>
+            )}
           </div>
 
           {/* Vibe toggle — desktop only (mobile is inside the card) */}
