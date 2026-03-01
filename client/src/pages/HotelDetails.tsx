@@ -297,7 +297,17 @@ export default function HotelDetails() {
   const [navSticky, setNavSticky] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (window.location.hash === "#rooms") {
+      setTimeout(() => {
+        const el = sectionRefs.rooms.current;
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top, behavior: "instant" });
+        }
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   }, []);
 
   useEffect(() => {
