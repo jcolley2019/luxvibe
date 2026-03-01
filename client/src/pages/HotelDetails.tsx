@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Loader2, MapPin, ChevronLeft, Heart, Camera, Star,
   Wifi, Coffee, Car, Dumbbell, Utensils, Waves, Sparkles, ChevronLeft as Prev, ChevronRight as Next,
@@ -237,6 +239,15 @@ export default function HotelDetails() {
   const [modalPhotoIdx, setModalPhotoIdx] = useState(0);
   const [showMap, setShowMap] = useState(false);
 
+  // Room search bar state
+  const [roomCheckIn, setRoomCheckIn] = useState(checkIn);
+  const [roomCheckOut, setRoomCheckOut] = useState(checkOut);
+  const [roomAdults, setRoomAdults] = useState(parseInt(guests) || 2);
+  const [roomDateOpen, setRoomDateOpen] = useState(false);
+  const [roomGuestsOpen, setRoomGuestsOpen] = useState(false);
+  const [roomDatePhase, setRoomDatePhase] = useState<"checkin" | "checkout">("checkin");
+  const [roomStagedCheckIn, setRoomStagedCheckIn] = useState<Date | undefined>(undefined);
+
   const groupedRooms = useMemo(() => {
     if (!hotel) return [];
     const groups: Record<string, typeof hotel.roomTypes> = {};
@@ -422,10 +433,21 @@ export default function HotelDetails() {
 
   const starCount = hotel.stars ? Math.round(hotel.stars) : null;
 
+  const navDestination = (() => {
+    const urlDest = new URLSearchParams(window.location.search).get("destination");
+    if (urlDest) return urlDest;
+    if (hotel.city) return hotel.city;
+    try {
+      const recent = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+      if (recent.length > 0) return recent[0].destination;
+    } catch {}
+    return "";
+  })();
+
   const compactBar = (
     <SearchHero
       variant="navbar"
-      initialDestination={hotel?.name}
+      initialDestination={navDestination}
       initialCheckIn={checkIn}
       initialCheckOut={checkOut}
       initialGuests={guests}
@@ -713,20 +735,107 @@ export default function HotelDetails() {
 
           {/* Change search bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-6 p-3 rounded-lg border border-border bg-muted/30" data-testid="change-search-bar">
-            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
-              <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span>{format(parseISO(checkIn), "dd MMM")}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
-              <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span>{format(parseISO(checkOut), "dd MMM")}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm">
-              <Users className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span>1 {t("hotel.room")}, {guests} {parseInt(guests) === 1 ? t("search.guest") : t("search.guest_plural")}</span>
-            </div>
+            {/* Date picker popover — opens on check-in, then check-out */}
+            <Popover open={roomDateOpen} onOpenChange={(open) => {
+              setRoomDateOpen(open);
+              if (open) { setRoomDatePhase("checkin"); setRoomStagedCheckIn(undefined); }
+            }}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm hover:bg-muted/50 transition-colors text-left" data-testid="button-room-checkin">
+                  <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground text-[10px] uppercase font-bold tracking-wide">{t("search.checkin")}&nbsp;</span>
+                  <span>{format(parseISO(roomCheckIn), "dd MMM")}</span>
+                  <span className="text-muted-foreground mx-1">→</span>
+                  <span className="text-muted-foreground text-[10px] uppercase font-bold tracking-wide">{t("search.checkout")}&nbsp;</span>
+                  <span>{format(parseISO(roomCheckOut), "dd MMM")}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="px-4 pt-4 pb-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    {roomDatePhase === "checkin"
+                      ? t("search.when_checkin", "When do you want to check in?")
+                      : t("search.when_checkout", "When do you want to check out?")}
+                  </p>
+                </div>
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={parseISO(roomCheckIn)}
+                  selected={roomStagedCheckIn
+                    ? { from: roomStagedCheckIn, to: undefined }
+                    : { from: parseISO(roomCheckIn), to: parseISO(roomCheckOut) }}
+                  onSelect={() => {}}
+                  onDayClick={(day: Date) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    if (day < today) return;
+                    if (roomDatePhase === "checkin") {
+                      setRoomStagedCheckIn(day);
+                      setRoomCheckIn(format(day, "yyyy-MM-dd"));
+                      setRoomDatePhase("checkout");
+                    } else {
+                      if (!roomStagedCheckIn || day <= roomStagedCheckIn) return;
+                      setRoomCheckOut(format(day, "yyyy-MM-dd"));
+                      setRoomDateOpen(false);
+                      setRoomDatePhase("checkin");
+                      setRoomStagedCheckIn(undefined);
+                    }
+                  }}
+                  disabled={(d) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    if (d < today) return true;
+                    if (roomDatePhase === "checkout" && roomStagedCheckIn && d <= roomStagedCheckIn) return true;
+                    return false;
+                  }}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Guests popover */}
+            <Popover open={roomGuestsOpen} onOpenChange={setRoomGuestsOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2 rounded-md border border-border bg-background text-sm hover:bg-muted/50 transition-colors text-left" data-testid="button-room-guests">
+                  <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span>1 {t("hotel.room")}, {roomAdults} {roomAdults === 1 ? t("search.adult") : t("search.adult_plural")}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-60 p-4" align="start">
+                <p className="font-semibold text-sm mb-3">{t("search.guests")}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{t("search.adults")}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setRoomAdults(a => Math.max(1, a - 1))}
+                      disabled={roomAdults <= 1}
+                      className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-base disabled:opacity-30"
+                      data-testid="button-room-adults-minus"
+                    >−</button>
+                    <span className="w-5 text-center text-sm font-medium" data-testid="text-room-adults-count">{roomAdults}</span>
+                    <button
+                      onClick={() => setRoomAdults(a => Math.min(10, a + 1))}
+                      disabled={roomAdults >= 10}
+                      className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-base disabled:opacity-30"
+                      data-testid="button-room-adults-plus"
+                    >+</button>
+                  </div>
+                </div>
+                <Button size="sm" className="w-full mt-4" onClick={() => setRoomGuestsOpen(false)} data-testid="button-room-guests-done">
+                  {t("search.done")}
+                </Button>
+              </PopoverContent>
+            </Popover>
+
             <Button
-              onClick={() => scrollToSection("overview")}
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set("checkIn", roomCheckIn);
+                params.set("checkOut", roomCheckOut);
+                params.set("guests", String(roomAdults));
+                const urlDest = new URLSearchParams(window.location.search).get("destination");
+                if (urlDest) params.set("destination", urlDest);
+                setLocation(`/hotel/${id}?${params.toString()}`);
+              }}
               className="rounded-full gap-2 shrink-0"
               data-testid="button-change-search"
             >
