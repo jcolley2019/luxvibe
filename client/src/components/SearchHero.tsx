@@ -551,10 +551,33 @@ export function SearchHero({
         <div className="absolute inset-0 bg-black/40 pointer-events-none rounded-2xl" />
 
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: 638 }}>
-          <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
-            Luxury Stays. Unbeatable Rates.
-          </h1>
-          <p className="text-white/80 text-lg mb-8 tracking-wide">Discover stays that redefine extraordinary</p>
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
+              Luxury Stays. Unbeatable Rates.
+            </h1>
+            <p className="text-white/80 text-lg tracking-wide">Discover stays that redefine extraordinary</p>
+
+            {/* Stats bar */}
+            <div className="hidden md:flex mt-6 items-center justify-center gap-6 text-white/90 text-sm">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-white" />
+                <span className="font-semibold">2M+</span>
+                <span className="text-white">{t("search.stat_hotels")}</span>
+              </div>
+              <div className="w-px h-4 bg-white/30" />
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-white" />
+                <span className="font-semibold">190+</span>
+                <span className="text-white">{t("search.stat_countries")}</span>
+              </div>
+              <div className="w-px h-4 bg-white/30" />
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-white fill-white" />
+                <span className="font-semibold">4.8/5</span>
+                <span className="text-white">{t("search.stat_rating")}</span>
+              </div>
+            </div>
+          </div>
 
           {/* ── MOBILE search card (shown below md) ── */}
           <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
@@ -805,27 +828,6 @@ export function SearchHero({
             <Sparkles className="w-3.5 h-3.5" />
             {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
           </button>
-
-          {/* Stats bar */}
-          <div className="hidden md:flex mt-4 items-center gap-6 text-white/90 text-sm">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-white" />
-              <span className="font-semibold">2M+</span>
-              <span className="text-white">{t("search.stat_hotels")}</span>
-            </div>
-            <div className="w-px h-4 bg-white/30" />
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white" />
-              <span className="font-semibold">190+</span>
-              <span className="text-white">{t("search.stat_countries")}</span>
-            </div>
-            <div className="w-px h-4 bg-white/30" />
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-white fill-white" />
-              <span className="font-semibold">4.8/5</span>
-              <span className="text-white">{t("search.stat_rating")}</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
