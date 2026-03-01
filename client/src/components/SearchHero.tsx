@@ -413,7 +413,7 @@ export function SearchHero({
     return (
       <div className="hidden md:flex flex-col items-center w-full max-w-2xl">
         <div className="flex w-full bg-white dark:bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
-          <div className="flex-[2] flex flex-col justify-center px-3 py-0.5 min-w-0 relative" ref={autocompleteRef}>
+          <div className="flex-1 flex flex-col justify-center px-3 py-0.5 min-w-0 relative border-r border-border" ref={autocompleteRef}>
             <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-left leading-tight">
               {t("search.destination_tab")}
             </span>
@@ -471,12 +471,10 @@ export function SearchHero({
             )}
           </div>
 
-          <div className="w-px bg-gray-200 self-stretch my-1.5" />
-
           <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
             <PopoverTrigger asChild>
               <button
-                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
+                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
                 data-testid="button-dates-navbar"
               >
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.checkin")} / {t("search.checkout")}</span>
@@ -488,12 +486,10 @@ export function SearchHero({
             </PopoverContent>
           </Popover>
 
-          <div className="w-px bg-gray-200 self-stretch my-1.5" />
-
           <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
             <PopoverTrigger asChild>
               <button
-                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
+                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
                 data-testid="button-guests-navbar"
               >
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.guests")}</span>
