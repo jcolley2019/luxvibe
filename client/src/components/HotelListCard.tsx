@@ -214,7 +214,7 @@ export function HotelListCard({
             {price ? (
               <>
                 {originalPrice && originalPrice > price && (
-                  <div className="text-sm text-muted-foreground line-through">US${originalPrice.toLocaleString()}</div>
+                  <div className="text-sm text-muted-foreground line-through decoration-muted-foreground">US${originalPrice.toLocaleString()}</div>
                 )}
                 <div className="text-xl font-bold text-foreground">US${price.toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">/ night</div>
