@@ -1313,7 +1313,14 @@ export async function registerRoutes(
             return aMin - bMin;
           });
 
-          for (const group of sortedGroups.slice(0, 20)) {
+          const seenGroupIds = new Set<string>();
+          const dedupedGroups = sortedGroups.filter(group => {
+            if (seenGroupIds.has(group.nameGroupId)) return false;
+            seenGroupIds.add(group.nameGroupId);
+            return true;
+          });
+
+          for (const group of dedupedGroups.slice(0, 20)) {
             const matchedRoom = findRoomByName(group.rateName);
             const photos = findPhotosByName(group.rateName);
             const boardOrder = ["room only", "breakfast included"];
