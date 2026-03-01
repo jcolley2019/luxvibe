@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearch, useLocation } from "wouter";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,8 @@ import { SearchHero } from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { HotelListCard, type ListHotel } from "@/components/HotelListCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
+import { SearchMapView } from "@/components/SearchMapView";
+import { SearchMapThumbnail } from "@/components/SearchMapThumbnail";
 import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List, Sparkles, Palmtree, Building2, Briefcase, Waves, Compass, Dumbbell, Gem, PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -429,6 +431,38 @@ export default function Home() {
     return { lat: avgLat, lng: avgLng };
   }, [hotels]);
 
+  // Geocode destination string for map center fallback
+  const [destinationCenter, setDestinationCenter] = useState<{ lat: number; lng: number } | null>(null);
+
+  const geocodeQuery = useCallback((query: string) => {
+    if (!query.trim()) return;
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=0`, {
+      headers: { "User-Agent": "Luxvibe/1.0" },
+    })
+      .then(r => r.json())
+      .then((data: any[]) => {
+        if (data?.[0]?.lat && data?.[0]?.lon) {
+          setDestinationCenter({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!isSearchActive) { setDestinationCenter(null); return; }
+    if (destination) geocodeQuery(destination);
+  }, [destination, isSearchActive, geocodeQuery]);
+
+  // Fallback: geocode from first loaded hotel's city when destination is not in URL (placeId search)
+  useEffect(() => {
+    if (destinationCenter) return;
+    if (!hotels?.length) return;
+    const city = (hotels[0] as any).city;
+    if (city) geocodeQuery(city);
+  }, [hotels, destinationCenter, geocodeQuery]);
+
+  const effectiveMapCenter = mapCenter || destinationCenter;
+
   // Neighborhood extraction and available neighborhoods
   function extractNeighborhood(hotel: any): string {
     const addr = (hotel.address || "").toLowerCase();
@@ -716,28 +750,12 @@ export default function Home() {
               <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
 
                 {/* Show on Map thumbnail */}
-                {mapCenter && (
-                  <div className="relative overflow-hidden rounded-t-xl" style={{ height: 195 }}>
-                    <iframe
-                      title="Map preview"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.10},${mapCenter.lat - 0.07},${mapCenter.lng + 0.10},${mapCenter.lat + 0.07}&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
-                      className="w-full border-0 pointer-events-none"
-                      style={{ height: 260, marginTop: -30 }}
-                    />
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-                      <button
-                        onClick={() => {
-                          const url = `https://www.openstreetmap.org/#map=13/${mapCenter.lat}/${mapCenter.lng}`;
-                          window.open(url, "_blank", "noopener,noreferrer");
-                        }}
-                        className="flex items-center gap-2 bg-white text-foreground text-xs font-semibold px-4 py-2 rounded-full shadow-xl hover:bg-primary hover:text-primary-foreground transition-colors whitespace-nowrap border border-border/20"
-                        data-testid="button-show-on-map"
-                      >
-                        <MapIcon className="w-3.5 h-3.5" />
-                        Show on Map
-                      </button>
-                    </div>
-                  </div>
+                {effectiveMapCenter && (
+                  <SearchMapThumbnail
+                    center={effectiveMapCenter}
+                    hotelCount={filteredHotels.filter(h => (h as any).lat && (h as any).lng).length}
+                    onClick={() => setViewMode("map")}
+                  />
                 )}
 
                 {/* Header */}
@@ -1158,22 +1176,14 @@ export default function Home() {
 
               {/* Hotel list or Map */}
               {viewMode === "map" ? (
-                mapCenter ? (
-                  <div className="rounded-xl overflow-hidden border border-border shadow-sm" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
-                    <iframe
-                      title="Hotels map"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng - 0.12},${mapCenter.lat - 0.08},${mapCenter.lng + 0.12},${mapCenter.lat + 0.08}&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
-                      className="w-full h-full border-0"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30" style={{ height: 400 }}>
-                    <div className="text-center">
-                      <MapIcon className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                      <p className="text-muted-foreground text-sm">Map unavailable — no hotel coordinates found.</p>
-                    </div>
-                  </div>
-                )
+                <SearchMapView
+                  hotels={filteredHotels as any}
+                  center={effectiveMapCenter}
+                  currency="USD"
+                  checkIn={checkIn || undefined}
+                  checkOut={checkOut || undefined}
+                  guests={guests}
+                />
               ) : isLoading ? (
                 <div className="flex flex-col gap-3">
                   {[...Array(6)].map((_, i) => (

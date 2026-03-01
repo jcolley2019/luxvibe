@@ -28,6 +28,32 @@ class ApiCache {
 }
 
 const apiCache = new ApiCache();
+const geocodeCache = new ApiCache();
+
+async function geocodeHotel(name: string, city: string, countryCode: string): Promise<{ lat: number; lng: number } | null> {
+  const key = `geocode_${name}_${city}_${countryCode}`;
+  const cached = geocodeCache.get(key);
+  if (cached !== null) return cached;
+
+  try {
+    const query = encodeURIComponent(`${name}, ${city}, ${countryCode}`);
+    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&addressdetails=0`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Luxvibe/1.0 (hotel-booking-app)" },
+      signal: AbortSignal.timeout(4000),
+    });
+    const data = await res.json() as any[];
+    if (data?.length > 0 && data[0].lat && data[0].lon) {
+      const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      geocodeCache.set(key, result, 86400000); // 24h cache
+      return result;
+    }
+    geocodeCache.set(key, null, 3600000); // 1h negative cache
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 async function liteApiGet(path: string, params?: Record<string, string>, ttlMs?: number) {
   const url = new URL(`${LITEAPI_BASE}${path}`);
@@ -917,12 +943,42 @@ export async function registerRoutes(
         };
       });
 
-      // Return hotels with rates first, then those without; all results included
+      // Return results immediately, geocode in background to populate next cached request
       const withRates = results.filter((h: any) => h.price > 0);
       const withoutRates = results.filter((h: any) => h.price === 0);
       const finalResults = [...withRates, ...withoutRates];
       apiCache.set(cacheKey, finalResults, 300000);
       res.json(finalResults);
+
+      // Background geocoding — only runs if hotels are missing coordinates
+      const needsGeocode = finalResults.filter((h: any) => h.lat === null || h.lng === null).slice(0, 30);
+      if (needsGeocode.length > 0) {
+        (async () => {
+          const resolvedForGeocode = placeId
+            ? { cityName: hotelsMetadata[0]?.city || "", countryCode: hotelsMetadata[0]?.country || "US" }
+            : resolveDestination(destination || "");
+          const BATCH = 5;
+          let anyGeocodedSuccessfully = false;
+          for (let i = 0; i < needsGeocode.length; i += BATCH) {
+            const batch = needsGeocode.slice(i, i + BATCH);
+            const geoResults = await Promise.all(
+              batch.map(h => geocodeHotel(h.name, resolvedForGeocode.cityName, resolvedForGeocode.countryCode))
+            );
+            for (let j = 0; j < batch.length; j++) {
+              if (geoResults[j]) {
+                batch[j].lat = geoResults[j]!.lat;
+                batch[j].lng = geoResults[j]!.lng;
+                anyGeocodedSuccessfully = true;
+              }
+            }
+            if (i + BATCH < needsGeocode.length) await new Promise(r => setTimeout(r, 1100));
+          }
+          // Update the cache with geocoded coordinates so next request has them
+          if (anyGeocodedSuccessfully) {
+            apiCache.set(cacheKey, finalResults, 300000);
+          }
+        })().catch(() => {});
+      }
     } catch (err: any) {
       console.error("Hotel search error:", err?.message || err);
       res.status(500).json({ message: "Failed to search hotels" });
