@@ -424,10 +424,14 @@ export default function Home() {
   // Map center from hotel coordinates
   const mapCenter = useMemo(() => {
     if (!hotels?.length) return null;
-    const withCoords = hotels.filter(h => (h as any).lat && (h as any).lng);
+    const withCoords = hotels.filter(h => {
+      const lat = Number((h as any).lat);
+      const lng = Number((h as any).lng);
+      return (h as any).lat != null && (h as any).lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+    });
     if (!withCoords.length) return null;
-    const avgLat = withCoords.reduce((s, h) => s + (h as any).lat, 0) / withCoords.length;
-    const avgLng = withCoords.reduce((s, h) => s + (h as any).lng, 0) / withCoords.length;
+    const avgLat = withCoords.reduce((s, h) => s + Number((h as any).lat), 0) / withCoords.length;
+    const avgLng = withCoords.reduce((s, h) => s + Number((h as any).lng), 0) / withCoords.length;
     return { lat: avgLat, lng: avgLng };
   }, [hotels]);
 
@@ -751,7 +755,11 @@ export default function Home() {
                 {effectiveMapCenter && (
                   <SearchMapThumbnail
                     center={effectiveMapCenter}
-                    hotelCount={filteredHotels.filter(h => (h as any).lat && (h as any).lng).length}
+                    hotelCount={filteredHotels.filter(h => {
+                      const lat = Number((h as any).lat);
+                      const lng = Number((h as any).lng);
+                      return (h as any).lat != null && (h as any).lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+                    }).length}
                     onClick={() => setViewMode("map")}
                   />
                 )}

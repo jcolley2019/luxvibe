@@ -64,9 +64,11 @@ export function SearchMapView({ hotels, center, currency = "USD", checkIn, check
   const [selectedHotel, setSelectedHotel] = useState<SearchMapHotel | null>(null);
   const [, navigate] = useLocation();
 
-  const hotelsWithCoords = hotels.filter(
-    h => h.lat != null && h.lng != null && typeof h.lat === "number" && typeof h.lng === "number" && isFinite(h.lat) && isFinite(h.lng)
-  );
+  const hotelsWithCoords = hotels.filter(h => {
+    const lat = Number(h.lat);
+    const lng = Number(h.lng);
+    return h.lat != null && h.lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+  });
 
   const computedCenter = center || (hotelsWithCoords.length > 0
     ? {
