@@ -242,7 +242,7 @@ export function SearchHero({
 
   const calendarSelected = (() => {
     if (selectionPhase === "checkin") {
-      return undefined;
+      return date ? { from: date.from, to: date.to } : undefined;
     }
     if (stagedCheckIn) {
       const endDate = hoveredDate && hoveredDate > stagedCheckIn ? hoveredDate : stagedCheckIn;
