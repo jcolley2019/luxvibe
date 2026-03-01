@@ -310,7 +310,7 @@ export function SearchHero({
 
   const calendarContent = (nMonths: number) => (
     <div data-testid="calendar-dropdown" className="bg-white dark:bg-card">
-      <div className="px-4 pb-4 pt-4">
+      <div className="pt-4 pb-2">
         <Calendar
           initialFocus
           mode="range"
@@ -318,11 +318,28 @@ export function SearchHero({
           style={{ width: '100%' }}
           showOutsideDays={true}
           classNames={{
-            months: "flex flex-row justify-center gap-8",
-            caption_label: "text-base font-bold",
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
+            months: "flex flex-row w-full divide-x divide-border",
+            month: "flex-1 px-6 py-2",
+            caption: "flex justify-center relative items-center mb-4 h-10",
+            caption_label: "text-base font-bold text-foreground",
+            nav: "flex items-center",
+            nav_button: "h-8 w-8 bg-transparent p-0 hover:bg-muted rounded-md transition-colors flex items-center justify-center opacity-70 hover:opacity-100",
+            nav_button_previous: "absolute left-0",
+            nav_button_next: "absolute right-0",
+            table: "w-full border-collapse",
+            head_row: "flex w-full justify-between mb-2",
+            head_cell: "text-muted-foreground text-xs font-semibold text-center w-9 uppercase tracking-wide",
+            row: "flex w-full justify-between mt-1",
+            cell: "text-center text-sm relative p-0",
+            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-muted rounded-full transition-colors flex items-center justify-center mx-auto text-sm",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-semibold",
             day_today: "text-primary font-bold",
+            day_outside: "text-muted-foreground opacity-40",
+            day_disabled: "text-muted-foreground opacity-25 cursor-not-allowed",
+            day_range_middle: "aria-selected:bg-blue-100 aria-selected:text-blue-700 dark:aria-selected:bg-blue-900/30 dark:aria-selected:text-blue-300 rounded-none",
+            day_range_start: "rounded-full",
+            day_range_end: "rounded-full",
+            day_hidden: "invisible",
           }}
           defaultMonth={stagedCheckIn || date?.from || new Date()}
           selected={calendarSelected}
