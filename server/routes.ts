@@ -1487,6 +1487,7 @@ Guest question: ${question}`;
   app.get("/api/landmarks/:city", async (req, res) => {
     try {
       const city = req.params.city;
+      console.log('[landmarks-api] called for city:', city);
       const cacheKey = `landmarks_${city.toLowerCase()}`;
       const cached = apiCache.get(cacheKey);
       if (cached) return res.json(cached);
@@ -1518,6 +1519,7 @@ Guest question: ${question}`;
       }
 
       apiCache.set(cacheKey, landmarks, 86400000); // 24h
+      console.log('[landmarks-api] result:', landmarks);
       res.json(landmarks);
     } catch (err: any) {
       console.error("Landmarks error:", err?.message || err);

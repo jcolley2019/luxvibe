@@ -398,13 +398,18 @@ export default function Home() {
       return;
     }
     setLandmarksLoading(true);
+    console.log(`[landmarks] fetching for: ${city}`);
     fetch(`/api/landmarks/${encodeURIComponent(city)}`)
       .then(r => r.ok ? r.json() : [])
       .then((data: { name: string; lat: number; lng: number }[]) => {
+        console.log('[landmarks] response:', data);
         setLandmarks(Array.isArray(data) ? data : []);
         setLandmarkDistances({});
       })
-      .catch(() => setLandmarks([]))
+      .catch((error) => {
+        console.log('[landmarks] error:', error);
+        setLandmarks([]);
+      })
       .finally(() => setLandmarksLoading(false));
   }, [destination, isSearchActive]);
 
