@@ -349,11 +349,20 @@ export default function HotelDetails() {
     setActiveTab(tab);
     const el = sectionRefs[tab].current;
     if (el) {
-      const offset = 80;
+      const offset = 140; // Increased offset to account for sticky search bar
       const top = el.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    if (window.location.hash === "#rooms") {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        scrollToSection("rooms");
+      }, 100);
+    }
+  }, [hotel?.id]);
 
   const handleAiSubmit = async (question?: string) => {
     const q = question || aiInput;
