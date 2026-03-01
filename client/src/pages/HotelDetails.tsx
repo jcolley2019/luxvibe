@@ -702,7 +702,7 @@ export default function HotelDetails() {
         )}
 
         {/* ─── Rooms Section ─── */}
-        <div ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
+        <div id="rooms" ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
           <h2 className="text-xl font-bold mb-4">{t("hotel.choose_your_room")}</h2>
 
           {/* Savings tip */}
@@ -836,8 +836,7 @@ export default function HotelDetails() {
                 params.set("guests", String(roomAdults));
                 const urlDest = new URLSearchParams(window.location.search).get("destination");
                 if (urlDest) params.set("destination", urlDest);
-                setLocation(`/hotel/${id}?${params.toString()}`);
-                window.location.reload();
+                window.location.href = `/hotel/${id}?${params.toString()}#rooms`;
               }}
               className="rounded-full gap-2 shrink-0"
               data-testid="button-change-search"
