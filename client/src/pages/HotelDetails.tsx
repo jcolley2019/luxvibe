@@ -837,6 +837,7 @@ export default function HotelDetails() {
                 const urlDest = new URLSearchParams(window.location.search).get("destination");
                 if (urlDest) params.set("destination", urlDest);
                 setLocation(`/hotel/${id}?${params.toString()}`);
+                window.location.reload();
               }}
               className="rounded-full gap-2 shrink-0"
               data-testid="button-change-search"
