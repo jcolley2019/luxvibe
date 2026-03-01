@@ -646,7 +646,7 @@ export function SearchHero({
           <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl items-stretch overflow-visible px-1 py-1 gap-0">
 
             {/* Where / Vibe input */}
-            <div className="flex-1 flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
+            <div className="flex-[2] flex flex-col justify-center px-4 py-1.5 min-w-0 relative" ref={autocompleteRef}>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide text-left">
                 {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
               </span>
@@ -722,31 +722,15 @@ export function SearchHero({
 
             {/* Dates */}
             <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
-              <div className="flex flex-1 items-stretch overflow-visible">
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
-                    data-testid="button-checkin"
-                  >
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.checkin")}</span>
-                    <span className="text-sm text-gray-700 dark:text-foreground truncate">
-                      {date?.from ? format(date.from, "MMM d") : t("search.add_dates")}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-                <div className="w-px bg-gray-200 self-stretch my-2" />
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
-                    data-testid="button-checkout"
-                  >
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.checkout")}</span>
-                    <span className="text-sm text-gray-700 dark:text-foreground truncate">
-                      {date?.to ? format(date.to, "MMM d") : t("search.add_dates")}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-              </div>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 flex flex-col justify-center px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left"
+                  data-testid="button-dates"
+                >
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{t("search.checkin")} / {t("search.checkout")}</span>
+                  <span className="text-sm text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
+                </button>
+              </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
                 {calendarContent(2)}
               </PopoverContent>
