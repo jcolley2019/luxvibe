@@ -877,16 +877,15 @@ export default function Home() {
                       <div className="flex flex-col gap-3">
                         {landmarks.map((lm) => {
                           const selected = landmarkDistances[lm.name] ?? null;
-                          const shortName = lm.name.length > 14 ? lm.name.slice(0, 13) + "…" : lm.name;
                           return (
-                            <div key={lm.name} className="flex items-center justify-between gap-2">
-                              <span className="text-[11px] font-medium text-muted-foreground truncate shrink-0 w-16" title={lm.name}>{shortName}</span>
-                              <div className="flex gap-1">
+                            <div key={lm.name} className="flex flex-col gap-1.5 py-1">
+                              <span className="text-[11px] font-medium text-foreground leading-tight" title={lm.name}>{lm.name}</span>
+                              <div className="flex gap-1 flex-wrap">
                                 {([0.5, 1, 2, 5] as const).map(miles => (
                                   <button
                                     key={miles}
                                     onClick={() => setLandmarkDistances(prev => ({ ...prev, [lm.name]: prev[lm.name] === miles ? null : miles }))}
-                                    className={`text-[10px] px-1.5 py-1 rounded border whitespace-nowrap transition-colors ${selected === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
+                                    className={`text-[10px] px-2 py-1 rounded border whitespace-nowrap transition-colors flex-1 text-center ${selected === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
                                     data-testid={`landmark-distance-${lm.name.toLowerCase().replace(/\s+/g, "-")}-${miles}`}
                                   >
                                     &lt;{miles}m
