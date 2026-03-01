@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users, Star } from "lucide-react";
+import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users, Star, LocateFixed } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -103,6 +103,9 @@ export function SearchHero({
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const [searchBarWidth, setSearchBarWidth] = useState(0);
+  const [destSectionWidth, setDestSectionWidth] = useState(0);
 
   const { data: places = [] } = useQuery({
     queryKey: ["/api/places", destination],
@@ -126,6 +129,49 @@ export function SearchHero({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const update = () => {
+      if (searchBarRef.current) setSearchBarWidth(searchBarRef.current.offsetWidth);
+      if (autocompleteRef.current) setDestSectionWidth(autocompleteRef.current.offsetWidth);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (searchBarRef.current) ro.observe(searchBarRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const handleNearbyClick = () => {
+    setShowAutocomplete(false);
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          const data = await res.json();
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.village ||
+            data.address?.county ||
+            "My Location";
+          setDestination(city);
+          setPlaceId("");
+        } catch {
+          setDestination("My Location");
+          setPlaceId("");
+        }
+      },
+      () => {
+        setDestination("My Location");
+        setPlaceId("");
+      }
+    );
+  };
 
   const parseDate = (str?: string) => {
     if (!str) return undefined;
@@ -318,8 +364,8 @@ export function SearchHero({
     </div>
   );
 
-  const guestsPopoverContent = (
-    <PopoverContent className="w-72 p-0" align="end">
+  const makeGuestsPopoverContent = (alignOffset = 0) => (
+    <PopoverContent className="w-72 p-0" align="end" alignOffset={alignOffset}>
       <div className="px-5 pt-5 pb-3 border-b border-border">
         <h3 className="font-bold text-base">{t("search.guests")}</h3>
       </div>
@@ -388,6 +434,18 @@ export function SearchHero({
 
   const autocompleteList = (
     <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ maxHeight: "300px", overflowY: "auto" }}>
+      <button
+        className="w-full text-left px-3 py-2.5 transition-colors flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-100 dark:border-border"
+        onClick={handleNearbyClick}
+        data-testid="button-nearby-area"
+      >
+        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+          <LocateFixed className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-normal text-gray-800 dark:text-foreground">Around my area</div>
+        </div>
+      </button>
       {(() => {
         const allPlaces = places as any[];
         const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
@@ -522,7 +580,7 @@ export function SearchHero({
                 <span className="text-xs text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
               </button>
             </PopoverTrigger>
-            {guestsPopoverContent}
+            {makeGuestsPopoverContent()}
           </Popover>
 
           <button
@@ -614,7 +672,7 @@ export function SearchHero({
                   />
                 )}
               </div>
-              {showAutocomplete && places.length > 0 && mode === "destination" && autocompleteList}
+              {showAutocomplete && mode === "destination" && autocompleteList}
             </div>
 
             {/* Dates row — two side-by-side cells sharing one popover */}
@@ -665,7 +723,7 @@ export function SearchHero({
                   <span className="text-sm text-gray-800 dark:text-foreground">{guestsLabel}</span>
                 </button>
               </PopoverTrigger>
-              {guestsPopoverContent}
+              {makeGuestsPopoverContent()}
             </Popover>
 
             {/* Vibe toggle row */}
@@ -694,7 +752,7 @@ export function SearchHero({
           </div>
 
           {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0">
+          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0" ref={searchBarRef}>
 
             {/* Combined row */}
             <div className="flex-1 flex items-center gap-0">
@@ -732,7 +790,7 @@ export function SearchHero({
                     />
                   </div>
                 )}
-                {showAutocomplete && places.length > 0 && mode === "destination" && autocompleteList}
+                {showAutocomplete && mode === "destination" && autocompleteList}
               </div>
 
               {/* Dates section */}
@@ -749,7 +807,12 @@ export function SearchHero({
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center">
+                <PopoverContent
+                  className="p-0"
+                  align="start"
+                  alignOffset={-destSectionWidth}
+                  style={searchBarWidth > 0 ? { width: searchBarWidth } : undefined}
+                >
                   {calendarContent(2)}
                 </PopoverContent>
               </Popover>
@@ -768,7 +831,7 @@ export function SearchHero({
                     </div>
                   </button>
                 </PopoverTrigger>
-                {guestsPopoverContent}
+                {makeGuestsPopoverContent(-48)}
               </Popover>
 
             {/* Desktop Search Button */}
