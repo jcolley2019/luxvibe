@@ -1284,7 +1284,30 @@ export async function registerRoutes(
             }
           }
 
-          const sortedGroups = Object.values(roomGroups).sort((a, b) => {
+          // Deduplicate similar room groups (e.g. "Deluxe King" vs "Deluxe King Room")
+          const groups = Object.values(roomGroups);
+          const mergedGroups: typeof groups = [];
+          for (const group of groups) {
+            const sigWords = group.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
+            let found = false;
+            if (sigWords) {
+              for (const mg of mergedGroups) {
+                const mgSigWords = mg.nameGroupId.split("_").filter(w => w.length > 3).sort().join("_");
+                if (sigWords === mgSigWords) {
+                  for (const [bk, rate] of Object.entries(group.boardRates)) {
+                    if (!mg.boardRates[bk] || rate.price < mg.boardRates[bk].price) {
+                      mg.boardRates[bk] = rate;
+                    }
+                  }
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (!found) mergedGroups.push(group);
+          }
+
+          const sortedGroups = mergedGroups.sort((a, b) => {
             const aMin = Math.min(...Object.values(a.boardRates).map(r => r.price));
             const bMin = Math.min(...Object.values(b.boardRates).map(r => r.price));
             return aMin - bMin;
