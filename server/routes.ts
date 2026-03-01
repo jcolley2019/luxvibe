@@ -1350,6 +1350,20 @@ export async function registerRoutes(
         }
       }
 
+      // Final deduplication: if two cards match the same physical room AND have the same
+      // significant word pattern in their rate name, keep only the cheapest one.
+      const finalRoomTypes: any[] = [];
+      const seenPhysical = new Map<string, any>();
+      for (const rt of roomTypes) {
+        const sigWords = rt.mappedRoomId.split("_").filter((w: string) => w.length > 3).sort().join("_");
+        const key = `${rt.roomName || "unknown"}_${sigWords || rt.mappedRoomId}`;
+        const existing = seenPhysical.get(key);
+        if (!existing || rt.price < existing.price) {
+          seenPhysical.set(key, rt);
+        }
+      }
+      const dedupedRoomTypes = Array.from(seenPhysical.values());
+
       res.json({
         id: hotelRaw.id,
         name: hotelRaw.name || "Hotel",
@@ -1369,7 +1383,7 @@ export async function registerRoutes(
         images,
         amenities,
         rooms,
-        roomTypes,
+        roomTypes: dedupedRoomTypes,
       });
     } catch (err: any) {
       console.error("Hotel details error:", err?.message || err);
