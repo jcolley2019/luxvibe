@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing } from "lucide-react";
+import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint } from "lucide-react";
 import type { DealBadge } from "@/components/HotelCard";
 
 export interface ListHotel {
@@ -31,6 +31,9 @@ const FACILITY_ICON_MAP: Record<string, { icon: React.ElementType; label: string
   spa: { icon: Sparkles, label: "Spa" },
   "airport shuttle": { icon: PlaneTakeoff, label: "Airport Shuttle" },
   "room service": { icon: BellRing, label: "Room Service" },
+  breakfast: { icon: Coffee, label: "Breakfast" },
+  "air conditioning": { icon: Snowflake, label: "AC" },
+  "pets allowed": { icon: PawPrint, label: "Pet Friendly" },
 };
 
 function getFacilityPills(facilities: string[] | undefined): Array<{ icon: React.ElementType; label: string }> {
@@ -201,7 +204,7 @@ export function HotelListCard({
             )}
             {price ? (
               <>
-                {originalPrice && (
+                {originalPrice && originalPrice > price && (
                   <div className="text-sm text-muted-foreground line-through">US${originalPrice.toLocaleString()}</div>
                 )}
                 <div className="text-xl font-bold text-foreground">US${price.toLocaleString()}</div>
