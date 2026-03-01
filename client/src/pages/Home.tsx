@@ -219,7 +219,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("recommended");
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
-  const [starFilter, setStarFilter] = useState<number[]>([4, 5]);
+  const [starFilter, setStarFilter] = useState<number[]>([3, 4, 5]);
   const [includeUnrated, setIncludeUnrated] = useState(false);
   const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
