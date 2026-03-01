@@ -540,7 +540,7 @@ export function SearchHero({
         <div className="absolute inset-0 bg-black/40 pointer-events-none rounded-2xl" />
 
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: 638 }}>
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+          <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
             Luxury Stays. Unbeatable Rates.
           </h1>
           <p className="text-white/80 text-lg mb-8 tracking-wide">Discover stays that redefine extraordinary</p>
