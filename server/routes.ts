@@ -1484,46 +1484,158 @@ Guest question: ${question}`;
     }
   });
 
-  app.get("/api/landmarks/:city", async (req, res) => {
-    try {
-      const city = req.params.city;
-      console.log('[landmarks-api] called for city:', city);
-      const cacheKey = `landmarks_${city.toLowerCase()}`;
-      const cached = apiCache.get(cacheKey);
-      if (cached) return res.json(cached);
+  const LANDMARK_FALLBACKS: Record<string, { name: string; lat: number; lng: number }[]> = {
+    "paris": [
+      { name: "Eiffel Tower", lat: 48.8584, lng: 2.2945 },
+      { name: "Louvre Museum", lat: 48.8606, lng: 2.3376 },
+      { name: "Notre-Dame Cathedral", lat: 48.8530, lng: 2.3499 },
+      { name: "Champs-Élysées", lat: 48.8698, lng: 2.3078 },
+      { name: "Montmartre", lat: 48.8867, lng: 2.3431 },
+      { name: "Musée d'Orsay", lat: 48.8600, lng: 2.3266 },
+    ],
+    "london": [
+      { name: "Big Ben", lat: 51.5007, lng: -0.1246 },
+      { name: "Tower of London", lat: 51.5081, lng: -0.0759 },
+      { name: "Buckingham Palace", lat: 51.5014, lng: -0.1419 },
+      { name: "London Eye", lat: 51.5033, lng: -0.1196 },
+      { name: "Covent Garden", lat: 51.5117, lng: -0.1240 },
+      { name: "Shoreditch", lat: 51.5226, lng: -0.0777 },
+    ],
+    "new york": [
+      { name: "Times Square", lat: 40.7580, lng: -73.9855 },
+      { name: "Central Park", lat: 40.7851, lng: -73.9683 },
+      { name: "Empire State Building", lat: 40.7484, lng: -73.9967 },
+      { name: "Brooklyn Bridge", lat: 40.7061, lng: -73.9969 },
+      { name: "Statue of Liberty", lat: 40.6892, lng: -74.0445 },
+      { name: "5th Avenue", lat: 40.7549, lng: -73.9840 },
+    ],
+    "las vegas": [
+      { name: "The Strip", lat: 36.1147, lng: -115.1728 },
+      { name: "Fremont Street", lat: 36.1710, lng: -115.1440 },
+      { name: "Bellagio Fountains", lat: 36.1126, lng: -115.1767 },
+      { name: "Las Vegas Convention Center", lat: 36.1340, lng: -115.1524 },
+      { name: "Allegiant Stadium", lat: 36.0909, lng: -115.1833 },
+      { name: "High Roller", lat: 36.1175, lng: -115.1697 },
+    ],
+    "dubai": [
+      { name: "Burj Khalifa", lat: 25.1972, lng: 55.2744 },
+      { name: "Dubai Mall", lat: 25.1980, lng: 55.2796 },
+      { name: "Palm Jumeirah", lat: 25.1124, lng: 55.1390 },
+      { name: "Dubai Marina", lat: 25.0805, lng: 55.1403 },
+      { name: "Burj Al Arab", lat: 25.1412, lng: 55.1853 },
+      { name: "Dubai Creek", lat: 25.2622, lng: 55.3006 },
+    ],
+    "tokyo": [
+      { name: "Shinjuku", lat: 35.6896, lng: 139.6917 },
+      { name: "Shibuya Crossing", lat: 35.6595, lng: 139.7004 },
+      { name: "Asakusa / Senso-ji", lat: 35.7148, lng: 139.7967 },
+      { name: "Akihabara", lat: 35.7022, lng: 139.7741 },
+      { name: "Harajuku", lat: 35.6702, lng: 139.7026 },
+      { name: "Tsukiji Market", lat: 35.6655, lng: 139.7707 },
+    ],
+    "miami": [
+      { name: "South Beach", lat: 25.7825, lng: -80.1300 },
+      { name: "Art Deco Historic District", lat: 25.7736, lng: -80.1301 },
+      { name: "Wynwood Arts District", lat: 25.8007, lng: -80.1994 },
+      { name: "Brickell City Centre", lat: 25.7618, lng: -80.1940 },
+      { name: "Bayside Marketplace", lat: 25.7751, lng: -80.1864 },
+      { name: "Little Havana", lat: 25.7711, lng: -80.2282 },
+    ],
+    "barcelona": [
+      { name: "Sagrada Família", lat: 41.4036, lng: 2.1744 },
+      { name: "La Rambla", lat: 41.3797, lng: 2.1733 },
+      { name: "Gothic Quarter", lat: 41.3833, lng: 2.1777 },
+      { name: "Park Güell", lat: 41.4145, lng: 2.1527 },
+      { name: "Barceloneta Beach", lat: 41.3763, lng: 2.1899 },
+      { name: "Camp Nou", lat: 41.3809, lng: 2.1228 },
+    ],
+    "rome": [
+      { name: "Colosseum", lat: 41.8902, lng: 12.4922 },
+      { name: "Vatican City", lat: 41.9029, lng: 12.4534 },
+      { name: "Trevi Fountain", lat: 41.9009, lng: 12.4833 },
+      { name: "Spanish Steps", lat: 41.9057, lng: 12.4823 },
+      { name: "Pantheon", lat: 41.8986, lng: 12.4769 },
+      { name: "Piazza Navona", lat: 41.8992, lng: 12.4731 },
+    ],
+    "chicago": [
+      { name: "Millennium Park", lat: 41.8827, lng: -87.6233 },
+      { name: "Navy Pier", lat: 41.8919, lng: -87.6051 },
+      { name: "The Magnificent Mile", lat: 41.8958, lng: -87.6244 },
+      { name: "Willis Tower", lat: 41.8789, lng: -87.6359 },
+      { name: "Lincoln Park", lat: 41.9221, lng: -87.6338 },
+      { name: "Wicker Park", lat: 41.9088, lng: -87.6793 },
+    ],
+  };
 
+  app.get("/api/landmarks/:city", async (req, res) => {
+    const { city } = req.params;
+    console.log('[landmarks-api] called for city:', city);
+    const cacheKey = `landmarks_${city.toLowerCase()}`;
+    const cached = apiCache.get(cacheKey);
+    if (cached) {
+      console.log('[landmarks-api] returning cached result, length:', cached.length);
+      return res.json(cached);
+    }
+
+    const cityKey = city.toLowerCase().trim().replace(/,.*$/, "").trim();
+    const fallback = LANDMARK_FALLBACKS[cityKey] || null;
+
+    try {
       const anthropic = new Anthropic({
         apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
         baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
       });
 
-      const message = await anthropic.messages.create({
-        model: "claude-haiku-4-5",
-        max_tokens: 512,
-        system: "You are a travel geography expert. Return ONLY valid JSON, no markdown, no explanation.",
-        messages: [{
-          role: "user",
-          content: `List the 6 most famous tourist landmarks or popular neighborhoods in ${city} that hotel guests would want to be near. Return ONLY a JSON array of objects with name, lat, lng fields. Example format: [{"name":"Eiffel Tower","lat":48.8584,"lng":2.2945}]. Use accurate real-world coordinates.`,
-        }],
-      });
+      let message: any;
+      try {
+        message = await anthropic.messages.create({
+          model: "claude-haiku-4-5",
+          max_tokens: 512,
+          system: "You are a travel geography expert. Return ONLY a raw JSON array. No markdown, no code fences, no explanation — just the JSON array itself.",
+          messages: [{
+            role: "user",
+            content: `List the 6 most famous tourist landmarks or popular neighborhoods in ${city} that hotel guests would want to be near. Return ONLY a JSON array of objects with name, lat, lng fields. Example: [{"name":"Eiffel Tower","lat":48.8584,"lng":2.2945}]. Use accurate real-world coordinates.`,
+          }],
+        });
+      } catch (aiErr: any) {
+        console.log('[landmarks-error] Anthropic API call failed:', aiErr?.message || aiErr);
+        if (fallback) {
+          apiCache.set(cacheKey, fallback, 3600000); // 1h cache for fallback
+          console.log('[landmarks-api] using hardcoded fallback, length:', fallback.length);
+          return res.json(fallback);
+        }
+        return res.json([]);
+      }
 
-      const text = message.content[0]?.type === "text" ? message.content[0].text.trim() : "[]";
+      let rawText = message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
+      console.log('[landmarks-api] raw Claude response:', rawText.slice(0, 200));
+
+      // Strip markdown code fences if present
+      rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+
       let landmarks: { name: string; lat: number; lng: number }[] = [];
       try {
-        const parsed = JSON.parse(text);
+        const parsed = JSON.parse(rawText);
         if (Array.isArray(parsed)) {
           landmarks = parsed.filter((l: any) => l.name && typeof l.lat === "number" && typeof l.lng === "number");
         }
-      } catch {
+      } catch (parseErr: any) {
+        console.log('[landmarks-error] JSON parse failed:', parseErr?.message, '| raw text was:', rawText.slice(0, 200));
         landmarks = [];
       }
 
+      if (landmarks.length === 0 && fallback) {
+        console.log('[landmarks-api] Claude returned empty/unparseable, using hardcoded fallback');
+        landmarks = fallback;
+      }
+
       apiCache.set(cacheKey, landmarks, 86400000); // 24h
-      console.log('[landmarks-api] result:', landmarks);
-      res.json(landmarks);
+      console.log('[landmarks-api] result length:', landmarks.length, '| first:', landmarks[0]?.name);
+      return res.json(landmarks);
     } catch (err: any) {
-      console.error("Landmarks error:", err?.message || err);
-      res.json([]);
+      console.log('[landmarks-error] outer catch:', err?.message || err);
+      if (fallback) return res.json(fallback);
+      return res.json([]);
     }
   });
 
