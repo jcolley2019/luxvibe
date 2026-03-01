@@ -943,6 +943,8 @@ export async function registerRoutes(
         };
       });
 
+      console.log('[hotel-data-sample]', JSON.stringify(results[0], null, 2));
+
       // Return results immediately, geocode in background to populate next cached request
       const withRates = results.filter((h: any) => h.price > 0);
       const withoutRates = results.filter((h: any) => h.price === 0);
