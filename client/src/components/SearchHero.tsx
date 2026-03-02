@@ -368,7 +368,14 @@ export default function SearchHero({
   );
 
   const desktopCalendarContent = (
-    <div className="luxvibe-calendar">
+    <div className="luxvibe-calendar relative">
+      <button 
+        onClick={() => setDateOpen(false)} 
+        className="absolute top-5 right-6 text-muted-foreground hover:text-foreground transition-colors z-50"
+        data-testid="button-close-calendar"
+      >
+        <X className="w-5 h-5" />
+      </button>
       <div className="px-6 pt-5 pb-3 border-b border-gray-100 dark:border-border mb-2">
         <p
           key={calendarHeader}
