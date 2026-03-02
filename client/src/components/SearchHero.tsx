@@ -598,7 +598,7 @@ export function SearchHero({
             )}
           </div>
 
-          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
+          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
             <PopoverTrigger asChild>
               <button
                 className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
@@ -613,7 +613,7 @@ export function SearchHero({
             </PopoverContent>
           </Popover>
 
-          <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
+          <Popover open={guestsOpen} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
             <PopoverTrigger asChild>
               <button
                 className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
@@ -721,7 +721,7 @@ export function SearchHero({
             </div>
 
             {/* Dates row — two side-by-side cells sharing one popover */}
-            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
+            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
               <div className="flex border-b border-gray-100 dark:border-border relative">
                 <PopoverTrigger asChild>
                   <button
@@ -758,7 +758,7 @@ export function SearchHero({
             </Popover>
 
             {/* Guests row */}
-            <Popover open={guestsOpen && isMobile} onOpenChange={setGuestsOpen}>
+            <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
               <PopoverTrigger asChild>
                 <button
                   className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
@@ -839,7 +839,7 @@ export function SearchHero({
               </div>
 
               {/* Dates section */}
-              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) handleCalendarOpen(); }}>
+              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
                 <PopoverTrigger asChild>
                   <button
                     className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
@@ -855,7 +855,7 @@ export function SearchHero({
               </Popover>
 
               {/* Guests section */}
-              <Popover open={guestsOpen && !isMobile} onOpenChange={setGuestsOpen}>
+              <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
                 <PopoverTrigger asChild>
                   <button
                     className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
