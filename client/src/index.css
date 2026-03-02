@@ -154,26 +154,38 @@ img {
   min-width: 0;
 }
 
-/* ── Range band: fill each selected cell with blue-100 ── */
+/* ── Range band: fill selected cells with primary/20 (light) or primary/40 (dark) ── */
 .luxvibe-calendar tbody td:has(button[aria-selected]) {
-  background-color: #dbeafe; /* blue-100 */
+  background-color: rgba(37, 99, 235, 0.15); /* ~primary/15, visible on white */
   position: relative;
 }
-/* Ensure the button (which contains the number) is above the background and has white text for contrast */
-.luxvibe-calendar tbody td:has(button[aria-selected]) button {
+/* Start/end cells get full blue circle — clear left/right caps on the band */
+.luxvibe-calendar tbody td:has(button.day-range-start),
+.luxvibe-calendar tbody td:has(button.day-range-end) {
+  background-color: rgba(37, 99, 235, 0.15);
+}
+/* Numbers in the middle of the range — dark blue for readability */
+.luxvibe-calendar tbody td:has(button.day-range-middle) button {
+  color: #1e3a8a !important; /* blue-900 */
+  position: relative;
+  z-index: 10;
+}
+/* Start/end circles are white text on blue — ensure they sit above the band */
+.luxvibe-calendar tbody td:has(button.day-range-start) button,
+.luxvibe-calendar tbody td:has(button.day-range-end) button {
   position: relative;
   z-index: 10;
   color: white !important;
 }
-/* For the range middle specifically, we want the number to be very clear against the light blue */
-.luxvibe-calendar tbody td:has(button.day-range-middle) button {
-  color: #1e40af !important; /* blue-800 for contrast on light blue */
-}
-/* Dark mode */
+/* Dark mode — use primary/40 for stronger visibility */
 .dark .luxvibe-calendar tbody td:has(button[aria-selected]) {
-  background-color: rgba(37, 99, 235, 0.3); /* blue-600/30 */
+  background-color: rgba(37, 99, 235, 0.35); /* primary/35 */
 }
-.dark .luxvibe-calendar tbody td:has(button[aria-selected]) button {
+.dark .luxvibe-calendar tbody td:has(button.day-range-middle) button {
+  color: #bfdbfe !important; /* blue-200 for contrast on dark */
+}
+.dark .luxvibe-calendar tbody td:has(button.day-range-start) button,
+.dark .luxvibe-calendar tbody td:has(button.day-range-end) button {
   color: white !important;
 }
 .luxvibe-calendar tbody td:first-child:has(button[aria-selected]) {

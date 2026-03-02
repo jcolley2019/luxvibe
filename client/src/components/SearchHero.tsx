@@ -174,37 +174,36 @@ export default function SearchHero({
     setShowAutocomplete(false);
   };
 
-  // checkinFrom tracks what the user has confirmed as their check-in while
-  // they're in the "checkout" step. We use this to anchor the calendar range.
-  const handleDateSelect = (range: any, autoClose = false) => {
-    if (selectionStep === "checkin") {
-      // Any click in checkin step picks a new check-in and clears check-out
-      const clicked = range?.from ?? range?.to;
-      if (!clicked) return;
-      setDate({ from: clicked, to: undefined });
+  // onDayClick handles the check-in step — captures the exact clicked day regardless
+  // of what the library computes for the range. onSelect handles the checkout step.
+  const handleDayClick = (day: Date, modifiers: any) => {
+    if (selectionStep === "checkin" && !modifiers.disabled && !modifiers.outside) {
+      setDate({ from: day, to: undefined });
       setSelectionStep("checkout");
-    } else {
-      // Checkout step: react-day-picker gives us { from: checkinAnchor, to: clickedDate }
-      // when the user clicks a date after the anchor.
-      // If they click before/on the anchor it resets: { from: clickedDate, to: undefined }
-      if (!range) return;
+    }
+  };
 
-      if (range.to && date?.from && range.to > date.from) {
-        // Valid check-out selected
-        setDate({ from: date.from, to: range.to });
-        if (autoClose) {
-          setTimeout(() => {
-            setDateOpen(false);
-            setSelectionStep("checkin");
-          }, 300);
-        } else {
+  const handleDateSelect = (range: any, autoClose = false) => {
+    // Checkin step is handled entirely by onDayClick above — skip here
+    if (selectionStep === "checkin") return;
+
+    // Checkout step: selected={from} anchors the library, so range.to = clicked date
+    if (!range || !date?.from) return;
+
+    if (range.to && range.to > date.from) {
+      setDate({ from: date.from, to: range.to });
+      if (autoClose) {
+        setTimeout(() => {
+          setDateOpen(false);
           setSelectionStep("checkin");
-        }
-      } else if (range.from && (!range.to || range.from !== date?.from)) {
-        // User clicked before/on the anchor — treat as a new check-in
-        setDate({ from: range.from, to: undefined });
-        setSelectionStep("checkout");
+        }, 300);
+      } else {
+        setSelectionStep("checkin");
       }
+    } else if (range.from && range.from !== date.from) {
+      // User clicked before/on the anchor — restart check-in from that date
+      setDate({ from: range.from, to: undefined });
+      setSelectionStep("checkout");
     }
   };
 
@@ -220,8 +219,8 @@ export default function SearchHero({
   const desktopGuestsLabel = `1 Room, ${guests.adults + guests.children} ${guests.adults + guests.children === 1 ? "Guest" : "Guests"}`;
 
   const calendarHeader = selectionStep === "checkin"
-    ? "Select your check-in date"
-    : "Now select your check-out date";
+    ? "When do you want to check in?"
+    : "When do you want to check out?";
 
   const isCheckoutStep = selectionStep === "checkout";
 
@@ -311,8 +310,9 @@ export default function SearchHero({
         initialFocus
         mode="range"
         defaultMonth={date?.from}
-        selected={isCheckoutStep ? { from: date?.from } : undefined}
+        selected={isCheckoutStep ? { from: date?.from } : date}
         onSelect={(r) => handleDateSelect(r, false)}
+        onDayClick={(day, modifiers) => handleDayClick(day, modifiers)}
         numberOfMonths={1}
         weekStartsOn={0}
         disabled={(d) => isCheckoutStep && date?.from ? d <= date.from : d < new Date()}
@@ -365,8 +365,9 @@ export default function SearchHero({
         initialFocus
         mode="range"
         defaultMonth={date?.from}
-        selected={isCheckoutStep ? { from: date?.from } : undefined}
+        selected={isCheckoutStep ? { from: date?.from } : date}
         onSelect={(r) => handleDateSelect(r, true)}
+        onDayClick={(day, modifiers) => handleDayClick(day, modifiers)}
         numberOfMonths={2}
         weekStartsOn={0}
         disabled={(d) => isCheckoutStep && date?.from ? d <= date.from : d < new Date()}
