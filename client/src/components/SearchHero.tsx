@@ -347,62 +347,68 @@ export default function SearchHero({
         </div>
 
         {/* ── MOBILE search card (shown below md) ── */}
-        <div className="md:hidden w-full px-3 relative z-10">
-          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible">
-            <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Enter a destination"
-                  className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
-                  value={destination}
-                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
-                  onKeyDown={handleKeyDown}
-                  data-testid="input-destination"
-                />
+        <div className="md:hidden w-full px-3 relative z-10 -mt-10">
+          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible border border-border/50">
+            <div className="flex flex-col">
+              {/* Top row: Destination and Dates */}
+              <div className="flex border-b border-gray-100 dark:border-border">
+                <div className="flex-[1.5] relative border-r border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
+                  <div className="flex items-center gap-2 px-3 py-3">
+                    <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Destination"
+                      className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
+                      value={destination}
+                      onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                      onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
+                      onKeyDown={handleKeyDown}
+                      data-testid="input-destination"
+                    />
+                  </div>
+                  {showAutocomplete && mode === "destination" && autocompleteList}
+                </div>
+
+                <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="flex-1 flex items-center gap-2 px-3 py-3 text-left active:bg-gray-50 transition-colors truncate"
+                      data-testid="button-date-mobile"
+                    >
+                      <CalendarDays className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="text-sm text-gray-800 dark:text-foreground truncate">{dateLabel}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[calc(100vw-32px)] p-0 border-none shadow-2xl rounded-3xl" align="center" sideOffset={8}>
+                    {calendarContent(1)}
+                  </PopoverContent>
+                </Popover>
               </div>
-              {showAutocomplete && mode === "destination" && autocompleteList}
-            </div>
 
-            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-              <PopoverTrigger asChild>
+              {/* Bottom row: Guests and Search Button */}
+              <div className="flex items-center px-3 py-2 gap-2">
+                <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="flex-1 flex items-center gap-2 px-1 text-left active:bg-gray-50 transition-colors truncate"
+                      data-testid="button-guests-mobile"
+                    >
+                      <Users className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="text-sm text-gray-800 dark:text-foreground truncate">{guestsLabel}</span>
+                    </button>
+                  </PopoverTrigger>
+                  {makeGuestsPopoverContent()}
+                </Popover>
+
                 <button
-                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                  data-testid="button-date-mobile"
+                  onClick={handleSearch}
+                  className="shrink-0 h-10 px-4 rounded-xl bg-blue-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition-all shadow-md"
+                  data-testid="button-search"
                 >
-                  <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
-                  <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
+                  <Search className="w-4 h-4" />
+                  Search
                 </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[calc(100vw-32px)] p-0 border-none shadow-2xl rounded-3xl" align="center" sideOffset={12}>
-                {calendarContent(1)}
-              </PopoverContent>
-            </Popover>
-
-            <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                  data-testid="button-guests-mobile"
-                >
-                  <Users className="w-5 h-5 text-blue-600 shrink-0" />
-                  <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
-                </button>
-              </PopoverTrigger>
-              {makeGuestsPopoverContent()}
-            </Popover>
-
-            <div className="p-4">
-              <button
-                onClick={handleSearch}
-                className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg"
-                data-testid="button-search"
-              >
-                <Search className="w-5 h-5" />
-                {t("search.search")}
-              </button>
+              </div>
             </div>
           </div>
         </div>
