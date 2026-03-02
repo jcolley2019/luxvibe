@@ -302,6 +302,7 @@ export default function SearchHero({
             onMouseDown={(e) => {
               e.preventDefault(); // prevent input blur before state updates
               if (place.hotelId) {
+                setDestination(name);
                 setLocation(`/hotel/${place.hotelId}`);
               } else {
                 setDestination(name);
@@ -461,7 +462,7 @@ export default function SearchHero({
   // ── NAVBAR VARIANT ──
   if (variant === "navbar") {
     return (
-      <div className="hidden md:flex flex-col items-center w-full max-w-2xl">
+      <div className="flex flex-col items-center w-full max-w-2xl px-4 md:px-0">
         <div className="flex w-full bg-white dark:bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
           <div className="flex-1 flex flex-col justify-center px-3 py-0.5 min-w-0 relative border-r border-border" ref={autocompleteRef}>
             <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-left leading-tight">
@@ -600,7 +601,7 @@ export default function SearchHero({
                   onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
                   onFocus={() => setShowAutocomplete(true)}
                   onKeyDown={handleKeyDown}
-                  data-testid="input-destination"
+                  data-testid="input-destination-mobile"
                 />
               </div>
               {showAutocomplete && (
@@ -616,8 +617,10 @@ export default function SearchHero({
                     return (
                       <button key={place.placeId}
                         className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-50 dark:border-border/50 last:border-none"
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.preventDefault();
                           if (place.hotelId) {
+                            setDestination(name);
                             setLocation(`/hotel/${place.hotelId}`);
                             setShowAutocomplete(false);
                           } else {
