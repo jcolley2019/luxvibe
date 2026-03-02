@@ -640,7 +640,7 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '70vh' : 800 }}>
 
         {/* Background Image — overflow-hidden only on the image layer so calendar dropdown can extend below */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -655,7 +655,7 @@ export function SearchHero({
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '70vh' : 800 }}>
           <div className="mb-8">
             <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
               Luxury Stays. Unbeatable Rates.
