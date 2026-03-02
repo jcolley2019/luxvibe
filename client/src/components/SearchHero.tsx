@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
@@ -82,6 +82,21 @@ export function SearchHero({
   initialGuests,
   variant = "hero",
 }: SearchHeroProps) {
+  const HERO_IMAGES = [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80", // beach
+    "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80", // overwater bungalow
+    "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80", // new york skyline
+    "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1920&q=80", // las vegas casino
+    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris france
+    "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80", // london
+    "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=1920&q=80", // miami
+    "https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=1920&q=80", // dallas
+    "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy
+    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80", // luxury hotel
+  ];
+
+  const heroImage = useMemo(() => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)], []);
+
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
@@ -634,7 +649,7 @@ export function SearchHero({
             style={{ 
               backgroundImage: `url('${isMobile 
                 ? "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80" 
-                : "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80"}')`
+                : heroImage}')`
             }} 
           />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
