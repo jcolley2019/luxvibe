@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -155,7 +156,7 @@ export default function SearchHero({
     setShowAutocomplete(false);
   };
 
-  const handleDesktopDateSelect = (range: any) => {
+  const handleDateSelect = (range: any, autoClose = false) => {
     if (selectionStep === "checkin") {
       const from = range?.from ?? range?.to;
       if (!from) return;
@@ -166,10 +167,14 @@ export default function SearchHero({
       const to = range?.to;
       if (!to || to <= date.from) return;
       setDate({ from: date.from, to });
-      setTimeout(() => {
-        setDateOpen(false);
+      if (autoClose) {
+        setTimeout(() => {
+          setDateOpen(false);
+          setSelectionStep("checkin");
+        }, 300);
+      } else {
         setSelectionStep("checkin");
-      }, 300);
+      }
     }
   };
 
@@ -252,21 +257,40 @@ export default function SearchHero({
   );
 
   const mobileCalendarContent = (
-    <div className="bg-white dark:bg-card p-3 rounded-3xl">
+    <div className="luxvibe-calendar px-3 pb-1">
       <Calendar
         initialFocus
         mode="range"
         defaultMonth={date?.from}
         selected={date}
-        onSelect={setDate}
+        onSelect={(r) => handleDateSelect(r, false)}
         numberOfMonths={1}
         weekStartsOn={0}
-        disabled={(d) => d < new Date()}
-        className="rounded-xl border-none p-0"
+        disabled={(d) => isCheckoutStep && date?.from ? d <= date.from : d < new Date()}
+        className="border-none p-0 w-full"
         classNames={{
-          day_range_middle: "day-range-middle aria-selected:bg-blue-100 aria-selected:text-blue-900",
-          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
-          day_today: "font-bold text-blue-600",
+          months: "flex flex-col w-full",
+          month: "w-full space-y-2",
+          caption: "flex justify-center pt-1 pb-2 relative items-center",
+          caption_label: "text-sm font-semibold text-gray-900 dark:text-foreground",
+          nav_button: cn(
+            "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-gray-200 dark:border-border rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-muted transition-colors"
+          ),
+          nav_button_previous: "absolute left-1",
+          nav_button_next: "absolute right-1",
+          head_row: "flex w-full",
+          head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
+          row: "flex w-full mt-0.5",
+          cell: "flex-1 h-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+          day: "h-10 w-10 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
+          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
+          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 hover:bg-transparent",
+          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_today: "font-bold text-blue-600 dark:text-blue-400",
+          day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
+          day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
+          day_hidden: "invisible",
         }}
       />
     </div>
@@ -293,7 +317,7 @@ export default function SearchHero({
         mode="range"
         defaultMonth={date?.from}
         selected={date}
-        onSelect={handleDesktopDateSelect}
+        onSelect={(r) => handleDateSelect(r, true)}
         numberOfMonths={2}
         weekStartsOn={0}
         disabled={(d) => isCheckoutStep && date?.from ? d <= date.from : d < new Date()}
@@ -435,18 +459,42 @@ export default function SearchHero({
 
         <div className="relative -mt-12 mx-4 z-10 pb-2">
           {/* Date Dialog */}
-          <Dialog open={mobileDateOpen} onOpenChange={setMobileDateOpen}>
+          <Dialog open={mobileDateOpen} onOpenChange={(open) => { if (!open) { setSelectionStep("checkin"); } setMobileDateOpen(open); }}>
             <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
-              <div className="flex items-center justify-between px-5 pt-5 pb-2">
-                <h3 className="font-bold text-base text-foreground">Select dates</h3>
-                <button onClick={() => setMobileDateOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <DialogTitle className="sr-only">{calendarHeader}</DialogTitle>
+              <div className="flex items-start justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-border">
+                <div>
+                  <h3
+                    key={calendarHeader}
+                    className="font-bold text-base text-foreground"
+                    style={{ animation: "fadeSlideIn 0.18s ease" }}
+                  >
+                    {calendarHeader}
+                  </h3>
+                  {isCheckoutStep && date?.from && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 font-medium">
+                      Check-in: {format(date.from, "MMM d, yyyy")}
+                    </p>
+                  )}
+                </div>
+                <button onClick={() => setMobileDateOpen(false)} className="text-muted-foreground hover:text-foreground mt-0.5">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               {mobileCalendarContent}
-              <div className="px-5 pb-5">
-                <button onClick={() => setMobileDateOpen(false)} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm">
-                  Confirm dates
+              <div className="px-5 pb-5 pt-2">
+                <button
+                  onClick={() => { if (date?.from && date?.to) setMobileDateOpen(false); }}
+                  disabled={!date?.from || !date?.to}
+                  className={cn(
+                    "w-full py-3 rounded-xl font-semibold text-sm transition-colors",
+                    date?.from && date?.to
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-gray-100 dark:bg-muted text-gray-400 dark:text-muted-foreground cursor-not-allowed"
+                  )}
+                  data-testid="button-confirm-dates"
+                >
+                  {date?.from && date?.to ? "Confirm dates" : isCheckoutStep ? "Select check-out date" : "Select check-in date"}
                 </button>
               </div>
             </DialogContent>
@@ -455,6 +503,7 @@ export default function SearchHero({
           {/* Guests Dialog */}
           <Dialog open={mobileGuestsOpen} onOpenChange={setMobileGuestsOpen}>
             <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
+              <DialogTitle className="sr-only">Guests</DialogTitle>
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
                 <h3 className="font-bold text-base text-foreground">Guests</h3>
                 <button onClick={() => setMobileGuestsOpen(false)} className="text-muted-foreground hover:text-foreground">
