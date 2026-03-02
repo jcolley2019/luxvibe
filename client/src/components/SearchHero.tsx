@@ -101,16 +101,17 @@ export default function SearchHero({
       params.set("aiSearch", aiSearch);
     } else if (placeId) {
       params.set("placeId", placeId);
+      params.set("destination", destination);
     } else if (destination) {
       params.set("destination", destination);
     }
 
-    if (date?.from) params.set("checkin", format(date.from, "yyyy-MM-dd"));
-    if (date?.to) params.set("checkout", format(date.to, "yyyy-MM-dd"));
-    params.set("adults", guests.adults.toString());
-    params.set("children", guests.children.toString());
+    if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
+    if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
+    const totalGuests = guests.adults + guests.children;
+    params.set("guests", totalGuests.toString());
 
-    setLocation(`/hotels/search?${params.toString()}`);
+    setLocation(`/?${params.toString()}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

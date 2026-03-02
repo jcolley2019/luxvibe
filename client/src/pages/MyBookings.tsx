@@ -75,8 +75,9 @@ export default function MyBookings() {
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
-                  <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs">View</Button>
-                  <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs text-destructive hover:bg-destructive/10 border-destructive">Cancel</Button>
+                  <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
+                    <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs" data-testid={`button-view-booking-${booking.id}`}>View Hotel</Button>
+                  </Link>
                 </div>
               </div>
             ))}

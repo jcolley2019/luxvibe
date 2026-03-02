@@ -18,7 +18,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb } from "lucide-react";
+import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun } from "lucide-react";
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() => {
+    try {
+      if (localStorage.getItem("lv_theme") === "dark") return true;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch { return false; }
+  });
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("lv_theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("lv_theme", "light");
+    }
+  }, [dark]);
+
+  return { dark, toggle: () => setDark(d => !d) };
+}
 
 const LANGUAGES = [
   { name: "English", code: "EN", flag: "🇺🇸" },
@@ -224,6 +245,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
   const { currency, language } = usePreferences();
   const { t } = useTranslation();
+  const { dark, toggle: toggleDark } = useDarkMode();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
@@ -288,6 +310,16 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleDark}
+              className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+              data-testid="button-theme-toggle"
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
 
             {/* Lightbulb — site guide - hidden on small mobile */}
             <div className="hidden xs:relative xs:block" ref={tipsRef}>
@@ -388,12 +420,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     <Link href="/my-bookings" className="cursor-pointer">
                       <CalendarDays className="mr-2 h-4 w-4" />
                       {t("nav.my_bookings")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      {t("nav.profile")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
