@@ -148,22 +148,24 @@ export default function SearchHero({
   };
 
   const openCalendar = () => {
-    if (date?.from && date?.to) {
-      setSelectionStep("checkin");
-      setDate(undefined);
-    } else if (!date?.from) {
-      setSelectionStep("checkin");
-    }
+    setSelectionStep("checkin");
+    setDate(undefined);
     setDateOpen(true);
     setGuestsOpen(false);
     setShowAutocomplete(false);
   };
 
   const handleDesktopDateSelect = (range: any) => {
-    setDate(range);
-    if (range?.from && !range?.to) {
+    if (selectionStep === "checkin") {
+      const from = range?.from ?? range?.to;
+      if (!from) return;
+      setDate({ from });
       setSelectionStep("checkout");
-    } else if (range?.from && range?.to) {
+    } else {
+      if (!date?.from) return;
+      const to = range?.to;
+      if (!to || to <= date.from) return;
+      setDate({ from: date.from, to });
       setTimeout(() => {
         setDateOpen(false);
         setSelectionStep("checkin");
@@ -185,6 +187,8 @@ export default function SearchHero({
   const calendarHeader = selectionStep === "checkin"
     ? "When do you want to check in?"
     : "Now select your check-out date";
+
+  const isCheckoutStep = selectionStep === "checkout";
 
   const nearMeButton = (
     <button
@@ -270,8 +274,19 @@ export default function SearchHero({
 
   const desktopCalendarContent = (
     <div className="luxvibe-calendar">
-      <div className="px-6 pt-5 pb-2">
-        <p className="text-sm font-semibold text-gray-700 dark:text-foreground">{calendarHeader}</p>
+      <div className="px-6 pt-5 pb-3 border-b border-gray-100 dark:border-border mb-2">
+        <p
+          key={calendarHeader}
+          className="text-base font-bold text-gray-900 dark:text-foreground tracking-tight transition-all duration-200"
+          style={{ animation: "fadeSlideIn 0.18s ease" }}
+        >
+          {calendarHeader}
+        </p>
+        {isCheckoutStep && date?.from && (
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 font-medium">
+            Check-in: {format(date.from, "MMM d, yyyy")}
+          </p>
+        )}
       </div>
       <Calendar
         initialFocus
@@ -281,7 +296,7 @@ export default function SearchHero({
         onSelect={handleDesktopDateSelect}
         numberOfMonths={2}
         weekStartsOn={0}
-        disabled={(d) => d < new Date()}
+        disabled={(d) => isCheckoutStep && date?.from ? d <= date.from : d < new Date()}
         className="px-6 pb-6 rounded-none border-none w-full"
         classNames={{
           months: "flex flex-row w-full [&>div:last-child]:border-l [&>div:last-child]:border-gray-200 dark:[&>div:last-child]:border-border [&>div:last-child]:pl-6 space-y-0 space-x-0",
@@ -503,7 +518,7 @@ export default function SearchHero({
               )}
             </div>
             <button
-              onClick={() => setMobileDateOpen(true)}
+              onClick={() => { setSelectionStep("checkin"); setDate(undefined); setMobileDateOpen(true); }}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-date-mobile"
             >

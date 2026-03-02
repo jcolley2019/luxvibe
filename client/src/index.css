@@ -126,6 +126,12 @@ img {
   will-change: transform;
 }
 
+/* Calendar label fade-slide transition */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Hide scrollbar on carousel */
 .carousel-scroll::-webkit-scrollbar {
   display: none;
