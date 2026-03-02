@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { 
   Search, MapPin, CalendarDays, Users, Building2, Star, 
-  BedDouble, Plane, X, Plus, Minus, Sparkles
+  BedDouble, Plane, X, Plus, Minus
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,6 @@ export default function SearchHero({
   const [, setLocation] = useLocation();
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
-  const [aiSearch, setAiSearch] = useState("");
   
   const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(() => {
     if (initialCheckIn && initialCheckOut) {
@@ -63,7 +62,7 @@ export default function SearchHero({
   const [guestsOpen, setGuestsOpen] = useState(false);
   const [mobileGuestsOpen, setMobileGuestsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [mode, setMode] = useState<"destination" | "vibe">("destination");
+  const [mode] = useState<"destination" | "vibe">("destination");
 
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
@@ -96,9 +95,7 @@ export default function SearchHero({
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (mode === "vibe" && aiSearch) {
-      params.set("aiSearch", aiSearch);
-    } else if (placeId) {
+    if (placeId) {
       params.set("placeId", placeId);
       params.set("destination", destination);
     } else if (destination) {
@@ -116,12 +113,12 @@ export default function SearchHero({
 
   const dateLabel = date?.from && date?.to 
     ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
-    : "Select dates";
+    : "Add dates";
 
-  const guestsLabel = `${guests.adults} ${guests.adults === 1 ? "Adult" : "Adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "Child" : "Children"}` : ""}`;
+  const guestsLabel = `1 Room, ${guests.adults} ${guests.adults === 1 ? "adult" : "adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "child" : "children"}` : ""}`;
 
   const autocompleteList = places.length > 0 && (
-    <div className="absolute top-full left-0 z-[100] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[300px] max-h-[400px] overflow-y-auto">
+    <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[360px] overflow-y-auto">
       {(places as any[]).map((place: any, idx: number) => {
         const types: string[] = place.types || [];
         const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
@@ -146,8 +143,8 @@ export default function SearchHero({
               setShowAutocomplete(false);
             }}
           >
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-              <PlaceIcon className="w-5 h-5 text-blue-600" />
+            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+              <PlaceIcon className="w-4 h-4 text-blue-600" />
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-gray-800 dark:text-foreground truncate">{name}</div>
@@ -214,6 +211,7 @@ export default function SearchHero({
     </PopoverContent>
   );
 
+  // ── NAVBAR VARIANT ──
   if (variant === "navbar") {
     return (
       <div className="hidden md:flex flex-col items-center w-full max-w-2xl">
@@ -269,43 +267,33 @@ export default function SearchHero({
     );
   }
 
+  // ── HERO VARIANT ──
   return (
-    <div className={cn("relative w-full", variant === "hero" ? "h-[638px] overflow-hidden" : "h-auto")}>
-      {variant === "hero" && (
-        <div className="absolute inset-0 w-full h-full">
-          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-        </div>
-      )}
-
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center h-full pt-20">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
-            Luxury Stays. Unbeatable Rates.
-          </h1>
-          <p className="text-white text-lg font-medium tracking-wide mb-4 text-center">Discover stays that redefine extraordinary</p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white text-sm font-medium drop-shadow-md">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 opacity-90" />
-              <span className="whitespace-nowrap">2M+ Hotels Worldwide</span>
-            </div>
-            <div className="w-px h-4 bg-white/30" />
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 opacity-90" />
-              <span className="whitespace-nowrap">190+ Countries</span>
-            </div>
-            <div className="w-px h-4 bg-white/30" />
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="whitespace-nowrap">4.9/5 Guest Rating</span>
-            </div>
+    <>
+      {/* ── MOBILE layout (below md) ── */}
+      <div className="md:hidden">
+        {/* Hero image — shorter, more image visible */}
+        <div className="relative h-[320px] overflow-hidden">
+          <img
+            src={heroImage}
+            alt="Luxury Hotel"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/35" />
+          {/* Text centered in the image */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+            <h1 className="text-[28px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
+              Luxury Stays.<br />Unbeatable Rates.
+            </h1>
+            <p className="text-white/90 text-sm font-medium drop-shadow-md">
+              Discover stays that redefine extraordinary
+            </p>
           </div>
         </div>
 
-        {/* ── MOBILE search card ── */}
-        <div className="md:hidden w-full px-3 relative z-10">
-          {/* Mobile Date Dialog */}
+        {/* Search card — overlaps the bottom of the hero */}
+        <div className="relative -mt-12 mx-4 z-10 pb-2">
+          {/* Date Dialog */}
           <Dialog open={mobileDateOpen} onOpenChange={setMobileDateOpen}>
             <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
@@ -326,7 +314,7 @@ export default function SearchHero({
             </DialogContent>
           </Dialog>
 
-          {/* Mobile Guests Dialog */}
+          {/* Guests Dialog */}
           <Dialog open={mobileGuestsOpen} onOpenChange={setMobileGuestsOpen}>
             <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
@@ -347,42 +335,44 @@ export default function SearchHero({
             </DialogContent>
           </Dialog>
 
-          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-3xl shadow-2xl">
+          <div className="bg-white dark:bg-card rounded-3xl shadow-2xl" ref={mobileAutocompleteRef}>
             {/* Destination */}
-            <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
+            <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
               <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
+                <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
                 <input
                   type="text"
                   placeholder="Enter a destination"
                   className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
                   value={destination}
                   onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                  onFocus={() => { setShowAutocomplete(true); setMode("destination"); }}
+                  onFocus={() => setShowAutocomplete(true)}
                   onKeyDown={handleKeyDown}
                   data-testid="input-destination"
                 />
               </div>
-              {showAutocomplete && mode === "destination" && autocompleteList}
+              {showAutocomplete && autocompleteList}
             </div>
 
-            {/* Dates — opens Dialog, not Popover */}
+            {/* Dates */}
             <button
               onClick={() => setMobileDateOpen(true)}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-date-mobile"
             >
-              <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
-              <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
+              <CalendarDays className="w-5 h-5 text-gray-400 shrink-0" />
+              <span className={cn("text-base", date ? "text-gray-800 dark:text-foreground" : "text-gray-400")}>
+                {dateLabel}
+              </span>
             </button>
 
-            {/* Guests — opens Dialog, not Popover */}
+            {/* Guests */}
             <button
               onClick={() => setMobileGuestsOpen(true)}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-guests-mobile"
             >
-              <Users className="w-5 h-5 text-blue-600 shrink-0" />
+              <Users className="w-5 h-5 text-gray-400 shrink-0" />
               <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
             </button>
 
@@ -390,7 +380,7 @@ export default function SearchHero({
             <div className="p-4">
               <button
                 onClick={handleSearch}
-                className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg"
+                className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-md"
                 data-testid="button-search"
               >
                 <Search className="w-5 h-5" />
@@ -399,65 +389,98 @@ export default function SearchHero({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ── DESKTOP search card (md+) ── */}
-        <div className="hidden md:flex flex-col items-center mt-12 w-full max-w-4xl">
-          <div className="w-full bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible items-stretch px-2 py-2 gap-0 relative flex border border-white/10" ref={searchBarRef}>
-            <div className="flex-1 flex items-center gap-0">
-              <div className="flex-[1.2] relative px-6 py-3 border-r border-border text-left" ref={autocompleteRef}>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Enter a destination"
-                    className="flex-1 text-base text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
-                    value={destination}
-                    onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                    onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
-                    onKeyDown={handleKeyDown}
-                    data-testid="input-destination-desktop"
-                  />
-                </div>
-                {showAutocomplete && mode === "destination" && autocompleteList}
+      {/* ── DESKTOP layout (md+) ── */}
+      <div className="hidden md:block relative w-full h-[638px] overflow-hidden">
+        <div className="absolute inset-0 w-full h-full">
+          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center h-full">
+          <div className="mb-8">
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+              Luxury Stays. Unbeatable Rates.
+            </h1>
+            <p className="text-white text-lg font-medium tracking-wide mb-4">Discover stays that redefine extraordinary</p>
+            <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 opacity-90" />
+                <span>2M+ Hotels Worldwide</span>
               </div>
+              <div className="w-px h-4 bg-white/30" />
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 opacity-90" />
+                <span>190+ Countries</span>
+              </div>
+              <div className="w-px h-4 bg-white/30" />
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                <span>4.9/5 Guest Rating</span>
+              </div>
+            </div>
+          </div>
 
-              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
-                <PopoverTrigger asChild>
-                  <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative" data-testid="button-dates-desktop">
-                    <div className="flex items-center gap-3">
-                      <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
-                      <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[800px] p-0 border-none shadow-2xl rounded-3xl z-[100]" align="center" sideOffset={12}>
-                  {calendarContent(2)}
-                </PopoverContent>
-              </Popover>
+          {/* Desktop search bar */}
+          <div className="w-full max-w-4xl">
+            <div className="w-full bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible items-stretch px-2 py-2 gap-0 relative flex border border-white/10" ref={searchBarRef}>
+              <div className="flex-1 flex items-center gap-0">
+                <div className="flex-[1.2] relative px-6 py-3 border-r border-border text-left" ref={autocompleteRef}>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Enter a destination"
+                      className="flex-1 text-base text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
+                      value={destination}
+                      onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                      onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
+                      onKeyDown={handleKeyDown}
+                      data-testid="input-destination-desktop"
+                    />
+                  </div>
+                  {showAutocomplete && mode === "destination" && autocompleteList}
+                </div>
 
-              <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-                <PopoverTrigger asChild>
-                  <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative" data-testid="button-guests-desktop">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-blue-600 shrink-0" />
-                      <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-                {makeGuestsPopoverContent(-48)}
-              </Popover>
+                <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
+                  <PopoverTrigger asChild>
+                    <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative" data-testid="button-dates-desktop">
+                      <div className="flex items-center gap-3">
+                        <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
+                        <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
+                      </div>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[800px] p-0 border-none shadow-2xl rounded-3xl z-[100]" align="center" sideOffset={12}>
+                    {calendarContent(2)}
+                  </PopoverContent>
+                </Popover>
 
-              <button
-                onClick={handleSearch}
-                className="shrink-0 w-14 h-14 m-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-md active:scale-95"
-                data-testid="button-search-desktop"
-              >
-                <Search className="w-6 h-6" />
-              </button>
+                <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+                  <PopoverTrigger asChild>
+                    <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative" data-testid="button-guests-desktop">
+                      <div className="flex items-center gap-3">
+                        <Users className="w-5 h-5 text-blue-600 shrink-0" />
+                        <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
+                      </div>
+                    </button>
+                  </PopoverTrigger>
+                  {makeGuestsPopoverContent(-48)}
+                </Popover>
+
+                <button
+                  onClick={handleSearch}
+                  className="shrink-0 w-14 h-14 m-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-md active:scale-95"
+                  data-testid="button-search-desktop"
+                >
+                  <Search className="w-6 h-6" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
