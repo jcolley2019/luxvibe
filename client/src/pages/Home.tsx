@@ -716,7 +716,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
+      <Navbar centralSlot={isSearchActive ? searchHero : undefined} />
 
       {isSearchActive ? (
         showSearchPanel ? (
