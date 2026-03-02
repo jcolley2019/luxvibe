@@ -267,26 +267,15 @@ export default function Home() {
 
   const scrollCarousel = (ref: React.RefObject<HTMLDivElement>, dir: "left" | "right") => {
     if (!ref.current) return;
-    const children = Array.from(ref.current.children) as HTMLElement[];
+    const children = ref.current.children;
     if (children.length < 2) return;
+    const first = children[0] as HTMLElement;
+    const second = children[1] as HTMLElement;
+    const cardStep = second.offsetLeft - first.offsetLeft;
     const isMobile = window.innerWidth < 768;
     const count = isMobile ? 1 : 4;
-    const currentScroll = ref.current.scrollLeft;
-
-    // Find the index of the first card whose left edge is at or beyond the current scroll position
-    let firstVisibleIndex = 0;
-    for (let i = 0; i < children.length; i++) {
-      if (children[i].offsetLeft >= currentScroll - 2) {
-        firstVisibleIndex = i;
-        break;
-      }
-    }
-
-    const targetIndex = dir === "right"
-      ? Math.min(firstVisibleIndex + count, children.length - count)
-      : Math.max(firstVisibleIndex - count, 0);
-
-    ref.current.scrollTo({ left: children[targetIndex].offsetLeft, behavior: "smooth" });
+    const scrollAmount = cardStep * count;
+    ref.current.scrollBy({ left: dir === "right" ? scrollAmount : -scrollAmount, behavior: "smooth" });
   };
 
   type GeoStatus = "idle" | "loading" | "granted" | "denied";
