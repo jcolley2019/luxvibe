@@ -2,7 +2,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useHotel, useSimilarHotels, useHotelReviews, type ReviewSentiment, askHotelAI } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
-import { SearchHero } from "@/components/SearchHero";
+import SearchHero from "@/components/SearchHero";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

@@ -3,7 +3,7 @@ import { useSearch, useLocation } from "wouter";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/Navbar";
-import { SearchHero } from "@/components/SearchHero";
+import SearchHero from "@/components/SearchHero";
 import { HotelCard, type DealBadge } from "@/components/HotelCard";
 import { HotelListCard, type ListHotel } from "@/components/HotelListCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";

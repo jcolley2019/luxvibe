@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { Search, MapPin, Sparkles, ChevronUp, ChevronDown, X, Plane, Building2, BedDouble, CalendarDays, Users, Star, LocateFixed } from "lucide-react";
+import { 
+  Search, MapPin, CalendarDays, Users, Building2, Star, 
+  BedDouble, Plane, Info, X, ChevronRight, Plus, Minus, Sparkles
+} from "lucide-react";
+import { format, addDays } from "date-fns";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -10,544 +13,238 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 
-interface Room {
-  adults: number;
-  children: number;
-}
-
 interface SearchHeroProps {
+  variant?: "hero" | "navbar";
+  heroImage?: string;
   initialDestination?: string;
-  initialPlaceId?: string;
-  initialAiSearch?: string;
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: string;
-  variant?: "hero" | "navbar";
 }
 
-function Counter({
-  value,
-  min,
-  max,
-  onChange,
-  testIdPrefix,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number) => void;
-  testIdPrefix: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={() => onChange(Math.max(min, value - 1))}
-        disabled={value <= min}
-        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
-        data-testid={`${testIdPrefix}-minus`}
-      >−</button>
-      <span className="w-4 text-center font-medium text-sm" data-testid={`${testIdPrefix}-count`}>{value}</span>
-      <button
-        onClick={() => onChange(Math.min(max, value + 1))}
-        disabled={value >= max}
-        className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
-        data-testid={`${testIdPrefix}-plus`}
-      >+</button>
-    </div>
-  );
-}
-
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    setIsMobile(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [breakpoint]);
-  return isMobile;
-}
-
-export function SearchHero({
-  initialDestination,
-  initialPlaceId,
-  initialAiSearch,
+export default function SearchHero({ 
+  variant = "hero",
+  heroImage = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2000",
+  initialDestination = "",
   initialCheckIn,
   initialCheckOut,
-  initialGuests,
-  variant = "hero",
+  initialGuests = "2"
 }: SearchHeroProps) {
-  const HERO_IMAGES = [
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80", // beach
-    "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80", // overwater bungalow
-    "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80", // new york skyline
-    "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1920&q=80", // las vegas casino
-    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris france
-    "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80", // london
-    "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=1920&q=80", // miami
-    "https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=1920&q=80", // dallas
-    "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy
-    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80", // luxury hotel
-  ];
-
-  const heroImage = useMemo(() => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)], []);
-
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
-  const isMobile = useIsMobile();
-  const [mode, setMode] = useState<"destination" | "vibe">(initialAiSearch ? "vibe" : "destination");
-  const [destination, setDestination] = useState(() => {
-    // If we're on a hotel page or coming from one, initialDestination might be the hotel name
-    // We want to detect if it's a hotel name and clear it if so.
-    if (!initialDestination) return "";
-    const isHotel = initialDestination.toLowerCase().includes("hotel") || 
-                    initialDestination.toLowerCase().includes("resort") ||
-                    initialDestination.toLowerCase().includes("villa");
-    // Also check if we are currently on a hotel details page
-    const isOnHotelPage = window.location.pathname.startsWith("/hotel/");
-    if (isOnHotelPage && isHotel) return "";
-    return initialDestination;
+  const [destination, setDestination] = useState(initialDestination);
+  const [placeId, setPlaceId] = useState("");
+  const [aiSearch, setAiSearch] = useState("");
+  
+  const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(() => {
+    if (initialCheckIn && initialCheckOut) {
+      try {
+        return {
+          from: new Date(initialCheckIn),
+          to: new Date(initialCheckOut)
+        };
+      } catch (e) {
+        console.error("Invalid initial dates", e);
+      }
+    }
+    return {
+      from: addDays(new Date(), 7),
+      to: addDays(new Date(), 14),
+    };
   });
-  const [placeId, setPlaceId] = useState(initialPlaceId || "");
-  const [aiSearch, setAiSearch] = useState(initialAiSearch || "");
+
+  const [guests, setGuests] = useState(() => {
+    const total = parseInt(initialGuests) || 2;
+    return { adults: total, children: 0 };
+  });
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
+  const [guestsOpen, setGuestsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mode, setMode] = useState<"destination" | "vibe">("destination");
+
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
-  const [searchBarWidth, setSearchBarWidth] = useState(0);
-  const [destSectionWidth, setDestSectionWidth] = useState(0);
-
-  const { data: places = [] } = useQuery({
-    queryKey: ["/api/places", destination],
-    queryFn: async () => {
-      if (!destination || destination.length < 3) return [];
-      const res = await fetch(`/api/places?q=${encodeURIComponent(destination)}`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-    enabled: mode === "destination" && destination.length >= 3,
-  });
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const inDesktop = autocompleteRef.current?.contains(e.target as Node);
-      const inMobile = mobileAutocompleteRef.current?.contains(e.target as Node);
-      if (!inDesktop && !inMobile) {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
         setShowAutocomplete(false);
       }
-    };
+      if (mobileAutocompleteRef.current && !mobileAutocompleteRef.current.contains(event.target as Node)) {
+        setShowAutocomplete(false);
+      }
+    }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const update = () => {
-      if (searchBarRef.current) setSearchBarWidth(searchBarRef.current.offsetWidth);
-      if (autocompleteRef.current) setDestSectionWidth(autocompleteRef.current.offsetWidth);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    if (searchBarRef.current) ro.observe(searchBarRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  const handleNearbyClick = () => {
-    setShowAutocomplete(false);
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
-            { headers: { "Accept-Language": "en" } }
-          );
-          const data = await res.json();
-          const city =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.village ||
-            data.address?.county ||
-            "My Location";
-          setDestination(city);
-          setPlaceId("");
-        } catch {
-          setDestination("My Location");
-          setPlaceId("");
-        }
-      },
-      () => {
-        setDestination("My Location");
-        setPlaceId("");
-      }
-    );
-  };
-
-  const parseDate = (str?: string) => {
-    if (!str) return undefined;
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? undefined : d;
-  };
-
-  const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(
-    initialCheckIn ? { from: parseDate(initialCheckIn)!, to: parseDate(initialCheckOut) } : undefined
-  );
-  const [dateOpen, setDateOpen] = useState(false);
-  const [selectionPhase, setSelectionPhase] = useState<"checkin" | "checkout">("checkin");
-  const [stagedCheckIn, setStagedCheckIn] = useState<Date | undefined>(undefined);
-  const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
-  const [guestsOpen, setGuestsOpen] = useState(false);
-
-  const initialAdults = parseInt(initialGuests || "2");
-  const [rooms, setRooms] = useState<Room[]>([{ adults: initialAdults, children: 0 }]);
-  const [expandedRooms, setExpandedRooms] = useState<boolean[]>([true]);
-
-  const updateRoom = (idx: number, field: keyof Room, value: number) => {
-    setRooms(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
-  };
-
-  const addRoom = () => {
-    setRooms(prev => [...prev, { adults: 2, children: 0 }]);
-    setExpandedRooms(prev => [...prev, true]);
-  };
-
-  const removeRoom = (idx: number) => {
-    setRooms(prev => prev.filter((_, i) => i !== idx));
-    setExpandedRooms(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const toggleRoom = (idx: number) => {
-    setExpandedRooms(prev => prev.map((v, i) => i === idx ? !v : v));
-  };
-
-  const totalAdults = rooms.reduce((s, r) => s + r.adults, 0);
-  const totalChildren = rooms.reduce((s, r) => s + r.children, 0);
-  const totalGuests = totalAdults + totalChildren;
-
-  const guestsLabel = (() => {
-    const roomPart = `${rooms.length} ${rooms.length !== 1 ? t("hotel.room_plural") : t("hotel.room")}`;
-    const adultPart = `${totalAdults} ${totalAdults !== 1 ? t("search.adult_plural") : t("search.adult")}`;
-    const childPart = totalChildren > 0 ? `, ${totalChildren} ${totalChildren !== 1 ? t("search.child_plural") : t("search.child")}` : "";
-    return `${roomPart}, ${adultPart}${childPart}`;
-  })();
+  const { data: places = [] } = useQuery({
+    queryKey: ["/api/places", destination],
+    enabled: destination.length >= 2 && showAutocomplete,
+  });
 
   const handleSearch = () => {
-    if (!date?.from || !date?.to) return;
-    if (mode === "destination" && !destination) return;
-    if (mode === "vibe" && !aiSearch) return;
-
-    const checkIn = format(date.from, "yyyy-MM-dd");
-    const checkOut = format(date.to, "yyyy-MM-dd");
-    const params = new URLSearchParams({
-      checkIn,
-      checkOut,
-      guests: String(totalAdults),
-      children: String(totalChildren),
-      roomConfig: JSON.stringify(rooms),
-    });
-
-    if (mode === "destination") {
-      params.set("destination", destination);
-      if (placeId) params.set("placeId", placeId);
-    } else {
+    const params = new URLSearchParams();
+    if (mode === "vibe" && aiSearch) {
       params.set("aiSearch", aiSearch);
+    } else if (placeId) {
+      params.set("placeId", placeId);
+    } else if (destination) {
+      params.set("destination", destination);
     }
 
-    try {
-      const existing = JSON.parse(localStorage.getItem("recentSearches") || "[]");
-      const entry = { destination: mode === "destination" ? destination : aiSearch, checkIn, checkOut, guests: String(totalAdults) };
-      const filtered = existing.filter((s: any) => s.destination !== entry.destination);
-      localStorage.setItem("recentSearches", JSON.stringify([entry, ...filtered].slice(0, 5)));
-    } catch {}
+    if (date?.from) params.set("checkin", format(date.from, "yyyy-MM-dd"));
+    if (date?.to) params.set("checkout", format(date.to, "yyyy-MM-dd"));
+    params.set("adults", guests.adults.toString());
+    params.set("children", guests.children.toString());
 
-    setLocation(`/?${params.toString()}`);
+    setLocation(`/hotels/search?${params.toString()}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      if (showAutocomplete && places.length > 0) {
-        const first = places[0] as any;
-        setDestination(first.displayName || first.placeId);
-        setPlaceId(first.placeId);
-        setShowAutocomplete(false);
-      } else {
-        handleSearch();
-      }
-    }
+    if (e.key === "Enter") handleSearch();
   };
-
-  const dateLabel = date?.from
-    ? date.to
-      ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
-      : format(date.from, "MMM d")
-    : t("search.add_dates");
-
-  useEffect(() => {
-    if (isMobile && mode === "vibe") {
-      setMode("destination");
-    }
-  }, [isMobile, mode]);
 
   const handleCalendarOpen = () => {
-    setSelectionPhase("checkin");
-    setStagedCheckIn(undefined);
-    setHoveredDate(undefined);
+    setGuestsOpen(false);
+    setShowAutocomplete(false);
   };
 
-  const handleDayClick = (day: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (day < today) return;
+  const dateLabel = date?.from && date?.to 
+    ? `${format(date.from, "MMM d")} - ${format(date.to, "MMM d")}`
+    : "Select dates";
 
-    if (selectionPhase === "checkin") {
-      setStagedCheckIn(day);
-      setSelectionPhase("checkout");
-      setHoveredDate(undefined);
-      // Update date.from immediately for visual feedback
-      setDate(prev => ({ from: day, to: prev?.to && prev.to > day ? prev.to : undefined }));
-    } else {
-      if (!stagedCheckIn || day <= stagedCheckIn) {
-        // If user clicks an earlier date, treat it as a new check-in
-        setStagedCheckIn(day);
-        setSelectionPhase("checkout");
-        setDate(prev => ({ from: day, to: undefined }));
-        return;
-      }
-      setDate({ from: stagedCheckIn, to: day });
-      setStagedCheckIn(undefined);
-      setHoveredDate(undefined);
-      setDateOpen(false);
-      setSelectionPhase("checkin");
-    }
-  };
+  const guestsLabel = `${guests.adults} ${guests.adults === 1 ? 'Adult' : 'Adults'}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? 'Child' : 'Children'}` : ''}`;
 
-  const calendarSelected = (() => {
-    if (selectionPhase === "checkin") {
-      return date ? { from: date.from, to: date.to } : undefined;
-    }
-    if (stagedCheckIn) {
-      const endDate = hoveredDate && hoveredDate > stagedCheckIn ? hoveredDate : stagedCheckIn;
-      return { from: stagedCheckIn, to: endDate !== stagedCheckIn ? endDate : undefined };
-    }
-    return undefined;
-  })();
+  const autocompleteList = places.length > 0 && (
+    <div className="absolute top-full left-0 z-[100] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[300px] max-h-[400px] overflow-y-auto">
+      {places.map((place: any, idx: number) => {
+        const types: string[] = place.types || [];
+        const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
+        const isAirport = types.includes("airport");
+        const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
+        const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+        const name = place.displayName || place.placeId;
 
-  const calendarContent = (nMonths: number) => (
-    <div data-testid="calendar-dropdown" className="bg-white dark:bg-card overflow-hidden">
-      <div className="pt-5 pb-3">
-        <Calendar
-          initialFocus
-          mode="range"
-          className="w-full"
-          style={{ width: '100%' }}
-          showOutsideDays={false}
-          classNames={{
-            months: "flex flex-col sm:flex-row w-full gap-4",
-            month: "flex-1 px-4 sm:px-8 py-1",
-            caption: "flex justify-center relative items-center mb-4 h-8",
-            caption_label: "text-base font-bold text-foreground",
-            nav: "flex items-center",
-            nav_button: "h-9 w-9 bg-transparent p-0 hover:bg-muted rounded-full transition-colors flex items-center justify-center opacity-70 hover:opacity-100 border border-border",
-            nav_button_previous: "absolute left-2",
-            nav_button_next: "absolute right-2",
-            table: "w-full border-collapse",
-            head_row: "flex w-full mb-2",
-            head_cell: "text-muted-foreground text-[10px] sm:text-xs font-bold text-center flex-1 uppercase tracking-widest pb-1.5",
-            row: "flex w-full mt-1",
-            cell: "text-center text-sm relative p-0 flex-1",
-            day: "h-9 w-9 sm:h-11 sm:w-11 p-0 font-medium aria-selected:opacity-100 hover:bg-muted/80 rounded-full transition-all flex items-center justify-center mx-auto text-sm z-10 relative",
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-bold shadow-lg scale-100 z-20 relative",
-            day_today: "text-primary font-black ring-2 ring-primary ring-offset-2",
-            day_outside: "text-muted-foreground opacity-20",
-            day_disabled: "text-muted-foreground opacity-10 cursor-not-allowed",
-            day_range_middle: "aria-selected:!bg-primary aria-selected:!text-primary-foreground !rounded-none !opacity-100 before:absolute before:inset-0 before:bg-primary before:z-[-1]",
-            day_range_start: "day-range-start aria-selected:!bg-primary aria-selected:!text-primary-foreground !rounded-full before:absolute before:inset-0 before:left-1/2 before:bg-primary before:z-[-1]",
-            day_range_end: "day-range-end aria-selected:!bg-primary aria-selected:!text-primary-foreground !rounded-full before:absolute before:inset-0 before:right-1/2 before:bg-primary before:z-[-1]",
-            day_hidden: "invisible",
-          }}
-          defaultMonth={stagedCheckIn || date?.from || new Date()}
-          selected={calendarSelected}
-          onSelect={() => {}}
-          onDayClick={handleDayClick}
-          onDayMouseEnter={(day: Date) => {
-            if (selectionPhase === "checkout" && stagedCheckIn && day > stagedCheckIn) {
-              setHoveredDate(day);
-            }
-          }}
-          onDayMouseLeave={() => {
-            if (selectionPhase === "checkout") {
-              setHoveredDate(undefined);
-            }
-          }}
-          numberOfMonths={nMonths}
-          disabled={(d) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (d < today) return true;
-            if (selectionPhase === "checkout" && stagedCheckIn && d <= stagedCheckIn) return true;
-            return false;
-          }}
-        />
-      </div>
-      {(stagedCheckIn || date?.from) && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border text-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground bg-primary/10 px-3 py-1 rounded-full">
-              {format(stagedCheckIn || date!.from!, "MMM d, yyyy")}
-            </span>
-            {date?.to && !stagedCheckIn && (
-              <>
-                <span className="text-muted-foreground">→</span>
-                <span className="font-semibold text-foreground bg-primary/10 px-3 py-1 rounded-full">
-                  {format(date.to, "MMM d, yyyy")}
-                </span>
-              </>
-            )}
-          </div>
+        return (
           <button
-            onClick={() => { setDate(undefined); setStagedCheckIn(undefined); setHoveredDate(undefined); setSelectionPhase("checkin"); }}
-            className="text-primary hover:underline transition-colors font-bold"
-            data-testid="button-clear-dates"
+            key={place.placeId}
+            className={cn(
+              "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-50 last:border-none",
+              idx === 0 ? "bg-blue-50/50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"
+            )}
+            onClick={() => {
+              if (place.hotelId) {
+                setLocation(`/hotel/${place.hotelId}`);
+              } else {
+                setDestination(name);
+                setPlaceId(place.placeId);
+              }
+              setShowAutocomplete(false);
+            }}
           >
-            Clear dates
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+              <PlaceIcon className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-gray-800 dark:text-foreground truncate">{name}</div>
+              {place.formattedAddress && (
+                <div className="text-xs text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
+              )}
+            </div>
           </button>
-        </div>
-      )}
+        );
+      })}
+    </div>
+  );
+
+  const calendarContent = (numberOfMonths: number) => (
+    <div className="bg-white dark:bg-card p-4 rounded-3xl">
+      <Calendar
+        initialFocus
+        mode="range"
+        defaultMonth={date?.from}
+        selected={date}
+        onSelect={setDate}
+        numberOfMonths={numberOfMonths}
+        disabled={(date) => date < new Date()}
+        className="rounded-xl border-none"
+        classNames={{
+          day_range_middle: "bg-blue-50 text-blue-900",
+          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
+          day_today: "bg-gray-100 text-gray-900",
+        }}
+      />
     </div>
   );
 
   const makeGuestsPopoverContent = (alignOffset = 0) => (
-    <PopoverContent className="w-72 p-0" align="end" alignOffset={alignOffset}>
-      <div className="px-5 pt-5 pb-3 border-b border-border">
-        <h3 className="font-bold text-base">{t("search.guests")}</h3>
-      </div>
-      <div className="max-h-80 overflow-y-auto divide-y divide-border">
-        {rooms.map((room, idx) => (
-          <div key={idx} className="px-5 py-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-sm">{t("hotel.room")} {idx + 1}</span>
-              <div className="flex items-center gap-1">
-                {rooms.length > 1 && (
-                  <button
-                    onClick={() => removeRoom(idx)}
-                    className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors rounded"
-                    data-testid={`button-remove-room-${idx}`}
-                    title="Remove room"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => toggleRoom(idx)}
-                  className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded"
-                  data-testid={`button-toggle-room-${idx}`}
-                >
-                  {expandedRooms[idx] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            {expandedRooms[idx] && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">{t("search.adults")}</div>
-                  <Counter value={room.adults} min={1} max={10} onChange={(v) => updateRoom(idx, "adults", v)} testIdPrefix={`room-${idx}-adults`} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium">{t("search.children")}</div>
-                    <div className="text-xs text-muted-foreground">Ages 0 to 17</div>
-                  </div>
-                  <Counter value={room.children} min={0} max={6} onChange={(v) => updateRoom(idx, "children", v)} testIdPrefix={`room-${idx}-children`} />
-                </div>
-              </div>
-            )}
+    <PopoverContent className="w-80 p-6 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="end" alignOffset={alignOffset} sideOffset={12}>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Adults</p>
+            <p className="text-xs text-gray-400">Ages 13 or above</p>
           </div>
-        ))}
-      </div>
-      <div className="flex gap-2 px-5 py-4 border-t border-border">
-        <button
-          onClick={addRoom}
-          disabled={rooms.length >= 5}
-          className="flex-1 py-2 rounded-full border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          data-testid="button-add-room"
-        >
-          + {t("hotel.room")}
-        </button>
-        <button
-          onClick={() => setGuestsOpen(false)}
-          className="flex-1 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-          data-testid="button-done-guests"
-        >
-          {t("search.done")}
-        </button>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border-gray-200"
+              onClick={() => setGuests(prev => ({ ...prev, adults: Math.max(1, prev.adults - 1) }))}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <span className="text-sm font-medium w-4 text-center">{guests.adults}</span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border-gray-200"
+              onClick={() => setGuests(prev => ({ ...prev, adults: prev.adults + 1 }))}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Children</p>
+            <p className="text-xs text-gray-400">Ages 2–12</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border-gray-200"
+              onClick={() => setGuests(prev => ({ ...prev, children: Math.max(0, prev.children - 1) }))}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <span className="text-sm font-medium w-4 text-center">{guests.children}</span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border-gray-200"
+              onClick={() => setGuests(prev => ({ ...prev, children: prev.children + 1 }))}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
       </div>
     </PopoverContent>
-  );
-
-  const autocompleteList = (
-    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ maxHeight: "300px", overflowY: "auto" }}>
-      <button
-        className="w-full text-left px-3 py-2.5 transition-colors flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-100 dark:border-border"
-        onClick={handleNearbyClick}
-        data-testid="button-nearby-area"
-      >
-        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-          <LocateFixed className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-sm font-normal text-gray-800 dark:text-foreground">Around my area</div>
-        </div>
-      </button>
-      {(() => {
-        const allPlaces = places as any[];
-        const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
-        const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
-        return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
-          const types: string[] = place.types || [];
-          const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
-          const isAirport = types.includes("airport");
-          const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
-          const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
-          const name: string = place.displayName || place.placeId;
-          const query = destination.toLowerCase();
-          const matchStart = name.toLowerCase().indexOf(query);
-          const boldedName = matchStart >= 0 ? (
-            <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
-          ) : name;
-          return (
-            <button
-              key={place.placeId}
-              className={`w-full text-left px-3 py-2.5 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
-              onClick={() => {
-                if (place.hotelId) {
-                  setLocation(`/hotel/${place.hotelId}`);
-                  setShowAutocomplete(false);
-                } else {
-                  setDestination(name);
-                  setPlaceId(place.placeId);
-                  setShowAutocomplete(false);
-                }
-              }}
-            >
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-                <PlaceIcon className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
-                {place.formattedAddress && (
-                  <div className="text-xs text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
-                )}
-              </div>
-            </button>
-          );
-        });
-      })()}
-    </div>
   );
 
   if (variant === "navbar") {
@@ -568,48 +265,7 @@ export function SearchHero({
               onKeyDown={handleKeyDown}
               data-testid="input-destination-navbar"
             />
-            {showAutocomplete && places.length > 0 && (
-              <div className="absolute top-full left-0 z-50 mt-1 bg-white dark:bg-card border border-border rounded-xl shadow-xl overflow-hidden" style={{ minWidth: "240px", maxHeight: "340px", overflowY: "auto" }}>
-                {(() => {
-                  const allPlaces = places as any[];
-                  const locationItems = allPlaces.filter((p: any) => !String(p.placeId).startsWith("hotel:"));
-                  const hotelItems = allPlaces.filter((p: any) => String(p.placeId).startsWith("hotel:"));
-                  return [...locationItems, ...hotelItems].map((place: any, idx: number) => {
-                    const types: string[] = place.types || [];
-                    const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
-                    const isAirport = types.includes("airport");
-                    const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
-                    const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
-                    const name: string = place.displayName || place.placeId;
-                    const query = destination.toLowerCase();
-                    const matchStart = name.toLowerCase().indexOf(query);
-                    const boldedName = matchStart >= 0 ? (
-                      <>{name.slice(0, matchStart)}<strong>{name.slice(matchStart, matchStart + query.length)}</strong>{name.slice(matchStart + query.length)}</>
-                    ) : name;
-                    return (
-                      <button
-                        key={place.placeId}
-                        className={`w-full text-left px-3 py-2 transition-colors flex items-center gap-3 ${idx === 0 ? "bg-purple-50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"}`}
-                        onClick={() => {
-                          if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); setShowAutocomplete(false); }
-                          else { setDestination(name); setPlaceId(place.placeId); setShowAutocomplete(false); }
-                        }}
-                      >
-                        <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-                          <PlaceIcon className="w-3.5 h-3.5 text-gray-500 dark:text-muted-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-normal text-gray-800 dark:text-foreground truncate">{boldedName}</div>
-                          {place.formattedAddress && (
-                            <div className="text-[10px] text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  });
-                })()}
-              </div>
-            )}
+            {showAutocomplete && autocompleteList}
           </div>
 
           <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
@@ -642,7 +298,7 @@ export function SearchHero({
 
           <button
             onClick={handleSearch}
-            className="shrink-0 w-8 h-8 m-0.5 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors shadow"
+            className="shrink-0 w-8 h-8 m-0.5 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors shadow"
             data-testid="button-search-navbar"
           >
             <Search className="w-4 h-4" />
@@ -653,172 +309,115 @@ export function SearchHero({
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '45vh' : 638 }}>
-
-        {/* Background Image — overflow-hidden only on the image layer so calendar dropdown can extend below */}
-        <div className="absolute inset-0 rounded-2xl overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-            style={{ 
-              backgroundImage: `url('${isMobile 
-                ? "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80" 
-                : heroImage}')`
-            }} 
+    <div className={cn("relative w-full", variant === "hero" ? "h-[638px] overflow-hidden" : "h-auto")}>
+      {variant === "hero" && (
+        <div className="absolute inset-0 w-full h-full">
+          <img
+            src={heroImage}
+            alt="Luxury Hotel"
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
+      )}
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '45vh' : 638 }}>
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
-              Luxury Stays. Unbeatable Rates.
-            </h1>
-            <p className="text-white text-lg font-medium tracking-wide">Discover stays that redefine extraordinary</p>
+      <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center h-full pt-20">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+            Luxury Stays. Unbeatable Rates.
+          </h1>
+          <p className="text-white text-lg font-medium tracking-wide mb-4 text-center">Discover stays that redefine extraordinary</p>
 
-            {/* Stats bar */}
-            <div className="hidden md:flex mt-6 items-center justify-center gap-6 text-white/90 text-sm">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-white" />
-                <span className="font-semibold">2M+</span>
-                <span className="text-white">{t("search.stat_hotels")}</span>
-              </div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-white" />
-                <span className="font-semibold">190+</span>
-                <span className="text-white">{t("search.stat_countries")}</span>
-              </div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-white fill-white" />
-                <span className="font-semibold">4.8/5</span>
-                <span className="text-white">{t("search.stat_rating")}</span>
-              </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white text-sm font-medium drop-shadow-md">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 opacity-90" />
+              <span className="whitespace-nowrap">2M+ Hotels Worldwide</span>
+            </div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 opacity-90" />
+              <span className="whitespace-nowrap">190+ Countries</span>
+            </div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="whitespace-nowrap">4.9/5 Guest Rating</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ── MOBILE search card (shown below md) ── */}
-      <div className="md:hidden w-full px-3 -mt-6 relative z-10">
-        {/* Mobile Stats Row */}
-        <div className="flex items-center justify-center gap-2 mb-6 text-white/90 px-2">
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
-            <Building2 className="w-3.5 h-3.5 text-primary-foreground" />
-            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">2M+ Hotels</span>
-          </div>
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
-            <MapPin className="w-3.5 h-3.5 text-primary-foreground" />
-            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">190+ Countries</span>
-          </div>
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
-            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">4.9/5 Rating</span>
-          </div>
-        </div>
-
-        <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
-
-          {/* Destination row (Vibe removed on mobile) */}
-          <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Enter a destination"
-                className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
-                value={destination}
-                onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
-                onKeyDown={handleKeyDown}
-                data-testid="input-destination"
-              />
+        {/* ── MOBILE search card (shown below md) ── */}
+        <div className="md:hidden w-full px-3 relative z-10">
+          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible">
+            <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Enter a destination"
+                  className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
+                  value={destination}
+                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
+                  onKeyDown={handleKeyDown}
+                  data-testid="input-destination"
+                />
+              </div>
+              {showAutocomplete && mode === "destination" && autocompleteList}
             </div>
-            {showAutocomplete && mode === "destination" && autocompleteList}
-          </div>
 
-          <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-            <PopoverTrigger asChild>
-              <button
-                className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                data-testid="button-date-mobile"
-              >
-                <CalendarDays className="w-5 h-5 text-gray-400 shrink-0" />
-                <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent 
-              className="w-[calc(100vw-32px)] sm:w-[400px] p-0 overflow-hidden border border-border shadow-2xl rounded-3xl bg-white dark:bg-card z-[100]" 
-              align="center" 
-              side="bottom" 
-              sideOffset={12}
-              avoidCollisions={true}
-              collisionPadding={16}
-            >
-              <div className="w-full h-full">
+            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
+                  data-testid="button-date-mobile"
+                >
+                  <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
+                  <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[calc(100vw-32px)] p-0 border-none shadow-2xl rounded-3xl" align="center" sideOffset={12}>
                 {calendarContent(1)}
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
 
-          {/* Guests row */}
-          <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-            <PopoverTrigger asChild>
+            <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
+                  data-testid="button-guests-mobile"
+                >
+                  <Users className="w-5 h-5 text-blue-600 shrink-0" />
+                  <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
+                </button>
+              </PopoverTrigger>
+              {makeGuestsPopoverContent()}
+            </Popover>
+
+            <div className="p-4">
               <button
-                className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                data-testid="button-guests-mobile"
+                onClick={handleSearch}
+                className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg"
+                data-testid="button-search"
               >
-                <Users className="w-5 h-5 text-gray-400 shrink-0" />
-                <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
+                <Search className="w-5 h-5" />
+                {t("search.search")}
               </button>
-            </PopoverTrigger>
-            {makeGuestsPopoverContent()}
-          </Popover>
-
-          {/* Search button */}
-          <div className="p-4">
-            <button
-              onClick={handleSearch}
-              className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-lg"
-              data-testid="button-search"
-            >
-              <Search className="w-5 h-5" />
-              {t("search.search")}
-            </button>
+            </div>
           </div>
         </div>
-      </div>
-      {/* MOBILE search card end */}
 
-      {/* ── DESKTOP content (shown at md+) ── */}
-      <div className="hidden md:flex flex-col items-center mt-6">
-        {/* Vibe toggle — desktop only */}
-        <button
-          onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-          className="flex mb-6 items-center gap-2 text-white hover:text-white/90 transition-colors"
-          data-testid="button-toggle-mode-desktop"
-        >
-          <Sparkles className="w-4 h-4 text-white animate-pulse" />
-          <span className="text-lg font-medium tracking-wide">
-            {mode === "destination" ? "Search by Vibe" : "Search by Destination"}
-          </span>
-        </button>
-
-        <div className="w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative flex" ref={searchBarRef}>
-          <div className="flex-1 flex items-center gap-0">
-            {/* Destination / Vibe section */}
-            <div className="flex-[1.2] relative px-4 py-2 border-r border-border" ref={autocompleteRef}>
-              <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
-                {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
-              </span>
-              {mode === "destination" ? (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+        {/* ── DESKTOP content (shown at md+) ── */}
+        <div className="hidden md:flex flex-col items-center mt-12 w-full max-w-4xl">
+          <div className="w-full bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible items-stretch px-2 py-2 gap-0 relative flex border border-white/10" ref={searchBarRef}>
+            <div className="flex-1 flex items-center gap-0">
+              <div className="flex-[1.2] relative px-6 py-3 border-r border-border text-left" ref={autocompleteRef}>
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
                   <input
                     type="text"
-                    placeholder="Where do you want to go?"
-                    className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
+                    placeholder="Enter a destination"
+                    className="flex-1 text-base text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
                     value={destination}
                     onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
                     onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
@@ -826,71 +425,50 @@ export function SearchHero({
                     data-testid="input-destination-desktop"
                   />
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="e.g. 'romantic beachfront resort'"
-                    className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
-                    value={aiSearch}
-                    onChange={(e) => setAiSearch(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    data-testid="input-vibe-desktop"
-                  />
-                </div>
-              )}
-              {showAutocomplete && mode === "destination" && autocompleteList}
+                {showAutocomplete && mode === "destination" && autocompleteList}
+              </div>
+
+              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
+                    data-testid="button-dates-desktop"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
+                      <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[800px] p-0 border-none shadow-2xl rounded-3xl z-[100]" align="center" sideOffset={12}>
+                  {calendarContent(2)}
+                </PopoverContent>
+              </Popover>
+
+              <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
+                    data-testid="button-guests-desktop"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-blue-600 shrink-0" />
+                      <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                {makeGuestsPopoverContent(-48)}
+              </Popover>
+
+              <button
+                onClick={handleSearch}
+                className="shrink-0 w-14 h-14 m-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-md active:scale-95"
+                data-testid="button-search-desktop"
+              >
+                <Search className="w-6 h-6" />
+              </button>
             </div>
-
-            {/* Dates section */}
-            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
-                  data-testid="button-dates-desktop"
-                >
-                  <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.checkin")} / {t("search.checkout")}</span>
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
-                  </div>
-                </button>
-              </PopoverTrigger>
-            </Popover>
-
-            {/* Guests section */}
-            <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
-                  data-testid="button-guests-desktop"
-                >
-                  <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.guests")}</span>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
-                  </div>
-                </button>
-              </PopoverTrigger>
-              {makeGuestsPopoverContent(-48)}
-            </Popover>
-
-            {/* Desktop Search Button */}
-            <button
-              onClick={handleSearch}
-              className="shrink-0 w-12 h-12 m-1 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all shadow-md hover:shadow-lg"
-              data-testid="button-search-desktop"
-            >
-              <Search className="w-6 h-6" />
-            </button>
           </div>
-
-          {dateOpen && !isMobile && (
-            <div className="absolute left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden" style={{ top: 'calc(100% + 8px)' }}>
-              {calendarContent(2)}
-            </div>
-          )}
         </div>
       </div>
     </div>
