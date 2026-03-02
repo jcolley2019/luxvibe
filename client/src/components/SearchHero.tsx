@@ -287,6 +287,12 @@ export function SearchHero({
       : format(date.from, "MMM d")
     : t("search.add_dates");
 
+  useEffect(() => {
+    if (isMobile && mode === "vibe") {
+      setMode("destination");
+    }
+  }, [isMobile, mode]);
+
   const handleCalendarOpen = () => {
     setSelectionPhase("checkin");
     setStagedCheckIn(undefined);
@@ -716,7 +722,6 @@ export function SearchHero({
             {showAutocomplete && mode === "destination" && autocompleteList}
           </div>
 
-          {/* Dates row — two side-by-side cells sharing one popover */}
           <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
             <div className="flex border-b border-gray-100 dark:border-border relative">
               <PopoverTrigger asChild>
@@ -745,14 +750,16 @@ export function SearchHero({
               </PopoverTrigger>
             </div>
             <PopoverContent 
-              className="w-[calc(100vw-24px)] max-w-[400px] p-0 overflow-hidden border border-border shadow-2xl rounded-3xl bg-white dark:bg-card z-[100]" 
+              className="w-[calc(100vw-32px)] sm:w-[400px] p-0 overflow-hidden border border-border shadow-2xl rounded-3xl bg-white dark:bg-card z-[100]" 
               align="center" 
               side="bottom" 
               sideOffset={12}
               avoidCollisions={true}
-              collisionPadding={12}
+              collisionPadding={16}
             >
-              {calendarContent(1)}
+              <div className="w-full h-full">
+                {calendarContent(1)}
+              </div>
             </PopoverContent>
           </Popover>
 
@@ -769,18 +776,6 @@ export function SearchHero({
             </PopoverTrigger>
             {makeGuestsPopoverContent()}
           </Popover>
-
-          {/* Vibe toggle row (Mobile) */}
-          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-border justify-center flex">
-            <button
-              onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-              className="flex items-center gap-1.5 text-primary text-xs font-medium transition-colors"
-              data-testid="button-toggle-mode"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
-            </button>
-          </div>
 
           {/* Search button */}
           <div className="p-3">
