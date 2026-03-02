@@ -101,9 +101,15 @@ export default function SearchHero({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const { data: places = [] } = useQuery({
+  const { data: places = [], isLoading: placesLoading } = useQuery({
     queryKey: ["/api/places", destination],
     enabled: destination.length >= 2 && showAutocomplete,
+    staleTime: 60000,
+    queryFn: async () => {
+      const res = await fetch(`/api/places?q=${encodeURIComponent(destination)}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch places");
+      return res.json();
+    },
   });
 
   const handleSearch = () => {
@@ -214,9 +220,27 @@ export default function SearchHero({
     </button>
   );
 
-  const autocompleteDropdown = (showAutocomplete && (destination.length < 2 || (places as any[]).length > 0)) && (
+  const autocompleteDropdown = showAutocomplete && (
     <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[380px] overflow-y-auto">
       {nearMeButton}
+      {destination.length >= 2 && placesLoading && (
+        <div className="px-4 py-3 space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-muted shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-muted" />
+                <div className="h-2.5 w-1/2 rounded bg-gray-100 dark:bg-muted" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {destination.length >= 2 && !placesLoading && (places as any[]).length === 0 && (
+        <div className="px-4 py-4 text-sm text-gray-400 dark:text-muted-foreground text-center">
+          No destinations found for "<span className="font-medium text-gray-600 dark:text-foreground">{destination}</span>"
+        </div>
+      )}
       {(places as any[]).map((place: any, idx: number) => {
         const types: string[] = place.types || [];
         const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
