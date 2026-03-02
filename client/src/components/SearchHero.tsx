@@ -552,9 +552,6 @@ export default function SearchHero({
                     </p>
                   )}
                 </div>
-                <button onClick={() => setMobileDateOpen(false)} className="text-muted-foreground hover:text-foreground mt-0.5">
-                  <X className="w-5 h-5" />
-                </button>
               </div>
               {mobileCalendarContent}
               <div className="px-5 pb-5 pt-2">
@@ -581,9 +578,6 @@ export default function SearchHero({
               <DialogTitle className="sr-only">Guests</DialogTitle>
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
                 <h3 className="font-bold text-base text-foreground">Guests</h3>
-                <button onClick={() => setMobileGuestsOpen(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="w-5 h-5" />
-                </button>
               </div>
               {guestsContent}
               <div className="px-5 pb-5">
