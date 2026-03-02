@@ -175,16 +175,34 @@ export default function SearchHero({
   };
 
   const handleDateSelect = (range: any, autoClose = false) => {
+    // If the user clicks a date while in checkin step, we always start a new range
     if (selectionStep === "checkin") {
-      const from = range?.from ?? range?.to;
-      if (!from) return;
-      setDate({ from });
+      // In range mode, clicking a single date usually returns it in range.from
+      const newFrom = range?.from || range?.to || (range instanceof Date ? range : null);
+      if (!newFrom) return;
+      
+      setDate({ from: newFrom, to: undefined });
       setSelectionStep("checkout");
     } else {
-      if (!date?.from) return;
-      const to = range?.to;
-      if (!to || to <= date.from) return;
-      setDate({ from: date.from, to });
+      // We are in checkout step
+      if (!date?.from) {
+        setSelectionStep("checkin");
+        return;
+      }
+      
+      const newTo = range?.to || (range?.from && range.from > date.from ? range.from : null);
+      
+      // If user clicks same date as check-in or an earlier date, reset to that as new check-in
+      if (range?.from && range.from <= date.from) {
+        setDate({ from: range.from, to: undefined });
+        setSelectionStep("checkout");
+        return;
+      }
+
+      if (!newTo) return;
+      
+      setDate({ from: date.from, to: newTo });
+      
       if (autoClose) {
         setTimeout(() => {
           setDateOpen(false);
