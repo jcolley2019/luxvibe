@@ -699,13 +699,13 @@ export default function SearchHero({
             {/* The visible search bar */}
             <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch border border-white/10">
               {/* Destination */}
-              <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative" ref={autocompleteRef}>
-                <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider">DESTINATION</p>
+              <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative flex flex-col items-start" ref={autocompleteRef}>
+                <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider text-left w-full">DESTINATION</p>
                 <input
                   ref={desktopInputRef}
                   type="text"
                   placeholder="Enter a destination"
-                  className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-semibold"
+                  className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-semibold text-left"
                   value={destination}
                   onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
                   onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
