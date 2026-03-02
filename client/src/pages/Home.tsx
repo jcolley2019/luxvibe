@@ -1281,7 +1281,7 @@ export default function Home() {
             {featuredLoading ? (
               <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
             ) : (
-              <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {featured?.map((hotel, i) => (
                   <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                     <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)?.type} />
@@ -1304,7 +1304,7 @@ export default function Home() {
                   <button onClick={() => scrollCarousel(recentCarouselRef, "right")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-recent-next"><ChevronRight className="w-4 h-4" /></button>
                 </div>
               </div>
-              <div ref={recentCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              <div ref={recentCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {enrichedRecentHotels.map((hotel, i) => (
                   <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                     <HotelCard hotel={hotel} variant="featured" />
@@ -1342,7 +1342,7 @@ export default function Home() {
               ) : nearbyLoading ? (
                 <div className="flex items-center justify-center h-40"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
               ) : nearbyHotels && nearbyHotels.length > 0 ? (
-                <div ref={nearbyCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                <div ref={nearbyCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                       <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)?.type} />
