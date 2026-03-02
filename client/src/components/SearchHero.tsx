@@ -702,16 +702,32 @@ export function SearchHero({
 
       {/* ── MOBILE search card (shown below md) ── */}
       <div className="md:hidden w-full px-3 -mt-6 relative z-10">
+        {/* Mobile Stats Row */}
+        <div className="flex items-center justify-center gap-2 mb-6 text-white/90 px-2">
+          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
+            <Building2 className="w-3.5 h-3.5 text-primary-foreground" />
+            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">2M+ Hotels</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
+            <MapPin className="w-3.5 h-3.5 text-primary-foreground" />
+            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">190+ Countries</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 py-2 rounded-xl backdrop-blur-md border border-white/10">
+            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+            <span className="text-[10px] font-bold tracking-tight whitespace-nowrap">4.9/5 Rating</span>
+          </div>
+        </div>
+
         <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
 
           {/* Destination row (Vibe removed on mobile) */}
-          <div className="relative px-4 py-3.5 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
+          <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
               <input
                 type="text"
                 placeholder="Enter a destination"
-                className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
+                className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
                 value={destination}
                 onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
                 onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
@@ -725,11 +741,11 @@ export function SearchHero({
           <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
             <PopoverTrigger asChild>
               <button
-                className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
                 data-testid="button-date-mobile"
               >
-                <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                <span className="text-sm text-gray-800 dark:text-foreground">{dateLabel}</span>
+                <CalendarDays className="w-5 h-5 text-gray-400 shrink-0" />
+                <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
               </button>
             </PopoverTrigger>
             <PopoverContent 
@@ -750,24 +766,24 @@ export function SearchHero({
           <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
             <PopoverTrigger asChild>
               <button
-                className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
                 data-testid="button-guests-mobile"
               >
-                <Users className="w-4 h-4 text-gray-400 shrink-0" />
-                <span className="text-sm text-gray-800 dark:text-foreground">{guestsLabel}</span>
+                <Users className="w-5 h-5 text-gray-400 shrink-0" />
+                <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
               </button>
             </PopoverTrigger>
             {makeGuestsPopoverContent()}
           </Popover>
 
           {/* Search button */}
-          <div className="p-3">
+          <div className="p-4">
             <button
               onClick={handleSearch}
-              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 active:bg-primary/80 transition-colors shadow"
+              className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-lg"
               data-testid="button-search"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-5 h-5" />
               {t("search.search")}
             </button>
           </div>
