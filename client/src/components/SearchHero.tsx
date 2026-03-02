@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { 
   Search, MapPin, CalendarDays, Users, Building2, Star, 
-  BedDouble, Plane, Info, X, ChevronRight, Plus, Minus, Sparkles
+  BedDouble, Plane, X, Plus, Minus, Sparkles
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -42,27 +46,22 @@ export default function SearchHero({
   const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(() => {
     if (initialCheckIn && initialCheckOut) {
       try {
-        return {
-          from: new Date(initialCheckIn),
-          to: new Date(initialCheckOut)
-        };
-      } catch (e) {
-        console.error("Invalid initial dates", e);
-      }
+        return { from: new Date(initialCheckIn), to: new Date(initialCheckOut) };
+      } catch {}
     }
-    return {
-      from: addDays(new Date(), 7),
-      to: addDays(new Date(), 14),
-    };
+    return { from: addDays(new Date(), 7), to: addDays(new Date(), 14) };
   });
 
   const [guests, setGuests] = useState(() => {
     const total = parseInt(initialGuests) || 2;
     return { adults: total, children: 0 };
   });
+
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [mobileDateOpen, setMobileDateOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
+  const [mobileGuestsOpen, setMobileGuestsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<"destination" | "vibe">("destination");
 
@@ -105,12 +104,9 @@ export default function SearchHero({
     } else if (destination) {
       params.set("destination", destination);
     }
-
     if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
     if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
-    const totalGuests = guests.adults + guests.children;
-    params.set("guests", totalGuests.toString());
-
+    params.set("guests", (guests.adults + guests.children).toString());
     setLocation(`/?${params.toString()}`);
   };
 
@@ -118,27 +114,21 @@ export default function SearchHero({
     if (e.key === "Enter") handleSearch();
   };
 
-  const handleCalendarOpen = () => {
-    setGuestsOpen(false);
-    setShowAutocomplete(false);
-  };
-
   const dateLabel = date?.from && date?.to 
-    ? `${format(date.from, "MMM d")} - ${format(date.to, "MMM d")}`
+    ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
     : "Select dates";
 
-  const guestsLabel = `${guests.adults} ${guests.adults === 1 ? 'Adult' : 'Adults'}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? 'Child' : 'Children'}` : ''}`;
+  const guestsLabel = `${guests.adults} ${guests.adults === 1 ? "Adult" : "Adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "Child" : "Children"}` : ""}`;
 
   const autocompleteList = places.length > 0 && (
     <div className="absolute top-full left-0 z-[100] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[300px] max-h-[400px] overflow-y-auto">
-      {places.map((place: any, idx: number) => {
+      {(places as any[]).map((place: any, idx: number) => {
         const types: string[] = place.types || [];
         const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
         const isAirport = types.includes("airport");
         const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
         const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
         const name = place.displayName || place.placeId;
-
         return (
           <button
             key={place.placeId}
@@ -180,7 +170,7 @@ export default function SearchHero({
         selected={date}
         onSelect={setDate}
         numberOfMonths={numberOfMonths}
-        disabled={(date) => date < new Date()}
+        disabled={(d) => d < new Date()}
         className="rounded-xl border-none"
         classNames={{
           day_range_middle: "bg-blue-50 text-blue-900",
@@ -191,60 +181,36 @@ export default function SearchHero({
     </div>
   );
 
+  const guestsContent = (
+    <div className="space-y-6 p-6">
+      {[
+        { label: "Adults", sub: "Ages 13 or above", key: "adults" as const, min: 1 },
+        { label: "Children", sub: "Ages 2–12", key: "children" as const, min: 0 },
+      ].map(({ label, sub, key, min }) => (
+        <div key={key} className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{label}</p>
+            <p className="text-xs text-gray-400">{sub}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+              onClick={() => setGuests(prev => ({ ...prev, [key]: Math.max(min, prev[key] - 1) }))}>
+              <Minus className="h-3 w-3" />
+            </Button>
+            <span className="text-sm font-medium w-4 text-center">{guests[key]}</span>
+            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+              onClick={() => setGuests(prev => ({ ...prev, [key]: prev[key] + 1 }))}>
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   const makeGuestsPopoverContent = (alignOffset = 0) => (
-    <PopoverContent className="w-80 p-6 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="end" alignOffset={alignOffset} sideOffset={12}>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Adults</p>
-            <p className="text-xs text-gray-400">Ages 13 or above</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-full border-gray-200"
-              onClick={() => setGuests(prev => ({ ...prev, adults: Math.max(1, prev.adults - 1) }))}
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-            <span className="text-sm font-medium w-4 text-center">{guests.adults}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-full border-gray-200"
-              onClick={() => setGuests(prev => ({ ...prev, adults: prev.adults + 1 }))}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Children</p>
-            <p className="text-xs text-gray-400">Ages 2–12</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-full border-gray-200"
-              onClick={() => setGuests(prev => ({ ...prev, children: Math.max(0, prev.children - 1) }))}
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-            <span className="text-sm font-medium w-4 text-center">{guests.children}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-full border-gray-200"
-              onClick={() => setGuests(prev => ({ ...prev, children: prev.children + 1 }))}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
+    <PopoverContent className="w-80 p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="end" alignOffset={alignOffset} sideOffset={12}>
+      {guestsContent}
     </PopoverContent>
   );
 
@@ -269,12 +235,9 @@ export default function SearchHero({
             {showAutocomplete && autocompleteList}
           </div>
 
-          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
             <PopoverTrigger asChild>
-              <button
-                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
-                data-testid="button-dates-navbar"
-              >
+              <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-dates-navbar">
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.checkin")} / {t("search.checkout")}</span>
                 <span className="text-xs text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
               </button>
@@ -286,10 +249,7 @@ export default function SearchHero({
 
           <Popover open={guestsOpen} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
             <PopoverTrigger asChild>
-              <button
-                className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border"
-                data-testid="button-guests-navbar"
-              >
+              <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-guests-navbar">
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.guests")}</span>
                 <span className="text-xs text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
               </button>
@@ -313,11 +273,7 @@ export default function SearchHero({
     <div className={cn("relative w-full", variant === "hero" ? "h-[638px] overflow-hidden" : "h-auto")}>
       {variant === "hero" && (
         <div className="absolute inset-0 w-full h-full">
-          <img
-            src={heroImage}
-            alt="Luxury Hotel"
-            className="w-full h-full object-cover"
-          />
+          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
       )}
@@ -347,9 +303,52 @@ export default function SearchHero({
           </div>
         </div>
 
-        {/* ── MOBILE search card (shown below md) ── */}
+        {/* ── MOBILE search card ── */}
         <div className="md:hidden w-full px-3 relative z-10">
-          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible">
+          {/* Mobile Date Dialog */}
+          <Dialog open={mobileDateOpen} onOpenChange={setMobileDateOpen}>
+            <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
+              <div className="flex items-center justify-between px-5 pt-5 pb-2">
+                <h3 className="font-bold text-base text-foreground">Select dates</h3>
+                <button onClick={() => setMobileDateOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {calendarContent(1)}
+              <div className="px-5 pb-5">
+                <button
+                  onClick={() => setMobileDateOpen(false)}
+                  className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm"
+                >
+                  Confirm dates
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Mobile Guests Dialog */}
+          <Dialog open={mobileGuestsOpen} onOpenChange={setMobileGuestsOpen}>
+            <DialogContent className="w-[calc(100vw-32px)] max-w-sm p-0 rounded-3xl border-none shadow-2xl bg-white dark:bg-card">
+              <div className="flex items-center justify-between px-5 pt-5 pb-2">
+                <h3 className="font-bold text-base text-foreground">Guests</h3>
+                <button onClick={() => setMobileGuestsOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {guestsContent}
+              <div className="px-5 pb-5">
+                <button
+                  onClick={() => setMobileGuestsOpen(false)}
+                  className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm"
+                >
+                  Confirm
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-3xl shadow-2xl">
+            {/* Destination */}
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
@@ -359,7 +358,7 @@ export default function SearchHero({
                   className="flex-1 text-base text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
                   value={destination}
                   onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
+                  onFocus={() => { setShowAutocomplete(true); setMode("destination"); }}
                   onKeyDown={handleKeyDown}
                   data-testid="input-destination"
                 />
@@ -367,34 +366,27 @@ export default function SearchHero({
               {showAutocomplete && mode === "destination" && autocompleteList}
             </div>
 
-            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                  data-testid="button-date-mobile"
-                >
-                  <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
-                  <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[calc(100vw-32px)] p-0 border-none shadow-2xl rounded-3xl" align="center" sideOffset={12}>
-                {calendarContent(1)}
-              </PopoverContent>
-            </Popover>
+            {/* Dates — opens Dialog, not Popover */}
+            <button
+              onClick={() => setMobileDateOpen(true)}
+              className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
+              data-testid="button-date-mobile"
+            >
+              <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="text-base text-gray-800 dark:text-foreground">{dateLabel}</span>
+            </button>
 
-            <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-              <PopoverTrigger asChild>
-                <button
-                  className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                  data-testid="button-guests-mobile"
-                >
-                  <Users className="w-5 h-5 text-blue-600 shrink-0" />
-                  <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
-                </button>
-              </PopoverTrigger>
-              {makeGuestsPopoverContent()}
-            </Popover>
+            {/* Guests — opens Dialog, not Popover */}
+            <button
+              onClick={() => setMobileGuestsOpen(true)}
+              className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
+              data-testid="button-guests-mobile"
+            >
+              <Users className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
+            </button>
 
+            {/* Search */}
             <div className="p-4">
               <button
                 onClick={handleSearch}
@@ -408,7 +400,7 @@ export default function SearchHero({
           </div>
         </div>
 
-        {/* ── DESKTOP content (shown at md+) ── */}
+        {/* ── DESKTOP search card (md+) ── */}
         <div className="hidden md:flex flex-col items-center mt-12 w-full max-w-4xl">
           <div className="w-full bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible items-stretch px-2 py-2 gap-0 relative flex border border-white/10" ref={searchBarRef}>
             <div className="flex-1 flex items-center gap-0">
@@ -429,12 +421,9 @@ export default function SearchHero({
                 {showAutocomplete && mode === "destination" && autocompleteList}
               </div>
 
-              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
                 <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
-                    data-testid="button-dates-desktop"
-                  >
+                  <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative" data-testid="button-dates-desktop">
                     <div className="flex items-center gap-3">
                       <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
                       <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
@@ -448,10 +437,7 @@ export default function SearchHero({
 
               <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
                 <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
-                    data-testid="button-guests-desktop"
-                  >
+                  <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative" data-testid="button-guests-desktop">
                     <div className="flex items-center gap-3">
                       <Users className="w-5 h-5 text-blue-600 shrink-0" />
                       <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
