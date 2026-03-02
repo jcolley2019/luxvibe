@@ -168,48 +168,42 @@ export default function SearchHero({
 
   const openCalendar = () => {
     setSelectionStep("checkin");
-    // Removed: setDate(undefined); - Preserve dates when re-opening
+    // Preserve existing dates so the user can see them and change only check-in
     setDateOpen(true);
     setGuestsOpen(false);
     setShowAutocomplete(false);
   };
 
+  // checkinFrom tracks what the user has confirmed as their check-in while
+  // they're in the "checkout" step. We use this to anchor the calendar range.
   const handleDateSelect = (range: any, autoClose = false) => {
-    // If the user clicks a date while in checkin step, we always start a new range
     if (selectionStep === "checkin") {
-      // In range mode, clicking a single date usually returns it in range.from
-      const newFrom = range?.from || range?.to || (range instanceof Date ? range : null);
-      if (!newFrom) return;
-      
-      setDate({ from: newFrom, to: undefined });
+      // Any click in checkin step picks a new check-in and clears check-out
+      const clicked = range?.from ?? range?.to;
+      if (!clicked) return;
+      setDate({ from: clicked, to: undefined });
       setSelectionStep("checkout");
     } else {
-      // We are in checkout step
-      if (!date?.from) {
-        setSelectionStep("checkin");
-        return;
-      }
-      
-      const newTo = range?.to || (range?.from && range.from > date.from ? range.from : null);
-      
-      // If user clicks same date as check-in or an earlier date, reset to that as new check-in
-      if (range?.from && range.from <= date.from) {
+      // Checkout step: react-day-picker gives us { from: checkinAnchor, to: clickedDate }
+      // when the user clicks a date after the anchor.
+      // If they click before/on the anchor it resets: { from: clickedDate, to: undefined }
+      if (!range) return;
+
+      if (range.to && date?.from && range.to > date.from) {
+        // Valid check-out selected
+        setDate({ from: date.from, to: range.to });
+        if (autoClose) {
+          setTimeout(() => {
+            setDateOpen(false);
+            setSelectionStep("checkin");
+          }, 300);
+        } else {
+          setSelectionStep("checkin");
+        }
+      } else if (range.from && (!range.to || range.from !== date?.from)) {
+        // User clicked before/on the anchor — treat as a new check-in
         setDate({ from: range.from, to: undefined });
         setSelectionStep("checkout");
-        return;
-      }
-
-      if (!newTo) return;
-      
-      setDate({ from: date.from, to: newTo });
-      
-      if (autoClose) {
-        setTimeout(() => {
-          setDateOpen(false);
-          setSelectionStep("checkin");
-        }, 300);
-      } else {
-        setSelectionStep("checkin");
       }
     }
   };
@@ -226,7 +220,7 @@ export default function SearchHero({
   const desktopGuestsLabel = `1 Room, ${guests.adults + guests.children} ${guests.adults + guests.children === 1 ? "Guest" : "Guests"}`;
 
   const calendarHeader = selectionStep === "checkin"
-    ? "When do you want to check in?"
+    ? "Select your check-in date"
     : "Now select your check-out date";
 
   const isCheckoutStep = selectionStep === "checkout";
@@ -316,7 +310,7 @@ export default function SearchHero({
         initialFocus
         mode="range"
         defaultMonth={date?.from}
-        selected={date}
+        selected={isCheckoutStep ? { from: date?.from } : undefined}
         onSelect={(r) => handleDateSelect(r, false)}
         numberOfMonths={1}
         weekStartsOn={0}
@@ -370,7 +364,7 @@ export default function SearchHero({
         initialFocus
         mode="range"
         defaultMonth={date?.from}
-        selected={date}
+        selected={isCheckoutStep ? { from: date?.from } : undefined}
         onSelect={(r) => handleDateSelect(r, true)}
         numberOfMonths={2}
         weekStartsOn={0}
