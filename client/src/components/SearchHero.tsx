@@ -701,7 +701,7 @@ export function SearchHero({
                     className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
                     value={destination}
                     onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                    onFocus={() => setShowAutocomplete(true)}
+                    onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
                     onKeyDown={handleKeyDown}
                     data-testid="input-destination"
                   />
@@ -816,7 +816,7 @@ export function SearchHero({
                       className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
                       value={destination}
                       onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                      onFocus={() => setShowAutocomplete(true)}
+                      onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
                       onKeyDown={handleKeyDown}
                       data-testid="input-destination-desktop"
                     />
