@@ -285,7 +285,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
           {/* Central slot (compact search bar on hotel pages) */}
           {centralSlot && (
-            <div className="flex-1 flex justify-center">
+            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-xl hidden md:flex justify-center">
               {centralSlot}
             </div>
           )}
