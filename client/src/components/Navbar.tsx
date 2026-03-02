@@ -252,10 +252,10 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <Link href="/" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <span
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              className="text-2xl font-semibold tracking-[0.18em] text-foreground uppercase"
+              className="text-lg xs:text-xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
             >
               Luxvibe
             </span>
@@ -269,28 +269,28 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
           )}
 
           {/* Right side icons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Language / Currency */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen(true)}
                 onMouseEnter={() => setLangTooltip(true)}
                 onMouseLeave={() => setLangTooltip(false)}
-                className="h-9 px-2.5 rounded-full border border-border flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                className="h-9 px-2 rounded-full border border-border flex items-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
                 data-testid="button-language"
               >
                 <Globe className="w-4 h-4 shrink-0" />
-                <span className="text-xs font-semibold tracking-wide">{language}</span>
+                <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">{language}</span>
               </button>
-              {langTooltip && (
+              {langTooltip && !isMobile && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
                   {t("nav.language_currency")}
                 </div>
               )}
             </div>
 
-            {/* Lightbulb — site guide */}
-            <div className="relative" ref={tipsRef}>
+            {/* Lightbulb — site guide - hidden on small mobile */}
+            <div className="hidden xs:relative xs:block" ref={tipsRef}>
               <button
                 onClick={() => setTipsOpen(o => !o)}
                 onMouseEnter={() => setGuideTooltip(true)}
@@ -300,7 +300,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               >
                 <Lightbulb className="w-4 h-4" />
               </button>
-              {guideTooltip && !tipsOpen && (
+              {guideTooltip && !tipsOpen && !isMobile && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
                   Luxvibe Guide
                 </div>

@@ -109,21 +109,23 @@ function CompactSearchBar({
   const guestStr = `${guests} ${parseInt(guests) === 1 ? "Guest" : "Guests"}`;
 
   return (
-    <div className="bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm">
-      <div className="container mx-auto px-4 py-3">
+    <div className="bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm sticky top-14 sm:top-16 z-40">
+      <div className="container mx-auto px-2 sm:px-4 py-1.5 sm:py-2">
         <button
           onClick={onEdit}
-          className="w-full flex items-center gap-0 px-4 py-2.5 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md hover:border-primary/50 transition-all text-left group"
+          className="w-full flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md transition-all text-left"
           data-testid="button-edit-search"
         >
-          <Search className="w-4 h-4 text-primary shrink-0 mr-3" />
-          <span className="text-sm font-semibold text-foreground truncate max-w-[160px]">{label}</span>
-          <span className="mx-3 text-border/70 select-none">|</span>
-          <span className="text-sm text-muted-foreground whitespace-nowrap">{dateStr}</span>
-          <span className="mx-3 text-border/70 select-none">|</span>
-          <span className="text-sm text-muted-foreground whitespace-nowrap">{guestStr}</span>
-          <div className="ml-auto bg-primary group-hover:bg-primary/90 transition-colors rounded-full p-1.5 shrink-0">
-            <Search className="w-3.5 h-3.5 text-white" />
+          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
+          <div className="flex flex-1 min-w-0 items-center text-[10px] xs:text-xs sm:text-sm">
+            <span className="font-bold text-foreground truncate max-w-[60px] xs:max-w-[80px] sm:max-w-[120px]">{label}</span>
+            <span className="mx-1 text-border sm:mx-2">•</span>
+            <span className="text-muted-foreground truncate">{dateStr}</span>
+            <span className="mx-1 text-border sm:mx-2">•</span>
+            <span className="text-muted-foreground whitespace-nowrap">{guestStr}</span>
+          </div>
+          <div className="bg-primary rounded-full p-1 sm:p-1.5 shrink-0">
+            <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
           </div>
         </button>
       </div>
@@ -165,12 +167,14 @@ function DiscoverByVibe() {
 
   return (
     <section className="pb-10 container mx-auto px-4" data-testid="section-discover-vibe">
-      <div className="flex items-center gap-2 mb-5">
-        <Sparkles className="w-5 h-5 text-primary" />
-        <h2 className="text-2xl font-bold font-heading">Discover Hotels by Vibe</h2>
-        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI-Powered</span>
+      <div className="flex items-center justify-between gap-2 mb-5">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <h2 className="text-xl sm:text-2xl font-bold font-heading">Discover by Vibe</h2>
+        </div>
+        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-tight">AI-Powered</span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
         {VIBE_CARDS.map((vibe, i) => {
           const Icon = vibe.icon;
           return (

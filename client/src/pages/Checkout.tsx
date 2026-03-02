@@ -149,19 +149,19 @@ export default function Checkout() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 font-heading">Complete your booking</h1>
+      <main className="flex-1 container mx-auto px-4 py-4 sm:py-8 max-w-4xl">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 font-heading">Complete your booking</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           <div className="md:col-span-2 space-y-6">
-            <Card className="border-none shadow-sm bg-muted/30">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <Card className="border-none shadow-sm bg-muted/30 rounded-2xl">
+              <CardHeader className="p-5 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
                   <User className="w-5 h-5 text-primary" />
                   Guest Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -170,9 +170,9 @@ export default function Checkout() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">First Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John" {...field} data-testid="input-firstName" disabled={prebookMutation.isPending || !!prebookData} />
+                              <Input placeholder="John" className="rounded-xl h-11" {...field} data-testid="input-firstName" disabled={prebookMutation.isPending || !!prebookData} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -183,9 +183,9 @@ export default function Checkout() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Last Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Doe" {...field} data-testid="input-lastName" disabled={prebookMutation.isPending || !!prebookData} />
+                              <Input placeholder="Doe" className="rounded-xl h-11" {...field} data-testid="input-lastName" disabled={prebookMutation.isPending || !!prebookData} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -197,9 +197,9 @@ export default function Checkout() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="john.doe@example.com" type="email" {...field} data-testid="input-email" disabled={prebookMutation.isPending || !!prebookData} />
+                            <Input placeholder="john.doe@example.com" className="rounded-xl h-11" type="email" {...field} data-testid="input-email" disabled={prebookMutation.isPending || !!prebookData} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -210,9 +210,9 @@ export default function Checkout() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone Number</FormLabel>
                           <FormControl>
-                            <Input placeholder="+1 555 000 0000" type="tel" {...field} data-testid="input-phone" disabled={prebookMutation.isPending || !!prebookData} />
+                            <Input placeholder="+1 555 000 0000" className="rounded-xl h-11" type="tel" {...field} data-testid="input-phone" disabled={prebookMutation.isPending || !!prebookData} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -222,7 +222,7 @@ export default function Checkout() {
                     {!prebookData && (
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20" 
                         disabled={prebookMutation.isPending}
                         data-testid="button-submit-guest-details"
                       >
@@ -242,25 +242,25 @@ export default function Checkout() {
             </Card>
 
             {prebookData && (
-              <Card className="border-primary/20 shadow-lg animate-in fade-in slide-in-from-top-4">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <Card className="border-primary/20 shadow-lg animate-in fade-in slide-in-from-top-4 rounded-2xl">
+                <CardHeader className="p-5 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-primary" />
                     Secure Payment
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg flex items-start gap-3">
-                    <ShieldCheck className="w-5 h-5 text-blue-600 mt-0.5" />
+                <CardContent className="space-y-4 p-5 sm:p-6 pt-0 sm:pt-0">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-start gap-3">
+                    <ShieldCheck className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Sandbox Environment</p>
-                      <p className="text-sm text-blue-800/80 dark:text-blue-200/80">
+                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100">Sandbox Environment</p>
+                      <p className="text-xs sm:text-sm text-blue-800/80 dark:text-blue-200/80">
                         Use card <code className="font-mono font-bold">4242 4242 4242 4242</code>, any 3-digit CVV, and any future expiry date for testing.
                       </p>
                     </div>
                   </div>
                   
-                  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border rounded-lg p-4 bg-white dark:bg-black/20">
+                  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20">
                     {!sdkLoaded && (
                       <div className="flex flex-col items-center gap-2">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -274,42 +274,42 @@ export default function Checkout() {
           </div>
 
           <div className="space-y-6">
-            <Card className="sticky top-24 border-none shadow-md overflow-hidden">
-              <CardHeader className="bg-primary text-primary-foreground p-6">
-                <CardTitle className="text-lg font-heading">Booking Summary</CardTitle>
+            <Card className="sticky top-24 border-none shadow-md overflow-hidden rounded-2xl">
+              <CardHeader className="bg-primary text-primary-foreground p-5 sm:p-6">
+                <CardTitle className="text-base sm:text-lg font-heading">Booking Summary</CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
+              <CardContent className="p-5 sm:p-6 space-y-5 sm:space-y-6">
                 <div>
-                  <h3 className="font-bold text-lg mb-1">{hotelName}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
+                  <h3 className="font-bold text-base sm:text-lg mb-1 leading-tight">{hotelName}</h3>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Calendar className="w-3.5 h-3.5" />
                     <span>{checkIn && format(parseISO(checkIn), "MMM dd")} - {checkOut && format(parseISO(checkOut), "MMM dd, yyyy")}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3 pt-4 border-t border-border">
-                  <div className="flex items-center gap-3 text-sm">
-                    <Users className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center gap-3 text-xs sm:text-sm">
+                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>{guests} Guests</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <BedDouble className="w-4 h-4 text-muted-foreground" />
-                    <span>{roomName}</span>
+                  <div className="flex items-center gap-3 text-xs sm:text-sm">
+                    <BedDouble className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="leading-tight">{roomName}</span>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-border">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Total Price</span>
+                <div className="pt-5 border-t border-border">
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs sm:text-sm text-muted-foreground pb-1">Total Price</span>
                     <div className="text-right">
-                      <span className="text-2xl font-bold">{currency} {price}</span>
+                      <span className="text-xl sm:text-2xl font-bold leading-none block mb-0.5">{currency} {price}</span>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">All taxes included</p>
                     </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/30 p-4">
-                <p className="text-[11px] text-muted-foreground text-center w-full">
+                <p className="text-[10px] sm:text-[11px] text-muted-foreground text-center w-full leading-relaxed">
                   By completing this booking, you agree to the Terms of Service and Cancellation Policy.
                 </p>
               </CardFooter>

@@ -725,29 +725,25 @@ export function SearchHero({
               <div className="flex border-b border-gray-100 dark:border-border relative">
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex items-center gap-2 px-4 py-3 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
+                    className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
                     data-testid="button-checkin-mobile"
                   >
-                    <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">{t("search.checkin")}</div>
-                      <div className="text-sm text-gray-800 dark:text-foreground font-medium">
-                        {date?.from ? format(date.from, "dd MMM") : t("search.add_dates")}
-                      </div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-in</span>
+                    <div className="flex items-center gap-1.5">
+                      <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-sm font-semibold text-foreground">{stagedCheckIn ? format(stagedCheckIn, "MMM d") : (date?.from ? format(date.from, "MMM d") : "Add date")}</span>
                     </div>
                   </button>
                 </PopoverTrigger>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex-1 flex items-center gap-2 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+                    className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left active:bg-gray-50 transition-colors"
                     data-testid="button-checkout-mobile"
                   >
-                    <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">{t("search.checkout")}</div>
-                      <div className="text-sm text-gray-800 dark:text-foreground font-medium">
-                        {date?.to ? format(date.to, "dd MMM") : t("search.add_dates")}
-                      </div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-out</span>
+                    <div className="flex items-center gap-1.5">
+                      <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-sm font-semibold text-foreground">{date?.to && !stagedCheckIn ? format(date.to, "MMM d") : "Add date"}</span>
                     </div>
                   </button>
                 </PopoverTrigger>

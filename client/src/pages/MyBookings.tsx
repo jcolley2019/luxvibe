@@ -44,28 +44,28 @@ export default function MyBookings() {
             {bookings.map((booking) => (
               <div 
                 key={booking.id}
-                className="bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-6 items-start md:items-center"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-4 sm:gap-6 items-start md:items-center"
               >
-                <div className="w-full md:w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
-                  <Calendar className="w-8 h-8" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
+                  <Calendar className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
                 
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-lg">{booking.hotelName}</h3>
-                    <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="capitalize">
+                <div className="flex-1 space-y-1 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                    <h3 className="font-bold text-base sm:text-lg leading-tight">{booking.hotelName}</h3>
+                    <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="capitalize w-fit text-[10px] sm:text-xs">
                       {booking.status}
                     </Badge>
                   </div>
                   
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-col xs:flex-row flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1.5" />
-                      {format(parseISO(booking.checkIn as string), "MMM d, yyyy")} - {format(parseISO(booking.checkOut as string), "MMM d, yyyy")}
+                      <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                      {format(parseISO(booking.checkIn as string), "MMM d")} - {format(parseISO(booking.checkOut as string), "MMM d, yyyy")}
                     </div>
                     <div className="flex items-center">
-                      <BedDouble className="w-4 h-4 mr-1.5" />
-                      {booking.roomType}
+                      <BedDouble className="w-3.5 h-3.5 mr-1.5" />
+                      <span className="truncate max-w-[150px]">{booking.roomType}</span>
                     </div>
                     <div className="flex items-center">
                       <span className="font-semibold text-foreground mr-1">Total:</span> 
@@ -74,9 +74,9 @@ export default function MyBookings() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 w-full md:w-auto">
-                  <Button variant="outline" className="flex-1 md:flex-none">View Details</Button>
-                  <Button variant="outline" className="flex-1 md:flex-none text-destructive hover:bg-destructive/10 border-destructive">Cancel</Button>
+                <div className="flex gap-2 w-full md:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
+                  <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs">View</Button>
+                  <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs text-destructive hover:bg-destructive/10 border-destructive">Cancel</Button>
                 </div>
               </div>
             ))}
