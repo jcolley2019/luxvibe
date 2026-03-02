@@ -302,8 +302,16 @@ export function SearchHero({
       setStagedCheckIn(day);
       setSelectionPhase("checkout");
       setHoveredDate(undefined);
+      // Update date.from immediately for visual feedback
+      setDate(prev => ({ from: day, to: prev?.to && prev.to > day ? prev.to : undefined }));
     } else {
-      if (!stagedCheckIn || day <= stagedCheckIn) return;
+      if (!stagedCheckIn || day <= stagedCheckIn) {
+        // If user clicks an earlier date, treat it as a new check-in
+        setStagedCheckIn(day);
+        setSelectionPhase("checkout");
+        setDate(prev => ({ from: day, to: undefined }));
+        return;
+      }
       setDate({ from: stagedCheckIn, to: day });
       setStagedCheckIn(undefined);
       setHoveredDate(undefined);
@@ -324,34 +332,34 @@ export function SearchHero({
   })();
 
   const calendarContent = (nMonths: number) => (
-    <div data-testid="calendar-dropdown" className="bg-white dark:bg-card">
-      <div className="pt-2 pb-1">
+    <div data-testid="calendar-dropdown" className="bg-white dark:bg-card overflow-hidden">
+      <div className="pt-5 pb-3">
         <Calendar
           initialFocus
           mode="range"
           className="w-full"
           style={{ width: '100%' }}
-          showOutsideDays={true}
+          showOutsideDays={false}
           classNames={{
-            months: "flex flex-row w-full divide-x divide-border",
-            month: "flex-1 px-6 py-1",
-            caption: "flex justify-center relative items-center mb-2 h-8",
+            months: "flex flex-col sm:flex-row w-full gap-4",
+            month: "flex-1 px-4 sm:px-8 py-1",
+            caption: "flex justify-center relative items-center mb-4 h-8",
             caption_label: "text-base font-bold text-foreground",
             nav: "flex items-center",
-            nav_button: "h-8 w-8 bg-transparent p-0 hover:bg-muted rounded-md transition-colors flex items-center justify-center opacity-70 hover:opacity-100",
-            nav_button_previous: "absolute left-0",
-            nav_button_next: "absolute right-0",
+            nav_button: "h-9 w-9 bg-transparent p-0 hover:bg-muted rounded-full transition-colors flex items-center justify-center opacity-70 hover:opacity-100 border border-border",
+            nav_button_previous: "absolute left-2",
+            nav_button_next: "absolute right-2",
             table: "w-full border-collapse",
-            head_row: "flex w-full mb-1",
-            head_cell: "text-muted-foreground text-xs font-semibold text-center flex-1 uppercase tracking-wide",
-            row: "flex w-full mt-0.5",
-            cell: "text-center text-sm relative p-0 flex-1 [&:has([aria-selected])]:bg-blue-100 dark:[&:has([aria-selected])]:bg-blue-900/30 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full",
-            day: "h-8 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-muted/60 rounded-full transition-colors flex items-center justify-center mx-auto text-sm",
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-semibold",
-            day_today: "text-primary font-bold",
-            day_outside: "text-muted-foreground opacity-40",
-            day_disabled: "text-muted-foreground opacity-25 cursor-not-allowed",
-            day_range_middle: "aria-selected:bg-transparent aria-selected:text-blue-700 dark:aria-selected:text-blue-300 rounded-none",
+            head_row: "flex w-full mb-2",
+            head_cell: "text-muted-foreground text-[10px] sm:text-xs font-bold text-center flex-1 uppercase tracking-widest pb-1.5",
+            row: "flex w-full mt-1",
+            cell: "text-center text-sm relative p-0 flex-1 [&:has([aria-selected])]:bg-primary/5 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full",
+            day: "h-9 w-9 sm:h-11 sm:w-11 p-0 font-medium aria-selected:opacity-100 hover:bg-muted/80 rounded-full transition-all flex items-center justify-center mx-auto text-sm",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-bold shadow-lg scale-100 z-10",
+            day_today: "text-primary font-black ring-2 ring-primary ring-offset-2",
+            day_outside: "text-muted-foreground opacity-20",
+            day_disabled: "text-muted-foreground opacity-10 cursor-not-allowed",
+            day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-primary rounded-none",
             day_range_start: "rounded-full",
             day_range_end: "rounded-full",
             day_hidden: "invisible",
@@ -719,7 +727,7 @@ export function SearchHero({
                   <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-in</span>
                   <div className="flex items-center gap-1.5">
                     <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">{stagedCheckIn ? format(stagedCheckIn, "MMM d") : (date?.from ? format(date.from, "MMM d") : "Add date")}</span>
+                    <span className="text-sm font-semibold text-foreground">{date?.from ? format(date.from, "MMM d") : "Add date"}</span>
                   </div>
                 </button>
               </PopoverTrigger>
@@ -731,12 +739,19 @@ export function SearchHero({
                   <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-out</span>
                   <div className="flex items-center gap-1.5">
                     <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">{date?.to && !stagedCheckIn ? format(date.to, "MMM d") : "Add date"}</span>
+                    <span className="text-sm font-semibold text-foreground">{date?.to ? format(date.to, "MMM d") : "Add date"}</span>
                   </div>
                 </button>
               </PopoverTrigger>
             </div>
-            <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center" side="bottom">
+            <PopoverContent 
+              className="w-[calc(100vw-24px)] max-w-[400px] p-0 overflow-hidden border border-border shadow-2xl rounded-3xl bg-white dark:bg-card z-[100]" 
+              align="center" 
+              side="bottom" 
+              sideOffset={12}
+              avoidCollisions={true}
+              collisionPadding={12}
+            >
               {calendarContent(1)}
             </PopoverContent>
           </Popover>
