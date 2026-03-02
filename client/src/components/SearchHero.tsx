@@ -227,7 +227,7 @@ export default function SearchHero({
 
   const nearMeButton = (
     <button
-      onClick={handleNearMe}
+      onMouseDown={(e) => { e.preventDefault(); handleNearMe(); }}
       disabled={geoLoading}
       className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-100 dark:border-border hover:bg-gray-50 dark:hover:bg-muted/40"
     >
@@ -279,7 +279,8 @@ export default function SearchHero({
               "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-50 dark:border-border/50 last:border-none",
               idx === 0 ? "bg-blue-50/40 dark:bg-muted/40" : "hover:bg-gray-50 dark:hover:bg-muted/40"
             )}
-            onClick={() => {
+            onMouseDown={(e) => {
+              e.preventDefault(); // prevent input blur before state updates
               if (place.hotelId) {
                 setLocation(`/hotel/${place.hotelId}`);
               } else {
