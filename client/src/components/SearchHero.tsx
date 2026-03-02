@@ -62,17 +62,26 @@ export default function SearchHero({
   const [guestsOpen, setGuestsOpen] = useState(false);
   const [mobileGuestsOpen, setMobileGuestsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [mode] = useState<"destination" | "vibe">("destination");
+  const [calendarWidth, setCalendarWidth] = useState<number | undefined>();
 
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
-  const searchBarRef = useRef<HTMLDivElement>(null);
+  const desktopSearchBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!desktopSearchBarRef.current) return;
+    const measure = () => setCalendarWidth(desktopSearchBarRef.current?.offsetWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(desktopSearchBarRef.current);
+    return () => ro.disconnect();
   }, []);
 
   useEffect(() => {
@@ -111,11 +120,16 @@ export default function SearchHero({
     if (e.key === "Enter") handleSearch();
   };
 
-  const dateLabel = date?.from && date?.to 
+  const mobileDateLabel = date?.from && date?.to
     ? `${format(date.from, "MMM d")} – ${format(date.to, "MMM d")}`
     : "Add dates";
 
-  const guestsLabel = `1 Room, ${guests.adults} ${guests.adults === 1 ? "adult" : "adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "child" : "children"}` : ""}`;
+  const desktopDateLabel = date?.from && date?.to
+    ? `${format(date.from, "MMM dd")} - ${format(date.to, "MMM dd")}`
+    : "Add dates";
+
+  const mobileGuestsLabel = `1 Room, ${guests.adults} ${guests.adults === 1 ? "adult" : "adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "child" : "children"}` : ""}`;
+  const desktopGuestsLabel = `1 Room, ${guests.adults + guests.children} ${guests.adults + guests.children === 1 ? "Guest" : "Guests"}`;
 
   const autocompleteList = places.length > 0 && (
     <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[360px] overflow-y-auto">
@@ -158,24 +172,62 @@ export default function SearchHero({
     </div>
   );
 
-  const calendarContent = (numberOfMonths: number) => (
-    <div className="bg-white dark:bg-card p-4 rounded-3xl">
+  const mobileCalendarContent = (
+    <div className="bg-white dark:bg-card p-3 rounded-3xl">
       <Calendar
         initialFocus
         mode="range"
         defaultMonth={date?.from}
         selected={date}
         onSelect={setDate}
-        numberOfMonths={numberOfMonths}
+        numberOfMonths={1}
+        weekStartsOn={1}
         disabled={(d) => d < new Date()}
-        className="rounded-xl border-none"
+        className="rounded-xl border-none p-0"
         classNames={{
-          day_range_middle: "bg-blue-50 text-blue-900",
+          day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-900",
           day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
           day_today: "bg-gray-100 text-gray-900",
         }}
       />
     </div>
+  );
+
+  const desktopCalendarContent = (
+    <Calendar
+      initialFocus
+      mode="range"
+      defaultMonth={date?.from}
+      selected={date}
+      onSelect={setDate}
+      numberOfMonths={2}
+      weekStartsOn={1}
+      disabled={(d) => d < new Date()}
+      className="p-6 rounded-none border-none w-full"
+      classNames={{
+        months: "flex flex-row w-full [&>div:last-child]:border-l [&>div:last-child]:border-gray-200 dark:[&>div:last-child]:border-border [&>div:last-child]:ml-0 [&>div:last-child]:pl-6 space-y-0 space-x-0",
+        month: "flex-1 space-y-4",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-semibold text-gray-900 dark:text-foreground",
+        nav_button: cn(
+          "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-gray-200 dark:border-border rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-muted transition-colors"
+        ),
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
+        head_cell: "text-gray-400 dark:text-muted-foreground w-10 font-medium text-xs text-center",
+        row: "flex w-full mt-1",
+        cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-outside)]:bg-blue-50/50 [&:has([aria-selected])]:bg-blue-50 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full focus-within:relative focus-within:z-20",
+        day: "h-10 w-10 p-0 font-normal text-sm rounded-full aria-selected:opacity-100 hover:bg-gray-100 dark:hover:bg-muted transition-colors",
+        day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
+        day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-800 dark:aria-selected:bg-blue-950/40 rounded-none",
+        day_range_end: "bg-blue-600 text-white rounded-full",
+        day_range_start: "bg-blue-600 text-white rounded-full",
+        day_today: "font-bold text-blue-600",
+        day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:bg-blue-50/50 aria-selected:text-gray-400",
+        day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
+        day_hidden: "invisible",
+      }}
+    />
   );
 
   const guestsContent = (
@@ -237,11 +289,11 @@ export default function SearchHero({
             <PopoverTrigger asChild>
               <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-dates-navbar">
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.checkin")} / {t("search.checkout")}</span>
-                <span className="text-xs text-gray-700 dark:text-foreground truncate">{dateLabel}</span>
+                <span className="text-xs text-gray-700 dark:text-foreground truncate">{mobileDateLabel}</span>
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
-              {calendarContent(2)}
+              {mobileCalendarContent}
             </PopoverContent>
           </Popover>
 
@@ -249,7 +301,7 @@ export default function SearchHero({
             <PopoverTrigger asChild>
               <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-guests-navbar">
                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.guests")}</span>
-                <span className="text-xs text-gray-700 dark:text-foreground truncate">{guestsLabel}</span>
+                <span className="text-xs text-gray-700 dark:text-foreground truncate">{mobileGuestsLabel}</span>
               </button>
             </PopoverTrigger>
             {makeGuestsPopoverContent()}
@@ -272,15 +324,9 @@ export default function SearchHero({
     <>
       {/* ── MOBILE layout (below md) ── */}
       <div className="md:hidden">
-        {/* Hero image — shorter, more image visible */}
         <div className="relative h-[320px] overflow-hidden">
-          <img
-            src={heroImage}
-            alt="Luxury Hotel"
-            className="w-full h-full object-cover object-center"
-          />
+          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover object-center" />
           <div className="absolute inset-0 bg-black/35" />
-          {/* Text centered in the image */}
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
             <h1 className="text-[28px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
               Luxury Stays.<br />Unbeatable Rates.
@@ -291,7 +337,6 @@ export default function SearchHero({
           </div>
         </div>
 
-        {/* Search card — overlaps the bottom of the hero */}
         <div className="relative -mt-12 mx-4 z-10 pb-2">
           {/* Date Dialog */}
           <Dialog open={mobileDateOpen} onOpenChange={setMobileDateOpen}>
@@ -302,12 +347,9 @@ export default function SearchHero({
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              {calendarContent(1)}
+              {mobileCalendarContent}
               <div className="px-5 pb-5">
-                <button
-                  onClick={() => setMobileDateOpen(false)}
-                  className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm"
-                >
+                <button onClick={() => setMobileDateOpen(false)} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm">
                   Confirm dates
                 </button>
               </div>
@@ -325,10 +367,7 @@ export default function SearchHero({
               </div>
               {guestsContent}
               <div className="px-5 pb-5">
-                <button
-                  onClick={() => setMobileGuestsOpen(false)}
-                  className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm"
-                >
+                <button onClick={() => setMobileGuestsOpen(false)} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm">
                   Confirm
                 </button>
               </div>
@@ -336,7 +375,6 @@ export default function SearchHero({
           </Dialog>
 
           <div className="bg-white dark:bg-card rounded-3xl shadow-2xl" ref={mobileAutocompleteRef}>
-            {/* Destination */}
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
@@ -353,8 +391,6 @@ export default function SearchHero({
               </div>
               {showAutocomplete && autocompleteList}
             </div>
-
-            {/* Dates */}
             <button
               onClick={() => setMobileDateOpen(true)}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
@@ -362,21 +398,17 @@ export default function SearchHero({
             >
               <CalendarDays className="w-5 h-5 text-gray-400 shrink-0" />
               <span className={cn("text-base", date ? "text-gray-800 dark:text-foreground" : "text-gray-400")}>
-                {dateLabel}
+                {mobileDateLabel}
               </span>
             </button>
-
-            {/* Guests */}
             <button
               onClick={() => setMobileGuestsOpen(true)}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-guests-mobile"
             >
               <Users className="w-5 h-5 text-gray-400 shrink-0" />
-              <span className="text-base text-gray-800 dark:text-foreground">{guestsLabel}</span>
+              <span className="text-base text-gray-800 dark:text-foreground">{mobileGuestsLabel}</span>
             </button>
-
-            {/* Search */}
             <div className="p-4">
               <button
                 onClick={handleSearch}
@@ -399,7 +431,7 @@ export default function SearchHero({
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center h-full">
-          <div className="mb-8">
+          <div className="mb-10">
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
               Luxury Stays. Unbeatable Rates.
             </h1>
@@ -422,59 +454,84 @@ export default function SearchHero({
             </div>
           </div>
 
-          {/* Desktop search bar */}
-          <div className="w-full max-w-4xl">
-            <div className="w-full bg-white dark:bg-card rounded-3xl shadow-2xl overflow-visible items-stretch px-2 py-2 gap-0 relative flex border border-white/10" ref={searchBarRef}>
-              <div className="flex-1 flex items-center gap-0">
-                <div className="flex-[1.2] relative px-6 py-3 border-r border-border text-left" ref={autocompleteRef}>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="Enter a destination"
-                      className="flex-1 text-base text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
-                      value={destination}
-                      onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                      onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
-                      onKeyDown={handleKeyDown}
-                      data-testid="input-destination-desktop"
-                    />
-                  </div>
-                  {showAutocomplete && mode === "destination" && autocompleteList}
-                </div>
+          {/* Desktop search bar + calendar anchored together */}
+          <div className="w-full max-w-4xl relative" ref={desktopSearchBarRef}>
+            {/*
+              Hidden Popover trigger pinned to the far-left edge of the search bar.
+              This makes the calendar panel open flush with the search bar's left edge
+              and we set its width to match the full search bar width.
+            */}
+            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
+              <PopoverTrigger asChild>
+                <span className="absolute inset-y-0 left-0 w-px pointer-events-none" aria-hidden="true" />
+              </PopoverTrigger>
+              <PopoverContent
+                style={{ width: calendarWidth ?? "auto" }}
+                className="p-0 border border-gray-200 dark:border-border shadow-2xl rounded-2xl z-[100] bg-white dark:bg-card overflow-hidden"
+                align="start"
+                sideOffset={8}
+                onInteractOutside={() => setDateOpen(false)}
+              >
+                {desktopCalendarContent}
+              </PopoverContent>
+            </Popover>
 
-                <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
-                  <PopoverTrigger asChild>
-                    <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative" data-testid="button-dates-desktop">
-                      <div className="flex items-center gap-3">
-                        <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
-                        <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
-                      </div>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[800px] p-0 border-none shadow-2xl rounded-3xl z-[100]" align="center" sideOffset={12}>
-                    {calendarContent(2)}
-                  </PopoverContent>
-                </Popover>
+            {/* Guests popover — separate, opens from right edge */}
+            <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+              <PopoverTrigger asChild>
+                <span className="absolute inset-y-0 right-16 w-px pointer-events-none" aria-hidden="true" />
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="end" sideOffset={8}>
+                {guestsContent}
+              </PopoverContent>
+            </Popover>
 
-                <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-                  <PopoverTrigger asChild>
-                    <button className="flex-1 px-6 py-3 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative" data-testid="button-guests-desktop">
-                      <div className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-blue-600 shrink-0" />
-                        <span className="text-base text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
-                      </div>
-                    </button>
-                  </PopoverTrigger>
-                  {makeGuestsPopoverContent(-48)}
-                </Popover>
+            {/* The visible search bar */}
+            <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch overflow-visible border border-white/10">
+              {/* Where */}
+              <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative" ref={autocompleteRef}>
+                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Where</p>
+                <input
+                  type="text"
+                  placeholder="Enter a destination"
+                  className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-medium"
+                  value={destination}
+                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
+                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
+                  onKeyDown={handleKeyDown}
+                  data-testid="input-destination-desktop"
+                />
+                {showAutocomplete && autocompleteList}
+              </div>
 
+              {/* Dates */}
+              <button
+                className="flex-1 px-5 py-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors text-left border-r border-gray-200 dark:border-border"
+                onClick={() => { setDateOpen(true); setGuestsOpen(false); setShowAutocomplete(false); }}
+                data-testid="button-dates-desktop"
+              >
+                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Dates</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{desktopDateLabel}</p>
+              </button>
+
+              {/* Guests */}
+              <button
+                className="flex-1 px-5 py-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors text-left"
+                onClick={() => { setGuestsOpen(true); setDateOpen(false); setShowAutocomplete(false); }}
+                data-testid="button-guests-desktop"
+              >
+                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Guests</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{desktopGuestsLabel}</p>
+              </button>
+
+              {/* Search button */}
+              <div className="flex items-center px-3">
                 <button
                   onClick={handleSearch}
-                  className="shrink-0 w-14 h-14 m-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-md active:scale-95"
+                  className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-md active:scale-95"
                   data-testid="button-search-desktop"
                 >
-                  <Search className="w-6 h-6" />
+                  <Search className="w-5 h-5" />
                 </button>
               </div>
             </div>
