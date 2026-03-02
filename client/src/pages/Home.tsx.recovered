@@ -219,15 +219,6 @@ export default function Home() {
     : null;
 
   const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
-    const searchHero = (
-      <SearchHero
-        variant="navbar"
-        initialDestination={destination || undefined}
-        initialCheckIn={checkIn || undefined}
-        initialCheckOut={checkOut || undefined}
-        initialGuests={guests}
-      />
-    );
   const nights = getNights(checkIn || undefined, checkOut || undefined);
 
   const [sortBy, setSortBy] = useState<SortOption>("rating");

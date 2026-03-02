@@ -364,7 +364,7 @@ export default function SearchHero({
           nav_button_previous: "absolute left-1",
           nav_button_next: "absolute right-1",
           head_row: "flex w-full",
-          head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
+          head_cell: "flex-1 h-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           row: "flex w-full mt-0.5",
           cell: "flex-1 h-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: "h-10 w-10 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
