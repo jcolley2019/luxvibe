@@ -181,7 +181,7 @@ export default function SearchHero({
         selected={date}
         onSelect={setDate}
         numberOfMonths={1}
-        weekStartsOn={1}
+        weekStartsOn={0}
         disabled={(d) => d < new Date()}
         className="rounded-xl border-none p-0"
         classNames={{
@@ -201,29 +201,30 @@ export default function SearchHero({
       selected={date}
       onSelect={setDate}
       numberOfMonths={2}
-      weekStartsOn={1}
+      weekStartsOn={0}
       disabled={(d) => d < new Date()}
       className="p-6 rounded-none border-none w-full"
       classNames={{
         months: "flex flex-row w-full [&>div:last-child]:border-l [&>div:last-child]:border-gray-200 dark:[&>div:last-child]:border-border [&>div:last-child]:ml-0 [&>div:last-child]:pl-6 space-y-0 space-x-0",
-        month: "flex-1 space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        month: "flex-1 space-y-3 min-w-0",
+        caption: "flex justify-center pt-1 pb-2 relative items-center",
         caption_label: "text-sm font-semibold text-gray-900 dark:text-foreground",
         nav_button: cn(
           "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-gray-200 dark:border-border rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-muted transition-colors"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        head_cell: "text-gray-400 dark:text-muted-foreground w-10 font-medium text-xs text-center",
-        row: "flex w-full mt-1",
-        cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-outside)]:bg-blue-50/50 [&:has([aria-selected])]:bg-blue-50 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full focus-within:relative focus-within:z-20",
-        day: "h-10 w-10 p-0 font-normal text-sm rounded-full aria-selected:opacity-100 hover:bg-gray-100 dark:hover:bg-muted transition-colors",
+        head_row: "flex w-full",
+        head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
+        row: "flex w-full mt-0.5",
+        cell: "flex-1 h-9 text-center text-sm p-0 relative [&:has([aria-selected].day-outside)]:bg-blue-50/40 [&:has([aria-selected])]:bg-blue-50 dark:[&:has([aria-selected])]:bg-blue-950/30 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full [&:has([aria-selected].day-range-start)]:rounded-l-full [&:has([aria-selected].day-range-end)]:rounded-r-full focus-within:relative focus-within:z-20",
+        day: "h-9 w-9 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
         day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
-        day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-800 dark:aria-selected:bg-blue-950/40 rounded-none",
-        day_range_end: "bg-blue-600 text-white rounded-full",
-        day_range_start: "bg-blue-600 text-white rounded-full",
+        day_range_middle: "aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 rounded-none hover:bg-transparent hover:text-blue-800",
+        day_range_end: "bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+        day_range_start: "bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
         day_today: "font-bold text-blue-600",
-        day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:bg-blue-50/50 aria-selected:text-gray-400",
+        day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
         day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
         day_hidden: "invisible",
       }}
