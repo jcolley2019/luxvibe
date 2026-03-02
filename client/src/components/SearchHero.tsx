@@ -310,7 +310,7 @@ export function SearchHero({
 
   const calendarContent = (nMonths: number) => (
     <div data-testid="calendar-dropdown" className="bg-white dark:bg-card">
-      <div className="pt-4 pb-2">
+      <div className="pt-2 pb-1">
         <Calendar
           initialFocus
           mode="range"
@@ -319,19 +319,19 @@ export function SearchHero({
           showOutsideDays={true}
           classNames={{
             months: "flex flex-row w-full divide-x divide-border",
-            month: "flex-1 px-6 py-2",
-            caption: "flex justify-center relative items-center mb-4 h-10",
+            month: "flex-1 px-6 py-1",
+            caption: "flex justify-center relative items-center mb-2 h-8",
             caption_label: "text-base font-bold text-foreground",
             nav: "flex items-center",
             nav_button: "h-8 w-8 bg-transparent p-0 hover:bg-muted rounded-md transition-colors flex items-center justify-center opacity-70 hover:opacity-100",
             nav_button_previous: "absolute left-0",
             nav_button_next: "absolute right-0",
             table: "w-full border-collapse",
-            head_row: "flex w-full mb-2",
+            head_row: "flex w-full mb-1",
             head_cell: "text-muted-foreground text-xs font-semibold text-center flex-1 uppercase tracking-wide",
-            row: "flex w-full mt-3",
+            row: "flex w-full mt-0.5",
             cell: "text-center text-sm relative p-0 flex-1 [&:has([aria-selected])]:bg-blue-100 dark:[&:has([aria-selected])]:bg-blue-900/30 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full",
-            day: "h-11 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-muted/60 rounded-full transition-colors flex items-center justify-center mx-auto text-sm",
+            day: "h-8 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-muted/60 rounded-full transition-colors flex items-center justify-center mx-auto text-sm",
             day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-semibold",
             day_today: "text-primary font-bold",
             day_outside: "text-muted-foreground opacity-40",
