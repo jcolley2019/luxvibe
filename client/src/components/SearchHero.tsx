@@ -529,61 +529,63 @@ export default function SearchHero({
     </PopoverContent>
   );
 
-  // ── NAVBAR VARIANT ──
-  if (variant === "navbar") {
-    return (
-      <div className="flex flex-col items-center w-full max-w-2xl px-4 md:px-0">
-        <div className="flex w-full bg-white dark:bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow items-stretch overflow-visible px-1 py-0.5 gap-0">
-          <div className="flex-1 flex flex-col justify-center px-3 py-0.5 min-w-0 relative border-r border-border" ref={autocompleteRef}>
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-left leading-tight">
-              {t("search.destination_tab")}
-            </span>
-            <input
-              type="text"
-              placeholder="Enter a destination"
-              className="text-xs text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate w-full"
-              value={destination}
-              onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-              onFocus={() => setShowAutocomplete(true)}
-              onKeyDown={handleKeyDown}
-              data-testid="input-destination-navbar"
-            />
-            {autocompleteDropdown}
+    // ── NAVBAR VARIANT ──
+    if (variant === "navbar") {
+      return (
+        <div className="flex items-center w-full max-w-4xl px-4 md:px-0">
+          <div className="flex w-full bg-[#1e293b]/40 backdrop-blur-md hover:bg-[#1e293b]/60 dark:bg-card/40 rounded-full border border-white/10 shadow-lg items-center overflow-visible p-1 gap-0 h-10 transition-all">
+            <div className="flex-[1.5] flex items-center px-4 min-w-0 relative h-full" ref={autocompleteRef}>
+              <Search className="w-3.5 h-3.5 text-white/50 mr-2.5 shrink-0" />
+              <input
+                type="text"
+                placeholder="Enter a destination"
+                className="text-[13px] text-white dark:text-foreground bg-transparent outline-none border-none placeholder:text-white/40 truncate w-full font-medium"
+                value={destination}
+                onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                onFocus={() => setShowAutocomplete(true)}
+                onKeyDown={handleKeyDown}
+                data-testid="input-destination-navbar"
+              />
+              {autocompleteDropdown}
+            </div>
+
+            <div className="w-[1px] h-4 bg-white/10 shrink-0" />
+
+            <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
+              <PopoverTrigger asChild>
+                <button className="flex-1 flex items-center px-4 h-full hover:bg-white/5 dark:hover:bg-muted/30 transition-colors text-left" data-testid="button-dates-navbar">
+                  <CalendarDays className="w-3.5 h-3.5 text-white/50 mr-2.5 shrink-0" />
+                  <span className="text-[13px] text-white dark:text-foreground truncate font-medium">{mobileDateLabel}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[600px] p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="center" sideOffset={12}>
+                {desktopCalendarContent}
+              </PopoverContent>
+            </Popover>
+
+            <div className="w-[1px] h-4 bg-white/10 shrink-0" />
+
+            <Popover open={guestsOpen} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+              <PopoverTrigger asChild>
+                <button className="flex-1 flex items-center px-4 h-full hover:bg-white/5 dark:hover:bg-muted/30 transition-colors text-left" data-testid="button-guests-navbar">
+                  <Users className="w-3.5 h-3.5 text-white/50 mr-2.5 shrink-0" />
+                  <span className="text-[13px] text-white dark:text-foreground truncate font-medium">{desktopGuestsLabel}</span>
+                </button>
+              </PopoverTrigger>
+              {makeGuestsPopoverContent(0)}
+            </Popover>
+
+            <button
+              onClick={handleSearch}
+              className="h-8 w-8 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:shadow-blue-500/20 shrink-0 ml-1 mr-0.5"
+              data-testid="button-search-navbar"
+            >
+              <Search className="w-3.5 h-3.5" />
+            </button>
           </div>
-
-          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
-            <PopoverTrigger asChild>
-              <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-dates-navbar">
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.checkin")} / {t("search.checkout")}</span>
-                <span className="text-xs text-gray-700 dark:text-foreground truncate">{mobileDateLabel}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              {mobileCalendarContent}
-            </PopoverContent>
-          </Popover>
-
-          <Popover open={guestsOpen} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-            <PopoverTrigger asChild>
-              <button className="flex-1 flex flex-col justify-center px-3 py-0.5 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border" data-testid="button-guests-navbar">
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{t("search.guests")}</span>
-                <span className="text-xs text-gray-700 dark:text-foreground truncate">{mobileGuestsLabel}</span>
-              </button>
-            </PopoverTrigger>
-            {makeGuestsPopoverContent()}
-          </Popover>
-
-          <button
-            onClick={handleSearch}
-            className="shrink-0 w-8 h-8 m-0.5 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors shadow"
-            data-testid="button-search-navbar"
-          >
-            <Search className="w-4 h-4" />
-          </button>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
   // ── HERO VARIANT ──
   return (
