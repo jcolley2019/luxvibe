@@ -168,7 +168,7 @@ export default function SearchHero({
 
   const openCalendar = () => {
     setSelectionStep("checkin");
-    setDate(undefined);
+    // Removed: setDate(undefined); - Preserve dates when re-opening
     setDateOpen(true);
     setGuestsOpen(false);
     setShowAutocomplete(false);
@@ -319,10 +319,10 @@ export default function SearchHero({
           row: "flex w-full mt-0.5",
           cell: "flex-1 h-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: "h-10 w-10 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
-          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
-          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 hover:bg-transparent",
-          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
-          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full z-10 relative",
+          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-white dark:aria-selected:text-white hover:bg-transparent z-10 relative",
+          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white z-10 relative",
+          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white z-10 relative",
           day_today: "font-bold text-blue-600 dark:text-blue-400",
           day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
           day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
@@ -373,10 +373,10 @@ export default function SearchHero({
           row: "flex w-full mt-0.5",
           cell: "flex-1 h-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: "h-9 w-9 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
-          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
-          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 hover:bg-transparent",
-          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
-          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full z-10 relative",
+          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-white dark:aria-selected:text-white hover:bg-transparent z-10 relative",
+          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white z-10 relative",
+          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white z-10 relative",
           day_today: "font-bold text-blue-600",
           day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
           day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
@@ -697,7 +697,7 @@ export default function SearchHero({
             </Popover>
 
             {/* The visible search bar */}
-            <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch border border-white/10">
+            <div className="w-full bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl flex items-stretch border border-gray-200 dark:border-blue-500/30">
               {/* Destination */}
               <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative flex flex-col items-start" ref={autocompleteRef}>
                 <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider text-left w-full">DESTINATION</p>
