@@ -789,7 +789,6 @@ export function SearchHero({
           </span>
         </button>
 
-        {/* Desktop Search Pill */}
         <div className="w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative flex" ref={searchBarRef}>
           <div className="flex-1 flex items-center gap-0">
             {/* Destination / Vibe section */}
