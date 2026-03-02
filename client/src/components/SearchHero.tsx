@@ -75,9 +75,9 @@ export default function SearchHero({
     return { from: addDays(new Date(), 7), to: addDays(new Date(), 14) };
   });
 
-  const [guests, setGuests] = useState(() => {
+  const [rooms, setRooms] = useState<{ adults: number; children: number }[]>(() => {
     const total = parseInt(initialGuests) || 2;
-    return { adults: total, children: 0 };
+    return [{ adults: total, children: 0 }];
   });
 
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -135,6 +135,10 @@ export default function SearchHero({
     },
   });
 
+  const totalAdults = rooms.reduce((acc, r) => acc + r.adults, 0);
+  const totalChildren = rooms.reduce((acc, r) => acc + r.children, 0);
+  const totalGuests = totalAdults + totalChildren;
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (placeId) {
@@ -145,7 +149,7 @@ export default function SearchHero({
     }
     if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
     if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
-    params.set("guests", (guests.adults + guests.children).toString());
+    params.set("guests", totalGuests.toString());
     setLocation(`/?${params.toString()}`);
   };
 
@@ -172,7 +176,7 @@ export default function SearchHero({
         params.set("lng", pos.coords.longitude.toString());
         params.set("checkIn", format(checkInDate, "yyyy-MM-dd"));
         params.set("checkOut", format(checkOutDate, "yyyy-MM-dd"));
-        params.set("guests", (guests.adults + guests.children).toString());
+        params.set("guests", totalGuests.toString());
         setDestination("Around my area");
         setLocation(`/?${params.toString()}`);
       },
@@ -187,9 +191,19 @@ export default function SearchHero({
     );
   };
 
+  const toggleCalendar = () => {
+    if (dateOpen) {
+      setDateOpen(false);
+    } else {
+      setSelectionStep("checkin");
+      setDateOpen(true);
+      setGuestsOpen(false);
+      setShowAutocomplete(false);
+    }
+  };
+
   const openCalendar = () => {
     setSelectionStep("checkin");
-    // Preserve existing dates so the user can see them and change only check-in
     setDateOpen(true);
     setGuestsOpen(false);
     setShowAutocomplete(false);
@@ -236,8 +250,8 @@ export default function SearchHero({
     ? `${format(date.from, "MMM dd")} - ${format(date.to, "MMM dd")}`
     : "Add dates";
 
-  const mobileGuestsLabel = `1 Room, ${guests.adults} ${guests.adults === 1 ? "adult" : "adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "child" : "children"}` : ""}`;
-  const desktopGuestsLabel = `1 Room, ${guests.adults + guests.children} ${guests.adults + guests.children === 1 ? "Guest" : "Guests"}`;
+  const mobileGuestsLabel = `${rooms.length} ${rooms.length === 1 ? 'Room' : 'Rooms'}, ${totalGuests} ${totalGuests === 1 ? 'guest' : 'guests'}`;
+  const desktopGuestsLabel = `${rooms.length} ${rooms.length === 1 ? 'Room' : 'Rooms'}, ${totalGuests} ${totalGuests === 1 ? 'Guest' : 'Guests'}`;
 
   const calendarHeader = selectionStep === "checkin"
     ? "When do you want to check in?"
@@ -434,31 +448,80 @@ export default function SearchHero({
   );
 
   const guestsContent = (
-    <div className="space-y-6 p-6">
-      {[
-        { label: "Adults", sub: "Ages 13 or above", key: "adults" as const, min: 1 },
-        { label: "Children", sub: "Ages 2–12", key: "children" as const, min: 0 },
-      ].map(({ label, sub, key, min }) => (
-        <div key={key} className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{label}</p>
-            <p className="text-xs text-gray-400">{sub}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
-              onClick={() => setGuests(prev => ({ ...prev, [key]: Math.max(min, prev[key] - 1) }))}>
-              <Minus className="h-3 w-3" />
-            </Button>
-            <span className="text-sm font-medium w-4 text-center">{guests[key]}</span>
-            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
-              onClick={() => setGuests(prev => ({ ...prev, [key]: prev[key] + 1 }))}>
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
+      <div className="flex flex-col w-full bg-white dark:bg-card">
+        <div className="p-5 border-b border-gray-100 dark:border-border">
+          <h3 className="font-bold text-base text-foreground">Configuring Rooms</h3>
         </div>
-      ))}
-    </div>
-  );
+        <div className="max-h-[320px] overflow-y-auto">
+          {rooms.map((room, idx) => (
+            <div key={idx} className={cn("p-5 space-y-4", idx > 0 && "border-t border-gray-50 dark:border-border/50")}>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-foreground">Room {idx + 1}</span>
+                {rooms.length > 1 && (
+                  <button 
+                    onClick={() => setRooms(prev => prev.filter((_, i) => i !== idx))}
+                    className="text-xs text-red-500 font-medium hover:underline"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Adults</p>
+                  <p className="text-xs text-gray-400">Ages 13 or above</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+                    onClick={() => setRooms(prev => prev.map((r, i) => i === idx ? { ...r, adults: Math.max(1, r.adults - 1) } : r))}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="text-sm font-medium w-4 text-center">{room.adults}</span>
+                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+                    onClick={() => setRooms(prev => prev.map((r, i) => i === idx ? { ...r, adults: r.adults + 1 } : r))}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-foreground">Children</p>
+                  <p className="text-xs text-gray-400">Ages 0 to 17</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+                    onClick={() => setRooms(prev => prev.map((r, i) => i === idx ? { ...r, children: Math.max(0, r.children - 1) } : r))}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="text-sm font-medium w-4 text-center">{room.children}</span>
+                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full"
+                    onClick={() => setRooms(prev => prev.map((r, i) => i === idx ? { ...r, children: r.children + 1 } : r))}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="p-5 border-t border-gray-100 dark:border-border flex gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 rounded-xl h-11 font-semibold"
+            onClick={() => setRooms(prev => [...prev, { adults: 2, children: 0 }])}
+          >
+            Add room
+          </Button>
+          <Button 
+            className="flex-1 rounded-xl h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            onClick={() => { setGuestsOpen(false); setMobileGuestsOpen(false); }}
+          >
+            Done
+          </Button>
+        </div>
+      </div>
+    );
 
   const makeGuestsPopoverContent = (alignOffset = 0) => (
     <PopoverContent className="w-80 p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="end" alignOffset={alignOffset} sideOffset={12}>
@@ -651,7 +714,7 @@ export default function SearchHero({
               )}
             </div>
             <button
-              onClick={() => { setSelectionStep("checkin"); setMobileDateOpen(true); }}
+              onClick={() => { if (mobileDateOpen) { setMobileDateOpen(false); } else { setSelectionStep('checkin'); setMobileDateOpen(true); } }}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-date-mobile"
             >
@@ -766,7 +829,7 @@ export default function SearchHero({
               {/* Dates */}
               <button
                 className="flex-1 px-5 py-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors text-left border-r border-gray-200 dark:border-border"
-                onClick={openCalendar}
+                onClick={toggleCalendar}
                 data-testid="button-dates-desktop"
               >
                 <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider">DATES</p>
