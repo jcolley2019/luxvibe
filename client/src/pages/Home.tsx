@@ -1361,24 +1361,24 @@ export default function Home() {
           )}
 
           {/* Why Luxvibe */}
-          <section className="py-14 bg-muted/40 border-t border-border">
-            <div className="container mx-auto px-4 text-center max-w-2xl mb-10">
-              <h2 className="text-2xl font-bold font-heading mb-2">Why Choose Luxvibe?</h2>
-              <p className="text-muted-foreground">We simplify your hotel booking with features designed for peace of mind.</p>
-            </div>
-            <div className="container mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { icon: "🔒", title: "Secure Booking", desc: "Enterprise-grade security for your data and payments." },
-                { icon: "🕐", title: "24/7 Support", desc: "Round-the-clock help whenever you need it." },
-                { icon: "💰", title: "Best Price Guarantee", desc: "Find it cheaper? We'll match it, no questions asked." },
-                { icon: "✨", title: "Handpicked Hotels", desc: "Every hotel vetted for quality and exceptional service." },
-              ].map((f, i) => (
-                <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="bg-card border border-border rounded-2xl p-6 text-center shadow-sm">
-                  <div className="text-3xl mb-3">{f.icon}</div>
-                  <h3 className="font-bold mb-1">{f.title}</h3>
-                  <p className="text-muted-foreground text-sm">{f.desc}</p>
-                </motion.div>
-              ))}
+          <section className="py-5 bg-muted/30 border-t border-border">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                {[
+                  { icon: "🔒", title: "Secure Booking", desc: "Enterprise-grade security for payments & data." },
+                  { icon: "🕐", title: "24/7 Support", desc: "Help available round the clock, anytime." },
+                  { icon: "💰", title: "Best Price Guarantee", desc: "We'll match any lower price you find." },
+                  { icon: "✨", title: "Handpicked Hotels", desc: "Every property vetted for quality & comfort." },
+                ].map((f, i) => (
+                  <div key={f.title} className="flex items-center gap-3">
+                    <span className="text-xl shrink-0">{f.icon}</span>
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground leading-tight">{f.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         </>
