@@ -771,15 +771,16 @@ export default function HotelDetails() {
                   <span>{format(parseISO(roomCheckOut), "dd MMM")}</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="center">
                 <div className="px-4 pt-4 pb-2">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-sm font-semibold text-foreground text-center">
                     {roomDatePhase === "checkin"
                       ? t("search.when_checkin", "When do you want to check in?")
                       : t("search.when_checkout", "When do you want to check out?")}
                   </p>
                 </div>
                 <Calendar
+                  className="mx-auto"
                   initialFocus
                   mode="range"
                   defaultMonth={parseISO(roomCheckIn)}
@@ -808,7 +809,7 @@ export default function HotelDetails() {
                     if (roomDatePhase === "checkout" && roomStagedCheckIn && d <= roomStagedCheckIn) return true;
                     return false;
                   }}
-                  numberOfMonths={2}
+                  numberOfMonths={isMobile ? 1 : 2}
                 />
               </PopoverContent>
             </Popover>
