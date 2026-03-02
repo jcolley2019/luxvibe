@@ -687,35 +687,20 @@ export function SearchHero({
           {/* ── MOBILE search card (shown below md) ── */}
           <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
 
-            {/* Destination / Vibe row */}
+            {/* Destination row (Vibe removed on mobile) */}
             <div className="relative px-4 py-3.5 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
               <div className="flex items-center gap-3">
-                {mode === "destination"
-                  ? <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
-                  : <Sparkles className="w-5 h-5 text-primary shrink-0" />
-                }
-                {mode === "destination" ? (
-                  <input
-                    type="text"
-                    placeholder="Enter a destination"
-                    className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
-                    value={destination}
-                    onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                    onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
-                    onKeyDown={handleKeyDown}
-                    data-testid="input-destination"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="e.g. 'romantic beachfront resort'"
-                    className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
-                    value={aiSearch}
-                    onChange={(e) => setAiSearch(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    data-testid="input-vibe"
-                  />
-                )}
+                <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Enter a destination"
+                  className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
+                  value={destination}
+                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
+                  onKeyDown={handleKeyDown}
+                  data-testid="input-destination"
+                />
               </div>
               {showAutocomplete && mode === "destination" && autocompleteList}
             </div>
@@ -767,8 +752,8 @@ export function SearchHero({
               {makeGuestsPopoverContent()}
             </Popover>
 
-            {/* Vibe toggle row */}
-            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-border flex justify-center">
+            {/* Vibe toggle row - DESKTOP ONLY */}
+            <div className="hidden md:flex px-4 py-2.5 border-b border-gray-100 dark:border-border justify-center">
               <button
                 onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
                 className="flex items-center gap-1.5 text-primary text-xs font-medium transition-colors"
@@ -791,6 +776,7 @@ export function SearchHero({
               </button>
             </div>
           </div>
+          {/* MOBILE search card end */}
 
           {/* ── DESKTOP pill (shown at md+) ── */}
           <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative" ref={searchBarRef}>
