@@ -640,7 +640,7 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+      <div className="relative w-full rounded-2xl pb-10" style={{ minHeight: isMobile ? '70vh' : 638 }}>
 
         {/* Background Image — overflow-hidden only on the image layer so calendar dropdown can extend below */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -655,7 +655,10 @@ export function SearchHero({
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+        <div className={cn(
+          "relative z-10 flex items-center px-4 text-center",
+          isMobile ? "flex-col justify-between pt-8 pb-0" : "flex-col justify-center"
+        )} style={{ minHeight: isMobile ? '70vh' : 638 }}>
           <div className="mb-8">
             <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
               Luxury Stays. Unbeatable Rates.
@@ -685,7 +688,8 @@ export function SearchHero({
           </div>
 
           {/* ── MOBILE search card (shown below md) ── */}
-          <div className="md:hidden w-full max-w-sm bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
+          <div className="md:hidden w-full px-3 translate-y-8 mb-0">
+            <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
 
             {/* Destination row (Vibe removed on mobile) */}
             <div className="relative px-4 py-3.5 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
@@ -776,7 +780,8 @@ export function SearchHero({
               </button>
             </div>
           </div>
-          {/* MOBILE search card end */}
+        </div>
+        {/* MOBILE search card end */}
 
           {/* ── DESKTOP pill (shown at md+) ── */}
           <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative" ref={searchBarRef}>
