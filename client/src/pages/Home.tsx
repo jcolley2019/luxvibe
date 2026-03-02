@@ -272,10 +272,14 @@ export default function Home() {
     const first = children[0] as HTMLElement;
     const second = children[1] as HTMLElement;
     const cardStep = second.offsetLeft - first.offsetLeft;
+    if (cardStep <= 0) return;
     const isMobile = window.innerWidth < 768;
     const count = isMobile ? 1 : 4;
-    const scrollAmount = cardStep * count;
-    ref.current.scrollBy({ left: dir === "right" ? scrollAmount : -scrollAmount, behavior: "smooth" });
+    const currentScroll = ref.current.scrollLeft;
+    const currentIndex = Math.round(currentScroll / cardStep);
+    const targetIndex = dir === "right" ? currentIndex + count : currentIndex - count;
+    const targetLeft = Math.max(0, targetIndex * cardStep);
+    ref.current.scrollTo({ left: targetLeft, behavior: "smooth" });
   };
 
   type GeoStatus = "idle" | "loading" | "granted" | "denied";
@@ -1283,7 +1287,7 @@ export default function Home() {
             ) : (
               <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {featured?.map((hotel, i) => (
-                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
+                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px] carousel-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                     <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)?.type} />
                   </motion.div>
                 ))}
@@ -1306,7 +1310,7 @@ export default function Home() {
               </div>
               <div ref={recentCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {enrichedRecentHotels.map((hotel, i) => (
-                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
+                  <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px] carousel-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                     <HotelCard hotel={hotel} variant="featured" />
                   </motion.div>
                 ))}
@@ -1344,7 +1348,7 @@ export default function Home() {
               ) : nearbyHotels && nearbyHotels.length > 0 ? (
                 <div ref={nearbyCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                   {nearbyHotels.map((hotel, i) => (
-                    <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
+                    <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px] carousel-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
                       <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)?.type} />
                     </motion.div>
                   ))}
