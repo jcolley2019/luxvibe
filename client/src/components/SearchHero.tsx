@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { 
   Search, MapPin, CalendarDays, Users, Building2, Star, 
@@ -22,6 +22,24 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80", // beach
+  "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80", // overwater bungalow
+  "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80", // new york skyline
+  "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1920&q=80", // las vegas casino
+  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris france
+  "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80", // london
+  "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=1920&q=80", // miami beach
+  "https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=1920&q=80", // dallas
+  "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy
+  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80", // luxury hotel pool
+  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1920&q=80", // bali resort
+  "https://images.unsplash.com/photo-1549144511-f099e773c147?w=1920&q=80", // dubai skyline
+  "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920&q=80", // paris eiffel night
+  "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&q=80", // bali beach
+  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=80", // luxury infinity pool
+];
+
 interface SearchHeroProps {
   variant?: "hero" | "navbar";
   heroImage?: string;
@@ -33,7 +51,7 @@ interface SearchHeroProps {
 
 export default function SearchHero({ 
   variant = "hero",
-  heroImage = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2000",
+  heroImage: propHeroImage,
   initialDestination = "",
   initialCheckIn,
   initialCheckOut,
@@ -44,6 +62,9 @@ export default function SearchHero({
   const { toast } = useToast();
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
+  
+  const selectedHeroImage = useMemo(() => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)], []);
+  const heroImage = propHeroImage || selectedHeroImage;
   
   const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(() => {
     if (initialCheckIn && initialCheckOut) {
