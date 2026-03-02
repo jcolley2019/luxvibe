@@ -211,8 +211,14 @@ export default function Home() {
   const checkIn = searchParams.get("checkIn");
   const checkOut = searchParams.get("checkOut");
   const guests = searchParams.get("guests") || "2";
+  const nearMe = searchParams.get("nearMe") === "1";
+  const urlLat = searchParams.get("lat");
+  const urlLng = searchParams.get("lng");
+  const urlCoords = nearMe && urlLat && urlLng
+    ? { lat: parseFloat(urlLat), lng: parseFloat(urlLng) }
+    : null;
 
-  const isSearchActive = !!((destination || placeId || aiSearch) && checkIn && checkOut);
+  const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
   const nights = getNights(checkIn || undefined, checkOut || undefined);
 
   const [sortBy, setSortBy] = useState<SortOption>("rating");
@@ -294,7 +300,8 @@ export default function Home() {
 
   useEffect(() => { requestLocation(); }, []);
 
-  const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(coords);
+  const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(urlCoords || coords);
+  const nearMeResults = nearMe ? nearbyHotels : undefined;
 
   const enrichedRecentHotels = useMemo(() => {
     const freshSources = [...(featured || []), ...(nearbyHotels || [])];
@@ -553,13 +560,13 @@ export default function Home() {
   }, [hotels]);
 
   const sortedHotels = useMemo(() => {
-    if (!hotels) return [];
-    const copy = [...hotels];
+    const source = nearMeResults ?? hotels ?? [];
+    const copy = [...source];
     if (sortBy === "price_asc") return copy.sort((a, b) => ((a as any).price || 9999) - ((b as any).price || 9999));
     if (sortBy === "price_desc") return copy.sort((a, b) => ((b as any).price || 0) - ((a as any).price || 0));
     if (sortBy === "rating") return copy.sort((a, b) => ((b as any).rating || 0) - ((a as any).rating || 0));
     return copy;
-  }, [hotels, sortBy]);
+  }, [hotels, nearMeResults, sortBy]);
 
   const filteredHotels = useMemo(() => {
     return sortedHotels.filter(h => {
@@ -1138,13 +1145,15 @@ export default function Home() {
                   <h2 className="text-base sm:text-xl font-bold font-heading line-clamp-2">
                     {aiSearch ? (
                       <>Vibe: <span className="text-primary capitalize">{aiSearch}</span></>
+                    ) : nearMe ? (
+                      <>Hotels <span className="text-primary">Near You</span></>
                     ) : (
                       <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
                     )}
                   </h2>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className="text-sm text-muted-foreground">
-                      {isLoading ? "Searching…" : `${filteredHotels.length} properties found`}
+                      {(nearMe ? nearbyLoading : isLoading) ? "Searching…" : `${filteredHotels.length} properties found`}
                     </p>
                     {isDefaultStarFilter && !isLoading && (
                       <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">

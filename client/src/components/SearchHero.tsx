@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { 
   Search, MapPin, CalendarDays, Users, Building2, Star, 
-  BedDouble, Plane, X, Plus, Minus
+  BedDouble, Plane, X, Plus, Minus, Navigation, Loader2
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export default function SearchHero({
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
   
-  const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(() => {
+  const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(() => {
     if (initialCheckIn && initialCheckOut) {
       try {
         return { from: new Date(initialCheckIn), to: new Date(initialCheckOut) };
@@ -63,10 +63,13 @@ export default function SearchHero({
   const [mobileGuestsOpen, setMobileGuestsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [calendarWidth, setCalendarWidth] = useState<number | undefined>();
+  const [selectionStep, setSelectionStep] = useState<"checkin" | "checkout">("checkin");
+  const [geoLoading, setGeoLoading] = useState(false);
 
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
   const desktopSearchBarRef = useRef<HTMLDivElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -107,7 +110,7 @@ export default function SearchHero({
     if (placeId) {
       params.set("placeId", placeId);
       params.set("destination", destination);
-    } else if (destination) {
+    } else if (destination && destination !== "Around my area") {
       params.set("destination", destination);
     }
     if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
@@ -118,6 +121,54 @@ export default function SearchHero({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleSearch();
+  };
+
+  const handleNearMe = () => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLoading(false);
+        setShowAutocomplete(false);
+        const params = new URLSearchParams();
+        params.set("nearMe", "1");
+        params.set("lat", pos.coords.latitude.toString());
+        params.set("lng", pos.coords.longitude.toString());
+        if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
+        if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
+        params.set("guests", (guests.adults + guests.children).toString());
+        setDestination("Around my area");
+        setLocation(`/?${params.toString()}`);
+      },
+      () => {
+        setGeoLoading(false);
+      },
+      { timeout: 8000 }
+    );
+  };
+
+  const openCalendar = () => {
+    if (date?.from && date?.to) {
+      setSelectionStep("checkin");
+      setDate(undefined);
+    } else if (!date?.from) {
+      setSelectionStep("checkin");
+    }
+    setDateOpen(true);
+    setGuestsOpen(false);
+    setShowAutocomplete(false);
+  };
+
+  const handleDesktopDateSelect = (range: any) => {
+    setDate(range);
+    if (range?.from && !range?.to) {
+      setSelectionStep("checkout");
+    } else if (range?.from && range?.to) {
+      setTimeout(() => {
+        setDateOpen(false);
+        setSelectionStep("checkin");
+      }, 300);
+    }
   };
 
   const mobileDateLabel = date?.from && date?.to
@@ -131,8 +182,32 @@ export default function SearchHero({
   const mobileGuestsLabel = `1 Room, ${guests.adults} ${guests.adults === 1 ? "adult" : "adults"}${guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? "child" : "children"}` : ""}`;
   const desktopGuestsLabel = `1 Room, ${guests.adults + guests.children} ${guests.adults + guests.children === 1 ? "Guest" : "Guests"}`;
 
-  const autocompleteList = places.length > 0 && (
-    <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[360px] overflow-y-auto">
+  const calendarHeader = selectionStep === "checkin"
+    ? "When do you want to check in?"
+    : "Now select your check-out date";
+
+  const nearMeButton = (
+    <button
+      onClick={handleNearMe}
+      disabled={geoLoading}
+      className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-100 dark:border-border hover:bg-gray-50 dark:hover:bg-muted/40"
+    >
+      <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+        {geoLoading
+          ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+          : <Navigation className="w-4 h-4 text-blue-600" />
+        }
+      </div>
+      <div>
+        <div className="text-sm font-semibold text-gray-800 dark:text-foreground">Around my area</div>
+        <div className="text-xs text-gray-400">Find hotels near your current location</div>
+      </div>
+    </button>
+  );
+
+  const autocompleteDropdown = (showAutocomplete && (destination.length < 2 || (places as any[]).length > 0)) && (
+    <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[380px] overflow-y-auto">
+      {nearMeButton}
       {(places as any[]).map((place: any, idx: number) => {
         const types: string[] = place.types || [];
         const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
@@ -144,8 +219,8 @@ export default function SearchHero({
           <button
             key={place.placeId}
             className={cn(
-              "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-50 last:border-none",
-              idx === 0 ? "bg-blue-50/50 dark:bg-muted/60" : "hover:bg-gray-50 dark:hover:bg-muted/40"
+              "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-50 dark:border-border/50 last:border-none",
+              idx === 0 ? "bg-blue-50/40 dark:bg-muted/40" : "hover:bg-gray-50 dark:hover:bg-muted/40"
             )}
             onClick={() => {
               if (place.hotelId) {
@@ -185,50 +260,55 @@ export default function SearchHero({
         disabled={(d) => d < new Date()}
         className="rounded-xl border-none p-0"
         classNames={{
-          day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-900",
+          day_range_middle: "day-range-middle aria-selected:bg-blue-100 aria-selected:text-blue-900",
           day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
-          day_today: "bg-gray-100 text-gray-900",
+          day_today: "font-bold text-blue-600",
         }}
       />
     </div>
   );
 
   const desktopCalendarContent = (
-    <Calendar
-      initialFocus
-      mode="range"
-      defaultMonth={date?.from}
-      selected={date}
-      onSelect={setDate}
-      numberOfMonths={2}
-      weekStartsOn={0}
-      disabled={(d) => d < new Date()}
-      className="p-6 rounded-none border-none w-full"
-      classNames={{
-        months: "flex flex-row w-full [&>div:last-child]:border-l [&>div:last-child]:border-gray-200 dark:[&>div:last-child]:border-border [&>div:last-child]:ml-0 [&>div:last-child]:pl-6 space-y-0 space-x-0",
-        month: "flex-1 space-y-3 min-w-0",
-        caption: "flex justify-center pt-1 pb-2 relative items-center",
-        caption_label: "text-sm font-semibold text-gray-900 dark:text-foreground",
-        nav_button: cn(
-          "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-gray-200 dark:border-border rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-muted transition-colors"
-        ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        head_row: "flex w-full",
-        head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
-        row: "flex w-full mt-0.5",
-        cell: "flex-1 h-9 text-center text-sm p-0 relative [&:has([aria-selected].day-outside)]:bg-blue-50/40 [&:has([aria-selected])]:bg-blue-50 dark:[&:has([aria-selected])]:bg-blue-950/30 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full [&:has([aria-selected].day-range-start)]:rounded-l-full [&:has([aria-selected].day-range-end)]:rounded-r-full focus-within:relative focus-within:z-20",
-        day: "h-9 w-9 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
-        day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
-        day_range_middle: "aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 rounded-none hover:bg-transparent hover:text-blue-800",
-        day_range_end: "bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
-        day_range_start: "bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
-        day_today: "font-bold text-blue-600",
-        day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
-        day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
-        day_hidden: "invisible",
-      }}
-    />
+    <div className="luxvibe-calendar">
+      <div className="px-6 pt-5 pb-2">
+        <p className="text-sm font-semibold text-gray-700 dark:text-foreground">{calendarHeader}</p>
+      </div>
+      <Calendar
+        initialFocus
+        mode="range"
+        defaultMonth={date?.from}
+        selected={date}
+        onSelect={handleDesktopDateSelect}
+        numberOfMonths={2}
+        weekStartsOn={0}
+        disabled={(d) => d < new Date()}
+        className="px-6 pb-6 rounded-none border-none w-full"
+        classNames={{
+          months: "flex flex-row w-full [&>div:last-child]:border-l [&>div:last-child]:border-gray-200 dark:[&>div:last-child]:border-border [&>div:last-child]:pl-6 space-y-0 space-x-0",
+          month: "flex-1 space-y-3 min-w-0",
+          caption: "flex justify-center pt-1 pb-2 relative items-center",
+          caption_label: "text-sm font-semibold text-gray-900 dark:text-foreground",
+          nav_button: cn(
+            "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border border-gray-200 dark:border-border rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-muted transition-colors"
+          ),
+          nav_button_previous: "absolute left-1",
+          nav_button_next: "absolute right-1",
+          head_row: "flex w-full",
+          head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
+          row: "flex w-full mt-0.5",
+          cell: "flex-1 h-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+          day: "h-9 w-9 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
+          day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full",
+          day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-blue-800 dark:aria-selected:text-blue-300 hover:bg-transparent",
+          day_range_end: "day-range-end bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_range_start: "day-range-start bg-blue-600 text-white rounded-full hover:bg-blue-600 hover:text-white",
+          day_today: "font-bold text-blue-600",
+          day_outside: "text-gray-300 dark:text-muted-foreground/40 aria-selected:text-gray-400",
+          day_disabled: "text-gray-200 dark:text-muted-foreground/30 cursor-not-allowed",
+          day_hidden: "invisible",
+        }}
+      />
+    </div>
   );
 
   const guestsContent = (
@@ -283,7 +363,7 @@ export default function SearchHero({
               onKeyDown={handleKeyDown}
               data-testid="input-destination-navbar"
             />
-            {showAutocomplete && autocompleteList}
+            {autocompleteDropdown}
           </div>
 
           <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
@@ -390,7 +470,37 @@ export default function SearchHero({
                   data-testid="input-destination"
                 />
               </div>
-              {showAutocomplete && autocompleteList}
+              {showAutocomplete && (
+                <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-h-[320px] overflow-y-auto">
+                  {nearMeButton}
+                  {(places as any[]).map((place: any) => {
+                    const types: string[] = place.types || [];
+                    const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
+                    const isAirport = types.includes("airport");
+                    const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
+                    const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+                    const name = place.displayName || place.placeId;
+                    return (
+                      <button key={place.placeId}
+                        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-50 dark:border-border/50 last:border-none"
+                        onClick={() => {
+                          if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); }
+                          else { setDestination(name); setPlaceId(place.placeId); }
+                          setShowAutocomplete(false);
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+                          <PlaceIcon className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-foreground truncate">{name}</div>
+                          {place.formattedAddress && <div className="text-xs text-gray-400 truncate">{place.formattedAddress}</div>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <button
               onClick={() => setMobileDateOpen(true)}
@@ -398,7 +508,7 @@ export default function SearchHero({
               data-testid="button-date-mobile"
             >
               <CalendarDays className="w-5 h-5 text-gray-400 shrink-0" />
-              <span className={cn("text-base", date ? "text-gray-800 dark:text-foreground" : "text-gray-400")}>
+              <span className={cn("text-base", date?.from && date?.to ? "text-gray-800 dark:text-foreground" : "text-gray-400")}>
                 {mobileDateLabel}
               </span>
             </button>
@@ -457,12 +567,11 @@ export default function SearchHero({
 
           {/* Desktop search bar + calendar anchored together */}
           <div className="w-full max-w-4xl relative" ref={desktopSearchBarRef}>
-            {/*
-              Hidden Popover trigger pinned to the far-left edge of the search bar.
-              This makes the calendar panel open flush with the search bar's left edge
-              and we set its width to match the full search bar width.
-            */}
-            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
+            {/* Hidden Popover trigger pinned to the left edge for calendar alignment */}
+            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => {
+              if (!open) { setDateOpen(false); return; }
+              openCalendar();
+            }}>
               <PopoverTrigger asChild>
                 <span className="absolute inset-y-0 left-0 w-px pointer-events-none" aria-hidden="true" />
               </PopoverTrigger>
@@ -477,7 +586,7 @@ export default function SearchHero({
               </PopoverContent>
             </Popover>
 
-            {/* Guests popover — separate, opens from right edge */}
+            {/* Guests popover */}
             <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
               <PopoverTrigger asChild>
                 <span className="absolute inset-y-0 right-16 w-px pointer-events-none" aria-hidden="true" />
@@ -488,11 +597,12 @@ export default function SearchHero({
             </Popover>
 
             {/* The visible search bar */}
-            <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch overflow-visible border border-white/10">
-              {/* Where */}
+            <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch border border-white/10">
+              {/* Destination */}
               <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative" ref={autocompleteRef}>
-                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Where</p>
+                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Destination</p>
                 <input
+                  ref={desktopInputRef}
                   type="text"
                   placeholder="Enter a destination"
                   className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-medium"
@@ -502,13 +612,13 @@ export default function SearchHero({
                   onKeyDown={handleKeyDown}
                   data-testid="input-destination-desktop"
                 />
-                {showAutocomplete && autocompleteList}
+                {autocompleteDropdown}
               </div>
 
               {/* Dates */}
               <button
                 className="flex-1 px-5 py-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors text-left border-r border-gray-200 dark:border-border"
-                onClick={() => { setDateOpen(true); setGuestsOpen(false); setShowAutocomplete(false); }}
+                onClick={openCalendar}
                 data-testid="button-dates-desktop"
               >
                 <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Dates</p>

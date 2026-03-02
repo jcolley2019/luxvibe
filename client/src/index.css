@@ -131,3 +131,50 @@ img {
   display: none;
 }
 
+/* ── Luxvibe Desktop Calendar ── */
+/* Force flex layout so cells fill full width evenly */
+.luxvibe-calendar table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.luxvibe-calendar thead tr,
+.luxvibe-calendar tbody tr {
+  display: flex;
+  width: 100%;
+}
+.luxvibe-calendar thead th,
+.luxvibe-calendar tbody td {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Range band: fill each selected cell with blue-100 ── */
+.luxvibe-calendar tbody td:has(button[aria-selected]) {
+  background-color: #dbeafe; /* blue-100 */
+}
+/* Row-boundary: round left edge of first selected cell on a row */
+.luxvibe-calendar tbody td:first-child:has(button[aria-selected]) {
+  border-radius: 9999px 0 0 9999px;
+}
+/* Row-boundary: round right edge of last selected cell on a row */
+.luxvibe-calendar tbody td:last-child:has(button[aria-selected]) {
+  border-radius: 0 9999px 9999px 0;
+}
+/* Range-start cell: round left side (right side connects to band) */
+.luxvibe-calendar tbody td:has(button.day-range-start) {
+  border-radius: 9999px 0 0 9999px;
+}
+/* Range-end cell: round right side (left side connects to band) */
+.luxvibe-calendar tbody td:has(button.day-range-end) {
+  border-radius: 0 9999px 9999px 0;
+}
+/* Single day selected (start == end): full pill */
+.luxvibe-calendar tbody td:has(button.day-range-start):has(button.day-range-end) {
+  border-radius: 9999px;
+}
+/* Remove blue bg when no range (just a single selected day, no middle) */
+/* Dark mode */
+.dark .luxvibe-calendar tbody td:has(button[aria-selected]) {
+  background-color: rgba(37, 99, 235, 0.3); /* blue-600/30 */
+}
+
