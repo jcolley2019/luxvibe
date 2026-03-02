@@ -623,8 +623,8 @@ export default function SearchHero({
       </div>
 
       {/* ── DESKTOP layout (md+) ── */}
-      <div className="hidden md:block relative w-full h-[638px] overflow-hidden">
-        <div className="absolute inset-0 w-full h-full">
+      <div className="hidden md:block relative w-full h-[638px]">
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
           <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
