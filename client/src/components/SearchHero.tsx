@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchHeroProps {
   variant?: "hero" | "navbar";
@@ -40,6 +41,7 @@ export default function SearchHero({
 }: SearchHeroProps) {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
   
@@ -131,24 +133,34 @@ export default function SearchHero({
   };
 
   const handleNearMe = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      toast({ title: "Location unavailable", description: "Your browser doesn't support geolocation.", variant: "destructive" });
+      return;
+    }
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGeoLoading(false);
         setShowAutocomplete(false);
+        // Use existing confirmed dates, or fall back to +7/+14 days from today
+        const checkInDate = date?.from ?? addDays(new Date(), 7);
+        const checkOutDate = date?.to ?? addDays(new Date(), 14);
         const params = new URLSearchParams();
         params.set("nearMe", "1");
         params.set("lat", pos.coords.latitude.toString());
         params.set("lng", pos.coords.longitude.toString());
-        if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
-        if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
+        params.set("checkIn", format(checkInDate, "yyyy-MM-dd"));
+        params.set("checkOut", format(checkOutDate, "yyyy-MM-dd"));
         params.set("guests", (guests.adults + guests.children).toString());
         setDestination("Around my area");
         setLocation(`/?${params.toString()}`);
       },
-      () => {
+      (err) => {
         setGeoLoading(false);
+        const msg = err.code === 1
+          ? "Please allow location access in your browser, then try again."
+          : "Could not determine your location. Please try again.";
+        toast({ title: "Location access denied", description: msg, variant: "destructive" });
       },
       { timeout: 8000 }
     );
