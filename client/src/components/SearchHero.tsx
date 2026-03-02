@@ -319,7 +319,7 @@ export function SearchHero({
           showOutsideDays={true}
           classNames={{
             months: "flex flex-row w-full divide-x divide-border",
-            month: "flex-1 px-6 py-3",
+            month: "flex-1 px-6 py-2",
             caption: "flex justify-center relative items-center mb-4 h-10",
             caption_label: "text-base font-bold text-foreground",
             nav: "flex items-center",
@@ -329,7 +329,7 @@ export function SearchHero({
             table: "w-full border-collapse",
             head_row: "flex w-full mb-2",
             head_cell: "text-muted-foreground text-xs font-semibold text-center flex-1 uppercase tracking-wide",
-            row: "flex w-full mt-2",
+            row: "flex w-full mt-3",
             cell: "text-center text-sm relative p-0 flex-1 [&:has([aria-selected])]:bg-blue-100 dark:[&:has([aria-selected])]:bg-blue-900/30 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full",
             day: "h-11 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-muted/60 rounded-full transition-colors flex items-center justify-center mx-auto text-sm",
             day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full font-semibold",
