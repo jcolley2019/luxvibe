@@ -617,9 +617,14 @@ export default function SearchHero({
                       <button key={place.placeId}
                         className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-50 dark:border-border/50 last:border-none"
                         onClick={() => {
-                          if (place.hotelId) { setLocation(`/hotel/${place.hotelId}`); }
-                          else { setDestination(name); setPlaceId(place.placeId); }
-                          setShowAutocomplete(false);
+                          if (place.hotelId) {
+                            setLocation(`/hotel/${place.hotelId}`);
+                            setShowAutocomplete(false);
+                          } else {
+                            setDestination(name);
+                            setPlaceId(place.placeId);
+                            setShowAutocomplete(false);
+                          }
                         }}
                       >
                         <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
