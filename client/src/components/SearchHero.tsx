@@ -406,7 +406,11 @@ export default function SearchHero({
           head_row: "flex w-full",
           head_cell: "flex-1 text-gray-400 dark:text-muted-foreground font-medium text-xs text-center py-1",
           row: "flex w-full mt-0.5",
-          cell: "flex-1 h-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+          cell: cn(
+            "flex-1 h-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+            "[&:has([aria-selected])]:bg-blue-50 dark:[&{has}([aria-selected])]:bg-blue-900/20",
+            "first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full"
+          ),
           day: "h-9 w-9 p-0 mx-auto font-normal text-sm rounded-full aria-selected:opacity-100 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-muted transition-colors",
           day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-full z-10 relative",
           day_range_middle: "day-range-middle aria-selected:bg-transparent aria-selected:text-white dark:aria-selected:text-white hover:bg-transparent z-10 relative",
@@ -638,7 +642,7 @@ export default function SearchHero({
               )}
             </div>
             <button
-              onClick={() => { setSelectionStep("checkin"); setDate(undefined); setMobileDateOpen(true); }}
+              onClick={() => { setSelectionStep("checkin"); setMobileDateOpen(true); }}
               className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 dark:active:bg-muted/30 transition-colors"
               data-testid="button-date-mobile"
             >
