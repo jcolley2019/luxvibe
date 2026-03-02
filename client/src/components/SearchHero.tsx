@@ -640,7 +640,7 @@ export function SearchHero({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="relative w-full rounded-2xl pb-10" style={{ minHeight: isMobile ? '70vh' : 638 }}>
+      <div className="relative w-full rounded-2xl" style={{ minHeight: isMobile ? '45vh' : 638 }}>
 
         {/* Background Image — overflow-hidden only on the image layer so calendar dropdown can extend below */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -655,10 +655,7 @@ export function SearchHero({
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
-        <div className={cn(
-          "relative z-10 flex items-center px-4 text-center",
-          isMobile ? "flex-col justify-between pt-8 pb-0" : "flex-col justify-center"
-        )} style={{ minHeight: isMobile ? '70vh' : 638 }}>
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center" style={{ minHeight: isMobile ? '45vh' : 638 }}>
           <div className="mb-8">
             <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg">
               Luxury Stays. Unbeatable Rates.
@@ -686,177 +683,190 @@ export function SearchHero({
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* ── MOBILE search card (shown below md) ── */}
-          <div className="md:hidden w-full px-3 translate-y-8 mb-0">
-            <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
+      {/* ── MOBILE search card (shown below md) ── */}
+      <div className="md:hidden w-full px-3 -mt-6 relative z-10">
+        <div className="w-full max-w-sm mx-auto bg-white dark:bg-card rounded-2xl shadow-2xl overflow-visible">
 
-            {/* Destination row (Vibe removed on mobile) */}
-            <div className="relative px-4 py-3.5 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Enter a destination"
-                  className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
-                  value={destination}
-                  onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                  onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
-                  onKeyDown={handleKeyDown}
-                  data-testid="input-destination"
-                />
-              </div>
+          {/* Destination row (Vibe removed on mobile) */}
+          <div className="relative px-4 py-3.5 border-b border-gray-100 dark:border-border" ref={mobileAutocompleteRef}>
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Enter a destination"
+                className="flex-1 text-sm text-gray-800 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 min-w-0"
+                value={destination}
+                onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); setMode("destination"); }}
+                onKeyDown={handleKeyDown}
+                data-testid="input-destination"
+              />
+            </div>
+            {showAutocomplete && mode === "destination" && autocompleteList}
+          </div>
+
+          {/* Dates row — two side-by-side cells sharing one popover */}
+          <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
+            <div className="flex border-b border-gray-100 dark:border-border relative">
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
+                  data-testid="button-checkin-mobile"
+                >
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-in</span>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">{stagedCheckIn ? format(stagedCheckIn, "MMM d") : (date?.from ? format(date.from, "MMM d") : "Add date")}</span>
+                  </div>
+                </button>
+              </PopoverTrigger>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left active:bg-gray-50 transition-colors"
+                  data-testid="button-checkout-mobile"
+                >
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-out</span>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">{date?.to && !stagedCheckIn ? format(date.to, "MMM d") : "Add date"}</span>
+                  </div>
+                </button>
+              </PopoverTrigger>
+            </div>
+            <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center" side="bottom">
+              {calendarContent(1)}
+            </PopoverContent>
+          </Popover>
+
+          {/* Guests row */}
+          <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+            <PopoverTrigger asChild>
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
+                data-testid="button-guests-mobile"
+              >
+                <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                <span className="text-sm text-gray-800 dark:text-foreground">{guestsLabel}</span>
+              </button>
+            </PopoverTrigger>
+            {makeGuestsPopoverContent()}
+          </Popover>
+
+          {/* Vibe toggle row (Mobile) */}
+          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-border justify-center flex">
+            <button
+              onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
+              className="flex items-center gap-1.5 text-primary text-xs font-medium transition-colors"
+              data-testid="button-toggle-mode"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
+            </button>
+          </div>
+
+          {/* Search button */}
+          <div className="p-3">
+            <button
+              onClick={handleSearch}
+              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 active:bg-primary/80 transition-colors shadow"
+              data-testid="button-search"
+            >
+              <Search className="w-4 h-4" />
+              {t("search.search")}
+            </button>
+          </div>
+        </div>
+      </div>
+      {/* MOBILE search card end */}
+
+      {/* ── DESKTOP content (shown at md+) ── */}
+      <div className="hidden md:flex flex-col items-center mt-6">
+        {/* Vibe toggle — desktop only */}
+        <button
+          onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
+          className="flex mb-6 items-center gap-2 text-white hover:text-white/90 transition-colors"
+          data-testid="button-toggle-mode-desktop"
+        >
+          <Sparkles className="w-4 h-4 text-white animate-pulse" />
+          <span className="text-lg font-medium tracking-wide">
+            {mode === "destination" ? "Search by Vibe" : "Search by Destination"}
+          </span>
+        </button>
+
+        {/* Desktop Search Pill */}
+        <div className="w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative flex" ref={searchBarRef}>
+          <div className="flex-1 flex items-center gap-0">
+            {/* Destination / Vibe section */}
+            <div className="flex-[1.2] relative px-4 py-2 border-r border-border" ref={autocompleteRef}>
+              <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
+                {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
+              </span>
+              {mode === "destination" ? (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Where do you want to go?"
+                    className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
+                    value={destination}
+                    onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
+                    onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
+                    onKeyDown={handleKeyDown}
+                    data-testid="input-destination-desktop"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="e.g. 'romantic beachfront resort'"
+                    className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
+                    value={aiSearch}
+                    onChange={(e) => setAiSearch(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    data-testid="input-vibe-desktop"
+                  />
+                </div>
+              )}
               {showAutocomplete && mode === "destination" && autocompleteList}
             </div>
 
-            {/* Dates row — two side-by-side cells sharing one popover */}
-            <Popover open={dateOpen && isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-              <div className="flex border-b border-gray-100 dark:border-border relative">
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left border-r border-gray-100 dark:border-border active:bg-gray-50 transition-colors"
-                    data-testid="button-checkin-mobile"
-                  >
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-in</span>
-                    <div className="flex items-center gap-1.5">
-                      <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-sm font-semibold text-foreground">{stagedCheckIn ? format(stagedCheckIn, "MMM d") : (date?.from ? format(date.from, "MMM d") : "Add date")}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 flex flex-col gap-0.5 px-4 py-2 text-left active:bg-gray-50 transition-colors"
-                    data-testid="button-checkout-mobile"
-                  >
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-tight">Check-out</span>
-                    <div className="flex items-center gap-1.5">
-                      <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-sm font-semibold text-foreground">{date?.to && !stagedCheckIn ? format(date.to, "MMM d") : "Add date"}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-              </div>
-              <PopoverContent className="w-auto p-0 absolute left-1/2 -translate-x-1/2" align="center" side="bottom">
-                {calendarContent(1)}
-              </PopoverContent>
-            </Popover>
-
-            {/* Guests row */}
-            <Popover open={guestsOpen && isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+            {/* Dates section */}
+            <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
               <PopoverTrigger asChild>
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-border text-left active:bg-gray-50 transition-colors"
-                  data-testid="button-guests-mobile"
+                  className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
+                  data-testid="button-dates-desktop"
                 >
-                  <Users className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="text-sm text-gray-800 dark:text-foreground">{guestsLabel}</span>
+                  <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.checkin")} / {t("search.checkout")}</span>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
+                    <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
+                  </div>
                 </button>
               </PopoverTrigger>
-              {makeGuestsPopoverContent()}
             </Popover>
 
-            {/* Vibe toggle row - DESKTOP ONLY */}
-            <div className="hidden md:flex px-4 py-2.5 border-b border-gray-100 dark:border-border justify-center">
-              <button
-                onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-                className="flex items-center gap-1.5 text-primary text-xs font-medium transition-colors"
-                data-testid="button-toggle-mode"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                {mode === "destination" ? t("search.vibe_tab") : t("search.destination_tab")}
-              </button>
-            </div>
-
-            {/* Search button */}
-            <div className="p-3">
-              <button
-                onClick={handleSearch}
-                className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 active:bg-primary/80 transition-colors shadow"
-                data-testid="button-search"
-              >
-                <Search className="w-4 h-4" />
-                {t("search.search")}
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* MOBILE search card end */}
-
-          {/* ── DESKTOP pill (shown at md+) ── */}
-          <div className="hidden md:flex w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-xl overflow-visible items-stretch px-1 py-0.5 gap-0 relative" ref={searchBarRef}>
-
-            {/* Combined row */}
-            <div className="flex-1 flex items-center gap-0">
-
-              {/* Destination / Vibe section */}
-              <div className="flex-[1.2] relative px-4 py-2 border-r border-border" ref={autocompleteRef}>
-                <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
-                  {mode === "destination" ? t("search.destination_tab") : t("search.vibe_tab")}
-                </span>
-                {mode === "destination" ? (
+            {/* Guests section */}
+            <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
+                  data-testid="button-guests-desktop"
+                >
+                  <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.guests")}</span>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="Where do you want to go?"
-                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
-                      value={destination}
-                      onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); }}
-                      onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
-                      onKeyDown={handleKeyDown}
-                      data-testid="input-destination-desktop"
-                    />
+                    <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                    <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="e.g. 'romantic beachfront resort'"
-                      className="flex-1 text-sm text-gray-700 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 truncate font-medium"
-                      value={aiSearch}
-                      onChange={(e) => setAiSearch(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      data-testid="input-vibe-desktop"
-                    />
-                  </div>
-                )}
-                {showAutocomplete && mode === "destination" && autocompleteList}
-              </div>
-
-              {/* Dates section */}
-              <Popover open={dateOpen && !isMobile} onOpenChange={(open) => { setDateOpen(open); if (open) { setGuestsOpen(false); handleCalendarOpen(); } }}>
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border relative"
-                    data-testid="button-dates-desktop"
-                  >
-                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.checkin")} / {t("search.checkout")}</span>
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{dateLabel}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-              </Popover>
-
-              {/* Guests section */}
-              <Popover open={guestsOpen && !isMobile} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex-1 px-4 py-2 hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left relative"
-                    data-testid="button-guests-desktop"
-                  >
-                    <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">{t("search.guests")}</span>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-foreground font-medium truncate">{guestsLabel}</span>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-                {makeGuestsPopoverContent(-48)}
-              </Popover>
+                </button>
+              </PopoverTrigger>
+              {makeGuestsPopoverContent(-48)}
+            </Popover>
 
             {/* Desktop Search Button */}
             <button
@@ -866,26 +876,13 @@ export function SearchHero({
             >
               <Search className="w-6 h-6" />
             </button>
-            </div>
-
-            {dateOpen && !isMobile && (
-              <div className="absolute left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden" style={{ top: 'calc(100% + 8px)' }}>
-                {calendarContent(2)}
-              </div>
-            )}
           </div>
 
-          {/* Vibe toggle — desktop only (mobile is inside the card) */}
-          <button
-            onClick={() => setMode(mode === "destination" ? "vibe" : "destination")}
-            className="hidden md:flex mt-6 items-center gap-2 text-white hover:text-white/90 transition-colors"
-            data-testid="button-toggle-mode-desktop"
-          >
-            <Sparkles className="w-4 h-4 text-white animate-pulse" />
-            <span className="text-lg font-medium tracking-wide">
-              {mode === "destination" ? "Search by Vibe" : "Search by Destination"}
-            </span>
-          </button>
+          {dateOpen && !isMobile && (
+            <div className="absolute left-0 right-0 z-50 bg-white dark:bg-card border border-border rounded-2xl shadow-xl overflow-hidden" style={{ top: 'calc(100% + 8px)' }}>
+              {calendarContent(2)}
+            </div>
+          )}
         </div>
       </div>
     </div>

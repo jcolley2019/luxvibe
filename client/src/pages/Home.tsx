@@ -1265,7 +1265,7 @@ export default function Home() {
       ) : (
         <>
           {/* Featured / Recommended Hotels */}
-          <section className="pt-10 pb-10 container mx-auto px-4 mt-6">
+          <section className="pt-10 pb-10 container mx-auto px-4">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold font-heading">{t("home.recommended")}</h2>
               <div className="flex items-center gap-2">
