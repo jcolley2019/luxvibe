@@ -700,12 +700,12 @@ export default function SearchHero({
             <div className="w-full bg-white dark:bg-card rounded-2xl shadow-2xl flex items-stretch border border-white/10">
               {/* Destination */}
               <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative" ref={autocompleteRef}>
-                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Destination</p>
+                <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider">DESTINATION</p>
                 <input
                   ref={desktopInputRef}
                   type="text"
                   placeholder="Enter a destination"
-                  className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-medium"
+                  className="w-full text-sm text-gray-900 dark:text-foreground bg-transparent outline-none border-none placeholder:text-gray-400 font-semibold"
                   value={destination}
                   onChange={(e) => { setDestination(e.target.value); setPlaceId(""); setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
                   onFocus={() => { setShowAutocomplete(true); setDateOpen(false); setGuestsOpen(false); }}
@@ -721,7 +721,7 @@ export default function SearchHero({
                 onClick={openCalendar}
                 data-testid="button-dates-desktop"
               >
-                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Dates</p>
+                <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider">DATES</p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{desktopDateLabel}</p>
               </button>
 
@@ -731,7 +731,7 @@ export default function SearchHero({
                 onClick={() => { setGuestsOpen(true); setDateOpen(false); setShowAutocomplete(false); }}
                 data-testid="button-guests-desktop"
               >
-                <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground mb-0.5">Guests</p>
+                <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider">GUESTS</p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{desktopGuestsLabel}</p>
               </button>
 
