@@ -72,7 +72,7 @@ export default function SearchHero({
         return { from: new Date(initialCheckIn), to: new Date(initialCheckOut) };
       } catch {}
     }
-    return { from: addDays(new Date(), 7), to: addDays(new Date(), 14) };
+    return undefined;
   });
 
   const [rooms, setRooms] = useState<{ adults: number; children: number }[]>(() => {
