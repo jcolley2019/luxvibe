@@ -252,6 +252,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [langTooltip, setLangTooltip] = useState(false);
   const [guideTooltip, setGuideTooltip] = useState(false);
   const [loginTooltip, setLoginTooltip] = useState(false);
+  const [darkTooltip, setDarkTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -312,14 +313,23 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             </div>
 
             {/* Dark mode toggle */}
-            <button
-              onClick={toggleDark}
-              className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-              data-testid="button-theme-toggle"
-              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
+            <div className="relative">
+              <button
+                onClick={toggleDark}
+                onMouseEnter={() => setDarkTooltip(true)}
+                onMouseLeave={() => setDarkTooltip(false)}
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                data-testid="button-theme-toggle"
+                aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              {darkTooltip && (
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                  {dark ? "Light mode" : "Dark mode"}
+                </div>
+              )}
+            </div>
 
             {/* Lightbulb — site guide - hidden on small mobile */}
             <div className="hidden xs:relative xs:block" ref={tipsRef}>
