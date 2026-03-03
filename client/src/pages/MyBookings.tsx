@@ -1,15 +1,35 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Calendar, MapPin, BedDouble } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Search, ArrowUpDown, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Link } from "wouter";
+
+type SortKey = "hotelName" | "id" | "checkIn" | "totalPrice" | "status" | "createdAt";
+type SortDir = "asc" | "desc";
+
+function statusVariant(status: string) {
+  if (status === "confirmed" || status === "CONFIRMED") return "default";
+  if (status === "cancelled" || status === "CANCELLED") return "destructive";
+  return "secondary";
+}
+
+function fmtDate(val: string | null | undefined) {
+  if (!val) return "—";
+  try { return format(parseISO(val), "dd MMM yyyy"); } catch { return val; }
+}
 
 export default function MyBookings() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { data: bookings, isLoading: isBookingsLoading } = useBookings();
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   if (isAuthLoading || isBookingsLoading) {
     return (
@@ -24,75 +44,190 @@ export default function MyBookings() {
     return null;
   }
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const filtered = (bookings ?? []).filter((b) => {
+    const q = search.toLowerCase();
+    return (
+      !q ||
+      b.hotelName?.toLowerCase().includes(q) ||
+      String(b.id).toLowerCase().includes(q) ||
+      b.status?.toLowerCase().includes(q)
+    );
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    let av: any = a[sortKey as keyof typeof a] ?? "";
+    let bv: any = b[sortKey as keyof typeof b] ?? "";
+    if (sortKey === "totalPrice") { av = Number(av); bv = Number(bv); }
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  function SortBtn({ col }: { col: SortKey }) {
+    return (
+      <button
+        onClick={() => handleSort(col)}
+        className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowUpDown className="w-3 h-3" />
+      </button>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-heading font-bold mb-2">My Bookings</h1>
-            <p className="text-muted-foreground">Manage your upcoming and past reservations.</p>
+
+      <main className="flex-1 container mx-auto px-4 py-10 max-w-6xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h1 className="text-2xl font-bold text-foreground">My bookings</h1>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search for a booking"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 rounded-lg"
+              data-testid="input-bookings-search"
+            />
           </div>
-          <Link href="/">
-            <Button variant="outline">Book New Stay</Button>
-          </Link>
         </div>
 
-        {bookings && bookings.length > 0 ? (
-          <div className="grid gap-6">
-            {bookings.map((booking) => (
-              <div 
-                key={booking.id}
-                className="bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-4 sm:gap-6 items-start md:items-center"
-              >
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
-                  <Calendar className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
-                
-                <div className="flex-1 space-y-1 w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-base sm:text-lg leading-tight">{booking.hotelName}</h3>
-                    <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="capitalize w-fit text-[10px] sm:text-xs">
-                      {booking.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex flex-col xs:flex-row flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                      <Calendar className="w-3.5 h-3.5 mr-1.5" />
-                      {format(parseISO(booking.checkIn as string), "MMM d")} - {format(parseISO(booking.checkOut as string), "MMM d, yyyy")}
-                    </div>
-                    <div className="flex items-center">
-                      <BedDouble className="w-3.5 h-3.5 mr-1.5" />
-                      <span className="truncate max-w-[150px]">{booking.roomType}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="font-semibold text-foreground mr-1">Total:</span> 
-                      ${booking.totalPrice}
-                    </div>
-                  </div>
-                </div>
+        {/* Table */}
+        <div className="border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Hotel <SortBtn col="hotelName" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Booking ID <SortBtn col="id" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden md:table-cell">
+                    Room Type
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell">
+                    Guests
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Dates <SortBtn col="checkIn" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Amount <SortBtn col="totalPrice" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Status <SortBtn col="status" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell">
+                    Booking Date <SortBtn col="createdAt" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.length === 0 ? (
+                  <tr>
+                    <td colSpan={9}>
+                      <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="mb-4 opacity-20">
+                          <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="12" width="54" height="33" rx="2" stroke="currentColor" strokeWidth="2.5"/>
+                            <rect x="11" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                            <rect x="26" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                            <rect x="41" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M3 18L30 3l27 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">No Booking Found</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  sorted.map((booking) => (
+                    <tr
+                      key={booking.id}
+                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                      data-testid={`row-booking-${booking.id}`}
+                    >
+                      <td className="px-4 py-3 font-medium text-foreground max-w-[160px] truncate">
+                        {booking.hotelName}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap">
+                        #{booking.id}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell whitespace-nowrap max-w-[140px] truncate">
+                        {booking.roomType}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                        {booking.guests}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                        ${Number(booking.totalPrice ?? 0).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={statusVariant(booking.status)}
+                          className="capitalize text-xs"
+                          data-testid={`status-booking-${booking.id}`}
+                        >
+                          {booking.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                        {fmtDate((booking as any).createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs gap-1"
+                              data-testid={`button-view-hotel-${booking.id}`}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              View
+                            </Button>
+                          </Link>
+                          <Link href={`/manage-booking?bookingId=${booking.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs text-muted-foreground"
+                              data-testid={`button-manage-booking-${booking.id}`}
+                            >
+                              Manage
+                            </Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
 
-                <div className="flex gap-2 w-full md:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
-                  <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
-                    <Button variant="outline" size="sm" className="flex-1 md:flex-none h-9 text-xs" data-testid={`button-view-booking-${booking.id}`}>View Hotel</Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-muted/20 rounded-2xl border border-dashed border-border">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">No bookings yet</h3>
-            <p className="text-muted-foreground mb-6">You haven't made any reservations yet.</p>
-            <Link href="/">
-              <Button size="lg">Explore Hotels</Button>
-            </Link>
-          </div>
-        )}
-      </div>
+      <Footer />
     </div>
   );
 }

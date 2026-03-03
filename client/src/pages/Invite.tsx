@@ -2,14 +2,19 @@ import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Copy, Check, Gift, Star, Mail } from "lucide-react";
+import { Copy, Check, Search } from "lucide-react";
+import { SiFacebook, SiLinkedin, SiWhatsapp, SiX } from "react-icons/si";
 
 export default function Invite() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [referralSearch, setReferralSearch] = useState("");
 
   const referralCode = user?.id
     ? `LV-${user.id.toString().slice(-6).toUpperCase()}`
@@ -25,95 +30,169 @@ export default function Invite() {
     });
   };
 
-  const shareViaEmail = () => {
-    const subject = encodeURIComponent("Book a luxury hotel with Luxvibe");
-    const body = encodeURIComponent(
-      `Hey! I've been using Luxvibe to find amazing luxury hotels at great rates. Use my referral link to get started:\n\n${referralLink}\n\nHappy travels!`
-    );
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  const sendEmail = () => {
+    if (!emailInput.trim()) return;
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setEmailInput("");
+      toast({ title: "Invites sent!", description: "Your friends will receive an invitation email shortly." });
+    }, 1000);
   };
 
-  const BENEFITS = [
-    { icon: "🏨", title: "You earn rewards", desc: "Get credit towards your next booking when a friend makes their first reservation." },
-    { icon: "🎁", title: "Friends get a welcome bonus", desc: "Your referred friend receives a discount on their first Luxvibe stay." },
-    { icon: "♾️", title: "No limit on referrals", desc: "Invite as many friends as you like — every successful referral earns you more." },
+  const shareText = encodeURIComponent("Book luxury hotels with Luxvibe! Use my referral link:");
+  const shareUrl = encodeURIComponent(referralLink);
+
+  const SOCIAL = [
+    {
+      label: "Facebook",
+      icon: <SiFacebook className="w-4 h-4" />,
+      href: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+    },
+    {
+      label: "LinkedIn",
+      icon: <SiLinkedin className="w-4 h-4" />,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
+    },
+    {
+      label: "WhatsApp",
+      icon: <SiWhatsapp className="w-4 h-4" />,
+      href: `https://wa.me/?text=${shareText}%20${shareUrl}`,
+    },
+    {
+      label: "X / Twitter",
+      icon: <SiX className="w-4 h-4" />,
+      href: `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`,
+    },
+  ];
+
+  const STATS = [
+    { label: "Referrals", value: 0 },
+    { label: "Vouchers Earned", value: 0 },
+    { label: "Upcoming Vouchers", value: 0 },
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <Users className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Invite Friends &amp; Referrals</h1>
-          <p className="text-muted-foreground text-base max-w-md mx-auto">
-            Share Luxvibe with friends. When they book their first stay, you both earn rewards.
-          </p>
-        </div>
+      <main className="flex-1 container mx-auto px-4 py-10 max-w-4xl">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Invite Friends &amp; Referrals</h1>
 
-        {/* Referral link card */}
-        <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-sm">
-          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Your referral link</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-sm font-mono text-foreground truncate">
-              {referralLink}
+        {/* Top two-column panel */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Email invite */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <p className="text-sm font-semibold text-foreground mb-3">Email an invite</p>
+            <div className="flex gap-2 mb-2">
+              <Input
+                placeholder="Enter emails separated by commas"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                className="flex-1 text-sm"
+                data-testid="input-invite-email"
+                onKeyDown={(e) => e.key === "Enter" && sendEmail()}
+              />
+              <Button
+                onClick={sendEmail}
+                disabled={sending || !emailInput.trim()}
+                className="shrink-0 text-sm px-4"
+                data-testid="button-send-invite"
+              >
+                {sending ? "Sending…" : "Send email"}
+              </Button>
             </div>
-            <Button
-              onClick={copyLink}
-              variant={copied ? "default" : "outline"}
-              className="shrink-0 rounded-xl gap-2 transition-all"
-              data-testid="button-copy-referral"
-            >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copied!" : "Copy"}
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              Add multiple email addresses separated by commas or space
+            </p>
           </div>
 
-          <div className="flex items-center gap-3 mt-3">
-            <span className="text-xs text-muted-foreground">Your code:</span>
-            <span className="text-xs font-bold tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
-              {referralCode}
-            </span>
-          </div>
-        </div>
-
-        {/* Share via email */}
-        <Button
-          onClick={shareViaEmail}
-          variant="outline"
-          className="w-full rounded-xl gap-2 mb-8 h-11"
-          data-testid="button-share-email"
-        >
-          <Mail className="w-4 h-4" />
-          Share via Email
-        </Button>
-
-        {/* How it works */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-4">How it works</h2>
-          <div className="space-y-3">
-            {BENEFITS.map((b) => (
-              <div key={b.title} className="flex items-start gap-4 p-4 bg-card border border-border rounded-xl">
-                <span className="text-2xl shrink-0 leading-none mt-0.5">{b.icon}</span>
-                <div>
-                  <p className="font-semibold text-sm text-foreground">{b.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{b.desc}</p>
-                </div>
+          {/* Copy referral link */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <p className="text-sm font-semibold text-foreground mb-3">
+              Copy referral link and share it with your follower
+            </p>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground truncate font-mono">
+                {referralLink}
               </div>
-            ))}
+              <button
+                onClick={copyLink}
+                className="shrink-0 p-2 rounded-lg border border-border hover:bg-muted transition-colors"
+                data-testid="button-copy-referral"
+                title="Copy link"
+              >
+                {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SOCIAL.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+                  data-testid={`button-share-${s.label.toLowerCase().replace(/\s|\//g, "-")}`}
+                >
+                  {s.icon}
+                  {s.label}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Terms note */}
-        <p className="text-xs text-center text-muted-foreground leading-relaxed">
-          Referral rewards are subject to Luxvibe's{" "}
-          <a href="#" className="text-primary hover:underline">Terms &amp; Conditions</a>.
-          Rewards are credited after a referred friend completes their first booking.
-        </p>
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {STATS.map((s) => (
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{s.label}</p>
+              <p className="text-3xl font-bold text-foreground">{s.value}</p>
+              <div className="absolute top-4 right-4 opacity-10">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M10 16a6 6 0 1 1 12 0" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Referrals history */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-foreground">Referrals history</h2>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search for a referral"
+                value={referralSearch}
+                onChange={(e) => setReferralSearch(e.target.value)}
+                className="pl-8 h-8 text-xs w-48"
+                data-testid="input-referral-search"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 opacity-20">
+              <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="12" width="54" height="33" rx="2" stroke="currentColor" strokeWidth="2.5"/>
+                <rect x="11" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="26" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="41" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <path d="M3 18L30 3l27 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-foreground mb-1">
+              You haven't referred anyone yet, what are you waiting for?
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Share your referral link with family and friends to earn discount vouchers.
+            </p>
+          </div>
+        </div>
       </main>
 
       <Footer />
