@@ -97,6 +97,12 @@ export default function SearchHero({
   const datesButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    if (initialDestination) {
+      setDestination(initialDestination);
+    }
+  }, [initialDestination]);
+
+  useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
