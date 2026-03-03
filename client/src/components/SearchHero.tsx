@@ -533,7 +533,17 @@ export default function SearchHero({
             // ── NAVBAR VARIANT ──
     if (variant === "navbar") {
       return (
-        <div className="flex items-center w-full max-w-xl">
+        <div className="flex items-center w-full max-w-xl relative">
+          {/* Hidden centered trigger so the calendar popover centers on the whole bar */}
+          <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
+            <PopoverTrigger asChild>
+              <span className="absolute left-1/2 top-0 w-px h-full pointer-events-none" aria-hidden="true" />
+            </PopoverTrigger>
+            <PopoverContent className="w-[600px] p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="center" sideOffset={12}>
+              {desktopCalendarContent}
+            </PopoverContent>
+          </Popover>
+
           <div className="flex w-full bg-white dark:bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow items-center overflow-visible p-1 gap-0 h-10">
             <div className="flex-1 flex items-center px-4 min-w-0 relative h-full border-r border-border" ref={autocompleteRef}>
               <input
@@ -549,16 +559,13 @@ export default function SearchHero({
               {autocompleteDropdown}
             </div>
 
-            <Popover open={dateOpen} onOpenChange={(open) => { setDateOpen(open); if (open) setGuestsOpen(false); }}>
-              <PopoverTrigger asChild>
-                <button className="px-4 h-full hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border flex items-center shrink-0" data-testid="button-dates-navbar">
-                  <span className="text-[13px] text-gray-700 dark:text-foreground truncate font-medium whitespace-nowrap">{mobileDateLabel}</span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[600px] p-0 rounded-3xl shadow-2xl border border-border bg-white dark:bg-card z-[100]" align="center" sideOffset={12}>
-                {desktopCalendarContent}
-              </PopoverContent>
-            </Popover>
+            <button
+              className="px-4 h-full hover:bg-gray-50 dark:hover:bg-muted/30 transition-colors text-left border-r border-border flex items-center shrink-0"
+              onClick={() => { setDateOpen(o => !o); setGuestsOpen(false); }}
+              data-testid="button-dates-navbar"
+            >
+              <span className="text-[13px] text-gray-700 dark:text-foreground truncate font-medium whitespace-nowrap">{mobileDateLabel}</span>
+            </button>
 
             <Popover open={guestsOpen} onOpenChange={(open) => { setGuestsOpen(open); if (open) setDateOpen(false); }}>
               <PopoverTrigger asChild>
