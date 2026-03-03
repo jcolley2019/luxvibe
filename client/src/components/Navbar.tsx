@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
+import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -38,6 +38,29 @@ function useDarkMode() {
   }, [dark]);
 
   return { dark, toggle: () => setDark(d => !d) };
+}
+
+function useFavoritesCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith("wishlist_") && localStorage.getItem(k) === "1");
+        setCount(keys.length);
+      } catch { setCount(0); }
+    };
+    read();
+    window.addEventListener("storage", read);
+    // Also poll on focus in case storage event doesn't fire within same tab
+    window.addEventListener("focus", read);
+    return () => {
+      window.removeEventListener("storage", read);
+      window.removeEventListener("focus", read);
+    };
+  }, []);
+
+  return count;
 }
 
 const LANGUAGES = [
@@ -245,6 +268,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { currency, language } = usePreferences();
   const { t } = useTranslation();
   const { dark, toggle: toggleDark } = useDarkMode();
+  const favCount = useFavoritesCount();
   const [langOpen, setLangOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
@@ -252,7 +276,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [favoritesTooltip, setFavoritesTooltip] = useState(false);
   const [guideTooltip, setGuideTooltip] = useState(false);
   const [loginTooltip, setLoginTooltip] = useState(false);
-  const [darkTooltip, setDarkTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -266,6 +289,8 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [tipsOpen]);
+
+  const hasFavorites = favCount > 0;
 
   return (
     <>
@@ -312,25 +337,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               )}
             </div>
 
-            {/* Dark mode toggle */}
-            <div className="relative">
-              <button
-                onClick={toggleDark}
-                onMouseEnter={() => setDarkTooltip(true)}
-                onMouseLeave={() => setDarkTooltip(false)}
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-                data-testid="button-theme-toggle"
-                aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              {darkTooltip && (
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  {dark ? "Light mode" : "Dark mode"}
-                </div>
-              )}
-            </div>
-
             {/* Lightbulb — site guide - hidden on small mobile */}
             <div className="hidden xs:relative xs:block" ref={tipsRef}>
               <button
@@ -350,7 +356,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
               {tipsOpen && (
                 <div className="absolute top-11 right-0 w-80 bg-white dark:bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
-                  {/* Header */}
                   <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
                     <div className="flex items-center gap-2">
                       <Lightbulb className="w-4 h-4 text-primary" />
@@ -364,7 +369,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     </button>
                   </div>
 
-                  {/* Tips list */}
                   <div className="p-4 space-y-4 max-h-[420px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
                     {GUIDE_TIPS.map((tip, i) => (
                       <div key={i} className="flex items-start gap-3">
@@ -405,21 +409,26 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               )}
             </div>
 
-            {/* Favorites */}
+            {/* Favorites heart — red when there are saved favorites */}
             <div className="relative">
-              <Link href="/favorites">
+              <Link href={isAuthenticated ? "/favorites" : "#"}>
                 <button
+                  onClick={!isAuthenticated ? () => setLoginOpen(true) : undefined}
                   onMouseEnter={() => setFavoritesTooltip(true)}
                   onMouseLeave={() => setFavoritesTooltip(false)}
-                  className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                  className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${
+                    hasFavorites
+                      ? "border-red-400 bg-red-50 dark:bg-red-950/30 text-red-500 hover:border-red-500"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"
+                  }`}
                   data-testid="button-favorites"
                 >
-                  <Heart className="w-4 h-4" />
+                  <Heart className={`w-4 h-4 transition-all ${hasFavorites ? "fill-red-500 text-red-500" : ""}`} />
                 </button>
               </Link>
               {favoritesTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  Favorites
+                  {isAuthenticated ? "My Favourites" : "Login to view Favourites"}
                 </div>
               )}
             </div>
@@ -469,8 +478,13 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
                     <DropdownMenuItem asChild>
                       <Link href="/favorites" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <Heart className="w-4 h-4 text-muted-foreground" />
+                        <Heart className={`w-4 h-4 ${hasFavorites ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
                         My Favourites
+                        {hasFavorites && (
+                          <span className="ml-auto text-xs font-bold bg-red-100 dark:bg-red-950/50 text-red-600 px-1.5 py-0.5 rounded-full">
+                            {favCount}
+                          </span>
+                        )}
                       </Link>
                     </DropdownMenuItem>
 
@@ -486,6 +500,19 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                         <CalendarDays className="w-4 h-4 text-muted-foreground" />
                         {t("nav.my_bookings")}
                       </Link>
+                    </DropdownMenuItem>
+
+                    {/* Dark mode toggle — only in dropdown for logged-in users */}
+                    <DropdownMenuItem
+                      onClick={toggleDark}
+                      className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm"
+                      data-testid="button-theme-toggle"
+                    >
+                      {dark
+                        ? <Sun className="w-4 h-4 text-muted-foreground" />
+                        : <Moon className="w-4 h-4 text-muted-foreground" />
+                      }
+                      {dark ? "Light Mode" : "Dark Mode"}
                     </DropdownMenuItem>
                   </div>
 

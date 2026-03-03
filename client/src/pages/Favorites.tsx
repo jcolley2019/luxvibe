@@ -2,15 +2,18 @@ import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { HotelCard } from "@/components/HotelCard";
+import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, X, BarChart2 } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [compareList, setCompareList] = useState<any[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   useEffect(() => {
     const loadFavorites = () => {
@@ -36,11 +39,20 @@ export default function Favorites() {
     ? favorites.filter((h) => h.name?.toLowerCase().includes(search.toLowerCase()))
     : favorites;
 
+  const toggleCompare = (hotel: any) => {
+    setCompareList(prev => {
+      const already = prev.some(h => h.id === hotel.id);
+      if (already) return prev.filter(h => h.id !== hotel.id);
+      if (prev.length >= 4) return prev;
+      return [...prev, hotel];
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-10 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 py-10 max-w-6xl pb-32">
         {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h1 className="text-2xl font-bold text-foreground">Favourite properties</h1>
@@ -63,7 +75,13 @@ export default function Favorites() {
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((hotel) => (
-              <HotelCard key={hotel.id} hotel={hotel} />
+              <HotelCard
+                key={hotel.id}
+                hotel={hotel}
+                isCompared={compareList.some(h => h.id === hotel.id)}
+                onToggleCompare={() => toggleCompare(hotel)}
+                compareDisabled={compareList.length >= 4}
+              />
             ))}
           </div>
         ) : (
@@ -95,6 +113,62 @@ export default function Favorites() {
       </main>
 
       <Footer />
+
+      {/* Sticky compare bar */}
+      {compareList.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-2xl px-4 py-3">
+          <div className="container mx-auto max-w-6xl flex items-center gap-3 flex-wrap">
+            {/* Thumbnails */}
+            <div className="flex items-center gap-2 flex-1 flex-wrap">
+              {compareList.map(hotel => (
+                <div key={hotel.id} className="relative group">
+                  <img
+                    src={hotel.imageUrl || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&q=70"}
+                    alt={hotel.name}
+                    className="w-12 h-12 rounded-lg object-cover border border-border"
+                  />
+                  <button
+                    onClick={() => toggleCompare(hotel)}
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-foreground text-background flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    data-testid={`button-remove-compare-${hotel.id}`}
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+              ))}
+              <span className="text-sm font-medium text-foreground ml-1">
+                {compareList.length} hotel{compareList.length !== 1 ? "s" : ""} selected
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCompareList([])}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-clear-compare"
+              >
+                Clear all
+              </button>
+              <Button
+                onClick={() => setCompareOpen(true)}
+                disabled={compareList.length < 2}
+                className="gap-2 rounded-full px-6"
+                data-testid="button-compare-now"
+              >
+                <BarChart2 className="w-4 h-4" />
+                Compare Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CompareModal
+        hotels={compareList}
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+      />
     </div>
   );
 }
