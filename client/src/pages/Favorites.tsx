@@ -55,7 +55,7 @@ export default function Favorites() {
       <main className="flex-1 container mx-auto px-4 py-10 max-w-6xl pb-32">
         {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Favourite properties</h1>
+          <h1 className="text-2xl font-bold text-foreground">Favorite properties</h1>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -98,10 +98,10 @@ export default function Favorites() {
               </svg>
             </div>
             <p className="text-base font-medium text-foreground mb-1">
-              No favourite properties for the moment.
+              No favorite properties for the moment.
             </p>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-              Please explore our selection of hotels and save your favourites as you explore.
+              Please explore our selection of hotels and save your favorites as you explore.
             </p>
             <Link href="/">
               <Button className="rounded-full px-8" data-testid="button-explore-hotels">

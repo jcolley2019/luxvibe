@@ -428,7 +428,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               </Link>
               {favoritesTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  {isAuthenticated ? "My Favourites" : "Login to view Favourites"}
+                  {isAuthenticated ? "My Favorites" : "Login to view Favorites"}
                 </div>
               )}
             </div>
@@ -479,7 +479,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     <DropdownMenuItem asChild>
                       <Link href="/favorites" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Heart className={`w-4 h-4 ${hasFavorites ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
-                        My Favourites
+                        My Favorites
                         {hasFavorites && (
                           <span className="ml-auto text-xs font-bold bg-red-100 dark:bg-red-950/50 text-red-600 px-1.5 py-0.5 rounded-full">
                             {favCount}
