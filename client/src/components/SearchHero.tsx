@@ -279,7 +279,7 @@ export default function SearchHero({
   );
 
   const autocompleteDropdown = showAutocomplete && (
-    <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[380px] overflow-y-auto">
+    <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[380px] overflow-y-auto">
       {nearMeButton}
       {destination.length >= 2 && placesLoading && (
         <div className="px-4 py-3 space-y-3">
@@ -670,7 +670,7 @@ export default function SearchHero({
                 />
               </div>
               {showAutocomplete && (
-                <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-h-[320px] overflow-y-auto">
+                <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-h-[320px] overflow-y-auto">
                   {nearMeButton}
                   {(places as any[]).map((place: any) => {
                     const types: string[] = place.types || [];
@@ -783,7 +783,7 @@ export default function SearchHero({
               </PopoverTrigger>
               <PopoverContent
                 style={{ width: calendarWidth ?? "auto" }}
-                className="p-0 border border-gray-200 dark:border-border shadow-2xl rounded-2xl z-[100] bg-white dark:bg-card overflow-hidden"
+                className="p-0 border border-gray-200 dark:border-border shadow-2xl rounded-xl z-[100] bg-white dark:bg-card overflow-hidden"
                 align="start"
                 sideOffset={8}
                 onInteractOutside={() => setDateOpen(false)}
@@ -803,7 +803,7 @@ export default function SearchHero({
             </Popover>
 
             {/* The visible search bar */}
-            <div className="w-full bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl flex items-stretch border border-gray-200 dark:border-blue-500/30">
+            <div className="w-full bg-white dark:bg-[#0f172a] rounded-xl shadow-2xl flex items-stretch border border-gray-200 dark:border-blue-500/30">
               {/* Destination */}
               <div className="flex-[1.3] px-5 py-4 border-r border-gray-200 dark:border-border relative flex flex-col items-start" ref={autocompleteRef}>
                 <p className="text-xs font-bold text-gray-500 dark:text-muted-foreground mb-0.5 uppercase tracking-wider text-left w-full">DESTINATION</p>

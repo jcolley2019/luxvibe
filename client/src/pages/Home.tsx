@@ -92,46 +92,6 @@ function fmtShortDate(iso: string | null | undefined): string {
   return `${months[parseInt(m) - 1]} ${parseInt(d)}`;
 }
 
-function CompactSearchBar({
-  destination, aiSearch, checkIn, checkOut, guests, onEdit,
-}: {
-  destination?: string | null;
-  aiSearch?: string | null;
-  checkIn?: string | null;
-  checkOut?: string | null;
-  guests: string;
-  onEdit: () => void;
-}) {
-  const label = destination || aiSearch || "Search";
-  const dateStr = checkIn && checkOut
-    ? `${fmtShortDate(checkIn)} – ${fmtShortDate(checkOut)}`
-    : "Select dates";
-  const guestStr = `${guests} ${parseInt(guests) === 1 ? "Guest" : "Guests"}`;
-
-  return (
-    <div className="bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm sticky top-14 sm:top-16 z-40">
-      <div className="container mx-auto px-2 sm:px-4 py-1.5 sm:py-2">
-        <button
-          onClick={onEdit}
-          className="w-full flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md transition-all text-left"
-          data-testid="button-edit-search"
-        >
-          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
-          <div className="flex flex-1 min-w-0 items-center text-[10px] xs:text-xs sm:text-sm">
-            <span className="font-bold text-foreground truncate max-w-[60px] xs:max-w-[80px] sm:max-w-[120px]">{label}</span>
-            <span className="mx-1 text-border sm:mx-2">•</span>
-            <span className="text-muted-foreground truncate">{dateStr}</span>
-            <span className="mx-1 text-border sm:mx-2">•</span>
-            <span className="text-muted-foreground whitespace-nowrap">{guestStr}</span>
-          </div>
-          <div className="bg-primary rounded-full p-1 sm:p-1.5 shrink-0">
-            <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
-          </div>
-        </button>
-      </div>
-    </div>
-  );
-}
 
 
 const VIBE_CARDS = [
@@ -218,8 +178,7 @@ export default function Home() {
     ? { lat: parseFloat(urlLat), lng: parseFloat(urlLng) }
     : null;
 
-  const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
-    const searchHero = (
+  const searchHero = (
       <SearchHero
         variant="navbar"
         initialDestination={destination || undefined}
@@ -228,7 +187,9 @@ export default function Home() {
         initialGuests={guests}
       />
     );
-  const nights = getNights(checkIn || undefined, checkOut || undefined);
+    
+  const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
+    const nights = getNights(checkIn || undefined, checkOut || undefined);
 
   const [sortBy, setSortBy] = useState<SortOption>("rating");
   const [nameFilter, setNameFilter] = useState("");
