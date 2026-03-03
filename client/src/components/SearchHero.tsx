@@ -94,6 +94,7 @@ export default function SearchHero({
   const mobileAutocompleteRef = useRef<HTMLDivElement>(null);
   const desktopSearchBarRef = useRef<HTMLDivElement>(null);
   const desktopInputRef = useRef<HTMLInputElement>(null);
+  const datesButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -786,7 +787,10 @@ export default function SearchHero({
                 className="p-0 border border-gray-200 dark:border-border shadow-2xl rounded-xl z-[100] bg-white dark:bg-card overflow-hidden"
                 align="start"
                 sideOffset={8}
-                onInteractOutside={() => setDateOpen(false)}
+                onInteractOutside={(e) => {
+                  if (datesButtonRef.current?.contains(e.target as Node)) return;
+                  setDateOpen(false);
+                }}
               >
                 {desktopCalendarContent}
               </PopoverContent>
@@ -823,6 +827,7 @@ export default function SearchHero({
 
               {/* Dates */}
               <button
+                ref={datesButtonRef}
                 className="flex-1 px-5 py-4 hover:bg-gray-50 dark:hover:bg-muted/20 transition-colors text-left border-r border-gray-200 dark:border-border"
                 onClick={toggleCalendar}
                 data-testid="button-dates-desktop"
