@@ -29,7 +29,7 @@ export function PrivacyModal({ open, onClose }: PrivacyModalProps) {
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="prose prose-sm max-w-none text-foreground pb-4">
-            PRIVACY_POLICY_CONTENT_PLACEHOLDER
+            REPLACED_OK
           </div>
         </div>
       </DialogContent>

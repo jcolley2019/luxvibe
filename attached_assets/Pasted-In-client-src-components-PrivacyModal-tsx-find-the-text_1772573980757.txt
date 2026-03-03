@@ -1,0 +1,30 @@
+In client/src/components/PrivacyModal.tsx, find the text REPLACED_OK and replace it with exactly this JSX — do not modify any text, copy word for word:
+jsx<div className="space-y-4">
+  <h3 className="font-bold text-lg">Who We Are</h3>
+  <p>Nuitée Travel Limited is a company incorporated and registered in Ireland. Our registered office is located at 4 Waterloo Rd, Ballsbridge, Dublin, D04 A0X3, Ireland.</p>
+  <h3 className="font-bold text-lg">What This Policy Covers</h3>
+  <p>This Privacy Policy describes how Nuitée Travel Limited collects, uses, processes, and shares personal information. This policy applies to all users of our website and our services.</p>
+  <h3 className="font-bold text-lg">Information We Collect</h3>
+  <p>Personal Identification Information: Name, email address, phone number.</p>
+  <p>Technical Data: IP address, browser type and version, time zone setting, location, browser plug-in types, operating system and platform.</p>
+  <p>Usage Data: Information about how you use our website, products, and services.</p>
+  <p>Marketing and Communications Data: Your preferences in receiving marketing from us.</p>
+  <p>We collect this data under GDPR lawful bases including consent, contract performance, legitimate business interests, and legal obligations.</p>
+  <h3 className="font-bold text-lg">How We Use Your Information</h3>
+  <p>To provide our services per our Terms and Conditions. To maintain and improve our website. To communicate with you. To conduct marketing based on your consent or legitimate business interests.</p>
+  <h3 className="font-bold text-lg">Sharing Your Information</h3>
+  <p>We may share your personal data with third-party service providers including web hosting, data analysis, payment processing, order fulfillment, customer service, and marketing assistance. All third parties comply with GDPR.</p>
+  <h3 className="font-bold text-lg">Your Rights</h3>
+  <p>Under the GDPR you have the right to access, correct, update, or request deletion of your personal data. You can also object to or restrict processing. To exercise these rights contact us at contact@nuitee.com.</p>
+  <h3 className="font-bold text-lg">Cookies</h3>
+  <p>We use cookies and similar tracking technologies to track activity on our website.</p>
+  <h3 className="font-bold text-lg">Data Retention</h3>
+  <p>We retain your personal data only as long as necessary to fulfill the purposes collected, including legal, accounting, and reporting requirements.</p>
+  <h3 className="font-bold text-lg">Security</h3>
+  <p>We use appropriate technical and organizational measures to protect the personal information we collect and process.</p>
+  <h3 className="font-bold text-lg">Changes to This Privacy Policy</h3>
+  <p>We may update our Privacy Policy from time to time and will notify you by posting changes on this page.</p>
+  <h3 className="font-bold text-lg">Contact Us</h3>
+  <p>If you have any questions about this Privacy Policy, please contact us by email at contact@nuitee.com.</p>
+</div>
+Do not change anything else in the file. Use Lite mode.
