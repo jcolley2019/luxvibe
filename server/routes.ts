@@ -1869,6 +1869,164 @@ Guest question: ${question}`;
     }
   });
 
+  app.post("/api/ai-concierge", async (req, res) => {
+    try {
+      const { message, history = [] } = req.body as {
+        message: string;
+        history: { role: "user" | "assistant"; content: string }[];
+      };
+
+      if (!message?.trim()) {
+        return res.status(400).json({ message: "message is required" });
+      }
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+      });
+
+      const tools: Anthropic.Tool[] = [
+        {
+          name: "search_hotels",
+          description: "Search for hotels by vibe, style, or destination using semantic search. Use this when the user is looking for hotel recommendations, wants to discover hotels by mood/occasion/destination, or asks for travel accommodation suggestions.",
+          input_schema: {
+            type: "object" as const,
+            properties: {
+              query: {
+                type: "string",
+                description: "Natural language search query describing the type of hotel (e.g. 'luxury beachfront resort in Bali', 'romantic boutique hotel Paris', 'family-friendly ski resort Alps')"
+              },
+              city: {
+                type: "string",
+                description: "City name if a specific city is mentioned (e.g. 'Paris', 'Bali', 'New York')"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      ];
+
+      const systemPrompt = `You are Luxe, the friendly AI travel concierge for Luxvibe — a premium hotel booking platform. You help travelers discover their perfect hotel by vibe, occasion, destination, or mood.
+
+About Luxvibe:
+- Premium hotel booking platform with thousands of curated hotels worldwide
+- Specializes in personalized travel experiences
+- Features: vibe-based search, AI-powered recommendations, luxury and boutique properties
+- Supports all travel styles: romantic getaways, family adventures, business travel, solo exploration
+- Available worldwide with competitive rates and flexible cancellation policies
+
+Your role:
+1. For hotel searches/recommendations: Use the search_hotels tool to find matching properties, then present them warmly
+2. For general travel questions: Answer helpfully about destinations, travel tips, packing, visas, best times to visit, etc.
+3. For Luxvibe questions: Answer based on the information above
+4. Keep responses conversational, warm, and concise
+5. When showing hotels, add a brief personal touch about why they match the user's request
+
+Important: Always be enthusiastic about travel but concise. If the user asks something you can't help with, politely redirect to what you CAN help with.`;
+
+      const messages: Anthropic.MessageParam[] = [
+        ...history.map(h => ({ role: h.role, content: h.content })),
+        { role: "user", content: message }
+      ];
+
+      let foundHotels: any[] = [];
+      let vibeQuery = "";
+
+      const firstResponse = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 1024,
+        system: systemPrompt,
+        tools,
+        messages,
+      });
+
+      if (firstResponse.stop_reason === "tool_use") {
+        const toolUse = firstResponse.content.find(c => c.type === "tool_use") as Anthropic.ToolUseBlock | undefined;
+
+        if (toolUse && toolUse.name === "search_hotels") {
+          const input = toolUse.input as { query: string; city?: string };
+          vibeQuery = input.query;
+
+          try {
+            const semanticData = await liteApiGet("/data/hotels/semantic-search", { query: input.query });
+            const semanticHotels: any[] = Array.isArray(semanticData?.data) ? semanticData.data : [];
+
+            if (semanticHotels.length > 0) {
+              foundHotels = semanticHotels.slice(0, 5).map((h: any) => ({
+                id: h.id || h.hotelId || "",
+                name: h.name || "Hotel",
+                address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+                city: h.city || null,
+                country: h.country || null,
+                photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
+                relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
+                semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
+                persona: h.persona || null,
+                style: h.style || null,
+                story: h.story || null,
+              }));
+            } else if (input.city) {
+              const cityData = await liteApiGet("/data/hotels", { cityName: input.city, limit: "10" });
+              const cityHotels: any[] = Array.isArray(cityData?.data) ? cityData.data : [];
+              foundHotels = cityHotels.slice(0, 5).map((h: any) => ({
+                id: h.id || "",
+                name: h.name || "Hotel",
+                address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+                city: h.city || null,
+                country: h.country || null,
+                photo: h.main_photo || h.thumbnail || null,
+                relevanceScore: null,
+                semanticTags: [],
+                persona: null,
+                style: null,
+                story: null,
+              }));
+            }
+          } catch (err) {
+            console.error("AI concierge hotel search error:", err);
+          }
+
+          const toolResult: Anthropic.MessageParam = {
+            role: "user",
+            content: [{
+              type: "tool_result",
+              tool_use_id: toolUse.id,
+              content: foundHotels.length > 0
+                ? `Found ${foundHotels.length} hotels: ${foundHotels.map(h => `${h.name} in ${h.city || "unknown location"}`).join(", ")}`
+                : `No hotels found for "${input.query}". Suggest the user try a broader search or different destination.`
+            }]
+          };
+
+          const finalResponse = await anthropic.messages.create({
+            model: "claude-haiku-4-5",
+            max_tokens: 512,
+            system: systemPrompt,
+            tools,
+            messages: [...messages, { role: "assistant", content: firstResponse.content }, toolResult],
+          });
+
+          const textBlock = finalResponse.content.find(c => c.type === "text") as Anthropic.TextBlock | undefined;
+          return res.json({
+            text: textBlock?.text || (foundHotels.length > 0 ? `I found ${foundHotels.length} great options for you!` : "I couldn't find hotels matching that description. Try a different vibe or destination."),
+            hotels: foundHotels,
+            vibeQuery,
+          });
+        }
+      }
+
+      const textBlock = firstResponse.content.find(c => c.type === "text") as Anthropic.TextBlock | undefined;
+      return res.json({
+        text: textBlock?.text || "I'm here to help with your hotel search. What kind of experience are you looking for?",
+        hotels: [],
+        vibeQuery: "",
+      });
+
+    } catch (err: any) {
+      console.error("AI concierge error:", err?.message || err);
+      res.status(500).json({ message: "Failed to get response from AI concierge" });
+    }
+  });
+
   app.get("/api/hotels/semantic-search", async (req, res) => {
     try {
       const query = req.query.query as string;
