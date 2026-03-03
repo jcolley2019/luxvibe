@@ -13,6 +13,7 @@ import MyBookings from "@/pages/MyBookings";
 import ManageBooking from "@/pages/ManageBooking";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
+import { CookieConsent } from "@/components/CookieConsent";
 
 function Router() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Footer />
           </div>
           <AiAssistant />
+          <CookieConsent />
           <Toaster />
         </TooltipProvider>
       </PreferencesProvider>
