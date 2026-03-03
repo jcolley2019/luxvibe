@@ -1,0 +1,65 @@
+Who We Are
+Nuitée Travel Limited is a company incorporated and registered in Ireland. Our registered office is located at 4 Waterloo Rd, Ballsbridge, Dublin, D04 A0X3, Ireland
+
+What This Policy Covers
+This Privacy Policy describes how Nuitée Travel Limited collects, uses, processes, and shares personal information. This policy applies to all users of our website and our services.
+
+Information We Collect
+When you use our website or services, we may collect the following types of information:
+
+Personal Identification Information: Name, email address, phone number, etc.
+
+Technical Data: IP address, browser type and version, time zone setting, location, browser plug-in types and versions, operating system and platform, and other technology on the devices you use to access this website.
+
+Usage Data: Information about how you use our website, products, and services.
+
+Marketing and Communications Data: Your preferences in receiving marketing from us and your communication preferences.
+We collect this data under the lawful bases set out in the GDPR, which include your consent, contract performance, legitimate business interests, and compliance with our legal obligations.
+
+How We Use Your Information
+We use the information we collect for various purposes, including:
+
+To provide our services to you, in accordance with our Terms and Conditions.
+
+To maintain and improve our website and services, in pursuit of our legitimate interests to provide an engaging and relevant experience to our users.
+
+To communicate with you, including to respond to your comments or inquiries, in accordance with our contract performance duties and legitimate business interests.
+
+To conduct marketing and promotions, based on your consent or our legitimate business interests.
+Sharing Your Information
+We may share your personal data with third-party service providers who perform functions on our behalf, including web hosting, data analysis, payment processing, order fulfillment, customer service, and marketing assistance. We ensure that our third-party service providers respect your personal data and comply with GDPR and other relevant data protection laws.
+
+Your Rights
+Under the GDPR, you have rights in relation to your personal data, including the right to access, correct, update, or request deletion of your personal data. You can also object to the processing of your personal data, ask us to restrict processing of your personal data, or request portability of your personal data. If we have collected and processed your personal data with your consent, you can withdraw your consent at any time.
+
+
+To exercise any of these rights, please contact us at contact@nuitee.com. We will respond to your request within a reasonable timeframe and in any event within any timeframe required by law.
+
+Cookies
+We use cookies and similar tracking technologies to track the activity on our website and hold certain information.
+
+Data Retention
+We will only retain your personal data for as long as necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, accounting, or reporting requirements.
+
+How We Use Your Personal Data
+We utilize your personal data for a variety of purposes, which are identified and described in the table below. Along with the purpose, we also specify the types of data we collect and the legal basis on which we process them.
+
+Purpose for Processing	Types of Data Collected	Legal Basis
+Registering you as a new customer and completing our onboarding and KYC procedures.	Identity, Contact, Financial & Governmental Data.	Fulfilling our service agreement, Legitimate interest (maintaining updated records).
+Processing and delivering your booking which includes managing payments, fees, charges, recovering debts, and returning funds in case of cancellations, refunds or price adjustments.	Identity, Contact, Financial, Transaction, Marketing Communications.	Fulfilling our service agreement, Legitimate interest (debt recovery).
+Managing our relationship with you, which includes notifying you about changes in our terms or privacy policy, inviting you to review our services or participate in surveys, and soliciting feedback on new features.	Identity, Contact, Profile, Marketing Communications.	Fulfilling our service agreement, Legal obligations, Legitimate interest (maintaining updated records and understanding customer service usage).
+Administering and protecting our business and website, which includes troubleshooting, data analysis, testing, system maintenance, support, reporting, and hosting of data.	Identity, Contact, Technical.	Legitimate interest (business operations, IT services, network security, fraud prevention, business reorganization), Legal obligations.
+Delivering relevant website content and advertisements to you, and understanding the effectiveness of our advertising.	Identity, Contact, Profile, Usage, Marketing Communications, Technical.	Legitimate interest (understanding customer usage of products/services, business development, marketing strategy).
+Using data analytics to enhance our website, products/services, marketing, customer relationships, and experiences.	Technical, Usage.	Legitimate interest (identifying customer types, keeping our website relevant, business development, marketing strategy).
+Suggesting and recommending services to you that may be of your interest.	Identity, Contact, Technical, Usage, Profile, Marketing Communications.	Legitimate interest (product/service development, business growth).
+Monitoring our communications with you for the purposes of checking instructions, training, crime prevention, improving customer service, and defending legal claims.	Identity, Contact, Technical.	Legitimate interest (employee training, business protection), Legal obligations.
+We will only use your personal data for the purposes for which we collected it, unless we reasonably consider that we need to use it for another reason and that reason is compatible with the original purpose. If we need to use your personal data for an unrelated purpose, we will notify you and we will explain the legal basis which allows us to do so.
+
+Security
+We use appropriate technical and organizational measures to protect the personal information that we collect and process about you.
+
+Changes to This Privacy Policy
+We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
+
+Contact Us
+If you have any questions about this Privacy Policy, please contact us by email at contact@nuitee.com.
