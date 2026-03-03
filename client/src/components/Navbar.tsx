@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart } from "lucide-react";
+import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -437,25 +437,69 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      {user?.firstName && <p className="font-medium">{user.firstName} {user.lastName}</p>}
-                      {user?.email && <p className="w-[200px] truncate text-xs text-muted-foreground">{user.email}</p>}
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  {/* User header */}
+                  <div className="flex items-center gap-3 px-3 py-3 border-b border-border">
+                    <Avatar className="h-10 w-10 border border-border shrink-0">
+                      <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
+                        {(user?.firstName?.[0] || "U").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      {(user?.firstName || user?.lastName) && (
+                        <p className="font-semibold text-sm text-foreground truncate">
+                          {[user.firstName, user.lastName].filter(Boolean).join(" ")}
+                        </p>
+                      )}
+                      {user?.email && (
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      )}
                     </div>
                   </div>
+
+                  {/* Menu items */}
+                  <div className="py-1">
+                    <DropdownMenuItem asChild>
+                      <Link href="/" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <Home className="w-4 h-4 text-muted-foreground" />
+                        Home
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/favorites" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <Heart className="w-4 h-4 text-muted-foreground" />
+                        My Favourites
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/invite" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        Invite Friends &amp; Referrals
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/my-bookings" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                        {t("nav.my_bookings")}
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-bookings" className="cursor-pointer">
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {t("nav.my_bookings")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="text-destructive cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t("nav.logout")}
-                  </DropdownMenuItem>
+
+                  <div className="py-1">
+                    <DropdownMenuItem
+                      onClick={() => logout()}
+                      className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("nav.logout")}
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

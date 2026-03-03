@@ -12,6 +12,7 @@ import Favorites from "@/pages/Favorites";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
 import ManageBooking from "@/pages/ManageBooking";
+import Invite from "@/pages/Invite";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/manage-booking" component={ManageBooking} />
+      <Route path="/invite" component={Invite} />
       <Route component={NotFound} />
     </Switch>
   );
