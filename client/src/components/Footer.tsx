@@ -2,14 +2,17 @@ import { useState } from "react";
 import { Bug } from "lucide-react";
 import { Link } from "wouter";
 import { TermsModal } from "@/components/TermsModal";
+import { PrivacyModal } from "@/components/PrivacyModal";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   return (
     <>
       <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} />
+      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
 
       <footer className="border-t border-border bg-background mt-auto">
         <div className="container mx-auto px-4">
@@ -39,8 +42,14 @@ export function Footer() {
               >
                 Terms &amp; Conditions
               </button>
+              <button
+                onClick={() => setPrivacyOpen(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
+                data-testid="footer-link-privacy-policy"
+              >
+                Privacy Policy
+              </button>
               {[
-                { label: "Privacy Policy", href: "#" },
                 { label: "Cookie preferences", href: "#" },
                 { label: "Contact us", href: "#" },
               ].map(({ label, href }) => (
