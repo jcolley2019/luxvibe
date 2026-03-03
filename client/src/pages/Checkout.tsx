@@ -47,7 +47,6 @@ export default function Checkout() {
 
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const sdkInitialized = useRef(false);
 
   useEffect(() => {
@@ -113,60 +112,29 @@ export default function Checkout() {
     if (sdkLoaded && prebookData && !sdkInitialized.current) {
       sdkInitialized.current = true;
 
-      const returnUrl = `${window.location.origin}/booking-confirmation?prebookId=${encodeURIComponent(prebookData.prebookId)}&transactionId=${encodeURIComponent(prebookData.transactionId)}`;
-
       const liteAPIConfig = {
-        publicKey: prebookData.paymentEnv || "sandbox",
+        publicKey: prebookData.publicKey,
         secretKey: prebookData.secretKey,
-        returnUrl,
+        returnUrl: `${window.location.origin}/booking-confirmation?prebookId=${prebookData.prebookId}&transactionId=${prebookData.transactionId}`,
         targetElement: '#liteapi-payment',
-        submitButton: { text: "Pay Now" },
         appearance: {
           theme: 'flat',
-          variables: { colorPrimary: '#1d4ed8' }
+          variables: {
+            colorPrimary: '#1d4ed8',
+          }
         },
-        options: { business: { name: 'Luxvibe' } }
+        options: {
+          business: {
+            name: 'Luxvibe'
+          }
+        }
       };
 
       try {
         const payment = new window.LiteAPIPayment(liteAPIConfig);
-        payment.handlePayment().then(() => {
-          // SDK finished rendering — wire up error visibility and submit feedback
-          const errorDiv = document.getElementById("st-error-message");
-          const targetEl = document.getElementById("liteapi-payment");
-          const submitBtn = targetEl?.querySelector(".lp-submit-button") as HTMLButtonElement | null;
-
-          // Style the error div so it's always visible when populated
-          if (errorDiv) {
-            errorDiv.style.cssText =
-              "margin-top:12px;padding:12px 16px;border-radius:8px;font-size:14px;font-weight:500;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;display:none;";
-            const obs = new MutationObserver(() => {
-              const msg = errorDiv.textContent?.trim() || "";
-              errorDiv.style.display = msg ? "block" : "none";
-              if (msg) {
-                toast({ title: "Payment error", description: msg, variant: "destructive" });
-                setPaymentProcessing(false);
-              }
-            });
-            obs.observe(errorDiv, { childList: true, characterData: true, subtree: true });
-          }
-
-          // Show a loading state when the pay button is clicked
-          if (submitBtn && targetEl) {
-            const form = submitBtn.closest("form");
-            if (form) {
-              form.addEventListener("submit", () => {
-                setPaymentProcessing(true);
-              });
-            }
-          }
-        }).catch((err: any) => {
-          console.error("SDK handlePayment error:", err);
-          toast({ title: "Payment setup failed", description: "Unable to load the payment form. Please refresh and try again.", variant: "destructive" });
-        });
+        payment.handlePayment();
       } catch (err) {
         console.error("SDK initialization error:", err);
-        toast({ title: "Payment setup failed", description: "Unable to initialize payment. Please refresh and try again.", variant: "destructive" });
       }
     }
   }, [sdkLoaded, prebookData]);
@@ -292,19 +260,11 @@ export default function Checkout() {
                     </div>
                   </div>
                   
-                  <div className="relative">
-                    <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20">
-                      {!sdkLoaded && (
-                        <div className="flex flex-col items-center gap-2">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                          <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
-                        </div>
-                      )}
-                    </div>
-                    {paymentProcessing && (
-                      <div className="absolute inset-0 bg-white/80 dark:bg-black/60 rounded-xl flex flex-col items-center justify-center gap-3 z-10">
+                  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20">
+                    {!sdkLoaded && (
+                      <div className="flex flex-col items-center gap-2">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-sm font-medium text-muted-foreground">Processing your payment…</p>
+                        <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
                       </div>
                     )}
                   </div>

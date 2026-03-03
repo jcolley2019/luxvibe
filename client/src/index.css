@@ -213,30 +213,3 @@ img {
   background-color: rgba(37, 99, 235, 0.3); /* blue-600/30 */
 }
 
-
-/* LiteAPI Payment SDK */
-.lp-submit-button {
-  display: block;
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px 24px;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  letter-spacing: 0.01em;
-}
-.lp-submit-button:hover {
-  opacity: 0.9;
-}
-.lp-submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.lp-submit-button-wrapper {
-  margin-top: 4px;
-}
