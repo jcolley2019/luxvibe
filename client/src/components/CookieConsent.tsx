@@ -10,6 +10,10 @@ export function CookieConsent() {
     if (!consent) {
       setIsVisible(true);
     }
+
+    const handleOpenConsent = () => setIsVisible(true);
+    window.addEventListener("open-cookie-consent", handleOpenConsent);
+    return () => window.removeEventListener("open-cookie-consent", handleOpenConsent);
   }, []);
 
   const handleAccept = () => {

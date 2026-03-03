@@ -49,8 +49,14 @@ export function Footer() {
               >
                 Privacy Policy
               </button>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-consent"))}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
+                data-testid="footer-link-cookie-preferences"
+              >
+                Cookie preferences
+              </button>
               {[
-                { label: "Cookie preferences", href: "#" },
                 { label: "Contact us", href: "#" },
               ].map(({ label, href }) => (
                 <a
