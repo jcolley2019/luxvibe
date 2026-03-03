@@ -1016,7 +1016,7 @@ export default function Home() {
 
                 {/* 11. Room amenities — first 9, show all X */}
                 {availableRoomAmenities.length > 0 && (
-                  <FilterSection title="Room amenities" defaultOpen={false}>
+                  <FilterSection title="Amenities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllRoomAmenities ? availableRoomAmenities : availableRoomAmenities.slice(0, 9)).map(([amenity, count]) => (
                         <label key={amenity} className="flex items-center gap-2 cursor-pointer">
