@@ -1161,19 +1161,21 @@ export default function Home() {
                 </div>
 
                 {/* Sort + View toggle */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
-                  <select
-                    value={sortBy}
-                    onChange={e => setSortBy(e.target.value as SortOption)}
-                    className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                    data-testid="select-sort"
-                  >
-                    <option value="recommended">Our top picks</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="rating">Top Rated</option>
-                  </select>
+                <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
+                    <select
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value as SortOption)}
+                      className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                      data-testid="select-sort"
+                    >
+                      <option value="recommended">Our top picks</option>
+                      <option value="price_asc">Price: Low to High</option>
+                      <option value="price_desc">Price: High to Low</option>
+                      <option value="rating">Top Rated</option>
+                    </select>
+                  </div>
                   {/* List / Map toggle */}
                   <div className="flex items-center gap-0.5 border border-border rounded-lg p-0.5 bg-muted/30">
                     <button
