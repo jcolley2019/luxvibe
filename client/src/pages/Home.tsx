@@ -61,8 +61,17 @@ function normalizeForFilter(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function FilterSection({ title, children, defaultOpen = true, forceExpand, forceCollapse }: { title: string; children: React.ReactNode; defaultOpen?: boolean; forceExpand?: number; forceCollapse?: number }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (forceExpand && forceExpand > 0) setOpen(true);
+  }, [forceExpand]);
+
+  useEffect(() => {
+    if (forceCollapse && forceCollapse > 0) setOpen(false);
+  }, [forceCollapse]);
+
   return (
     <div className="border-b border-border last:border-0">
       <button
@@ -215,6 +224,8 @@ export default function Home() {
   const [showMap, setShowMap] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [showSearchPanel, setShowSearchPanel] = useState(false);
+  const [forceExpand, setForceExpand] = useState(0);
+  const [forceCollapse, setForceCollapse] = useState(0);
 
   const { data: hotels, isLoading, error } = useSearchHotels({
     destination: destination || undefined,
@@ -746,13 +757,30 @@ export default function Home() {
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                  <h3 className="font-bold text-base flex items-center gap-2">
-                    <SlidersHorizontal className="w-4 h-4" />
-                    Filters
-                    {activeFilterCount > 0 && (
-                      <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center font-bold">{activeFilterCount}</span>
-                    )}
-                  </h3>
+                  <div className="flex flex-col gap-1">
+                    <h3 className="font-bold text-base flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4" />
+                      Filters
+                      {activeFilterCount > 0 && (
+                        <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center font-bold">{activeFilterCount}</span>
+                      )}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setForceExpand(v => v + 1)}
+                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
+                      >
+                        Open All
+                      </button>
+                      <span className="text-muted-foreground/30 text-[10px]">|</span>
+                      <button 
+                        onClick={() => setForceCollapse(v => v + 1)}
+                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
+                      >
+                        Close All
+                      </button>
+                    </div>
+                  </div>
                   <button
                     onClick={clearFilters}
                     className="text-xs text-primary hover:underline flex items-center gap-1"
