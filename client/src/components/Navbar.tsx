@@ -23,8 +23,7 @@ import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun } 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
     try {
-      if (localStorage.getItem("lv_theme") === "dark") return true;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return localStorage.getItem("lv_theme") === "dark";
     } catch { return false; }
   });
 
