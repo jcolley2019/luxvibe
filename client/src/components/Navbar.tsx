@@ -18,7 +18,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun } from "lucide-react";
+import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart } from "lucide-react";
+
+// ... inside the Navbar component, find the Manage Bookings block and add Favorites after it
+            {/* Favorites */}
+            <div className="relative">
+              <Link href="/favorites">
+                <button
+                  onMouseEnter={() => setFavoritesTooltip(true)}
+                  onMouseLeave={() => setFavoritesTooltip(false)}
+                  className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                  data-testid="button-favorites"
+                >
+                  <Heart className="w-4 h-4" />
+                </button>
+              </Link>
+              {favoritesTooltip && (
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                  Favorites
+                </div>
+              )}
+            </div>
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -249,6 +269,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
   const [langTooltip, setLangTooltip] = useState(false);
+  const [favoritesTooltip, setFavoritesTooltip] = useState(false);
   const [guideTooltip, setGuideTooltip] = useState(false);
   const [loginTooltip, setLoginTooltip] = useState(false);
   const [darkTooltip, setDarkTooltip] = useState(false);

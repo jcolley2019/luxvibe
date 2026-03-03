@@ -233,7 +233,23 @@ export default function HotelDetails() {
   const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [wishlist, setWishlist] = useState(false);
+  useEffect(() => {
+    const key = `wishlist_${id}`;
+    setWishlist(localStorage.getItem(key) === "1");
+  }, [id]);
+
+  const toggleWishlist = () => {
+    const key = `wishlist_${id}`;
+    const next = !wishlist;
+    setWishlist(next);
+    if (next) {
+      localStorage.setItem(key, "1");
+    } else {
+      localStorage.removeItem(key);
+    }
+    // Dispatch event to notify other components (like Navbar/Listings)
+    window.dispatchEvent(new Event("storage"));
+  };
   const [aiInput, setAiInput] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -517,7 +533,7 @@ export default function HotelDetails() {
             </p>
           </div>
           <button
-            onClick={() => setWishlist(!wishlist)}
+            onClick={toggleWishlist}
             className="flex items-center justify-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 border border-border rounded-full text-[11px] sm:text-sm font-medium hover:bg-muted transition-colors w-full sm:w-auto"
             data-testid="button-wishlist"
           >

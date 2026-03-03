@@ -8,6 +8,7 @@ import { PreferencesProvider } from "@/context/preferences";
 import Home from "@/pages/Home";
 import HotelDetails from "@/pages/HotelDetails";
 import Checkout from "@/pages/Checkout";
+import Favorites from "@/pages/Favorites";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
 import ManageBooking from "@/pages/ManageBooking";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/hotel/:id" component={HotelDetails} />
       <Route path="/checkout" component={Checkout} />
+      <Route path="/favorites" component={Favorites} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/manage-booking" component={ManageBooking} />
