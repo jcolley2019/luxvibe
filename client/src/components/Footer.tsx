@@ -3,16 +3,19 @@ import { Bug } from "lucide-react";
 import { Link } from "wouter";
 import { TermsModal } from "@/components/TermsModal";
 import { PrivacyModal } from "@/components/PrivacyModal";
+import { ContactModal } from "@/components/ContactModal";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <>
       <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
 
       <footer className="border-t border-border bg-background mt-auto">
         <div className="container mx-auto px-4">
@@ -56,18 +59,13 @@ export function Footer() {
               >
                 Cookie preferences
               </button>
-              {[
-                { label: "Contact us", href: "#" },
-              ].map(({ label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  data-testid={`footer-link-${label.toLowerCase().replace(/\s+/g, "-")}`}
-                >
-                  {label}
-                </a>
-              ))}
+              <button
+                onClick={() => setContactOpen(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
+                data-testid="footer-link-contact-us"
+              >
+                Contact us
+              </button>
             </nav>
 
             {/* Right side */}
