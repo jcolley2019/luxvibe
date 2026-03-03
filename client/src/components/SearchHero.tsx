@@ -534,7 +534,7 @@ export default function SearchHero({
     if (variant === "navbar") {
       return (
         <div className="flex items-center w-full max-w-xl">
-          <div className="flex w-full bg-white dark:bg-card rounded-full border border-border shadow-sm hover:shadow-md transition-shadow items-center overflow-visible p-1 gap-0 h-10">
+          <div className="flex w-full bg-white dark:bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow items-center overflow-visible p-1 gap-0 h-10">
             <div className="flex-1 flex items-center px-4 min-w-0 relative h-full border-r border-border" ref={autocompleteRef}>
               <input
                 type="text"
@@ -571,7 +571,7 @@ export default function SearchHero({
 
             <button
               onClick={handleSearch}
-              className="h-8 w-8 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ml-1 mr-0.5"
+              className="h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-all shadow-sm shrink-0 ml-1 mr-0.5"
               data-testid="button-search-navbar"
             >
               <Search className="w-3.5 h-3.5" />
