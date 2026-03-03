@@ -668,7 +668,68 @@ export default function SearchHero({
             </DialogContent>
           </Dialog>
 
-          <div className="bg-white dark:bg-card rounded-3xl shadow-2xl" ref={mobileAutocompleteRef}>
+          <div className="bg-white dark:bg-card rounded-3xl shadow-2xl relative" ref={mobileAutocompleteRef}>
+            {showAutocomplete && (
+              <div className="absolute bottom-full left-0 z-[200] mb-1 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-h-48 overflow-y-auto">
+                {nearMeButton}
+                {destination.length >= 2 && placesLoading && (
+                  <div className="px-4 py-3 space-y-3">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="flex items-center gap-3 animate-pulse">
+                        <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-muted shrink-0" />
+                        <div className="flex-1 space-y-1.5">
+                          <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-muted" />
+                          <div className="h-2.5 w-1/2 rounded bg-gray-100 dark:bg-muted" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {destination.length >= 2 && !placesLoading && (places as any[]).length === 0 && (
+                  <div className="px-4 py-4 text-sm text-gray-400 dark:text-muted-foreground text-center">
+                    No destinations found for "<span className="font-medium text-gray-600 dark:text-foreground">{destination}</span>"
+                  </div>
+                )}
+                {(places as any[]).map((place: any, idx: number) => {
+                  const types: string[] = place.types || [];
+                  const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
+                  const isAirport = types.includes("airport");
+                  const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
+                  const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+                  const name = place.displayName || place.placeId;
+                  return (
+                    <button
+                      key={place.placeId}
+                      className={cn(
+                        "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-gray-50 dark:border-border/50 last:border-none",
+                        idx === 0 ? "bg-blue-50/40 dark:bg-muted/40" : "hover:bg-gray-50 dark:hover:bg-muted/40"
+                      )}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (place.hotelId) {
+                          setDestination(name);
+                          setLocation(`/hotel/${place.hotelId}`);
+                        } else {
+                          setDestination(name);
+                          setPlaceId(place.placeId);
+                        }
+                        setShowAutocomplete(false);
+                      }}
+                    >
+                      <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+                        <PlaceIcon className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 dark:text-foreground truncate">{name}</div>
+                        {place.formattedAddress && (
+                          <div className="text-xs text-gray-400 dark:text-muted-foreground truncate">{place.formattedAddress}</div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
