@@ -149,7 +149,7 @@ export default function Checkout() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-4 sm:py-8 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 pt-24 pb-8 max-w-4xl">
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 font-heading">Complete your booking</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
