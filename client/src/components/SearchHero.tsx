@@ -744,44 +744,6 @@ export default function SearchHero({
                   data-testid="input-destination-mobile"
                 />
               </div>
-              {showAutocomplete && (
-                <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-h-[320px] overflow-y-auto">
-                  {nearMeButton}
-                  {(places as any[]).map((place: any) => {
-                    const types: string[] = place.types || [];
-                    const isHotelType = String(place.placeId).startsWith("hotel:") || types.some((t: string) => ["lodging", "hotel"].includes(t));
-                    const isAirport = types.includes("airport");
-                    const isLocality = types.some((t: string) => ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t));
-                    const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
-                    const name = place.displayName || place.placeId;
-                    return (
-                      <button key={place.placeId}
-                        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-muted/40 border-b border-gray-50 dark:border-border/50 last:border-none"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          if (place.hotelId) {
-                            setDestination(name);
-                            setLocation(`/hotel/${place.hotelId}`);
-                            setShowAutocomplete(false);
-                          } else {
-                            setDestination(name);
-                            setPlaceId(place.placeId);
-                            setShowAutocomplete(false);
-                          }
-                        }}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
-                          <PlaceIcon className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-gray-800 dark:text-foreground truncate">{name}</div>
-                          {place.formattedAddress && <div className="text-xs text-gray-400 truncate">{place.formattedAddress}</div>}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
             <button
               onClick={() => { if (mobileDateOpen) { setMobileDateOpen(false); } else { setSelectionStep('checkin'); setMobileDateOpen(true); } }}
