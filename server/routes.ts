@@ -2076,7 +2076,7 @@ Guest question: ${question}`;
       const apiKey = process.env.LITEAPI_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
       const inner = data.data || data;
-      res.json({ ...inner, paymentEnv, publicKey: apiKey });
+      res.json({ ...inner, paymentEnv });
     } catch (err: any) {
       console.error("Prebook error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to prebook" });
