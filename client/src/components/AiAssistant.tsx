@@ -43,6 +43,12 @@ export function AiAssistant() {
     }
   }, [open]);
 
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-luxe", handler);
+    return () => window.removeEventListener("open-luxe", handler);
+  }, []);
+
   const historyForApi = () =>
     messages
       .filter((m) => !m.loading && m.content)

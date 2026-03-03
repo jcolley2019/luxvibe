@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { 
   Search, MapPin, CalendarDays, Users, Building2, Star, 
-  BedDouble, Plane, X, Plus, Minus, Navigation, Loader2
+  BedDouble, Plane, X, Plus, Minus, Navigation, Loader2,
+  Sparkles, Heart, Waves, Gem
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -775,6 +776,39 @@ export default function SearchHero({
             </div>
           </div>
         </div>
+
+        {/* ── Mobile temptation chips ── */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 px-2 pb-2">
+          <span className="text-xs text-gray-500 dark:text-muted-foreground font-medium mr-1">Try:</span>
+          {[
+            { label: "Romantic Getaway", icon: Heart, query: "romantic getaway hotel with couples spa" },
+            { label: "Beach Paradise", icon: Waves, query: "beachfront resort with ocean view and pool" },
+            { label: "Luxury Escape", icon: Gem, query: "luxury five star hotel with premium amenities" },
+          ].map(({ label, icon: Icon, query }) => {
+            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date(); dayAfter.setDate(dayAfter.getDate() + 3);
+            const params = new URLSearchParams({ aiSearch: query, checkIn: tomorrow.toISOString().split("T")[0], checkOut: dayAfter.toISOString().split("T")[0], guests: "2" });
+            return (
+              <button
+                key={label}
+                onClick={() => setLocation(`/?${params.toString()}`)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-gray-200 dark:border-border"
+                data-testid={`chip-vibe-${label.toLowerCase().replace(/\s+/g, "-")}`}
+              >
+                <Icon className="w-3 h-3" />
+                {label}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-luxe"))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
+            data-testid="chip-ask-luxe-mobile"
+          >
+            <Sparkles className="w-3 h-3" />
+            Ask Luxe
+          </button>
+        </div>
       </div>
 
       {/* ── DESKTOP layout (md+) ── */}
@@ -893,6 +927,39 @@ export default function SearchHero({
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* ── Desktop temptation chips ── */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">
+            <span className="text-white/60 text-sm font-medium mr-1">Try:</span>
+            {[
+              { label: "Romantic Getaway", icon: Heart, query: "romantic getaway hotel with couples spa" },
+              { label: "Beach Paradise", icon: Waves, query: "beachfront resort with ocean view and pool" },
+              { label: "Luxury Escape", icon: Gem, query: "luxury five star hotel with premium amenities" },
+            ].map(({ label, icon: Icon, query }) => {
+              const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+              const dayAfter = new Date(); dayAfter.setDate(dayAfter.getDate() + 3);
+              const params = new URLSearchParams({ aiSearch: query, checkIn: tomorrow.toISOString().split("T")[0], checkOut: dayAfter.toISOString().split("T")[0], guests: "2" });
+              return (
+                <button
+                  key={label}
+                  onClick={() => setLocation(`/?${params.toString()}`)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20 hover:border-white/40 transition-all"
+                  data-testid={`chip-vibe-desktop-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-luxe"))}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold bg-primary hover:bg-primary/90 text-white transition-all shadow-md border border-primary/40"
+              data-testid="chip-ask-luxe-desktop"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Ask Luxe
+            </button>
           </div>
         </div>
       </div>
