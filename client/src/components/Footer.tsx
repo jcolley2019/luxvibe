@@ -4,18 +4,21 @@ import { Link } from "wouter";
 import { TermsModal } from "@/components/TermsModal";
 import { PrivacyModal } from "@/components/PrivacyModal";
 import { ContactModal } from "@/components/ContactModal";
+import { BugReportModal } from "@/components/BugReportModal";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
 
   return (
     <>
       <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
+      <BugReportModal open={bugModalOpen} onClose={() => setBugModalOpen(false)} />
 
       <footer className="border-t border-border bg-background mt-auto">
         <div className="container mx-auto px-4">
@@ -72,7 +75,7 @@ export function Footer() {
             <div className="flex items-center gap-4 shrink-0">
               <button
                 className="flex items-center gap-1.5 text-sm border border-border rounded-full px-4 py-1.5 hover:bg-muted transition-colors text-foreground"
-                onClick={() => window.open("mailto:bugs@luxvibe.io?subject=Bug Report", "_blank")}
+                onClick={() => setBugModalOpen(true)}
                 data-testid="footer-button-report-bug"
               >
                 <Bug className="w-3.5 h-3.5" />
