@@ -805,25 +805,77 @@ export async function registerRoutes(
           return res.json([]);
         }
 
-        const hotelsInfo = ratesData.hotels || [];
-        const hotelsInfoMap = new Map(hotelsInfo.map((h: any) => [h.id, h]));
+        // Build a price map from rates
+        const rateEntries = ratesData.data as any[];
+        const aiRatesMap = new Map<string, number>();
+        const aiBoardCodesMap = new Map<string, string[]>();
+        const aiRefundableMap = new Map<string, boolean>();
+        for (const hotelRate of rateEntries) {
+          const prices = (hotelRate.roomTypes || [])
+            .map((rt: any) => rt.offerRetailRate?.amount)
+            .filter((p: any) => p && !isNaN(p));
+          if (prices.length > 0) aiRatesMap.set(hotelRate.hotelId, Math.min(...prices));
+          const codes: string[] = [];
+          let hasRefundable = false;
+          for (const rt of hotelRate.roomTypes || []) {
+            const code = rt.boardCode || rt.mealPlanCode;
+            if (code && !codes.includes(code)) codes.push(code);
+            if (rt.refundableTag === "RFN") hasRefundable = true;
+            if (rt.cancelPolicyInfos?.some((p: any) => p.cancelTime && p.amount === 0)) hasRefundable = true;
+          }
+          if (codes.length) aiBoardCodesMap.set(hotelRate.hotelId, codes);
+          if (hasRefundable) aiRefundableMap.set(hotelRate.hotelId, true);
+        }
 
-        const results = ratesData.data.map((hotelRate: any) => {
-          const h = (hotelsInfoMap.get(hotelRate.hotelId) || {}) as any;
-          const firstRoom = hotelRate.roomTypes?.[0];
-          const price = firstRoom?.offerRetailRate?.amount || 0;
+        // Try to get hotel metadata from the response first (hotelsInfo), then fall back to fetching by IDs
+        console.log('[aiSearch] ratesData keys:', Object.keys(ratesData || {}));
+        console.log('[aiSearch] sample hotelRate keys:', rateEntries[0] ? Object.keys(rateEntries[0]) : []);
+        const hotelsInfo: any[] = ratesData.hotels || ratesData.hotelsInfo || [];
+        let hotelsInfoMap = new Map<string, any>(hotelsInfo.map((h: any) => [h.id || h.hotelId, h]));
 
-          return {
-            id: hotelRate.hotelId,
-            name: h.name || "Hotel",
-            address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
-            stars: h.stars ? parseFloat(String(h.stars)) : null,
-            rating: h.rating ? parseFloat(String(h.rating)) : null,
-            reviewCount: h.reviews_total || h.reviewCount || null,
-            price: price,
-            imageUrl: h.main_photo || h.thumbnail || null,
-          };
-        }).filter((h: any) => h.price > 0);
+        // If no hotel metadata in rates response, fetch it separately
+        const missingIds = rateEntries
+          .filter(r => aiRatesMap.has(r.hotelId) && !hotelsInfoMap.has(r.hotelId))
+          .map(r => r.hotelId);
+        if (missingIds.length > 0) {
+          try {
+            const metaData = await liteApiGet("/data/hotels", { hotelIds: missingIds.join(","), limit: String(missingIds.length) });
+            for (const h of (metaData?.data || [])) {
+              hotelsInfoMap.set(h.id || h.hotelId, h);
+            }
+          } catch (e) {
+            console.error("AI search: failed to fetch hotel metadata", e);
+          }
+        }
+
+        const results = rateEntries
+          .filter((hotelRate: any) => aiRatesMap.has(hotelRate.hotelId))
+          .map((hotelRate: any) => {
+            const h = (hotelsInfoMap.get(hotelRate.hotelId) || hotelRate) as any;
+            const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
+            const facilities: string[] = rawFacilities
+              .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+              .filter(Boolean)
+              .slice(0, 30);
+
+            return {
+              id: hotelRate.hotelId,
+              name: h.name || h.hotelName || h.hotel_name || "Hotel",
+              address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
+              city: h.city || "",
+              stars: h.stars ? parseFloat(String(h.stars)) : null,
+              rating: h.rating ? parseFloat(String(h.rating)) : null,
+              reviewCount: h.reviews_total || h.reviewCount || null,
+              price: aiRatesMap.get(hotelRate.hotelId) || 0,
+              imageUrl: h.main_photo || h.thumbnail || null,
+              distance: h.distance_from_city_center || h.distance || null,
+              lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
+              lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
+              facilities,
+              boardCodes: aiBoardCodesMap.get(hotelRate.hotelId) || [],
+              refundable: aiRefundableMap.get(hotelRate.hotelId) || false,
+            };
+          });
 
         return res.json(results);
       }
