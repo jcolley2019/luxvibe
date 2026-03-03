@@ -858,10 +858,13 @@ export default function HotelDetails() {
 
             <Button
               onClick={() => {
-                const params = new URLSearchParams();
-                params.set("checkIn", roomCheckIn);
-                params.set("checkOut", roomCheckOut);
-                params.set("guests", String(roomAdults));
+                const params = new URLSearchParams({
+                  checkIn: roomCheckIn,
+                  checkOut: roomCheckOut,
+                  guests: String(roomAdults),
+                  children: "0",
+                  roomConfig: JSON.stringify([{ adults: roomAdults, children: [] }]),
+                });
                 const urlDest = new URLSearchParams(window.location.search).get("destination");
                 if (urlDest) params.set("destination", urlDest);
                 window.location.href = `/hotel/${id}?${params.toString()}#rooms`;
