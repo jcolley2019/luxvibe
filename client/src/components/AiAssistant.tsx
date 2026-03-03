@@ -38,7 +38,7 @@ export function AiAssistant() {
   }, [messages]);
 
   useEffect(() => {
-    if (open) {
+    if (open && window.matchMedia("(hover: hover)").matches) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open]);
