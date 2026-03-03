@@ -178,7 +178,9 @@ export default function Home() {
     ? { lat: parseFloat(urlLat), lng: parseFloat(urlLng) }
     : null;
 
-  const searchHero = (
+  
+    const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
+    const searchHero = (
       <SearchHero
         variant="navbar"
         initialDestination={destination || undefined}
@@ -187,8 +189,6 @@ export default function Home() {
         initialGuests={guests}
       />
     );
-    
-  const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
     const nights = getNights(checkIn || undefined, checkOut || undefined);
 
   const [sortBy, setSortBy] = useState<SortOption>("rating");
@@ -709,16 +709,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-        ) : (
-          <CompactSearchBar
-            destination={destination}
-            aiSearch={aiSearch}
-            checkIn={checkIn}
-            checkOut={checkOut}
-            guests={guests}
-            onEdit={() => setShowSearchPanel(true)}
-          />
-        )
+        ) : null
       ) : (
         <>
           <SearchHero
