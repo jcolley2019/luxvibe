@@ -32,9 +32,6 @@ export function Footer() {
               <a href="mailto:hello@luxvibe.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
                 About
               </a>
-              <a href="mailto:support@luxvibe.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-support">
-                Support
-              </a>
               <button
                 onClick={() => setTermsOpen(true)}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
