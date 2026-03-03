@@ -23,17 +23,17 @@ import { LogOut, User, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun } 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
     try {
-      return localStorage.getItem("lv_theme") === "dark";
+      return localStorage.getItem("lv_theme_v2") === "dark";
     } catch { return false; }
   });
 
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("lv_theme", "dark");
+      localStorage.setItem("lv_theme_v2", "dark");
     } else {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("lv_theme", "light");
+      localStorage.setItem("lv_theme_v2", "light");
     }
   }, [dark]);
 
