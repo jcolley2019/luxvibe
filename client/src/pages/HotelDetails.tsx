@@ -201,6 +201,14 @@ export default function HotelDetails() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const searchParams = new URLSearchParams(window.location.search);
   const checkInParam = searchParams.get("checkIn");
