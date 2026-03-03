@@ -96,12 +96,12 @@ function getNights(checkIn?: string, checkOut?: string): number {
 
 function fmtShortDate(iso: string | null | undefined): string {
   if (!iso) return "";
-  const [, m, d] = iso.split("-");
+  const parts = iso.split("-");
+  if (parts.length < 3) return iso;
+  const [, m, d] = parts;
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return `${months[parseInt(m) - 1]} ${parseInt(d)}`;
 }
-
-
 
 const VIBE_CARDS = [
   { label: "Romantic Getaway", query: "romantic getaway hotel with couples spa", icon: Heart, gradient: "from-rose-500 to-pink-600" },
@@ -187,18 +187,18 @@ export default function Home() {
     ? { lat: parseFloat(urlLat), lng: parseFloat(urlLng) }
     : null;
 
-  
-    const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
-    const searchHero = (
-      <SearchHero
-        variant="navbar"
-        initialDestination={destination || undefined}
-        initialCheckIn={checkIn || undefined}
-        initialCheckOut={checkOut || undefined}
-        initialGuests={guests}
-      />
-    );
-    const nights = getNights(checkIn || undefined, checkOut || undefined);
+  const isSearchActive = !!((destination || placeId || aiSearch || nearMe) && checkIn && checkOut);
+  const searchHero = (
+    <SearchHero
+      variant="navbar"
+      initialDestination={destination || undefined}
+      initialCheckIn={checkIn || undefined}
+      initialCheckOut={checkOut || undefined}
+      initialGuests={guests}
+    />
+  );
+  const nights = getNights(checkIn || undefined, checkOut || undefined);
+  const dateLabel = checkIn && checkOut ? `${fmtShortDate(checkIn)} – ${fmtShortDate(checkOut)}` : "Add dates";
 
   const [sortBy, setSortBy] = useState<SortOption>("rating");
   const [nameFilter, setNameFilter] = useState("");
@@ -221,9 +221,7 @@ export default function Home() {
   const [roomAmenitiesFilter, setRoomAmenitiesFilter] = useState<string[]>([]);
   const [showAllRoomAmenities, setShowAllRoomAmenities] = useState(false);
   const [showAllNeighborhoods, setShowAllNeighborhoods] = useState(false);
-  const [showMap, setShowMap] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
-  const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [forceExpand, setForceExpand] = useState(0);
   const [forceCollapse, setForceCollapse] = useState(0);
 
@@ -282,7 +280,6 @@ export default function Home() {
   useEffect(() => { requestLocation(); }, []);
 
   const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(urlCoords || coords);
-  const nearMeResults = nearMe ? nearbyHotels : undefined;
 
   const enrichedRecentHotels = useMemo(() => {
     const freshSources = [...(featured || []), ...(nearbyHotels || [])];
@@ -295,7 +292,6 @@ export default function Home() {
     });
   }, [recentHotels, featured, nearbyHotels]);
 
-  // Compute price range from results
   const priceRange = useMemo(() => {
     if (!hotels?.length) return { min: 0, max: 2000 };
     const prices = hotels.map(h => (h as any).price as number | null).filter(Boolean) as number[];
@@ -370,18 +366,23 @@ export default function Home() {
       }
       const ratio = price / avg;
       const discount = Math.round(((avg - price) / avg) * 100);
-      if (ratio < 0.85) {
-        map.set(h.id, { type: "great-deal", discount });
-      } else if (ratio < 0.92) {
-        map.set(h.id, { type: "good-value", discount });
-      } else {
-        map.set(h.id, null);
-      }
+      if (ratio < 0.85) map.set(h.id, { type: "great-deal", discount });
+      else if (ratio < 0.92) map.set(h.id, { type: "good-value", discount });
+      else map.set(h.id, null);
     }
     return map;
   }
 
-  // Fetch landmarks dynamically when destination changes
+  const featuredDealBadges = useMemo(() => {
+    if (!featured) return new Map<string, { type: DealBadge; discount: number } | null>();
+    return computeDealBadges(featured as any);
+  }, [featured]);
+
+  const nearbyDealBadges = useMemo(() => {
+    if (!nearbyHotels) return new Map<string, { type: DealBadge; discount: number } | null>();
+    return computeDealBadges(nearbyHotels as any);
+  }, [nearbyHotels]);
+
   useEffect(() => {
     const city = destination || "";
     if (!city.trim() || !isSearchActive) {
@@ -390,23 +391,16 @@ export default function Home() {
       return;
     }
     setLandmarksLoading(true);
-    console.log(`[landmarks] fetching for: ${city}`);
     fetch(`/api/landmarks/${encodeURIComponent(city)}`)
       .then(r => r.ok ? r.json() : [])
       .then((data: { name: string; lat: number; lng: number }[]) => {
-        console.log('[landmarks] response:', data);
         setLandmarks(Array.isArray(data) ? data : []);
         setLandmarkDistances({});
       })
-      .catch((error) => {
-        console.log('[landmarks] error:', error);
-        setLandmarks([]);
-      })
+      .catch(() => setLandmarks([]))
       .finally(() => setLandmarksLoading(false));
   }, [destination, isSearchActive]);
 
-
-  // Available facilities from search results — returns [facility, count][] sorted by count
   const availableFacilities = useMemo((): [string, number][] => {
     if (!hotels?.length) return [];
     const counts = new Map<string, number>();
@@ -424,7 +418,6 @@ export default function Home() {
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [hotels]);
 
-  // Map center from hotel coordinates
   const mapCenter = useMemo(() => {
     if (!hotels?.length) return null;
     const withCoords = hotels.filter(h => {
@@ -438,7 +431,6 @@ export default function Home() {
     return { lat: avgLat, lng: avgLng };
   }, [hotels]);
 
-  // Geocode destination string for map center fallback
   const [destinationCenter, setDestinationCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   const geocodeQuery = useCallback((query: string) => {
@@ -460,7 +452,6 @@ export default function Home() {
     if (destination) geocodeQuery(destination);
   }, [destination, isSearchActive, geocodeQuery]);
 
-  // Fallback: geocode from first loaded hotel's city when destination is not in URL (placeId search)
   useEffect(() => {
     if (destinationCenter) return;
     if (!hotels?.length) return;
@@ -470,7 +461,6 @@ export default function Home() {
 
   const effectiveMapCenter = mapCenter || destinationCenter;
 
-  // Neighborhood extraction and available neighborhoods
   function extractNeighborhood(hotel: any): string {
     const addr = (hotel.address || "").toLowerCase();
     const city = (hotel.city || "").toLowerCase();
@@ -523,13 +513,9 @@ export default function Home() {
     if (!hotels?.length) return [];
     const counts = new Map<string, number>();
     for (const h of hotels) {
-      const hx = h as any;
-      const amenities: string[] = [];
-      for (const rt of (hx.roomTypes || [])) for (const a of (rt.amenities || [])) amenities.push(a);
-      for (const a of (hx.amenities || [])) amenities.push(a);
       const seen = new Set<string>();
-      for (const a of amenities) {
-        const norm = normalizeForFilter(a);
+      for (const f of ((h as any).roomAmenities || []) as string[]) {
+        const norm = normalizeForFilter(f);
         const match = KEY_ROOM_AMENITIES.find(ka => normalizeForFilter(ka) === norm || norm.includes(normalizeForFilter(ka)) || normalizeForFilter(ka).includes(norm));
         if (match && !seen.has(match)) {
           seen.add(match);
@@ -540,143 +526,123 @@ export default function Home() {
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [hotels]);
 
-  const sortedHotels = useMemo(() => {
-    const source = nearMeResults ?? hotels ?? [];
-    const copy = [...source];
-    if (sortBy === "price_asc") return copy.sort((a, b) => ((a as any).price || 9999) - ((b as any).price || 9999));
-    if (sortBy === "price_desc") return copy.sort((a, b) => ((b as any).price || 0) - ((a as any).price || 0));
-    if (sortBy === "rating") return copy.sort((a, b) => ((b as any).rating || 0) - ((a as any).rating || 0));
-    return copy;
-  }, [hotels, nearMeResults, sortBy]);
-
   const filteredHotels = useMemo(() => {
-    return sortedHotels.filter(h => {
-      const hx = h as any;
-      const price = hx.price as number | null;
-      const stars = hx.stars as number | null;
-      const rating = hx.rating as number | null;
-      const lat = hx.lat as number | null;
-      const lng = hx.lng as number | null;
-
-      if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
-      if (price && price > priceMax) return false;
-
-      if (starFilter.length > 0 || includeUnrated) {
-        const roundedStars = stars ? Math.round(stars) : null;
-        const matchesStar = starFilter.length > 0 && roundedStars !== null && starFilter.includes(roundedStars);
-        const matchesUnrated = includeUnrated && !stars;
-        if (!matchesStar && !matchesUnrated) return false;
-      }
-
-      if (guestRatingMin !== null && (rating === null || rating < guestRatingMin)) return false;
-      if (brandFilter.length > 0 && !brandFilter.includes(extractBrand(h.name))) return false;
-
-      // Free cancellation
-      if (freeCancellationOnly && !hx.refundable) return false;
-
-      // Meal plans (match by label → codes)
-      if (mealPlanFilter.length > 0) {
-        const hCodes: string[] = hx.boardCodes || [];
-        const matched = mealPlanFilter.some(label => {
-          const opt = FIXED_MEAL_PLANS.find(p => p.label === label);
-          if (!opt || !opt.codes.length) return false;
-          return opt.codes.some(c => hCodes.includes(c));
+    if (!hotels) return [];
+    let list = [...hotels];
+    if (nameFilter) {
+      const q = nameFilter.toLowerCase();
+      list = list.filter(h => h.name.toLowerCase().includes(q));
+    }
+    if (priceMax) {
+      list = list.filter(h => (h as any).price != null && (h as any).price <= priceMax);
+    }
+    if (starFilter.length > 0) {
+      list = list.filter(h => {
+        if (h.stars == null) return includeUnrated;
+        return starFilter.includes(Math.round(h.stars));
+      });
+    } else if (includeUnrated) {
+      list = list.filter(h => h.stars == null);
+    }
+    if (guestRatingMin != null) {
+      list = list.filter(h => h.rating != null && h.rating >= guestRatingMin);
+    }
+    if (brandFilter.length > 0) {
+      list = list.filter(h => brandFilter.includes(extractBrand(h.name)));
+    }
+    if (freeCancellationOnly) {
+      list = list.filter(h => (h as any).isFreeCancellation);
+    }
+    if (mealPlanFilter.length > 0) {
+      list = list.filter(h => {
+        const mealCode = (h as any).mealPlanCode;
+        if (!mealCode) return false;
+        return mealPlanFilter.some(label => {
+          const codes = FIXED_MEAL_PLANS.find(p => p.label === label)?.codes || [];
+          return codes.includes(mealCode);
         });
-        if (!matched) return false;
-      }
-
-      // Property type
-      if (propertyTypeFilter.length > 0 && !propertyTypeFilter.includes(extractPropertyType(hx))) return false;
-
-      // Room amenities
-      if (roomAmenitiesFilter.length > 0) {
-        const amenities: string[] = [];
-        for (const rt of (hx.roomTypes || [])) for (const a of (rt.amenities || [])) amenities.push(normalizeForFilter(a));
-        for (const a of (hx.amenities || [])) amenities.push(normalizeForFilter(a));
-        const matched = roomAmenitiesFilter.every(req =>
-          amenities.some(a => a.includes(normalizeForFilter(req)) || normalizeForFilter(req).includes(a))
-        );
-        if (!matched) return false;
-      }
-
-      // Facilities
-      if (facilitiesFilter.length > 0) {
-        const hotelFacilities: string[] = (hx.facilities || []).map(normalizeForFilter);
-        const matched = facilitiesFilter.every(req =>
-          hotelFacilities.some(hf => hf.includes(normalizeForFilter(req)) || normalizeForFilter(req).includes(hf))
-        );
-        if (!matched) return false;
-      }
-
-      // Dynamic landmark distance filters
-      if (lat !== null && lng !== null) {
-        for (const lm of landmarks) {
-          const maxDist = landmarkDistances[lm.name];
-          if (maxDist != null && haversineMiles(lat, lng, lm.lat, lm.lng) > maxDist) return false;
-        }
-      }
-
-      // Neighborhood filter
-      if (neighborhoodFilter.length > 0 && !neighborhoodFilter.includes(extractNeighborhood(hx))) return false;
-
-      return true;
+      });
+    }
+    if (facilitiesFilter.length > 0) {
+      list = list.filter(h => {
+        const hf = ((h as any).facilities || []) as string[];
+        return facilitiesFilter.every(f => {
+          const normF = normalizeForFilter(f);
+          return hf.some(hfac => {
+            const normH = normalizeForFilter(hfac);
+            return normH === normF || normH.includes(normF) || normF.includes(normH);
+          });
+        });
+      });
+    }
+    if (propertyTypeFilter.length > 0) {
+      list = list.filter(h => propertyTypeFilter.includes(extractPropertyType(h)));
+    }
+    if (roomAmenitiesFilter.length > 0) {
+      list = list.filter(h => {
+        const ha = ((h as any).roomAmenities || []) as string[];
+        return roomAmenitiesFilter.every(f => {
+          const normF = normalizeForFilter(f);
+          return ha.some(hamen => {
+            const normH = normalizeForFilter(hamen);
+            return normH === normF || normH.includes(normF) || normF.includes(normH);
+          });
+        });
+      });
+    }
+    if (neighborhoodFilter.length > 0) {
+      list = list.filter(h => neighborhoodFilter.includes(extractNeighborhood(h)));
+    }
+    Object.entries(landmarkDistances).forEach(([name, maxDist]) => {
+      if (maxDist == null) return;
+      const lm = landmarks.find(l => l.name === name);
+      if (!lm) return;
+      list = list.filter(h => {
+        const lat = Number((h as any).lat);
+        const lng = Number((h as any).lng);
+        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return false;
+        return haversineMiles(lm.lat, lm.lng, lat, lng) <= maxDist;
+      });
     });
-  }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
-    freeCancellationOnly, mealPlanFilter, facilitiesFilter, landmarks, landmarkDistances,
-    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
+    if (sortBy === "price_asc") list.sort((a, b) => ((a as any).price || 0) - ((b as any).price || 0));
+    else if (sortBy === "price_desc") list.sort((a, b) => ((b as any).price || 0) - ((a as any).price || 0));
+    else if (sortBy === "rating") list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return list;
+  }, [hotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter, freeCancellationOnly, mealPlanFilter, facilitiesFilter, propertyTypeFilter, roomAmenitiesFilter, neighborhoodFilter, landmarkDistances, landmarks, sortBy]);
 
-  const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
-  const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
-  const nearbyDealBadges = useMemo(() => computeDealBadges(nearbyHotels ?? []), [nearbyHotels]);
+  const dealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
 
   const toggleStarFilter = (star: number) => {
     setStarFilter(prev => prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]);
   };
-
   const toggleBrandFilter = (brand: string) => {
     setBrandFilter(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
   };
-
-  const toggleFacility = (f: string) => {
-    setFacilitiesFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+  const toggleMealPlanLabel = (label: string) => {
+    setMealPlanFilter(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
   };
-
+  const toggleFacility = (facility: string) => {
+    setFacilitiesFilter(prev => prev.includes(facility) ? prev.filter(f => f !== facility) : [...prev, facility]);
+  };
+  const togglePropertyType = (type: string) => {
+    setPropertyTypeFilter(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+  };
+  const toggleRoomAmenity = (amenity: string) => {
+    setRoomAmenitiesFilter(prev => prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]);
+  };
   const toggleNeighborhood = (n: string) => {
     setNeighborhoodFilter(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]);
   };
 
-  const togglePropertyType = (type: string) => {
-    setPropertyTypeFilter(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+  const getMealPlanCount = (codes: string[]) => {
+    if (!hotels?.length) return 0;
+    if (!codes.length) return 0;
+    return hotels.filter(h => codes.includes((h as any).mealPlanCode)).length;
   };
 
-  const toggleRoomAmenity = (a: string) => {
-    setRoomAmenitiesFilter(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
-  };
+  const isDefaultStarFilter = starFilter.length === 2 && starFilter.includes(4) && starFilter.includes(5);
 
-  const toggleMealPlanLabel = (label: string) => {
-    setMealPlanFilter(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
-  };
-
-  const getMealPlanCount = (codes: string[]): number => {
-    if (!hotels?.length || !codes.length) return 0;
-    return hotels.filter(h => { const c: string[] = (h as any).boardCodes || []; return codes.some(k => c.includes(k)); }).length;
-  };
-
-  const isDefaultStarFilter = starFilter.length === 0;
-
-  const activeFilterCount =
-    (nameFilter ? 1 : 0) +
-    (priceMax < priceRange.max ? 1 : 0) +
-    (isDefaultStarFilter ? 0 : includeUnrated ? starFilter.length + 1 : starFilter.length) +
-    (guestRatingMin !== null ? 1 : 0) +
-    brandFilter.length +
-    (freeCancellationOnly ? 1 : 0) +
-    mealPlanFilter.length +
-    facilitiesFilter.length +
-    propertyTypeFilter.length +
-    roomAmenitiesFilter.length +
-    Object.values(landmarkDistances).filter(v => v != null).length +
-    neighborhoodFilter.length;
+  const activeFilterCount = (nameFilter ? 1 : 0) + (priceMax < priceRange.max ? 1 : 0) + starFilter.length + (includeUnrated ? 1 : 0) + (guestRatingMin ? 1 : 0) + brandFilter.length + (freeCancellationOnly ? 1 : 0) + mealPlanFilter.length + facilitiesFilter.length + propertyTypeFilter.length + roomAmenitiesFilter.length + neighborhoodFilter.length;
 
   const clearFilters = () => {
     setNameFilter("");
@@ -695,589 +661,571 @@ export default function Home() {
     setLandmarkDistances({});
   };
 
+  const [heroImage, setHeroImage] = useState("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2000");
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar centralSlot={isSearchActive ? searchHero : undefined} />
 
       {isSearchActive ? (
-        showSearchPanel ? (
-          <div>
-            <SearchHero
-              initialDestination={destination || undefined}
-              initialPlaceId={placeId || undefined}
-              initialAiSearch={aiSearch || undefined}
-              initialCheckIn={checkIn || undefined}
-              initialCheckOut={checkOut || undefined}
-              initialGuests={guests}
-            />
-            <div className="container mx-auto px-4 pb-2 -mt-1 flex justify-center">
-              <button
-                onClick={() => setShowSearchPanel(false)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-full hover:bg-muted"
-                data-testid="button-hide-search"
-              >
-                <ChevronUp className="w-3.5 h-3.5" /> Hide search
-              </button>
-            </div>
+        <div className="flex-1 flex flex-col">
+          <div 
+            className="md:hidden flex items-center gap-2 px-4 py-3 bg-card border-b border-border text-sm cursor-pointer sticky top-[64px] z-30 shadow-sm"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              setTimeout(() => {
+                const searchInput = document.querySelector('[data-testid="input-destination-mobile"]') as HTMLInputElement;
+                if (searchInput) searchInput.focus();
+              }, 100);
+            }}
+          >
+            <Search className="w-4 h-4 text-primary shrink-0" />
+            <span className="font-semibold truncate text-foreground">{destination || (nearMe ? "Around my area" : "Your destination")}</span>
+            <span className="text-muted-foreground/40">|</span>
+            <span className="text-muted-foreground truncate">{dateLabel}</span>
+            <span className="text-muted-foreground/40">|</span>
+            <span className="text-muted-foreground whitespace-nowrap">{guests} {parseInt(guests) === 1 ? "Guest" : "Guests"}</span>
           </div>
-        ) : null
-      ) : (
-        <>
-          <SearchHero
-            initialDestination={destination || undefined}
-            initialPlaceId={placeId || undefined}
-            initialAiSearch={aiSearch || undefined}
-            initialCheckIn={checkIn || undefined}
-            initialCheckOut={checkOut || undefined}
-            initialGuests={guests}
-          />
-        </>
-      )}
+          <div className="container mx-auto px-4 py-8 flex-1">
+            <div className="flex gap-6">
 
-      {isSearchActive ? (
-        <div className="container mx-auto px-4 py-8 flex-1">
-          <div className="flex gap-6">
+              {/* ── Filter Sidebar ── */}
+              <aside className="w-72 shrink-0 hidden lg:block">
+                <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
 
-            {/* ── Filter Sidebar ── */}
-            <aside className="w-72 shrink-0 hidden lg:block">
-              <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-
-                {/* Show on Map thumbnail */}
-                {effectiveMapCenter && (
-                  <SearchMapThumbnail
-                    center={effectiveMapCenter}
-                    hotelCount={filteredHotels.filter(h => {
-                      const lat = Number((h as any).lat);
-                      const lng = Number((h as any).lng);
-                      return (h as any).lat != null && (h as any).lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
-                    }).length}
-                    onClick={() => setViewMode("map")}
-                  />
-                )}
-
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-bold text-base flex items-center gap-2">
-                      <SlidersHorizontal className="w-4 h-4" />
-                      Filters
-                      {activeFilterCount > 0 && (
-                        <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center font-bold">{activeFilterCount}</span>
-                      )}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => setForceExpand(v => v + 1)}
-                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
-                      >
-                        Open All
-                      </button>
-                      <span className="text-muted-foreground/30 text-[10px]">|</span>
-                      <button 
-                        onClick={() => setForceCollapse(v => v + 1)}
-                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
-                      >
-                        Close All
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                    data-testid="button-clear-filters"
-                  >
-                    <X className="w-3 h-3" />
-                    Clear filters
-                  </button>
-                </div>
-
-                {/* 1. Property name */}
-                <FilterSection title="Property name">
-                  <input
-                    type="text"
-                    placeholder="e.g. Hilton, Bellagio…"
-                    value={nameFilter}
-                    onChange={e => setNameFilter(e.target.value)}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                    data-testid="input-filter-name"
-                  />
-                </FilterSection>
-
-                {/* 2. Price (per night) */}
-                <FilterSection title="Price (per night)">
-                  <p className="text-xs text-muted-foreground mb-2">
-                    US${priceRange.min} → {priceMax >= priceRange.max ? `US$${priceRange.max.toLocaleString()}+` : `US$${priceMax.toLocaleString()}`}
-                  </p>
-                  <input
-                    type="range"
-                    min={priceRange.min}
-                    max={priceRange.max}
-                    value={priceMax}
-                    onChange={e => setPriceMax(Number(e.target.value))}
-                    className="w-full accent-primary"
-                    data-testid="input-filter-price"
-                  />
-                </FilterSection>
-
-                {/* 3. Popular filters — 7 fixed items */}
-                <FilterSection title="Popular filters">
-                  <div className="flex flex-col gap-2">
-                    {([
-                      { label: "Free cancellation", kind: "cancel" },
-                      { label: "Parking", kind: "facility", value: "Parking" },
-                      { label: "Breakfast included", kind: "facility", value: "Breakfast" },
-                      { label: "Swimming pool", kind: "facility", value: "Pool" },
-                      { label: "Free WiFi", kind: "facility", value: "Free WiFi" },
-                      { label: "Hotels", kind: "type", value: "Hotel" },
-                      { label: "Apartments", kind: "type", value: "Apartment" },
-                    ] as { label: string; kind: string; value?: string }[]).map(item => {
-                      const isChecked =
-                        item.kind === "cancel" ? freeCancellationOnly :
-                        item.kind === "type" ? propertyTypeFilter.includes(item.value!) :
-                        facilitiesFilter.some(f => {
-                          const n = normalizeForFilter(f);
-                          const v = normalizeForFilter(item.value!);
-                          return n === v || n.includes(v) || v.includes(n);
-                        });
-                      return (
-                        <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={e => {
-                              if (item.kind === "cancel") { setFreeCancellationOnly(e.target.checked); }
-                              else if (item.kind === "type") { togglePropertyType(item.value!); }
-                              else {
-                                if (e.target.checked) setFacilitiesFilter(prev => [...prev, item.value!]);
-                                else setFacilitiesFilter(prev => prev.filter(f => {
-                                  const n = normalizeForFilter(f); const v = normalizeForFilter(item.value!);
-                                  return !(n === v || n.includes(v) || v.includes(n));
-                                }));
-                              }
-                            }}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </FilterSection>
-
-                {/* 4. Distance from landmarks — dynamic per destination */}
-                {(landmarksLoading || landmarks.length > 0) && (
-                  <FilterSection title="Distance from landmarks">
-                    {landmarksLoading ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Detecting landmarks…</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        {landmarks.map((lm) => {
-                          const selected = landmarkDistances[lm.name] ?? null;
-                          return (
-                            <div key={lm.name} className="flex flex-col gap-1.5 py-1">
-                              <span className="text-[11px] font-medium text-foreground leading-tight" title={lm.name}>{lm.name}</span>
-                              <div className="flex gap-1 flex-wrap">
-                                {([0.5, 1, 2, 5] as const).map(miles => (
-                                  <button
-                                    key={miles}
-                                    onClick={() => setLandmarkDistances(prev => ({ ...prev, [lm.name]: prev[lm.name] === miles ? null : miles }))}
-                                    className={`text-[10px] px-2 py-1 rounded border whitespace-nowrap transition-colors flex-1 text-center ${selected === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
-                                    data-testid={`landmark-distance-${lm.name.toLowerCase().replace(/\s+/g, "-")}-${miles}`}
-                                  >
-                                    &lt;{miles}m
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </FilterSection>
-                )}
-
-                {/* 5. Reservation policy — free cancellation only */}
-                <FilterSection title="Reservation policy">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={freeCancellationOnly}
-                      onChange={() => setFreeCancellationOnly(v => !v)}
-                      className="accent-primary w-4 h-4 rounded"
-                      data-testid="checkbox-free-cancellation"
-                    />
-                    <span className="text-sm text-foreground">Free cancellation</span>
-                  </label>
-                </FilterSection>
-
-                {/* 6. Brand — first 9, show all X */}
-                {availableBrands.length > 0 && (
-                  <FilterSection title="Brand" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {(showAllBrands ? availableBrands : availableBrands.slice(0, 9)).map(([brand, count]) => (
-                        <label key={brand} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={brandFilter.includes(brand)}
-                            onChange={() => toggleBrandFilter(brand)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-brand-${brand}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{brand}</span>
-                          <span className="text-xs text-muted-foreground">({count})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {availableBrands.length > 9 && (
-                      <button onClick={() => setShowAllBrands(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-brands">
-                        {showAllBrands ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableBrands.length}</>}
-                      </button>
-                    )}
-                  </FilterSection>
-                )}
-
-                {/* 7. Property type — with counts, first 9 */}
-                {availablePropertyTypes.length > 0 && (
-                  <FilterSection title="Property type" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {(showAllPropertyTypes ? availablePropertyTypes : availablePropertyTypes.slice(0, 9)).map(([type, count]) => (
-                        <label key={type} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={propertyTypeFilter.includes(type)}
-                            onChange={() => togglePropertyType(type)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-type-${type.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{type}</span>
-                          <span className="text-xs text-muted-foreground">({count})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {availablePropertyTypes.length > 9 && (
-                      <button onClick={() => setShowAllPropertyTypes(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-types">
-                        {showAllPropertyTypes ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availablePropertyTypes.length}</>}
-                      </button>
-                    )}
-                  </FilterSection>
-                )}
-
-                {/* 8. Star rating — unchanged */}
-                <FilterSection title="Star rating">
-                  <div className="flex flex-col gap-2">
-                    {[5, 4, 3, 2, 1].map(star => (
-                      <label key={star} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={starFilter.includes(star)}
-                          onChange={() => toggleStarFilter(star)}
-                          className="accent-primary w-4 h-4 rounded"
-                          data-testid={`checkbox-star-${star}`}
-                        />
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: star }).map((_, i) => (
-                            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                          ))}
-                        </div>
-                        <span className="text-sm text-foreground">{star} {star === 1 ? "star" : "stars"}</span>
-                        {star >= 4 && isDefaultStarFilter && starFilter.includes(star) && (
-                          <span className="text-[9px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1 py-0.5 rounded-full ml-auto">Luxury</span>
-                        )}
-                      </label>
-                    ))}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={includeUnrated} onChange={() => setIncludeUnrated(v => !v)} className="accent-primary w-4 h-4 rounded" data-testid="checkbox-star-unrated" />
-                      <span className="text-sm text-foreground">Unrated</span>
-                    </label>
-                  </div>
-                </FilterSection>
-
-                {/* 9. Meal plans — 4 named options with counts */}
-                <FilterSection title="Meal plans" defaultOpen={false}>
-                  <div className="flex flex-col gap-2">
-                    {FIXED_MEAL_PLANS.map(opt => {
-                      const count = getMealPlanCount(opt.codes);
-                      return (
-                        <label key={opt.label} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={mealPlanFilter.includes(opt.label)}
-                            onChange={() => toggleMealPlanLabel(opt.label)}
-                            disabled={!opt.codes.length}
-                            className="accent-primary w-4 h-4 rounded disabled:opacity-40"
-                            data-testid={`checkbox-meal-${opt.label.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className={`text-sm flex-1 ${!opt.codes.length ? "text-muted-foreground" : "text-foreground"}`}>{opt.label}</span>
-                          {opt.codes.length > 0 && <span className="text-xs text-muted-foreground">({count})</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </FilterSection>
-
-                {/* 10. Guest rating — unchanged */}
-                <FilterSection title="Guest rating" defaultOpen={false}>
-                  <div className="flex flex-col gap-2">
-                    {([
-                      { label: "Wonderful: 9+", min: 9 },
-                      { label: "Very Good: 8+", min: 8 },
-                      { label: "Good: 7+", min: 7 },
-                      { label: "Pleasant: 6+", min: 6 },
-                    ] as { label: string; min: number }[]).map(({ label, min }) => (
-                      <label key={min} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={guestRatingMin === min}
-                          onChange={() => setGuestRatingMin(prev => prev === min ? null : min)}
-                          className="accent-primary w-4 h-4 rounded"
-                          data-testid={`checkbox-rating-${min}`}
-                        />
-                        <span className="text-sm text-foreground">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </FilterSection>
-
-                {/* 11. Room amenities — first 9, show all X */}
-                {availableRoomAmenities.length > 0 && (
-                  <FilterSection title="Amenities" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {(showAllRoomAmenities ? availableRoomAmenities : availableRoomAmenities.slice(0, 9)).map(([amenity, count]) => (
-                        <label key={amenity} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={roomAmenitiesFilter.includes(amenity)}
-                            onChange={() => toggleRoomAmenity(amenity)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-amenity-${amenity.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{amenity}</span>
-                          <span className="text-xs text-muted-foreground">({count})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {availableRoomAmenities.length > 9 && (
-                      <button onClick={() => setShowAllRoomAmenities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-amenities">
-                        {showAllRoomAmenities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableRoomAmenities.length}</>}
-                      </button>
-                    )}
-                  </FilterSection>
-                )}
-
-                {/* 12. Facilities — first 9, show all X */}
-                {availableFacilities.length > 0 && (
-                  <FilterSection title="Facilities" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {(showAllFacilities ? availableFacilities : availableFacilities.slice(0, 9)).map(([facility, count]) => (
-                        <label key={facility} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={facilitiesFilter.some(f => {
-                              const nf = normalizeForFilter(f); const nk = normalizeForFilter(facility);
-                              return nf === nk || nf.includes(nk) || nk.includes(nf);
-                            })}
-                            onChange={() => toggleFacility(facility)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-facility-${facility}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{facility}</span>
-                          <span className="text-xs text-muted-foreground">({count})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {availableFacilities.length > 9 && (
-                      <button onClick={() => setShowAllFacilities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-facilities">
-                        {showAllFacilities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>}
-                      </button>
-                    )}
-                  </FilterSection>
-                )}
-
-                {/* 13. Neighborhood — first 9, show all X */}
-                {availableNeighborhoods.length > 0 && (
-                  <FilterSection title="Neighborhood" defaultOpen={false}>
-                    <div className="flex flex-col gap-2">
-                      {(showAllNeighborhoods ? availableNeighborhoods : availableNeighborhoods.slice(0, 9)).map(([neighborhood, count]) => (
-                        <label key={neighborhood} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={neighborhoodFilter.includes(neighborhood)}
-                            onChange={() => toggleNeighborhood(neighborhood)}
-                            className="accent-primary w-4 h-4 rounded"
-                            data-testid={`checkbox-neighborhood-${neighborhood.toLowerCase().replace(/\s+/g, "-")}`}
-                          />
-                          <span className="text-sm text-foreground flex-1">{neighborhood}</span>
-                          <span className="text-xs text-muted-foreground">({count})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {availableNeighborhoods.length > 9 && (
-                      <button onClick={() => setShowAllNeighborhoods(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-neighborhoods">
-                        {showAllNeighborhoods ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableNeighborhoods.length}</>}
-                      </button>
-                    )}
-                  </FilterSection>
-                )}
-
-              </div>
-            </aside>
-
-            {/* ── Results ── */}
-            <div className="flex-1 min-w-0">
-              {/* Header row */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-base sm:text-xl font-bold font-heading line-clamp-2">
-                    {aiSearch ? (
-                      <>Vibe: <span className="text-primary capitalize">{aiSearch}</span></>
-                    ) : nearMe ? (
-                      <>Hotels <span className="text-primary">Near You</span></>
-                    ) : (
-                      <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
-                    )}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className="text-sm text-muted-foreground">
-                      {(nearMe ? nearbyLoading : isLoading) ? "Searching…" : `${filteredHotels.length} properties found`}
-                    </p>
-                    {isDefaultStarFilter && !isLoading && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        Luxury &amp; 4–5★ hotels
-                        <button
-                          onClick={() => setStarFilter([])}
-                          className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-300 underline underline-offset-2"
-                          data-testid="button-show-all-ratings"
-                        >
-                          Show all
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Sort + View toggle */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
-                  <select
-                    value={sortBy}
-                    onChange={e => setSortBy(e.target.value as SortOption)}
-                    className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                    data-testid="select-sort"
-                  >
-                    <option value="recommended">Our top picks</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="rating">Top Rated</option>
-                  </select>
-                  {/* List / Map toggle */}
-                  <div className="flex items-center gap-0.5 border border-border rounded-lg p-0.5 bg-muted/30">
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                      data-testid="button-view-list"
-                    >
-                      <List className="w-3.5 h-3.5" />
-                      List
-                    </button>
-                    <button
+                  {/* Show on Map thumbnail */}
+                  {effectiveMapCenter && (
+                    <SearchMapThumbnail
+                      center={effectiveMapCenter}
+                      hotelCount={filteredHotels.filter(h => {
+                        const lat = Number((h as any).lat);
+                        const lng = Number((h as any).lng);
+                        return (h as any).lat != null && (h as any).lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+                      }).length}
                       onClick={() => setViewMode("map")}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "map" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                      data-testid="button-view-map"
-                    >
-                      <MapIcon className="w-3.5 h-3.5" />
-                      Map
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    />
+                  )}
 
-              {/* Hotel list or Map */}
-              {viewMode === "map" ? (
-                <SearchMapView
-                  hotels={filteredHotels as any}
-                  center={effectiveMapCenter}
-                  currency="USD"
-                  checkIn={checkIn || undefined}
-                  checkOut={checkOut || undefined}
-                  guests={guests}
-                />
-              ) : isLoading ? (
-                <div className="flex flex-col gap-3">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="animate-pulse border border-border rounded-xl overflow-hidden flex h-[180px] bg-card">
-                      <div className="w-[220px] shrink-0 bg-muted" />
-                      <div className="flex-1 p-4 flex flex-col justify-center space-y-3">
-                        <div className="h-4 bg-muted rounded w-3/4" />
-                        <div className="h-3 bg-muted rounded w-1/2" />
-                        <div className="h-3 bg-muted rounded w-1/3" />
-                      </div>
-                      <div className="w-[200px] shrink-0 p-4 border-l border-border flex flex-col items-end justify-center space-y-3">
-                        <div className="h-4 bg-muted rounded w-1/2" />
-                        <div className="h-8 bg-muted rounded w-full mt-auto" />
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="font-bold text-base flex items-center gap-2">
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Filters
+                        {activeFilterCount > 0 && (
+                          <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center font-bold">{activeFilterCount}</span>
+                        )}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setForceExpand(v => v + 1)}
+                          className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
+                        >
+                          Open All
+                        </button>
+                        <span className="text-muted-foreground/30 text-[10px]">|</span>
+                        <button 
+                          onClick={() => setForceCollapse(v => v + 1)}
+                          className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
+                        >
+                          Close All
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : error ? (
-                <div className="text-center py-16 bg-muted/30 rounded-2xl border border-dashed border-border">
-                  <p className="text-destructive font-medium mb-2">{(error as Error).message || "Something went wrong."}</p>
-                  <p className="text-sm text-muted-foreground">Try adding the country, e.g. "Paris, France".</p>
-                </div>
-              ) : filteredHotels.length === 0 ? (
-                <div className="text-center py-16 bg-muted/30 rounded-2xl border border-dashed border-border">
-                  <h3 className="text-lg font-semibold mb-2">No hotels found</h3>
-                  <p className="text-muted-foreground">Try adjusting your filters or dates.</p>
-                  {activeFilterCount > 0 && (
-                    <button onClick={clearFilters} className="mt-3 text-sm text-primary hover:underline">Clear filters</button>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {filteredHotels.map((hotel, i) => (
-                    <motion.div
-                      key={hotel.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.03, duration: 0.3 }}
+                    <button
+                      onClick={clearFilters}
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      data-testid="button-clear-filters"
                     >
+                      <X className="w-3 h-3" />
+                      Clear filters
+                    </button>
+                  </div>
+
+                  {/* 1. Property name */}
+                  <FilterSection title="Property name" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <input
+                      type="text"
+                      placeholder="e.g. Hilton, Bellagio…"
+                      value={nameFilter}
+                      onChange={e => setNameFilter(e.target.value)}
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                      data-testid="input-filter-name"
+                    />
+                  </FilterSection>
+
+                  {/* 2. Price (per night) */}
+                  <FilterSection title="Price (per night)" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      US${priceRange.min} → {priceMax >= priceRange.max ? `US$${priceRange.max.toLocaleString()}+` : `US$${priceMax.toLocaleString()}`}
+                    </p>
+                    <input
+                      type="range"
+                      min={priceRange.min}
+                      max={priceRange.max}
+                      value={priceMax}
+                      onChange={e => setPriceMax(Number(e.target.value))}
+                      className="w-full accent-primary"
+                      data-testid="input-filter-price"
+                    />
+                  </FilterSection>
+
+                  {/* 3. Popular filters */}
+                  <FilterSection title="Popular filters" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <div className="flex flex-col gap-2">
+                      {([
+                        { label: "Free cancellation", kind: "cancel" },
+                        { label: "Parking", kind: "facility", value: "Parking" },
+                        { label: "Breakfast included", kind: "facility", value: "Breakfast" },
+                        { label: "Swimming pool", kind: "facility", value: "Pool" },
+                        { label: "Free WiFi", kind: "facility", value: "Free WiFi" },
+                        { label: "Hotels", kind: "type", value: "Hotel" },
+                        { label: "Apartments", kind: "type", value: "Apartment" },
+                      ] as { label: string; kind: string; value?: string }[]).map(item => {
+                        const isChecked =
+                          item.kind === "cancel" ? freeCancellationOnly :
+                          item.kind === "type" ? propertyTypeFilter.includes(item.value!) :
+                          facilitiesFilter.some(f => {
+                            const n = normalizeForFilter(f);
+                            const v = normalizeForFilter(item.value!);
+                            return n === v || n.includes(v) || v.includes(n);
+                          });
+                        return (
+                          <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={e => {
+                                if (item.kind === "cancel") { setFreeCancellationOnly(e.target.checked); }
+                                else if (item.kind === "type") { togglePropertyType(item.value!); }
+                                else {
+                                  if (e.target.checked) setFacilitiesFilter(prev => [...prev, item.value!]);
+                                  else setFacilitiesFilter(prev => prev.filter(f => {
+                                    const n = normalizeForFilter(f); const v = normalizeForFilter(item.value!);
+                                    return !(n === v || n.includes(v) || v.includes(n));
+                                  }));
+                                }
+                              }}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-popular-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </FilterSection>
+
+                  {/* 4. Distance from landmarks */}
+                  {(landmarksLoading || landmarks.length > 0) && (
+                    <FilterSection title="Distance from landmarks" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      {landmarksLoading ? (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Detecting landmarks…</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          {landmarks.map((lm) => {
+                            const selected = landmarkDistances[lm.name] ?? null;
+                            return (
+                              <div key={lm.name} className="flex flex-col gap-1.5 py-1">
+                                <span className="text-[11px] font-medium text-foreground leading-tight" title={lm.name}>{lm.name}</span>
+                                <div className="flex gap-1 flex-wrap">
+                                  {([0.5, 1, 2, 5] as const).map(miles => (
+                                    <button
+                                      key={miles}
+                                      onClick={() => setLandmarkDistances(prev => ({ ...prev, [lm.name]: prev[lm.name] === miles ? null : miles }))}
+                                      className={`text-[10px] px-2 py-1 rounded border whitespace-nowrap transition-colors flex-1 text-center ${selected === miles ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/50 bg-background"}`}
+                                      data-testid={`landmark-distance-${lm.name.toLowerCase().replace(/\s+/g, "-")}-${miles}`}
+                                    >
+                                      &lt;{miles}m
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </FilterSection>
+                  )}
+
+                  {/* 5. Reservation policy */}
+                  <FilterSection title="Reservation policy" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <label className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={freeCancellationOnly}
+                        onChange={() => setFreeCancellationOnly(v => !v)}
+                        className="accent-primary w-4 h-4 rounded"
+                        data-testid="checkbox-free-cancellation"
+                      />
+                      <span className="text-sm text-foreground">Free cancellation</span>
+                    </label>
+                  </FilterSection>
+
+                  {/* 6. Brand */}
+                  {availableBrands.length > 0 && (
+                    <FilterSection title="Brand" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      <div className="flex flex-col gap-2">
+                        {(showAllBrands ? availableBrands : availableBrands.slice(0, 9)).map(([brand, count]) => (
+                          <label key={brand} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={brandFilter.includes(brand)}
+                              onChange={() => toggleBrandFilter(brand)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-brand-${brand}`}
+                            />
+                            <span className="text-sm text-foreground flex-1">{brand}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                      {availableBrands.length > 9 && (
+                        <button onClick={() => setShowAllBrands(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-brands">
+                          {showAllBrands ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableBrands.length}</>}
+                        </button>
+                      )}
+                    </FilterSection>
+                  )}
+
+                  {/* 7. Property type */}
+                  {availablePropertyTypes.length > 0 && (
+                    <FilterSection title="Property type" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      <div className="flex flex-col gap-2">
+                        {(showAllPropertyTypes ? availablePropertyTypes : availablePropertyTypes.slice(0, 9)).map(([type, count]) => (
+                          <label key={type} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={propertyTypeFilter.includes(type)}
+                              onChange={() => togglePropertyType(type)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-type-${type.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className="text-sm text-foreground flex-1">{type}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                      {availablePropertyTypes.length > 9 && (
+                        <button onClick={() => setShowAllPropertyTypes(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-types">
+                          {showAllPropertyTypes ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availablePropertyTypes.length}</>}
+                        </button>
+                      )}
+                    </FilterSection>
+                  )}
+
+                  {/* 8. Star rating */}
+                  <FilterSection title="Star rating" forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <div className="flex flex-col gap-2">
+                      {[5, 4, 3, 2, 1].map(star => (
+                        <label key={star} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={starFilter.includes(star)}
+                            onChange={() => toggleStarFilter(star)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-star-${star}`}
+                          />
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: star }).map((_, i) => (
+                              <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            ))}
+                          </div>
+                          <span className="text-sm text-foreground">{star} {star === 1 ? "star" : "stars"}</span>
+                        </label>
+                      ))}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={includeUnrated} onChange={() => setIncludeUnrated(v => !v)} className="accent-primary w-4 h-4 rounded" data-testid="checkbox-star-unrated" />
+                        <span className="text-sm text-foreground">Unrated</span>
+                      </label>
+                    </div>
+                  </FilterSection>
+
+                  {/* 9. Meal plans */}
+                  <FilterSection title="Meal plans" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <div className="flex flex-col gap-2">
+                      {FIXED_MEAL_PLANS.map(opt => {
+                        const count = getMealPlanCount(opt.codes);
+                        return (
+                          <label key={opt.label} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={mealPlanFilter.includes(opt.label)}
+                              onChange={() => toggleMealPlanLabel(opt.label)}
+                              disabled={!opt.codes.length}
+                              className="accent-primary w-4 h-4 rounded disabled:opacity-40"
+                              data-testid={`checkbox-meal-${opt.label.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className={`text-sm flex-1 ${!opt.codes.length ? "text-muted-foreground" : "text-foreground"}`}>{opt.label}</span>
+                            {opt.codes.length > 0 && <span className="text-xs text-muted-foreground">({count})</span>}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </FilterSection>
+
+                  {/* 10. Guest rating */}
+                  <FilterSection title="Guest rating" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                    <div className="flex flex-col gap-2">
+                      {([
+                        { label: "Wonderful: 9+", min: 9 },
+                        { label: "Very Good: 8+", min: 8 },
+                        { label: "Good: 7+", min: 7 },
+                        { label: "Pleasant: 6+", min: 6 },
+                      ] as { label: string; min: number }[]).map(({ label, min }) => (
+                        <label key={min} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={guestRatingMin === min}
+                            onChange={() => setGuestRatingMin(prev => prev === min ? null : min)}
+                            className="accent-primary w-4 h-4 rounded"
+                            data-testid={`checkbox-rating-${min}`}
+                          />
+                          <span className="text-sm text-foreground">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </FilterSection>
+
+                  {/* 11. Amenities */}
+                  {availableRoomAmenities.length > 0 && (
+                    <FilterSection title="Amenities" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      <div className="flex flex-col gap-2">
+                        {(showAllRoomAmenities ? availableRoomAmenities : availableRoomAmenities.slice(0, 9)).map(([amenity, count]) => (
+                          <label key={amenity} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={roomAmenitiesFilter.includes(amenity)}
+                              onChange={() => toggleRoomAmenity(amenity)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-amenity-${amenity.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className="text-sm text-foreground flex-1">{amenity}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                      {availableRoomAmenities.length > 9 && (
+                        <button onClick={() => setShowAllRoomAmenities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-amenities">
+                          {showAllRoomAmenities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableRoomAmenities.length}</>}
+                        </button>
+                      )}
+                    </FilterSection>
+                  )}
+
+                  {/* 12. Facilities */}
+                  {availableFacilities.length > 0 && (
+                    <FilterSection title="Facilities" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      <div className="flex flex-col gap-2">
+                        {(showAllFacilities ? availableFacilities : availableFacilities.slice(0, 9)).map(([facility, count]) => (
+                          <label key={facility} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={facilitiesFilter.some(f => {
+                                const nf = normalizeForFilter(f); const nk = normalizeForFilter(facility);
+                                return nf === nk || nf.includes(nk) || nk.includes(nf);
+                              })}
+                              onChange={() => toggleFacility(facility)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-facility-${facility}`}
+                            />
+                            <span className="text-sm text-foreground flex-1">{facility}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                      {availableFacilities.length > 9 && (
+                        <button onClick={() => setShowAllFacilities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-facilities">
+                          {showAllFacilities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>}
+                        </button>
+                      )}
+                    </FilterSection>
+                  )}
+
+                  {/* 13. Neighborhood */}
+                  {availableNeighborhoods.length > 0 && (
+                    <FilterSection title="Neighborhood" defaultOpen={false} forceExpand={forceExpand} forceCollapse={forceCollapse}>
+                      <div className="flex flex-col gap-2">
+                        {(showAllNeighborhoods ? availableNeighborhoods : availableNeighborhoods.slice(0, 9)).map(([neighborhood, count]) => (
+                          <label key={neighborhood} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={neighborhoodFilter.includes(neighborhood)}
+                              onChange={() => toggleNeighborhood(neighborhood)}
+                              className="accent-primary w-4 h-4 rounded"
+                              data-testid={`checkbox-neighborhood-${neighborhood.toLowerCase().replace(/\s+/g, "-")}`}
+                            />
+                            <span className="text-sm text-foreground flex-1">{neighborhood}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        ))}
+                      </div>
+                      {availableNeighborhoods.length > 9 && (
+                        <button onClick={() => setShowAllNeighborhoods(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-neighborhoods">
+                          {showAllNeighborhoods ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableNeighborhoods.length}</>}
+                        </button>
+                      )}
+                    </FilterSection>
+                  )}
+
+                </div>
+              </aside>
+
+              {/* ── Results ── */}
+              <div className="flex-1 min-w-0">
+                {/* Header row */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-base sm:text-xl font-bold font-heading line-clamp-2">
+                      {aiSearch ? (
+                        <>Vibe: <span className="text-primary capitalize">{aiSearch}</span></>
+                      ) : nearMe ? (
+                        <>Hotels <span className="text-primary">Near You</span></>
+                      ) : (
+                        <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
+                      )}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="text-sm text-muted-foreground">
+                        {(nearMe ? nearbyLoading : isLoading) ? "Searching…" : `${filteredHotels.length} properties found`}
+                      </p>
+                      {isDefaultStarFilter && !isLoading && (
+                        <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          Luxury & 4–5★ hotels
+                          <button
+                            onClick={() => setStarFilter([])}
+                            className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-300 underline underline-offset-2"
+                            data-testid="button-show-all-ratings"
+                          >
+                            Show all
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sort + View toggle */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
+                    <select
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value as SortOption)}
+                      className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                      data-testid="select-sort"
+                    >
+                      <option value="recommended">Our top picks</option>
+                      <option value="price_asc">Price: Low to High</option>
+                      <option value="price_desc">Price: High to Low</option>
+                      <option value="rating">Top Rated</option>
+                    </select>
+                    {/* List / Map toggle */}
+                    <div className="flex items-center gap-0.5 border border-border rounded-lg p-0.5 bg-muted/30">
+                      <button
+                        onClick={() => setViewMode("list")}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                        data-testid="button-view-list"
+                      >
+                        <List className="w-3.5 h-3.5" />
+                        List
+                      </button>
+                      <button
+                        onClick={() => setViewMode("map")}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "map" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                        data-testid="button-view-map"
+                      >
+                        <MapIcon className="w-3.5 h-3.5" />
+                        Map
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hotel list or Map */}
+                {viewMode === "map" ? (
+                  <SearchMapView
+                    hotels={filteredHotels as any}
+                    center={effectiveMapCenter}
+                    currency="USD"
+                    checkIn={checkIn || undefined}
+                    checkOut={checkOut || undefined}
+                    guests={guests}
+                  />
+                ) : isLoading ? (
+                  <div className="flex flex-col gap-3">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="animate-pulse border border-border rounded-xl overflow-hidden flex h-[180px] bg-card">
+                        <div className="w-[220px] shrink-0 bg-muted" />
+                        <div className="flex-1 p-4 flex flex-col justify-center space-y-3">
+                          <div className="h-4 bg-muted rounded w-3/4" />
+                          <div className="h-3 bg-muted rounded w-1/2" />
+                          <div className="h-3 bg-muted rounded w-1/3" />
+                        </div>
+                        <div className="w-[200px] shrink-0 p-4 border-l border-border flex flex-col items-end justify-center space-y-3">
+                          <div className="h-4 bg-muted rounded w-1/2" />
+                          <div className="h-10 bg-muted rounded w-full" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredHotels.length > 0 ? (
+                  <div className="flex flex-col gap-3">
+                    {filteredHotels.map((hotel) => (
                       <HotelListCard
-                        hotel={hotel as ListHotel}
-                        checkIn={checkIn || undefined}
-                        checkOut={checkOut || undefined}
-                        guests={guests}
-                        dealInfo={searchDealBadges.get(hotel.id)}
+                        key={hotel.id}
+                        hotel={hotel as any}
+                        dealBadge={dealBadges.get(hotel.id)?.type}
                         nights={nights}
                       />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 px-4 border border-border rounded-xl bg-card">
+                    <p className="text-muted-foreground">No hotels match your filters.</p>
+                    <button onClick={clearFilters} className="mt-3 text-sm text-primary hover:underline">Clear filters</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        <>
-          {/* Featured / Recommended Hotels */}
-          <section className="pt-10 pb-10 container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold font-heading">{t("home.recommended")}</h2>
+        <div className="flex-1">
+          <section className="relative h-[650px] overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div key={heroImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute inset-0">
+                <img src={heroImage} alt="Luxvibe Hero" className="w-full h-full object-cover ken-burns" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
+              </motion.div>
+            </AnimatePresence>
+            <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-center text-center text-white pb-20">
+              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} className="max-w-3xl">
+                <h1 className="text-5xl sm:text-7xl font-bold font-heading mb-6 tracking-tight leading-[1.1]">Find your next <span className="text-primary italic">Vibe</span>.</h1>
+                <p className="text-lg sm:text-xl text-white/90 mb-10 font-medium">Search for properties by destination or experience. Powered by AI.</p>
+                <div className="w-full max-w-4xl mx-auto transform hover:scale-[1.01] transition-transform duration-300">
+                  <SearchHero initialDestination={destination || undefined} initialGuests={guests} />
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          <section className="py-12 container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold font-heading">{t("home.featured_destinations")}</h2>
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm mr-1">Handpicked for you</span>
-                <button onClick={() => scrollCarousel(carouselRef, "left")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-carousel-prev">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={() => scrollCarousel(carouselRef, "right")} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors" data-testid="button-carousel-next">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                <button onClick={() => scrollCarousel(carouselRef, "left")} className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors shadow-sm" data-testid="button-featured-prev"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => scrollCarousel(carouselRef, "right")} className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors shadow-sm" data-testid="button-featured-next"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
             {featuredLoading ? (
-              <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
+              <div className="flex gap-5 overflow-hidden">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex-none w-[calc(25%-15px)] h-[350px] bg-muted animate-pulse rounded-2xl" />
+                ))}
+              </div>
             ) : (
               <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {featured?.map((hotel, i) => (
@@ -1289,10 +1237,8 @@ export default function Home() {
             )}
           </section>
 
-          {/* Discover by Vibe */}
           <DiscoverByVibe />
 
-          {/* Recently Viewed */}
           {recentHotels.length > 0 && (
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
@@ -1312,7 +1258,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* Nearby Hotels */}
           {geoStatus !== "denied" && (
             <section className="pb-10 container mx-auto px-4">
               <div className="flex items-center justify-between mb-5">
@@ -1358,7 +1303,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* Why Luxvibe */}
           <section className="py-5 bg-muted/30 border-t border-border">
             <div className="container mx-auto px-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
@@ -1379,7 +1323,7 @@ export default function Home() {
               </div>
             </div>
           </section>
-        </>
+        </div>
       )}
     </div>
   );
