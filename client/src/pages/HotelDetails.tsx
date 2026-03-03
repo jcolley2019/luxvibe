@@ -1083,7 +1083,7 @@ export default function HotelDetails() {
         </div>
 
         {/* ─── Similar Properties ─── */}
-        {(noRooms || similarHotels.length > 0) && (
+        {similarHotels.length > 0 && (
           <div className="border-t border-border pt-8 pb-10">
             <div className="flex items-center justify-between mb-5">
               <div>

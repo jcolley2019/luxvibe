@@ -999,9 +999,8 @@ export async function registerRoutes(
       console.log('[hotel-data-sample]', JSON.stringify(results[0], null, 2));
 
       // Return results immediately, geocode in background to populate next cached request
-      const withRates = results.filter((h: any) => h.price > 0);
-      const withoutRates = results.filter((h: any) => h.price === 0);
-      const finalResults = [...withRates, ...withoutRates];
+      // Only include hotels that have a valid price (fully booked / no-availability hotels are excluded)
+      const finalResults = results.filter((h: any) => h.price && h.price > 0);
       apiCache.set(cacheKey, finalResults, 300000);
       res.json(finalResults);
 
@@ -1747,16 +1746,18 @@ Guest question: ${question}`;
 
       const hotelData = await liteApiGet("/data/hotel", { hotelId });
       const hotelRaw = hotelData?.data?.[0] ?? hotelData?.data;
-      if (!hotelRaw?.city || !hotelRaw?.countryCode) {
+      // Resolve countryCode from multiple possible field names
+      const resolvedCountryCode = hotelRaw?.countryCode || hotelRaw?.country_code || hotelRaw?.country || null;
+      if (!hotelRaw?.city || !resolvedCountryCode) {
         return res.json([]);
       }
       const cityHotels = await liteApiGet("/data/hotels", {
         cityName: hotelRaw.city,
-        countryCode: hotelRaw.countryCode,
-        limit: "10",
+        countryCode: resolvedCountryCode,
+        limit: "15",
         offset: "0",
       });
-      const list = (cityHotels?.data || []).filter((h: any) => h.id !== hotelId).slice(0, 5);
+      const list = (cityHotels?.data || []).filter((h: any) => h.id !== hotelId).slice(0, 10);
       const FALLBACK_IMAGES = [
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
         "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80",
@@ -1809,7 +1810,9 @@ Guest question: ${question}`;
         console.error("Similar hotels rates error:", rateErr?.message || rateErr);
       }
 
-      res.json(results);
+      // Only return hotels with a valid price (exclude fully booked / no-availability hotels)
+      const pricedResults = results.filter((h: any) => h.price && h.price > 0);
+      res.json(pricedResults);
     } catch (err: any) {
       console.error("Similar hotels error:", err?.message || err);
       res.status(500).json({ message: "Failed to fetch similar hotels" });

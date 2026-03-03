@@ -558,6 +558,9 @@ export default function Home() {
       const lat = hx.lat as number | null;
       const lng = hx.lng as number | null;
 
+      // Exclude hotels with no available rooms (no valid price)
+      if (!price || price <= 0) return false;
+
       if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
       if (price && price > priceMax) return false;
 
