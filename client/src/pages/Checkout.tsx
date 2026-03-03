@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2, Calendar, Users, BedDouble, CreditCard, ShieldCheck, User } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Calendar, Users, BedDouble, CreditCard, ShieldCheck, User, AlertTriangle, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const guestSchema = z.object({
@@ -48,6 +49,8 @@ export default function Checkout() {
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsExpanded, setTermsExpanded] = useState(false);
   const sdkInitialized = useRef(false);
 
   useEffect(() => {
@@ -90,7 +93,6 @@ export default function Checkout() {
         currency
       };
       sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
-      loadPaymentSdk();
     },
     onError: (error: Error) => {
       toast({
@@ -110,7 +112,7 @@ export default function Checkout() {
   };
 
   useEffect(() => {
-    if (sdkLoaded && prebookData && !sdkInitialized.current) {
+    if (sdkLoaded && prebookData && termsAccepted && !sdkInitialized.current) {
       sdkInitialized.current = true;
 
       const returnUrl = `${window.location.origin}/booking-confirmation?prebookId=${encodeURIComponent(prebookData.prebookId)}&transactionId=${encodeURIComponent(prebookData.transactionId)}`;
@@ -169,11 +171,50 @@ export default function Checkout() {
         toast({ title: "Payment setup failed", description: "Unable to initialize payment. Please refresh and try again.", variant: "destructive" });
       }
     }
-  }, [sdkLoaded, prebookData]);
+  }, [sdkLoaded, prebookData, termsAccepted]);
 
   const onSubmit = (values: GuestFormValues) => {
     prebookMutation.mutate(values);
   };
+
+  const getCancellationSummary = () => {
+    const rate = prebookData?.roomTypes?.[0]?.rates?.[0];
+    const policy = rate?.cancellationPolicies;
+    if (!policy) return null;
+
+    const tag = policy.refundableTag || "";
+    const infos: any[] = policy.cancelPolicyInfos || [];
+    const remarks: string[] = policy.hotelRemarks || [];
+
+    if (tag === "NRFN" || tag === "NON_REFUNDABLE") {
+      return { type: "danger", label: "Non-Refundable", detail: "This booking cannot be cancelled or modified. No refund will be issued." };
+    }
+    if (infos.length > 0) {
+      const first = infos[0];
+      const deadline = first.cancelTime ? format(new Date(first.cancelTime), "MMM dd, yyyy 'at' HH:mm") : null;
+      const charge = first.type === "PERCENT" ? `${first.amount}% of the total price`
+        : first.type === "NIGHTS" ? `${first.amount} night(s)`
+        : `${currency} ${first.amount}`;
+      return {
+        type: "warning",
+        label: "Cancellation Policy",
+        detail: deadline
+          ? `Free cancellation until ${deadline}. After that, a charge of ${charge} applies.`
+          : `Cancellation fee of ${charge} applies.`,
+        remarks,
+      };
+    }
+    if (tag === "RFN" || tag === "FREE_CANCELLATION" || tag === "FREECANCELLATION") {
+      return { type: "success", label: "Free Cancellation", detail: "This booking can be cancelled free of charge." };
+    }
+    if (remarks.length > 0) {
+      return { type: "warning", label: "Cancellation Policy", detail: remarks[0], remarks: remarks.slice(1) };
+    }
+    return null;
+  };
+
+  const cancellationInfo = prebookData ? getCancellationSummary() : null;
+  const termsText: string = prebookData?.termsAndConditions || "";
 
   if (!offerId) return null;
 
@@ -273,7 +314,92 @@ export default function Checkout() {
               </CardContent>
             </Card>
 
-            {prebookData && (
+            {prebookData && !termsAccepted && (
+              <Card className="border-amber-200 dark:border-amber-800 shadow-lg animate-in fade-in slide-in-from-top-4 rounded-2xl">
+                <CardHeader className="p-5 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Terms &amp; Conditions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 p-5 sm:p-6 pt-0 sm:pt-0">
+                  {cancellationInfo && (
+                    <div className={`flex items-start gap-3 p-4 rounded-xl border ${
+                      cancellationInfo.type === "danger"
+                        ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
+                        : cancellationInfo.type === "success"
+                        ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                        : "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800"
+                    }`}>
+                      <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${
+                        cancellationInfo.type === "danger" ? "text-red-600"
+                        : cancellationInfo.type === "success" ? "text-green-600"
+                        : "text-amber-600"
+                      }`} />
+                      <div className="space-y-1">
+                        <p className={`text-sm font-bold ${
+                          cancellationInfo.type === "danger" ? "text-red-900 dark:text-red-100"
+                          : cancellationInfo.type === "success" ? "text-green-900 dark:text-green-100"
+                          : "text-amber-900 dark:text-amber-100"
+                        }`}>{cancellationInfo.label}</p>
+                        <p className={`text-xs sm:text-sm ${
+                          cancellationInfo.type === "danger" ? "text-red-800/80 dark:text-red-200/80"
+                          : cancellationInfo.type === "success" ? "text-green-800/80 dark:text-green-200/80"
+                          : "text-amber-800/80 dark:text-amber-200/80"
+                        }`}>{cancellationInfo.detail}</p>
+                        {cancellationInfo.remarks?.map((r: string, i: number) => (
+                          <p key={i} className="text-xs text-muted-foreground">{r}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {termsText ? (
+                    <div className="border rounded-xl overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setTermsExpanded(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 hover:bg-muted/80 transition-colors text-sm font-medium"
+                        data-testid="button-toggle-terms"
+                      >
+                        <span>Read full terms &amp; conditions</span>
+                        {termsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+                      {termsExpanded && (
+                        <div className="max-h-48 overflow-y-auto p-4 text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap bg-background border-t">
+                          {termsText}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground bg-muted/30 rounded-xl p-4 leading-relaxed">
+                      By proceeding with this booking you agree that: all guest information provided is accurate; the booking is subject to the hotel's cancellation and modification policies stated above; Luxvibe acts as an intermediary between you and the accommodation provider; and payment will be charged as shown in your booking summary.
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-3 pt-2" data-testid="terms-acceptance">
+                    <Checkbox
+                      id="terms-accept"
+                      checked={termsAccepted}
+                      onCheckedChange={(v) => {
+                        setTermsAccepted(!!v);
+                        if (v) loadPaymentSdk();
+                      }}
+                      data-testid="checkbox-terms"
+                      className="mt-0.5"
+                    />
+                    <label
+                      htmlFor="terms-accept"
+                      className="text-sm leading-relaxed cursor-pointer select-none"
+                    >
+                      I have read and agree to the terms &amp; conditions and cancellation policy for this booking.
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {prebookData && termsAccepted && (
               <Card className="border-primary/20 shadow-lg animate-in fade-in slide-in-from-top-4 rounded-2xl">
                 <CardHeader className="p-5 sm:p-6">
                   <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -350,7 +476,7 @@ export default function Checkout() {
               </CardContent>
               <CardFooter className="bg-muted/30 p-4">
                 <p className="text-[10px] sm:text-[11px] text-muted-foreground text-center w-full leading-relaxed">
-                  By completing this booking, you agree to the Terms of Service and Cancellation Policy.
+                  Prices shown are inclusive of all taxes and fees. By proceeding, you confirm your acceptance of the booking terms &amp; cancellation policy.
                 </p>
               </CardFooter>
             </Card>
