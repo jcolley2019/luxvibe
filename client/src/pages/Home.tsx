@@ -9,7 +9,8 @@ import { HotelListCard, type ListHotel } from "@/components/HotelListCard";
 import { useSearchHotels, useFeaturedHotels, useNearbyHotels } from "@/hooks/use-hotels";
 import { SearchMapView } from "@/components/SearchMapView";
 import { SearchMapThumbnail } from "@/components/SearchMapThumbnail";
-import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List, Sparkles, Palmtree, Building2, Briefcase, Waves, Compass, Dumbbell, Gem, PiggyBank } from "lucide-react";
+import { Loader2, ArrowUpDown, LocateFixed, ChevronLeft, ChevronRight, Heart, Tag, ThumbsUp, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Map as MapIcon, Search, List, Sparkles, Palmtree, Building2, Briefcase, Waves, Compass, Dumbbell, Gem, PiggyBank, BarChart2 } from "lucide-react";
+import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -268,6 +269,8 @@ export default function Home() {
   type GeoStatus = "idle" | "loading" | "granted" | "denied";
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [compareList, setCompareList] = useState<Array<{ id: string; name: string; address: string; city?: string; stars?: number | null; rating?: number | null; reviewCount?: number | null; price?: number | null; imageUrl?: string | null; facilities?: string[] }>>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const requestLocation = () => {
     if (!navigator.geolocation) { setGeoStatus("denied"); return; }
@@ -277,6 +280,15 @@ export default function Home() {
       () => setGeoStatus("denied"),
       { timeout: 10000 }
     );
+  };
+
+  const toggleCompare = (hotel: typeof compareList[0]) => {
+    setCompareList(prev => {
+      const exists = prev.some(h => h.id === hotel.id);
+      if (exists) return prev.filter(h => h.id !== hotel.id);
+      if (prev.length >= 4) return prev;
+      return [...prev, hotel];
+    });
   };
 
   useEffect(() => { requestLocation(); }, []);
@@ -1257,6 +1269,9 @@ export default function Home() {
                         guests={guests}
                         dealInfo={searchDealBadges.get(hotel.id)}
                         nights={nights}
+                        isCompared={compareList.some(h => h.id === hotel.id)}
+                        onToggleCompare={() => toggleCompare(hotel as any)}
+                        compareDisabled={compareList.length >= 4}
                       />
                     </motion.div>
                   ))}
@@ -1386,6 +1401,72 @@ export default function Home() {
           </section>
         </>
       )}
+
+      {/* Compare Bar */}
+      {compareList.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border shadow-2xl">
+          <div className="container mx-auto px-4 py-3 flex items-center gap-4">
+            <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+              {compareList.map(h => (
+                <div key={h.id} className="relative shrink-0 group">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-border bg-muted">
+                    <img
+                      src={h.imageUrl || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80"}
+                      alt={h.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80"; }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => setCompareList(prev => prev.filter(x => x.id !== h.id))}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    data-testid={`compare-remove-${h.id}`}
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 w-14 line-clamp-1 text-center">{h.name}</p>
+                </div>
+              ))}
+              {compareList.length < 2 && Array.from({ length: 2 - compareList.length }).map((_, i) => (
+                <div key={`empty-${i}`} className="shrink-0 w-14 h-14 rounded-xl border border-dashed border-border bg-muted/30 flex items-center justify-center">
+                  <BarChart2 className="w-5 h-5 text-muted-foreground/40" />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-sm font-medium text-foreground hidden sm:block">
+                <span className="text-primary font-bold">{compareList.length}</span> hotel{compareList.length !== 1 ? "s" : ""} selected
+              </div>
+              <button
+                onClick={() => setCompareList([])}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                data-testid="button-compare-clear"
+              >
+                Clear all
+              </button>
+              <Button
+                onClick={() => setCompareOpen(true)}
+                disabled={compareList.length < 2}
+                className="rounded-full px-5 text-sm font-semibold gap-2"
+                data-testid="button-compare-now"
+              >
+                <BarChart2 className="w-4 h-4" />
+                Compare Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CompareModal
+        hotels={compareList}
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        checkIn={checkIn || undefined}
+        checkOut={checkOut || undefined}
+        guests={guests}
+      />
     </div>
   );
 }

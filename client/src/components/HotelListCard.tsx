@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint, Footprints } from "lucide-react";
+import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint, Footprints, BarChart2 } from "lucide-react";
 import type { DealBadge } from "@/components/HotelCard";
 
 export interface ListHotel {
@@ -96,6 +96,9 @@ export function HotelListCard({
   guests,
   dealInfo,
   nights,
+  isCompared,
+  onToggleCompare,
+  compareDisabled,
 }: {
   hotel: ListHotel;
   checkIn?: string;
@@ -103,6 +106,9 @@ export function HotelListCard({
   guests?: string;
   dealInfo?: { type: DealBadge; discount: number } | null;
   nights: number;
+  isCompared?: boolean;
+  onToggleCompare?: () => void;
+  compareDisabled?: boolean;
 }) {
   const [wishlisted, setWishlisted] = useState(false);
   useEffect(() => {
@@ -148,11 +154,28 @@ export function HotelListCard({
           />
           <button
             onClick={toggleWishlist}
-            className="absolute top-2.5 left-2.5 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow hover:bg-white transition-colors"
+            className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow hover:bg-white transition-colors"
             data-testid={`button-wishlist-${hotel.id}`}
           >
             <Heart className={`w-4 h-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
           </button>
+          {onToggleCompare && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleCompare(); }}
+              disabled={compareDisabled && !isCompared}
+              className={`absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold shadow transition-all ${
+                isCompared
+                  ? "bg-primary text-primary-foreground"
+                  : compareDisabled
+                  ? "bg-white/60 text-slate-400 cursor-not-allowed"
+                  : "bg-white/90 text-slate-600 hover:bg-white"
+              }`}
+              data-testid={`button-compare-${hotel.id}`}
+            >
+              <BarChart2 className="w-3 h-3" />
+              {isCompared ? "Added" : "Compare"}
+            </button>
+          )}
           {dealInfo?.type && (
             <div className={`absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded text-white text-[11px] font-bold ${dealInfo.type === "great-deal" ? "bg-emerald-500" : "bg-sky-500"}`}>
               {dealInfo.type === "great-deal" ? "Great Deal" : "Good Value"}

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Heart, Tag, ThumbsUp, Sparkles } from "lucide-react";
+import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse, SemanticHotel } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
@@ -18,6 +18,9 @@ interface HotelCardProps {
   guests?: string;
   variant?: "search" | "featured";
   dealBadge?: DealBadge;
+  isCompared?: boolean;
+  onToggleCompare?: () => void;
+  compareDisabled?: boolean;
 }
 
 function getRatingKey(rating: number | null): string {
@@ -75,7 +78,7 @@ function getWishlistKey(hotelId: string) {
   return `wishlist_${hotelId}`;
 }
 
-export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge }: HotelCardProps) {
+export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge, isCompared, onToggleCompare, compareDisabled }: HotelCardProps) {
   const { currency } = usePreferences();
   const { t } = useTranslation();
   const [wishlisted, setWishlisted] = useState(false);
@@ -134,14 +137,32 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             />
           </button>
 
+          {onToggleCompare && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleCompare(); }}
+              disabled={compareDisabled && !isCompared}
+              className={`absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold shadow transition-all ${
+                isCompared
+                  ? "bg-primary text-primary-foreground"
+                  : compareDisabled
+                  ? "bg-white/60 text-slate-400 cursor-not-allowed"
+                  : "bg-white/90 text-slate-600 hover:bg-white"
+              }`}
+              data-testid={`button-compare-${hotel.id}`}
+            >
+              <BarChart2 className="w-3 h-3" />
+              {isCompared ? "Added" : "Compare"}
+            </button>
+          )}
+
           {dealBadge === "great-deal" && (
-            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md" data-testid={`badge-deal-${hotel.id}`}>
+            <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md" data-testid={`badge-deal-${hotel.id}`}>
               <Tag className="w-3 h-3" />
               Great Deal
             </div>
           )}
           {dealBadge === "good-value" && (
-            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md" data-testid={`badge-value-${hotel.id}`}>
+            <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md" data-testid={`badge-value-${hotel.id}`}>
               <ThumbsUp className="w-3 h-3" />
               Good Value
             </div>
