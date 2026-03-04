@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { HotelCard } from "@/components/HotelCard";
 import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
@@ -122,8 +121,6 @@ export default function Favorites() {
           </div>
         )}
       </main>
-
-      <Footer />
 
       {/* Sticky compare bar */}
       {compareList.length > 0 && (

@@ -3,7 +3,6 @@ import { useLocation, Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, Calendar, Hotel, User, CreditCard, ArrowRight, Home } from "lucide-react";
@@ -203,8 +202,6 @@ export default function BookingConfirmation() {
           </div>
         ) : null}
       </main>
-      
-      <Footer />
     </div>
   );
 }
