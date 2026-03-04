@@ -233,6 +233,16 @@ export default function HotelDetails() {
   const usingRealReviews = realReviews.length > 0;
   const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;
 
+  const [compareReturnUrl, setCompareReturnUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const raw = sessionStorage.getItem("lv_compare_return_v1");
+    if (!raw) return;
+    try {
+      const { returnUrl } = JSON.parse(raw) as { returnUrl: string };
+      if (returnUrl) setCompareReturnUrl(returnUrl);
+    } catch {}
+  }, []);
+
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const { isFavorite, toggleFavorite } = useFavorites();
   const wishlist = hotel ? isFavorite(hotel.id) : false;
@@ -487,7 +497,33 @@ export default function HotelDetails() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background${compareReturnUrl ? " pt-10" : ""}`}>
+      {compareReturnUrl && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-primary text-primary-foreground px-4 py-2.5 flex items-center gap-2 shadow-md">
+          <button
+            onClick={() => {
+              try {
+                const path = new URL(compareReturnUrl).pathname + new URL(compareReturnUrl).search;
+                setLocation(path);
+              } catch {
+                setLocation("/");
+              }
+            }}
+            className="flex items-center gap-1.5 text-sm font-semibold hover:underline"
+            data-testid="button-back-to-comparison"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to comparison
+          </button>
+          <button
+            onClick={() => setCompareReturnUrl(null)}
+            className="ml-auto p-1 opacity-70 hover:opacity-100 transition-opacity"
+            data-testid="button-close-comparison-banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       <Navbar centralSlot={compactBar} />
 
       <div className="container mx-auto px-4 pt-4 pb-20 max-w-5xl">

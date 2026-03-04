@@ -291,6 +291,19 @@ export default function Home() {
     });
   };
 
+  useEffect(() => {
+    const raw = sessionStorage.getItem("lv_compare_return_v1");
+    if (!raw) return;
+    try {
+      const { hotels: savedHotels } = JSON.parse(raw) as { hotels: typeof compareList; returnUrl: string };
+      if (Array.isArray(savedHotels) && savedHotels.length >= 2) {
+        setCompareList(savedHotels);
+        setCompareOpen(true);
+        sessionStorage.removeItem("lv_compare_return_v1");
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => { requestLocation(); }, []);
 
   const { data: nearbyHotels, isLoading: nearbyLoading } = useNearbyHotels(urlCoords || coords);
@@ -1302,7 +1315,14 @@ export default function Home() {
               <div ref={carouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {featured?.map((hotel, i) => (
                   <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                    <HotelCard hotel={hotel} variant="featured" dealBadge={featuredDealBadges.get(hotel.id)?.type} />
+                    <HotelCard
+                      hotel={hotel}
+                      variant="featured"
+                      dealBadge={featuredDealBadges.get(hotel.id)?.type}
+                      isCompared={compareList.some(h => h.id === hotel.id)}
+                      onToggleCompare={() => toggleCompare(hotel as any)}
+                      compareDisabled={compareList.length >= 4}
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -1363,7 +1383,14 @@ export default function Home() {
                 <div ref={nearbyCarouselRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div key={hotel.id} className="flex-none w-[calc(25%-15px)] min-w-[240px]" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.35 }}>
-                      <HotelCard hotel={hotel} variant="featured" dealBadge={nearbyDealBadges.get(hotel.id)?.type} />
+                      <HotelCard
+                        hotel={hotel}
+                        variant="featured"
+                        dealBadge={nearbyDealBadges.get(hotel.id)?.type}
+                        isCompared={compareList.some(h => h.id === hotel.id)}
+                        onToggleCompare={() => toggleCompare(hotel as any)}
+                        compareDisabled={compareList.length >= 4}
+                      />
                     </motion.div>
                   ))}
                 </div>

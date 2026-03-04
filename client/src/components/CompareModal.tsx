@@ -1,5 +1,5 @@
-import { X } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X, Check } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePreferences } from "@/context/preferences";
 import { Link } from "wouter";
@@ -45,16 +45,79 @@ function StarRow({ stars }: { stars: number | null | undefined }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} className={`w-4 h-4 ${i < full ? "text-amber-400" : "text-slate-200"}`} fill="currentColor" viewBox="0 0 20 20">
+        <svg key={i} className={`w-4 h-4 ${i < full ? "text-amber-400" : "text-slate-200 dark:text-slate-700"}`} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
-      <span className="ml-1.5 text-xs text-muted-foreground">{stars}-star</span>
+      <span className="ml-1 text-xs text-muted-foreground">{stars}-star</span>
     </div>
   );
 }
 
-const ROW_LABELS = ["Photo", "Name & Location", "Star Rating", "Guest Rating", "Price / Night", "Facilities", ""];
+function hasFeature(facilities: string[] | undefined, keywords: string[]): boolean {
+  if (!facilities?.length) return false;
+  const lower = facilities.map(f => f.toLowerCase());
+  return keywords.some(k => lower.some(f => f.includes(k)));
+}
+
+const AMENITY_GROUPS = [
+  {
+    label: "FACILITIES & SERVICES",
+    rows: [
+      { label: "Free WiFi", keywords: ["wifi", "wi-fi", "wireless", "internet"] },
+      { label: "Swimming Pool", keywords: ["pool", "swimming"] },
+      { label: "Fitness / Gym", keywords: ["fitness", "gym", "exercise"] },
+      { label: "Spa & Wellness", keywords: ["spa", "wellness", "sauna", "steam"] },
+      { label: "Restaurant", keywords: ["restaurant", "dining"] },
+      { label: "Bar / Lounge", keywords: ["bar", "lounge"] },
+      { label: "Room Service", keywords: ["room service"] },
+      { label: "Business Center", keywords: ["business center"] },
+      { label: "Meeting Rooms", keywords: ["meeting room", "conference"] },
+      { label: "Concierge", keywords: ["concierge"] },
+      { label: "24-Hr Front Desk", keywords: ["24-hour", "24 hour", "front desk"] },
+      { label: "Luggage Storage", keywords: ["luggage"] },
+      { label: "Laundry", keywords: ["laundry", "dry cleaning"] },
+    ],
+  },
+  {
+    label: "ROOM FEATURES",
+    rows: [
+      { label: "Air Conditioning", keywords: ["air condition", "hvac", "climate"] },
+      { label: "Mini Fridge / Minibar", keywords: ["mini bar", "minibar", "mini-bar", "fridge", "refrigerator"] },
+      { label: "In-Room Safe", keywords: ["safe", "safety box"] },
+      { label: "Flat-screen TV", keywords: ["tv", "television", "flat-screen"] },
+      { label: "Coffee / Tea Maker", keywords: ["coffee", "tea maker", "kettle"] },
+    ],
+  },
+  {
+    label: "TRANSPORT & PARKING",
+    rows: [
+      { label: "Free Parking", keywords: ["free parking", "parking"] },
+      { label: "Valet Parking", keywords: ["valet"] },
+      { label: "Airport Shuttle", keywords: ["airport shuttle", "shuttle"] },
+      { label: "EV Charging", keywords: ["ev charging", "electric vehicle", "charging station"] },
+    ],
+  },
+  {
+    label: "FAMILY & ACCESSIBILITY",
+    rows: [
+      { label: "Pet Friendly", keywords: ["pet", "dog friendly", "cat friendly"] },
+      { label: "Kids Facilities", keywords: ["kids", "children", "family"] },
+      { label: "Wheelchair Accessible", keywords: ["wheelchair", "accessible", "disability"] },
+      { label: "Crib / Extra Bed", keywords: ["crib", "extra bed", "rollaway"] },
+    ],
+  },
+  {
+    label: "FOOD & DRINK",
+    rows: [
+      { label: "Breakfast Included", keywords: ["breakfast"] },
+      { label: "All-Inclusive", keywords: ["all inclusive", "all-inclusive"] },
+    ],
+  },
+];
+
+const LABEL_COL_STYLE = "w-36 min-w-[144px] max-w-[144px]";
+const HOTEL_COL_STYLE = "min-w-[220px]";
 
 export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests }: CompareModalProps) {
   const { currency } = usePreferences();
@@ -79,11 +142,27 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
     return "Good";
   };
 
+  const handleViewHotel = () => {
+    sessionStorage.setItem("lv_compare_return_v1", JSON.stringify({
+      hotels,
+      returnUrl: window.location.href,
+    }));
+    onClose();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-2xl" aria-describedby={undefined} data-testid="compare-modal">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-lg font-bold text-foreground">Compare Hotels</h2>
+      <DialogContent
+        className="max-w-5xl p-0 overflow-hidden rounded-2xl flex flex-col"
+        style={{ maxHeight: "90vh" }}
+        aria-describedby={undefined}
+        data-testid="compare-modal"
+      >
+        <DialogTitle className="sr-only">Compare Hotels</DialogTitle>
+
+        {/* Fixed modal header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+          <h2 className="text-lg font-bold text-foreground" aria-hidden="true">Compare Hotels</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
@@ -93,21 +172,26 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
           </button>
         </div>
 
-        <div className="overflow-auto max-h-[75vh]" style={{ scrollbarWidth: "thin" }}>
-          <table className="w-full border-collapse min-w-[600px]">
+        {/* Scrollable body */}
+        <div className="overflow-auto flex-1" style={{ scrollbarWidth: "thin" }}>
+          <table className="border-collapse" style={{ minWidth: `${144 + hotels.length * 220}px`, width: "100%" }}>
             <colgroup>
-              <col style={{ width: "130px", minWidth: "130px" }} />
-              {hotels.map(h => <col key={h.id} style={{ minWidth: "200px" }} />)}
+              <col style={{ width: "144px", minWidth: "144px" }} />
+              {hotels.map(h => <col key={h.id} style={{ minWidth: "220px" }} />)}
             </colgroup>
 
-            <tbody>
+            {/* Sticky header: Photo + Name */}
+            <thead>
               {/* Photo row */}
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-middle sticky left-0 z-10">
+              <tr className="border-b border-border" style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--background)" }}>
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/50 align-middle`}
+                  style={{ position: "sticky", left: 0, zIndex: 30, background: "inherit" }}
+                >
                   Photo
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-3 align-top">
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top bg-background`}>
                     <div className="aspect-video overflow-hidden rounded-xl bg-muted">
                       <img
                         src={h.imageUrl || getFallback(h.id)}
@@ -122,37 +206,48 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
               </tr>
 
               {/* Name & Location row */}
-              <tr className="border-b border-border">
-                <td className="px-4 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-top sticky left-0 z-10">
+              <tr className="border-b border-border" style={{ position: "sticky", top: 152, zIndex: 20, background: "var(--background)" }}>
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/50 align-top`}
+                  style={{ position: "sticky", left: 0, zIndex: 30, background: "inherit" }}
+                >
                   Name & Location
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-top">
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top bg-background`}>
                     <p className="font-bold text-sm text-foreground leading-snug" data-testid={`compare-name-${h.id}`}>{h.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{h.address}</p>
                   </td>
                 ))}
               </tr>
+            </thead>
 
-              {/* Stars row */}
+            <tbody>
+              {/* Star Rating */}
               <tr className="border-b border-border">
-                <td className="px-4 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-middle sticky left-0 z-10">
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30 align-middle`}
+                  style={{ position: "sticky", left: 0, zIndex: 10, background: "inherit" }}
+                >
                   Star Rating
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-middle">
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`}>
                     <StarRow stars={h.stars} />
                   </td>
                 ))}
               </tr>
 
-              {/* Guest Rating row */}
+              {/* Guest Rating */}
               <tr className="border-b border-border">
-                <td className="px-4 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-middle sticky left-0 z-10">
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30 align-middle`}
+                  style={{ position: "sticky", left: 0, zIndex: 10, background: "inherit" }}
+                >
                   Guest Rating
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-middle" data-testid={`compare-rating-${h.id}`}>
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-rating-${h.id}`}>
                     {h.rating ? (
                       <div className="flex items-center gap-2">
                         <span className="w-9 h-9 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
@@ -172,13 +267,16 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 ))}
               </tr>
 
-              {/* Price row */}
+              {/* Price / Night */}
               <tr className="border-b border-border">
-                <td className="px-4 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-middle sticky left-0 z-10">
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30 align-middle`}
+                  style={{ position: "sticky", left: 0, zIndex: 10, background: "inherit" }}
+                >
                   Price / Night
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-middle" data-testid={`compare-price-${h.id}`}>
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-price-${h.id}`}>
                     {h.price && h.price > 0 ? (
                       <div>
                         <span className="text-xl font-bold text-foreground">{fmt(h.price)}</span>
@@ -191,39 +289,46 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 ))}
               </tr>
 
-              {/* Facilities row */}
-              <tr className="border-b border-border">
-                <td className="px-4 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30 align-top sticky left-0 z-10">
-                  Facilities
-                </td>
-                {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-top" data-testid={`compare-facilities-${h.id}`}>
-                    {h.facilities && h.facilities.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {h.facilities.slice(0, 8).map(f => (
-                          <span key={f} className="text-[10px] px-2 py-0.5 rounded-full border border-border bg-muted/40 text-muted-foreground">
-                            {f}
-                          </span>
-                        ))}
-                        {h.facilities.length > 8 && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full border border-border bg-muted/40 text-muted-foreground">
-                            +{h.facilities.length - 8} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">—</span>
-                    )}
+              {/* Amenity Groups — flattened to avoid React.Fragment with injected props */}
+              {AMENITY_GROUPS.flatMap(group => [
+                <tr key={`grp-${group.label}`} className="border-b border-border/50">
+                  <td
+                    colSpan={1 + hotels.length}
+                    className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/60"
+                  >
+                    {group.label}
                   </td>
-                ))}
-              </tr>
+                </tr>,
+                ...group.rows.map(row => (
+                  <tr key={`row-${group.label}-${row.label}`} className="border-b border-border/40">
+                    <td
+                      className={`${LABEL_COL_STYLE} px-4 py-2.5 text-xs text-muted-foreground bg-muted/20`}
+                      style={{ position: "sticky", left: 0, zIndex: 10, background: "inherit" }}
+                    >
+                      {row.label}
+                    </td>
+                    {hotels.map(h => (
+                      <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-2.5 align-middle`}>
+                        {hasFeature(h.facilities, row.keywords) ? (
+                          <Check className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                )),
+              ])}
 
               {/* Action row */}
               <tr>
-                <td className="px-4 py-4 bg-muted/30 sticky left-0 z-10" />
+                <td
+                  className={`${LABEL_COL_STYLE} px-4 py-4 bg-muted/30`}
+                  style={{ position: "sticky", left: 0, zIndex: 10, background: "inherit" }}
+                />
                 {hotels.map(h => (
-                  <td key={h.id} className="px-3 py-4 align-middle">
-                    <Link href={buildUrl(h.id)} onClick={onClose}>
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-4 align-middle`}>
+                    <Link href={buildUrl(h.id)} onClick={handleViewHotel}>
                       <Button
                         className="w-full rounded-xl text-sm font-semibold"
                         data-testid={`compare-view-${h.id}`}
