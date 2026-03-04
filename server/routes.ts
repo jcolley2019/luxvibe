@@ -252,17 +252,25 @@ export async function registerRoutes(
             });
             const hotels = data?.data || [];
             const scored = hotels
-              .map((h: any) => ({
-                id: h.id,
-                name: h.name || "Hotel",
-                address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
-                city: cityName,
-                stars: h.stars ? parseFloat(String(h.stars)) : null,
-                rating: h.rating ? parseFloat(String(h.rating)) : null,
-                reviewCount: h.reviews_total || h.reviewCount || null,
-                price: null as number | null,
-                imageUrl: h.main_photo || h.thumbnail || null,
-              }))
+              .map((h: any) => {
+                const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
+                const facilities: string[] = rawFacilities
+                  .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+                  .filter(Boolean)
+                  .slice(0, 30);
+                return {
+                  id: h.id,
+                  name: h.name || "Hotel",
+                  address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
+                  city: cityName,
+                  stars: h.stars ? parseFloat(String(h.stars)) : null,
+                  rating: h.rating ? parseFloat(String(h.rating)) : null,
+                  reviewCount: h.reviews_total || h.reviewCount || null,
+                  price: null as number | null,
+                  imageUrl: h.main_photo || h.thumbnail || null,
+                  facilities,
+                };
+              })
               .filter((h: any) => h.rating !== null && h.rating >= 8.0 && h.stars !== null && h.stars >= 4 && (h.reviewCount == null || h.reviewCount >= 50))
               .sort((a: any, b: any) => {
                 const scoreA = (a.rating ?? 0) * 2 + (a.stars ?? 0) * 0.5;
@@ -533,17 +541,25 @@ export async function registerRoutes(
           limit: "50",
           offset: "0",
         });
-        return ((data?.data || []) as any[]).map((h: any) => ({
-          id: h.id,
-          name: h.name || "Hotel",
-          address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
-          city: displayCity || h.city || city,
-          stars: h.stars ? parseFloat(String(h.stars)) : null,
-          rating: h.rating ? parseFloat(String(h.rating)) : null,
-          reviewCount: h.reviews_total || h.reviewCount || null,
-          price: null as number | null,
-          imageUrl: h.main_photo || h.thumbnail || null,
-        })).filter((h: any) => h.stars !== null && h.stars >= 3);
+        return ((data?.data || []) as any[]).map((h: any) => {
+          const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
+          const facilities: string[] = rawFacilities
+            .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+            .filter(Boolean)
+            .slice(0, 30);
+          return {
+            id: h.id,
+            name: h.name || "Hotel",
+            address: [h.address, h.city, h.country?.toUpperCase()].filter(Boolean).join(", "),
+            city: displayCity || h.city || city,
+            stars: h.stars ? parseFloat(String(h.stars)) : null,
+            rating: h.rating ? parseFloat(String(h.rating)) : null,
+            reviewCount: h.reviews_total || h.reviewCount || null,
+            price: null as number | null,
+            imageUrl: h.main_photo || h.thumbnail || null,
+            facilities,
+          };
+        }).filter((h: any) => h.stars !== null && h.stars >= 3);
       };
 
       const seenIds = new Set<string>();

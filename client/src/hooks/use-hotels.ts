@@ -35,6 +35,7 @@ export type NearbyHotel = {
   reviewCount: number | null;
   price: number | null;
   imageUrl: string | null;
+  facilities?: string[];
 };
 
 export function useFeaturedHotels() {
@@ -45,9 +46,7 @@ export function useFeaturedHotels() {
     queryFn: async () => {
       const res = await fetch(`${api.hotels.featured.path}?currency=${currency}&guestNationality=${guestNationality}`);
       if (!res.ok) throw new Error("Failed to fetch featured hotels");
-      const data = api.hotels.featured.responses[200].parse(await res.json());
-      console.log("[use-hotels] featured sample:", data?.[0]);
-      return data;
+      return api.hotels.featured.responses[200].parse(await res.json());
     },
     staleTime: 1000 * 60 * 10,
   });
