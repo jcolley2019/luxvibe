@@ -57,7 +57,11 @@ export default function BookingConfirmation() {
 
     setCheckoutData(parsedData);
 
-    const resolvedTransactionId = transactionId || parsedData.transactionId;
+    // After LiteAPI payment SDK processes, the redirect URL contains:
+    // - payment_intent: the Stripe PI ID (this is what LiteAPI book endpoint needs as transactionId)
+    // - transactionId/tid: may or may not be present depending on SDK version
+    // The prebook transactionId (tr_cts_...) is a pre-payment token — it becomes invalid after payment
+    const resolvedTransactionId = paymentIntent || transactionId || parsedData.transactionId;
     if (!resolvedTransactionId) {
       setError("Payment transaction ID missing. Please try again.");
       return;
