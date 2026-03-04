@@ -56,11 +56,11 @@ export function Footer() {
                 Privacy Policy
               </button>
               <button
-                onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-consent"))}
+                onClick={() => { localStorage.removeItem("lv_cookie_consent"); window.location.reload(); }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
                 data-testid="footer-link-cookie-preferences"
               >
-                Cookie preferences
+                Cookie Settings
               </button>
               <button
                 onClick={() => setContactOpen(true)}
