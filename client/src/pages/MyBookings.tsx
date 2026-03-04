@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, ArrowUpDown, ExternalLink } from "lucide-react";
-import { format, parseISO } from "date-fns";
 import { Link } from "wouter";
 
 type SortKey = "hotelName" | "id" | "checkIn" | "totalPrice" | "status" | "createdAt";
@@ -20,7 +19,9 @@ function statusVariant(status: string) {
 
 function fmtDate(val: string | null | undefined) {
   if (!val) return "—";
-  try { return format(parseISO(val), "dd MMM yyyy"); } catch { return val; }
+  try {
+    return new Date(val).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' });
+  } catch { return val; }
 }
 
 export default function MyBookings() {
@@ -105,7 +106,7 @@ export default function MyBookings() {
         {/* Table */}
         <div className="border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full table-auto text-sm">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
@@ -158,19 +159,19 @@ export default function MyBookings() {
                       className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
                       data-testid={`row-booking-${booking.id}`}
                     >
-                      <td className="px-4 py-3 font-medium text-foreground max-w-[160px] truncate">
+                      <td className="px-4 py-3 font-medium text-foreground min-w-[140px]">
                         {booking.hotelName}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px]">
                         #{booking.id}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell whitespace-nowrap max-w-[140px] truncate">
+                      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell whitespace-nowrap min-w-[120px]">
                         {booking.roomType}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
                         {booking.guests}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[160px]">
                         {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
                       </td>
                       <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">

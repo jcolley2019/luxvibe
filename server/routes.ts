@@ -1908,7 +1908,7 @@ Guest question: ${question}`;
         return {
           id: b.bookingId,
           hotelName: b.hotel?.name || "Hotel",
-          roomType: room?.roomType?.name || room?.name || "Room",
+          roomType: room?.boardName || room?.roomType?.name || room?.name || "Room",
           checkIn: b.checkin,
           checkOut: b.checkout,
           guests: room?.adults ?? b.adults ?? 1,
