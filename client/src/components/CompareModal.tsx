@@ -186,7 +186,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
               <tr className="border-b border-border" style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--background)" }}>
                 <td
                   className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/50 align-middle`}
-                  style={{ position: "sticky", left: 0, zIndex: 30, background: "inherit" }}
+                  style={{ position: "sticky", left: 0, zIndex: 30, background: "hsl(var(--muted) / 0.5)" }}
                 >
                   Photo
                 </td>
@@ -209,7 +209,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
               <tr className="border-b border-border" style={{ position: "sticky", top: 152, zIndex: 20, background: "var(--background)" }}>
                 <td
                   className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/50 align-top`}
-                  style={{ position: "sticky", left: 0, zIndex: 30, background: "inherit" }}
+                  style={{ position: "sticky", left: 0, zIndex: 30, background: "hsl(var(--muted) / 0.5)" }}
                 >
                   Name & Location
                 </td>
