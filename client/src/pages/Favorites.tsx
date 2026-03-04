@@ -44,7 +44,18 @@ export default function Favorites() {
       const already = prev.some(h => h.id === hotel.id);
       if (already) return prev.filter(h => h.id !== hotel.id);
       if (prev.length >= 4) return prev;
-      return [...prev, hotel];
+      return [...prev, {
+        id: hotel.id,
+        name: hotel.name,
+        address: hotel.address,
+        city: hotel.city ?? undefined,
+        stars: hotel.stars ?? null,
+        rating: hotel.rating ?? null,
+        reviewCount: hotel.reviewCount ?? null,
+        price: hotel.price ?? null,
+        imageUrl: hotel.imageUrl ?? null,
+        facilities: Array.isArray(hotel.facilities) ? hotel.facilities : [],
+      }];
     });
   };
 

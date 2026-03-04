@@ -282,12 +282,23 @@ export default function Home() {
     );
   };
 
-  const toggleCompare = (hotel: typeof compareList[0]) => {
+  const toggleCompare = (hotel: any) => {
     setCompareList(prev => {
       const exists = prev.some(h => h.id === hotel.id);
       if (exists) return prev.filter(h => h.id !== hotel.id);
       if (prev.length >= 4) return prev;
-      return [...prev, hotel];
+      return [...prev, {
+        id: hotel.id,
+        name: hotel.name,
+        address: hotel.address,
+        city: hotel.city ?? undefined,
+        stars: hotel.stars ?? null,
+        rating: hotel.rating ?? null,
+        reviewCount: hotel.reviewCount ?? null,
+        price: hotel.price ?? null,
+        imageUrl: hotel.imageUrl ?? null,
+        facilities: Array.isArray(hotel.facilities) ? hotel.facilities : [],
+      }];
     });
   };
 
@@ -297,7 +308,18 @@ export default function Home() {
     try {
       const { hotels: savedHotels } = JSON.parse(raw) as { hotels: typeof compareList; returnUrl: string };
       if (Array.isArray(savedHotels) && savedHotels.length >= 2) {
-        setCompareList(savedHotels);
+        setCompareList(savedHotels.map(h => ({
+          id: h.id,
+          name: h.name,
+          address: h.address,
+          city: h.city ?? undefined,
+          stars: h.stars ?? null,
+          rating: h.rating ?? null,
+          reviewCount: h.reviewCount ?? null,
+          price: h.price ?? null,
+          imageUrl: h.imageUrl ?? null,
+          facilities: Array.isArray(h.facilities) ? h.facilities : [],
+        })));
         setCompareOpen(true);
         sessionStorage.removeItem("lv_compare_return_v1");
       }
