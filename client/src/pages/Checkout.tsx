@@ -113,7 +113,7 @@ export default function Checkout() {
       sdkInitialized.current = true;
 
       const liteAPIConfig = {
-        publicKey: prebookData.publicKey,
+        publicKey: prebookData.paymentEnv === "live" ? "live" : "sandbox",
         secretKey: prebookData.secretKey,
         returnUrl: `${window.location.origin}/booking-confirmation?prebookId=${prebookData.prebookId}&transactionId=${prebookData.transactionId}`,
         targetElement: '#liteapi-payment',
