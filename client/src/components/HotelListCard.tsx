@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint, Footprints, BarChart2 } from "lucide-react";
+import { useFavorites } from "@/context/favorites";
 import type { DealBadge } from "@/components/HotelCard";
 
 export interface ListHotel {
@@ -110,18 +110,13 @@ export function HotelListCard({
   onToggleCompare?: () => void;
   compareDisabled?: boolean;
 }) {
-  const [wishlisted, setWishlisted] = useState(false);
-  useEffect(() => {
-    setWishlisted(localStorage.getItem(`wishlist_${hotel.id}`) === "1");
-  }, [hotel.id]);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const wishlisted = isFavorite(hotel.id);
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !wishlisted;
-    setWishlisted(next);
-    if (next) localStorage.setItem(`wishlist_${hotel.id}`, "1");
-    else localStorage.removeItem(`wishlist_${hotel.id}`);
+    toggleFavorite(hotel as any);
   };
 
   const params = new URLSearchParams();

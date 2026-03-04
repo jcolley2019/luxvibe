@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Footer } from "@/components/Footer";
 import { PreferencesProvider } from "@/context/preferences";
+import { FavoritesProvider } from "@/context/favorites";
 import Home from "@/pages/Home";
 import HotelDetails from "@/pages/HotelDetails";
 import Checkout from "@/pages/Checkout";
@@ -37,15 +38,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <PreferencesProvider>
-        <TooltipProvider>
-          <div className="flex flex-col min-h-screen">
-            <Router />
-            <Footer />
-          </div>
-          <AiAssistant />
-          <CookieConsent />
-          <Toaster />
-        </TooltipProvider>
+        <FavoritesProvider>
+          <TooltipProvider>
+            <div className="flex flex-col min-h-screen">
+              <Router />
+              <Footer />
+            </div>
+            <AiAssistant />
+            <CookieConsent />
+            <Toaster />
+          </TooltipProvider>
+        </FavoritesProvider>
       </PreferencesProvider>
     </QueryClientProvider>
   );

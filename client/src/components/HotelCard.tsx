@@ -1,10 +1,10 @@
 import { Link } from "wouter";
 import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2 } from "lucide-react";
-import { useState, useEffect } from "react";
 import type { HotelSearchResponse, HotelFeaturedResponse, SemanticHotel } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
+import { useFavorites } from "@/context/favorites";
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
@@ -81,22 +81,13 @@ function getWishlistKey(hotelId: string) {
 export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search", dealBadge, isCompared, onToggleCompare, compareDisabled }: HotelCardProps) {
   const { currency } = usePreferences();
   const { t } = useTranslation();
-  const [wishlisted, setWishlisted] = useState(false);
-
-  useEffect(() => {
-    setWishlisted(localStorage.getItem(getWishlistKey(hotel.id)) === "1");
-  }, [hotel.id]);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const wishlisted = isFavorite(hotel.id);
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !wishlisted;
-    setWishlisted(next);
-    if (next) {
-      localStorage.setItem(getWishlistKey(hotel.id), "1");
-    } else {
-      localStorage.removeItem(getWishlistKey(hotel.id));
-    }
+    toggleFavorite(hotel as any);
   };
 
   const params = new URLSearchParams();

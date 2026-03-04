@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
+import { useFavorites } from "@/context/favorites";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {

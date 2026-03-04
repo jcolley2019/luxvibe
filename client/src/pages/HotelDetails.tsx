@@ -18,6 +18,7 @@ import {
   Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useFavorites } from "@/context/favorites";
 import { format, differenceInDays, parseISO, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -233,22 +234,10 @@ export default function HotelDetails() {
   const aiSentiment: ReviewSentiment | null = reviewsData?.sentiment ?? null;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  useEffect(() => {
-    const key = `wishlist_${id}`;
-    setWishlist(localStorage.getItem(key) === "1");
-  }, [id]);
-
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const wishlist = hotel ? isFavorite(hotel.id) : false;
   const toggleWishlist = () => {
-    const key = `wishlist_${id}`;
-    const next = !wishlist;
-    setWishlist(next);
-    if (next) {
-      localStorage.setItem(key, "1");
-    } else {
-      localStorage.removeItem(key);
-    }
-    // Dispatch event to notify other components (like Navbar/Listings)
-    window.dispatchEvent(new Event("storage"));
+    if (hotel) toggleFavorite(hotel as any);
   };
   const [aiInput, setAiInput] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");

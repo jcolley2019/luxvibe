@@ -81,7 +81,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-2xl" aria-describedby={undefined}>
+      <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-2xl" aria-describedby={undefined} data-testid="compare-modal">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-lg font-bold text-foreground">Compare Hotels</h2>
           <button
