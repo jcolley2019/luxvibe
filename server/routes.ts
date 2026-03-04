@@ -5,6 +5,9 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import Anthropic from "@anthropic-ai/sdk";
+import { db } from "./db";
+import { litapiBookingRefs } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -30,18 +33,20 @@ class ApiCache {
 const apiCache = new ApiCache();
 const geocodeCache = new ApiCache();
 
-// In-memory store: email -> Set of bookingIds captured at book time
-// Used to find bookings regardless of how clientReference was formatted by SDK
-const userBookingIds = new Map<string, Set<string>>();
+// In-memory map: prebookId → unique clientReference generated at prebook time
+// Ensures each booking attempt has a distinct clientReference, preventing 4005 duplicates
+const prebookClientRefs = new Map<string, string>();
 
-function addUserBookingId(email: string, bookingId: string) {
-  if (!email || !bookingId) return;
-  if (!userBookingIds.has(email)) userBookingIds.set(email, new Set());
-  userBookingIds.get(email)!.add(bookingId);
-}
-
-function getUserBookingIds(email: string): string[] {
-  return Array.from(userBookingIds.get(email) || []);
+// Persist a bookingId → guestEmail association in the DB so My Bookings survives restarts
+async function recordBookingRef(userId: string | null, bookingId: string, guestEmail: string, clientReference: string) {
+  try {
+    await db.insert(litapiBookingRefs).values({ userId, bookingId, guestEmail, clientReference });
+    console.log('[book-ref] Recorded bookingId:', bookingId, 'for:', guestEmail);
+  } catch (err: any) {
+    if (!String(err?.message).includes('duplicate')) {
+      console.error('[book-ref] Failed to save booking ref:', err?.message);
+    }
+  }
 }
 
 async function geocodeHotel(name: string, city: string, countryCode: string): Promise<{ lat: number; lng: number } | null> {
@@ -1893,58 +1898,71 @@ Guest question: ${question}`;
     try {
       const userEmail = req.user?.email || req.user?.claims?.email || "";
 
-      // Helper to map a LiteAPI booking object to our response shape
+      // mapBooking handles both individual GET /bookings/{id} (uses bookedRooms[])
+      // and list GET /bookings?clientReference=... (uses rooms[])
+      // Individual endpoint: bookedRooms[0].rate.retailRate.total is a plain object {amount, currency}
+      // List endpoint: rooms[0].amount is a top-level number
       function mapBooking(b: any) {
-        // List endpoint uses `rooms[]`, not `bookedRooms[]`
-        const room = b.rooms?.[0] || b.bookedRooms?.[0];
+        const room = b.bookedRooms?.[0] || b.rooms?.[0];
         return {
           id: b.bookingId,
           hotelName: b.hotel?.name || "Hotel",
-          roomType: room?.name || room?.roomType?.name || "Room",
+          roomType: room?.roomType?.name || room?.name || "Room",
           checkIn: b.checkin,
           checkOut: b.checkout,
           guests: room?.adults ?? b.adults ?? 1,
-          // Top-level price is most reliable; fall back to room.amount or room rate
-          totalPrice: b.price ?? room?.amount ?? room?.rate?.retailRate?.total?.[0]?.amount ?? null,
+          totalPrice: b.price ??
+            room?.rate?.retailRate?.total?.amount ??
+            room?.amount ??
+            null,
           currency: b.currency || "USD",
           status: b.status,
           createdAt: b.createdAt,
         };
       }
 
-      // Query 1: bookings where clientReference = plain email (our manual book calls)
-      const response = await fetch(
+      // Step 1: Collect bookingIds from the persistent DB (covers all bookings after the fix)
+      const refs = await db.select().from(litapiBookingRefs)
+        .where(eq(litapiBookingRefs.guestEmail, userEmail));
+      const dbBookingIds = new Set(refs.map(r => r.bookingId));
+      console.log('[my-bookings] DB refs for', userEmail, ':', Array.from(dbBookingIds));
+
+      // Step 2: Also check old-format clientReference=email (backward compat for pre-fix bookings)
+      const oldRes = await fetch(
         `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userEmail)}`,
         { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
       );
-      const data = await response.json();
-      console.log('[my-bookings] raw:', JSON.stringify(data).slice(0, 300));
-      const bookingsFromRef: any[] = data?.data || [];
+      const oldData = await oldRes.json();
+      const oldBookings: any[] = oldData?.data || [];
+      console.log('[my-bookings] old clientRef matches:', oldBookings.length);
 
-      // Query 2: fetch individual bookings we recorded server-side (catches SDK-created bookings
-      // where clientReference may differ from plain email)
-      const storedIds = getUserBookingIds(userEmail);
-      const storedIdSet = new Set(bookingsFromRef.map((b: any) => b.bookingId));
-      const extraIds = storedIds.filter(id => !storedIdSet.has(id));
+      // Step 3: Merge all unique booking IDs
+      const allIds = new Set<string>([
+        ...dbBookingIds,
+        ...oldBookings.map((b: any) => b.bookingId),
+      ]);
+      console.log('[my-bookings] total unique bookingIds:', allIds.size);
 
-      const extraBookings: any[] = [];
-      await Promise.all(
-        extraIds.map(async (bookingId) => {
+      // Step 4: Fetch each booking individually for full detail (bookedRooms, price, etc.)
+      const results = await Promise.all(
+        Array.from(allIds).map(async (bookingId) => {
           try {
             const r = await fetch(
               `${LITEAPI_BOOK_BASE}/bookings/${bookingId}`,
               { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
             );
-            if (r.ok) {
-              const d = await r.json();
-              if (d?.data) extraBookings.push(d.data);
-            }
-          } catch {}
+            const d = await r.json();
+            return d?.data || null;
+          } catch { return null; }
         })
       );
 
-      const allBookings = [...bookingsFromRef, ...extraBookings];
-      res.json(allBookings.map(mapBooking));
+      const mapped = results.filter(Boolean).map(mapBooking);
+      // Sort by createdAt descending (most recent first)
+      mapped.sort((a, b) =>
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+      res.json(mapped);
     } catch (err) {
       console.error("Fetch bookings error:", err);
       res.status(500).json({ message: "Failed to fetch bookings" });
@@ -2168,9 +2186,12 @@ Guest question: ${question}`;
   app.post(api.hotels.prebook.path, async (req, res) => {
     try {
       const { offerId } = api.hotels.prebook.input.parse(req.body);
+      // Generate a unique clientReference per booking attempt to prevent 4005 duplicates
+      const clientRef = `bk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const data = await liteApiPost("/rates/prebook", {
         usePaymentSdk: true,
-        offerId
+        offerId,
+        clientReference: clientRef,
       }, LITEAPI_BOOK_BASE);
 
       if (data.error) {
@@ -2180,20 +2201,29 @@ Guest question: ${question}`;
       const apiKey = process.env.LITEAPI_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
       const inner = data.data || data;
-      res.json({ ...inner, paymentEnv, publicKey: apiKey });
+      // Store the clientRef so the book route can look it up by prebookId
+      if (inner.prebookId) prebookClientRefs.set(inner.prebookId, clientRef);
+      console.log('[prebook] clientRef:', clientRef, 'prebookId:', inner.prebookId);
+      res.json({ ...inner, paymentEnv, publicKey: apiKey, clientReference: clientRef });
     } catch (err: any) {
       console.error("Prebook error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to prebook" });
     }
   });
 
-  app.post(api.hotels.book.path, async (req, res) => {
+  app.post(api.hotels.book.path, async (req: any, res) => {
     try {
       console.log('[book] incoming body:', JSON.stringify({ prebookId: req.body.prebookId, transactionId: req.body.transactionId }));
       const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
+      const userId: string | null = req.user?.id || req.user?.claims?.sub || null;
+
+      // Look up the unique clientReference generated at prebook time
+      const clientRef = prebookClientRefs.get(prebookId) || `${email}_${Date.now()}`;
+      console.log('[book] using clientRef:', clientRef, 'for prebookId:', prebookId);
+
       const bookPayload = {
         prebookId,
-        clientReference: email,
+        clientReference: clientRef,
         holder: { firstName, lastName, email, phone },
         payment: { method: "TRANSACTION_ID", transactionId },
         guests: [{ occupancyNumber: 1, firstName, lastName, email }]
@@ -2218,32 +2248,49 @@ Guest question: ${question}`;
       try { data = JSON.parse(rawText); } catch { data = { message: rawText }; }
 
       // Error 4005 = "duplicate booking attempt with existing client reference"
-      // This means the LiteAPI payment SDK already completed the booking internally
-      // when payment succeeded. Fetch the existing booking and return it as success.
+      // The LiteAPI payment SDK already completed the booking when payment succeeded.
+      // Look it up by the unique clientRef, then fall back to plain email for old bookings.
       if (data?.error?.code === 4005) {
-        console.log('[book] 4005 detected — SDK already booked. Looking up existing booking for:', email);
-        const lookupRes = await fetch(
-          `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(email)}`,
+        console.log('[book] 4005 detected — looking up booking. clientRef:', clientRef);
+
+        // Try the unique clientRef first
+        let lookupData: any = null;
+        const res1 = await fetch(
+          `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(clientRef)}`,
           { headers: { 'accept': 'application/json', 'X-API-Key': process.env.LITEAPI_KEY! } }
         );
-        const lookupData = await lookupRes.json();
-        console.log('[book] 4005 lookup:', JSON.stringify(lookupData).slice(0, 400));
-        const bookings: any[] = lookupData?.data || [];
+        const d1 = await res1.json();
+        console.log('[book] 4005 lookup by clientRef:', JSON.stringify(d1).slice(0, 300));
+        const byClientRef: any[] = d1?.data || [];
+
+        if (byClientRef.length > 0) {
+          lookupData = byClientRef;
+        } else {
+          // Fall back to plain email (for old bookings using email as clientReference)
+          const res2 = await fetch(
+            `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(email)}`,
+            { headers: { 'accept': 'application/json', 'X-API-Key': process.env.LITEAPI_KEY! } }
+          );
+          const d2 = await res2.json();
+          console.log('[book] 4005 fallback by email:', JSON.stringify(d2).slice(0, 300));
+          lookupData = d2?.data || [];
+        }
+
         // Sort by createdAt descending to get the most recent booking
-        const sorted = [...bookings].sort((a, b) =>
+        const sorted = [...lookupData].sort((a: any, b: any) =>
           new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         );
         const booking = sorted[0];
         if (booking) {
-          addUserBookingId(email, booking.bookingId);
-          const room4005 = booking.rooms?.[0] || booking.bookedRooms?.[0];
+          await recordBookingRef(userId, booking.bookingId, email, clientRef);
+          const room4005 = booking.bookedRooms?.[0] || booking.rooms?.[0];
           return res.json({
             bookingId: booking.bookingId,
             hotelConfirmationCode: booking.supplierBookingId || booking.hotel_confirmation_code || '',
             checkin: booking.checkin,
             checkout: booking.checkout,
             currency: booking.currency || 'USD',
-            price: booking.price ?? room4005?.amount ?? room4005?.rate?.retailRate?.total?.[0]?.amount ?? null,
+            price: booking.price ?? room4005?.rate?.retailRate?.total?.amount ?? room4005?.amount ?? null,
             hotel: booking.hotel,
             status: booking.status,
           });
@@ -2260,7 +2307,10 @@ Guest question: ${question}`;
       }
 
       const bookResult = data.data || data;
-      if (bookResult?.bookingId) addUserBookingId(email, bookResult.bookingId);
+      if (bookResult?.bookingId) {
+        await recordBookingRef(userId, bookResult.bookingId, email, clientRef);
+        prebookClientRefs.delete(prebookId); // Clean up
+      }
       res.json(bookResult);
     } catch (err: any) {
       console.error("Book error:", err?.message || err);

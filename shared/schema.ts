@@ -29,6 +29,21 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   userId: true // userId is injected by the server from the session
 });
 
+// === LITEAPI BOOKING REFS ===
+// Persistent store of bookingIds returned by LiteAPI, keyed by guestEmail.
+// Needed because clientReference is now unique per booking, so we can't query by email alone.
+export const litapiBookingRefs = pgTable("liteapi_booking_refs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id"),
+  bookingId: text("booking_id").notNull(),
+  guestEmail: text("guest_email").notNull(),
+  clientReference: text("client_reference").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertLitapiBookingRefSchema = createInsertSchema(litapiBookingRefs).omit({ id: true, createdAt: true });
+export type LitapiBookingRef = typeof litapiBookingRefs.$inferSelect;
+export type InsertLitapiBookingRef = z.infer<typeof insertLitapiBookingRefSchema>;
+
 // === EXPLICIT API CONTRACT TYPES ===
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
