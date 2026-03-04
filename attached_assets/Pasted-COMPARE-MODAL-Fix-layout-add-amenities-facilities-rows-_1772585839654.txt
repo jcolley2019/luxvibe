@@ -1,0 +1,62 @@
+COMPARE MODAL — Fix layout, add amenities/facilities rows, add back navigation (Autonomous Economy):
+In the Compare Hotels modal component (find the file that renders the Compare Hotels modal), make these fixes:
+Fix 1 — Layout and column sizing:
+
+Make the modal wider: max-w-5xl
+Fix column widths so hotel columns are equal and the label column is fixed width w-36
+Add horizontal scrolling (overflow-x-auto) so up to 4 hotels display correctly
+Ensure proper cell padding and borders between rows for readability
+
+Fix 2 — Add scrollable rows with amenities/facilities:
+
+Make the modal body scrollable vertically (overflow-y-auto, max-h-[80vh])
+Keep the hotel photos and names sticky at the top while scrolling
+After the existing PRICE/NIGHT row, add these comparison rows with a ✓ (green checkmark) if the hotel has the feature or — if it does not. Pull data from the hotel's facilities/amenities data already available in the hotel object:
+
+FACILITIES & SERVICES:
+
+Free WiFi
+Swimming Pool
+Fitness Center / Gym
+Spa & Wellness
+Restaurant on site
+Bar / Lounge
+Room Service
+Business Center
+Meeting Rooms
+Concierge
+24-Hour Front Desk
+Luggage Storage
+Laundry Service
+
+ROOM FEATURES:
+
+Air Conditioning
+Mini Fridge / Minibar
+Safe in Room
+Flat-screen TV
+Coffee / Tea Maker
+
+TRANSPORT & PARKING:
+
+Free Parking
+Valet Parking
+Airport Shuttle
+EV Charging
+
+FAMILY & ACCESSIBILITY:
+
+Pet Friendly
+Kids Facilities
+Wheelchair Accessible
+Crib / Extra Bed Available
+
+FOOD & DRINK:
+
+Breakfast Included
+All-Inclusive Option
+
+Group these into sections with a gray section header row spanning all columns (e.g. "FACILITIES & SERVICES" as a full-width header row).
+Fix 3 — Back to compare navigation:
+When the user clicks "View Hotel" in the compare modal, store the current compare state (selected hotel IDs) in sessionStorage before navigating. On the hotel details page, if sessionStorage has a compareReturnState, show a sticky banner at the top of the page saying "← Back to comparison" that when clicked navigates back to the search results page and automatically reopens the compare modal with the previously selected hotels restored.
+Do not change any other functionality.
