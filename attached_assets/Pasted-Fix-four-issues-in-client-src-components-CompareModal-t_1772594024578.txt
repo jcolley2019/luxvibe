@@ -1,0 +1,25 @@
+Fix four issues in client/src/components/CompareModal.tsx only. Do not touch any other file.
+
+Issue 1 — Double X close button
+The DialogContent component from shadcn/ui renders its own built-in close button automatically. The modal also has a manual <button> with <X> icon in the fixed header div. Remove the manual <button onClick={onClose}> and its <X className="w-4 h-4" /> entirely from the fixed header div. The shadcn DialogContent close button will handle closing. Keep the <h2>Compare Hotels</h2> heading in the header div.
+
+Issue 2 — Unequal hotel column widths
+The table uses width: "100%" on the <table> element combined with min-w-[220px] on hotel columns. When only 2 hotels are compared, the columns are unequal because the table stretches to fill width without distributing equally.
+Fix: Add style={{ tableLayout: "fixed" }} to the <table> element. Change the hotel <col> elements from style={{ minWidth: "220px" }} to style={{ width: \calc((100% - 144px) / ${enrichedHotels.length})`, minWidth: "220px" }}` so each hotel column gets an equal share of the remaining width after the label column.
+
+Issue 3 — Sticky header rows overlapping during scroll
+The Photo row is sticky at top: 0 and the Name & Location row is sticky at top: 152. The hardcoded 152px offset is incorrect — it doesn't account for the actual rendered height of the Photo row, causing overlap.
+Fix: Use a useRef on the Photo <tr> element to measure its actual height, and set the Name & Location row's top value dynamically. Implement like this:
+tsconst photoRowRef = useRef<HTMLTableRowElement>(null);
+const [nameRowTop, setNameRowTop] = useState(152);
+useEffect(() => {
+  if (photoRowRef.current) {
+    setNameRowTop(photoRowRef.current.offsetHeight);
+  }
+}, [enrichedHotels, open]);
+Apply ref={photoRowRef} to the Photo <tr> and use style={{ position: "sticky", top: nameRowTop, zIndex: 20, background: BG_PAGE }} on the Name & Location <tr>.
+
+Issue 4 — "Wheelchair Accessible" label wrapping to 2 lines
+The label column is w-36 min-w-[144px] max-w-[144px] which is too narrow for longer labels. Change LABEL_COL_STYLE from "w-36 min-w-[144px] max-w-[144px]" to "w-44 min-w-[176px] max-w-[176px]" and update the <col> style from width: "144px", minWidth: "144px" to width: "176px", minWidth: "176px". This gives labels enough room without affecting the overall layout.
+
+Do not modify the facilities fetching logic, AMENITY_GROUPS, hasFeature(), the title size, or any other file. Run tests after changes and confirm: single X button, equal-width hotel columns, no sticky row overlap during scroll, and no wrapping label text.

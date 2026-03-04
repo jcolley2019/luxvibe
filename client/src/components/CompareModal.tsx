@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Check, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Check, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePreferences } from "@/context/preferences";
@@ -117,7 +117,7 @@ const AMENITY_GROUPS = [
   },
 ];
 
-const LABEL_COL_STYLE = "w-36 min-w-[144px] max-w-[144px]";
+const LABEL_COL_STYLE = "w-44 min-w-[176px] max-w-[176px]";
 const HOTEL_COL_STYLE = "min-w-[220px]";
 
 const BG_MUTED = "hsl(var(--muted))";
@@ -129,9 +129,18 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
   const [enrichedHotels, setEnrichedHotels] = useState<CompareHotel[]>(hotels);
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
 
+  const photoRowRef = useRef<HTMLTableRowElement>(null);
+  const [nameRowTop, setNameRowTop] = useState(152);
+
   useEffect(() => {
     setEnrichedHotels(hotels);
   }, [hotels]);
+
+  useEffect(() => {
+    if (photoRowRef.current) {
+      setNameRowTop(photoRowRef.current.offsetHeight);
+    }
+  }, [enrichedHotels, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -198,30 +207,42 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
       >
         <DialogTitle className="sr-only">Compare Hotels</DialogTitle>
 
-        {/* Fixed modal header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-          <h2 className="text-2xl font-bold font-heading text-foreground" aria-hidden="true">Compare Hotels</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            data-testid="button-compare-close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        {/* Fixed modal header — shadcn DialogContent provides its own close button */}
+        <div className="flex items-center px-6 py-4 border-b border-border shrink-0">
+          <h2 className="text-2xl font-bold font-heading text-foreground">Compare Hotels</h2>
         </div>
 
         {/* Scrollable body */}
         <div className="overflow-auto flex-1" style={{ scrollbarWidth: "thin" }}>
-          <table className="border-collapse" style={{ minWidth: `${144 + enrichedHotels.length * 220}px`, width: "100%" }}>
+          <table
+            className="border-collapse"
+            style={{
+              tableLayout: "fixed",
+              minWidth: `${176 + enrichedHotels.length * 220}px`,
+              width: "100%",
+            }}
+          >
             <colgroup>
-              <col style={{ width: "144px", minWidth: "144px" }} />
-              {enrichedHotels.map(h => <col key={h.id} style={{ minWidth: "220px" }} />)}
+              <col style={{ width: "176px", minWidth: "176px" }} />
+              {enrichedHotels.map(h => (
+                <col
+                  key={h.id}
+                  style={{
+                    width: `calc((100% - 176px) / ${enrichedHotels.length})`,
+                    minWidth: "220px",
+                  }}
+                />
+              ))}
             </colgroup>
 
             {/* Sticky header: Photo + Name */}
             <thead>
               {/* Photo row */}
-              <tr className="border-b border-border" style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE }}>
+              <tr
+                ref={photoRowRef}
+                className="border-b border-border"
+                style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE }}
+              >
                 <td
                   className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-middle`}
                   style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED }}
@@ -243,8 +264,11 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 ))}
               </tr>
 
-              {/* Name & Location row */}
-              <tr className="border-b border-border" style={{ position: "sticky", top: 152, zIndex: 20, background: BG_PAGE }}>
+              {/* Name & Location row — top set dynamically from photo row height */}
+              <tr
+                className="border-b border-border"
+                style={{ position: "sticky", top: nameRowTop, zIndex: 20, background: BG_PAGE }}
+              >
                 <td
                   className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-top`}
                   style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED }}
