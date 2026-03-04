@@ -1874,23 +1874,25 @@ Guest question: ${question}`;
 
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.claims?.email || "";
+      const userEmail = req.user?.email || req.user?.claims?.email || "";
       const response = await fetch(
-        `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userId)}`,
+        `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userEmail)}`,
         { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
       );
       const data = await response.json();
+      console.log('[my-bookings] raw:', JSON.stringify(data).slice(0, 300));
       const bookings = data?.data || [];
       res.json(bookings.map((b: any) => ({
         id: b.bookingId,
-        hotelName: b.hotel?.name || b.hotelName || "Hotel",
+        hotelName: b.hotel?.name || "Hotel",
         roomType: b.bookedRooms?.[0]?.roomType?.name || "Room",
         checkIn: b.checkin,
         checkOut: b.checkout,
-        guests: b.adults || 1,
+        guests: b.bookedRooms?.[0]?.adults || 1,
         totalPrice: b.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || null,
         currency: b.currency || "USD",
         status: b.status,
+        createdAt: b.createdAt,
       })));
     } catch (err) {
       console.error("Fetch bookings error:", err);
