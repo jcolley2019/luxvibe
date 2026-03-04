@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePreferences } from "@/context/preferences";
@@ -126,54 +126,14 @@ const BG_PAGE = "hsl(var(--background))";
 export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests }: CompareModalProps) {
   const { currency } = usePreferences();
 
-  const [enrichedHotels, setEnrichedHotels] = useState<CompareHotel[]>(hotels);
-  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
-
   const photoRowRef = useRef<HTMLTableRowElement>(null);
   const [nameRowTop, setNameRowTop] = useState(152);
-
-  useEffect(() => {
-    setEnrichedHotels(hotels);
-  }, [hotels]);
 
   useEffect(() => {
     if (photoRowRef.current) {
       setNameRowTop(photoRowRef.current.offsetHeight);
     }
-  }, [enrichedHotels, open]);
-
-  useEffect(() => {
-    if (!open) return;
-    hotels.forEach(async (h) => {
-      if (h.facilities && h.facilities.length > 0) return;
-      if (loadingIds.has(h.id)) return;
-      setLoadingIds(prev => new Set(prev).add(h.id));
-      try {
-        const params = new URLSearchParams();
-        if (checkIn) params.set("checkIn", checkIn);
-        if (checkOut) params.set("checkOut", checkOut);
-        if (guests) params.set("guests", guests);
-        const res = await fetch(`/api/hotel/${h.id}?${params.toString()}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const fetched: string[] = Array.isArray(data.amenities)
-          ? data.amenities.filter((a: any) => typeof a === "string" && a !== "Contact hotel for amenities")
-          : [];
-        
-        console.log(`[compare] hotel ${h.id} amenities:`, fetched);
-        if (fetched.length === 0) {
-          console.log(`[compare] hotel ${h.id} raw data keys:`, Object.keys(data));
-        }
-
-        setEnrichedHotels(prev => prev.map(eh =>
-          eh.id === h.id ? { ...eh, facilities: fetched } : eh
-        ));
-      } catch {
-      } finally {
-        setLoadingIds(prev => { const s = new Set(prev); s.delete(h.id); return s; });
-      }
-    });
-  }, [open, hotels]);
+  }, [hotels, open]);
 
   const buildUrl = (id: string) => {
     const p = new URLSearchParams();
@@ -197,7 +157,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
 
   const handleViewHotel = () => {
     sessionStorage.setItem("lv_compare_return_v1", JSON.stringify({
-      hotels: enrichedHotels,
+      hotels,
       returnUrl: window.location.href,
     }));
     onClose();
@@ -224,26 +184,27 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
             className="border-collapse"
             style={{
               tableLayout: "fixed",
-              minWidth: `${176 + enrichedHotels.length * 220}px`,
+              minWidth: `${176 + hotels.length * 220}px`,
               width: "100%",
             }}
           >
             <colgroup>
               <col style={{ width: "176px", minWidth: "176px" }} />
-              {enrichedHotels.map(h => (
+              {hotels.map(h => (
                 <col
                   key={h.id}
                   style={{
-                    width: `calc((100% - 176px) / ${enrichedHotels.length})`,
+                    width: `calc((100% - 176px) / ${hotels.length})`,
                     minWidth: "220px",
                   }}
                 />
               ))}
             </colgroup>
 
-            {/* Sticky header: Photo + Name */}
-            <thead>
-              {/* Photo row */}
+            <thead />
+
+            <tbody>
+              {/* Photo row — sticky top:0 */}
               <tr
                 ref={photoRowRef}
                 className="border-b border-border"
@@ -255,7 +216,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 >
                   Photo
                 </td>
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE }}>
                     <div className="aspect-video overflow-hidden rounded-xl bg-muted">
                       <img
@@ -281,16 +242,14 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 >
                   Name & Location
                 </td>
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE }}>
                     <p className="font-bold text-sm text-foreground leading-snug" data-testid={`compare-name-${h.id}`}>{h.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{h.address}</p>
                   </td>
                 ))}
               </tr>
-            </thead>
 
-            <tbody>
               {/* Star Rating */}
               <tr className="border-b border-border">
                 <td
@@ -299,7 +258,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 >
                   Star Rating
                 </td>
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`}>
                     <StarRow stars={h.stars} />
                   </td>
@@ -314,7 +273,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 >
                   Guest Rating
                 </td>
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-rating-${h.id}`}>
                     {h.rating ? (
                       <div className="flex items-center gap-2">
@@ -343,7 +302,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                 >
                   Price / Night
                 </td>
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-price-${h.id}`}>
                     {h.price && h.price > 0 ? (
                       <div>
@@ -361,7 +320,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
               {AMENITY_GROUPS.flatMap(group => [
                 <tr key={`grp-${group.label}`} className="border-b border-border/50">
                   <td
-                    colSpan={1 + enrichedHotels.length}
+                    colSpan={1 + hotels.length}
                     className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
                     style={{ background: BG_MUTED }}
                   >
@@ -376,11 +335,9 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                     >
                       {row.label}
                     </td>
-                    {enrichedHotels.map(h => (
+                    {hotels.map(h => (
                       <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-2.5 align-middle`}>
-                        {loadingIds.has(h.id) ? (
-                          <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
-                        ) : hasFeature(h.facilities, row.keywords) ? (
+                        {hasFeature(h.facilities, row.keywords) ? (
                           <Check className="w-4 h-4 text-emerald-500" />
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
@@ -397,7 +354,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                   className={`${LABEL_COL_STYLE} px-4 py-4`}
                   style={{ position: "sticky", left: 0, zIndex: 10, background: BG_MUTED }}
                 />
-                {enrichedHotels.map(h => (
+                {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-4 align-middle`}>
                     <Link href={buildUrl(h.id)} onClick={handleViewHotel}>
                       <Button

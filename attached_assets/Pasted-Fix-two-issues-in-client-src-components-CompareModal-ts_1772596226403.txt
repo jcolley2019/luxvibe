@@ -1,0 +1,14 @@
+Fix two issues in client/src/components/CompareModal.tsx only.
+
+Issue 1 — Ghost gap between Photo and Name & Location rows during scroll
+The sticky <thead> rows are causing a visual gap because the <thead> element itself is not sticky — only the individual <tr> elements inside it are. This creates a transparent gap between them during scroll.
+Fix: Remove position: sticky and top values from both <tr> elements inside <thead>. Instead, make the entire <thead> sticky by wrapping its content differently — move the Photo row and Name & Location row out of <thead> entirely and place them as the first rows inside <tbody>. Apply style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE }} to the Photo <tr> and use the existing photoRowRef / nameRowTop logic to set the Name & Location <tr> sticky top dynamically. Make <thead> empty and remove it, or remove it entirely since all rows will now be in <tbody>.
+
+Issue 2 — Facilities fetch failing due to CORS/proxy error, all rows showing —
+The useEffect that calls /api/hotel/${h.id} is failing with a 502 Bad Gateway CORS error in the Replit environment. Remove the entire facilities-fetching useEffect, the loadingIds state, the enrichedHotels state, and the Loader2 import and spinner UI.
+Replace with a simpler approach: use the hotels prop directly (no enrichment needed). The facilities data is already available on the hotel objects passed in from Home.tsx via the toggleCompare fix applied earlier — the issue is that featured/nearby hotels from useFeaturedHotels and useNearbyHotels hooks may not include a facilities array in their response shape.
+To fix the data source: in client/src/server (or wherever the featured hotels API route is defined), check the route that serves /api/hotels/featured and /api/hotels/nearby. Ensure the hotel objects returned include a facilities field as a string[]. If the liteapi response includes amenities under a different key (such as amenities, hotelFacilities, or nested under hotel.facilities), map it to facilities: string[] in the API response before sending to the client.
+Also check client/src/hooks/use-hotels.ts — find the useFeaturedHotels and useNearbyHotels hooks and confirm the returned hotel type includes facilities?: string[]. If it does not, add it to the return type and ensure the data is passed through from the API response.
+Remove the console.log debug statements added in the previous task.
+
+Do not change column widths, title size, close button, or AMENITY_GROUPS logic. Run tests after and confirm facilities rows show real checkmarks for hotels that have known amenities like WiFi, Restaurant, or Fitness center.
