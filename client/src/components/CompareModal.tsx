@@ -198,16 +198,16 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
               {/* Combined Hotel Header row — sticky top:0 */}
               <tr
                 className="border-b border-border"
-                style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE }}
+                style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE, pointerEvents: "none" }}
               >
                 <td
                   className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-top`}
-                  style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED }}
+                  style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED, pointerEvents: "auto" }}
                 >
                   Hotel
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE }}>
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE, pointerEvents: "auto" }}>
                     <div className="aspect-video overflow-hidden rounded-xl bg-muted mb-3">
                       <img
                         src={h.imageUrl || getFallback(h.id)}
