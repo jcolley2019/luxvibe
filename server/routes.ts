@@ -40,7 +40,7 @@ const prebookClientRefs = new Map<string, string>();
 // Persist a bookingId → guestEmail association in the DB so My Bookings survives restarts
 async function recordBookingRef(userId: string | null, bookingId: string, guestEmail: string, clientReference: string) {
   try {
-    await db.insert(litapiBookingRefs).values({ userId, bookingId, guestEmail, clientReference });
+    await db.insert(litapiBookingRefs).values({ userId, bookingId, guestEmail, clientReference }).onConflictDoNothing();
     console.log('[book-ref] Recorded bookingId:', bookingId, 'for:', guestEmail);
   } catch (err: any) {
     if (!String(err?.message).includes('duplicate')) {
