@@ -2137,24 +2137,19 @@ Guest question: ${question}`;
   app.post(api.hotels.book.path, async (req, res) => {
     try {
       const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
-      const data = await liteApiPost("/rates/book", {
+      const bookPayload = {
         prebookId,
-        clientReference: `${firstName}_${lastName}_${email}`,
+        clientReference: email,
         holder: { firstName, lastName, email, phone },
-        payment: {
-          method: "TRANSACTION_ID",
-          transactionId
-        },
-        guests: [{
-          occupancyNumber: 1,
-          firstName,
-          lastName,
-          email
-        }]
-      }, LITEAPI_BOOK_BASE);
+        payment: { method: "TRANSACTION_ID", transactionId },
+        guests: [{ occupancyNumber: 1, firstName, lastName, email }]
+      };
+      console.log('[book] payload:', JSON.stringify(bookPayload));
+      const data = await liteApiPost("/rates/book", bookPayload, LITEAPI_BOOK_BASE);
+      console.log('[book] response:', JSON.stringify(data).slice(0, 500));
 
       if (data.error) {
-        return res.status(400).json({ message: data.error });
+        return res.status(400).json({ message: typeof data.error === 'string' ? data.error : data.error?.message || data.message || JSON.stringify(data.error) });
       }
 
       res.json(data.data || data);
