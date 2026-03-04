@@ -342,7 +342,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                     {hotels.map(h => (
                       <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-2.5 align-middle`}>
                         {hasFeature(getFacilities(h), row.keywords) ? (
-                          <Check className="w-4 h-4 text-emerald-500" />
+                          <Check className="w-6 h-6 text-emerald-500 stroke-[3]" />
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
                         )}
