@@ -10,10 +10,11 @@ import { format, parseISO } from "date-fns";
 
 export default function BookingConfirmation() {
   const [location] = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
-  const prebookId = searchParams.get("prebookId");
-  const transactionId = searchParams.get("transactionId");
-  
+  const params = new URLSearchParams(window.location.search);
+  const prebookId = params.get("prebookId");
+  const transactionId = params.get("transactionId") || params.get("tid");
+  const paymentIntent = params.get("payment_intent");
+
   const [bookingData, setBookingData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [checkoutData, setCheckoutData] = useState<any>(null);
@@ -26,6 +27,7 @@ export default function BookingConfirmation() {
     onSuccess: (data) => {
       setBookingData(data);
       sessionStorage.removeItem("checkoutData");
+      sessionStorage.removeItem("guestDetails");
     },
     onError: (err: any) => {
       setError(err.message || "Booking failed. Please try again or contact support.");
@@ -33,13 +35,26 @@ export default function BookingConfirmation() {
   });
 
   useEffect(() => {
+    console.log("[BookingConfirmation] URL params:", {
+      prebookId,
+      transactionId,
+      paymentIntent,
+      allParams: window.location.search,
+    });
+
     const savedData = sessionStorage.getItem("checkoutData");
-    if (!prebookId || !savedData) {
+    const guestData = sessionStorage.getItem("guestDetails");
+    const parsedData = savedData
+      ? JSON.parse(savedData)
+      : guestData
+      ? JSON.parse(guestData)
+      : null;
+
+    if (!prebookId || !parsedData) {
       setError("Missing booking information. Please start over.");
       return;
     }
 
-    const parsedData = JSON.parse(savedData);
     setCheckoutData(parsedData);
 
     const resolvedTransactionId = transactionId || parsedData.transactionId;
@@ -48,14 +63,16 @@ export default function BookingConfirmation() {
       return;
     }
 
-    bookMutation.mutate({
+    const payload = {
       prebookId,
       transactionId: resolvedTransactionId,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
       email: parsedData.email,
       phone: parsedData.phone || "0000000000",
-    });
+    };
+    console.log("[BookingConfirmation] book payload:", payload);
+    bookMutation.mutate(payload);
   }, []);
 
   const isLoading = bookMutation.isPending;

@@ -2138,6 +2138,7 @@ Guest question: ${question}`;
 
   app.post(api.hotels.book.path, async (req, res) => {
     try {
+      console.log('[book] incoming body:', JSON.stringify({ prebookId: req.body.prebookId, transactionId: req.body.transactionId }));
       const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
       const bookPayload = {
         prebookId,
@@ -2148,10 +2149,16 @@ Guest question: ${question}`;
       };
       console.log('[book] payload:', JSON.stringify(bookPayload));
       const data = await liteApiPost("/rates/book", bookPayload, LITEAPI_BOOK_BASE);
-      console.log('[book] response:', JSON.stringify(data).slice(0, 500));
+      console.log('[book] full response:', JSON.stringify(data));
 
       if (data.error) {
-        return res.status(400).json({ message: typeof data.error === 'string' ? data.error : data.error?.message || data.message || JSON.stringify(data.error) });
+        console.error('[book] LiteAPI error full response:', JSON.stringify(data));
+        return res.status(400).json({
+          message: typeof data.error === 'string'
+            ? data.error
+            : data.error?.message || data.message || JSON.stringify(data.error),
+          liteApiCode: data.error?.code || data.code || null,
+        });
       }
 
       res.json(data.data || data);

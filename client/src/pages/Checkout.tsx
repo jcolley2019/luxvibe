@@ -88,6 +88,12 @@ export default function Checkout() {
         currency
       };
       sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+      sessionStorage.setItem("guestDetails", JSON.stringify({
+        firstName: variables.firstName,
+        lastName: variables.lastName,
+        email: variables.email,
+        phone: variables.phone,
+      }));
       loadPaymentSdk();
     },
     onError: (error: Error) => {
@@ -114,7 +120,7 @@ export default function Checkout() {
       const liteAPIConfig = {
         publicKey: prebookData.paymentEnv === "live" ? "live" : "sandbox",
         secretKey: prebookData.secretKey,
-        returnUrl: `${window.location.origin}/booking-confirmation?prebookId=${prebookData.prebookId}&transactionId=${prebookData.transactionId}`,
+        returnUrl: `${window.location.origin}/booking-confirmation?prebookId=${prebookData.prebookId}`,
         targetElement: '#liteapi-payment',
         appearance: {
           theme: 'flat',
