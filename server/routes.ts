@@ -1928,7 +1928,8 @@ Guest question: ${question}`;
         .where(or(
           eq(litapiBookingRefs.userId, userId),
           eq(litapiBookingRefs.guestEmail, userEmail)
-        ));
+        ))
+        .limit(100);
 
       // Account linking: back-fill userId for rows that matched by email but have no userId
       const nullUserRefs = refs.filter(r => r.userId === null);
@@ -1955,12 +1956,11 @@ Guest question: ${question}`;
       console.log('[my-bookings] old clientRef matches:', oldBookings.length);
 
       // Step 3: Merge all unique booking IDs
-      const allIds = new Set<string>();
-      dbBookingIds.forEach(id => allIds.add(id));
-      oldBookings.forEach((b: any) => {
-        if (b.bookingId) allIds.add(b.bookingId);
-      });
-      console.log('[my-bookings] total unique bookingIds:', allIds.size);
+      const allIds = [...new Set([
+        ...refs.map(r => r.bookingId),
+        ...oldBookings.map((b: any) => b.bookingId).filter(Boolean)
+      ])];
+      console.log('[my-bookings] total unique bookingIds:', allIds.length);
 
       // Step 4: Fetch each booking individually for full detail (bookedRooms, price, etc.)
       const results = await Promise.all(
