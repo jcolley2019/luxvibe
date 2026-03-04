@@ -174,7 +174,9 @@ export default function MyBookings() {
                         {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
                       </td>
                       <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                        ${Number(booking.totalPrice ?? 0).toFixed(2)}
+                        {booking.totalPrice != null
+                          ? `$${Number(booking.totalPrice).toFixed(2)}`
+                          : <span className="text-muted-foreground font-normal">—</span>}
                       </td>
                       <td className="px-4 py-3">
                         <Badge

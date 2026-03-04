@@ -30,6 +30,20 @@ class ApiCache {
 const apiCache = new ApiCache();
 const geocodeCache = new ApiCache();
 
+// In-memory store: email -> Set of bookingIds captured at book time
+// Used to find bookings regardless of how clientReference was formatted by SDK
+const userBookingIds = new Map<string, Set<string>>();
+
+function addUserBookingId(email: string, bookingId: string) {
+  if (!email || !bookingId) return;
+  if (!userBookingIds.has(email)) userBookingIds.set(email, new Set());
+  userBookingIds.get(email)!.add(bookingId);
+}
+
+function getUserBookingIds(email: string): string[] {
+  return Array.from(userBookingIds.get(email) || []);
+}
+
 async function geocodeHotel(name: string, city: string, countryCode: string): Promise<{ lat: number; lng: number } | null> {
   const key = `geocode_${name}_${city}_${countryCode}`;
   const cached = geocodeCache.get(key);
@@ -1878,25 +1892,59 @@ Guest question: ${question}`;
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
       const userEmail = req.user?.email || req.user?.claims?.email || "";
+
+      // Helper to map a LiteAPI booking object to our response shape
+      function mapBooking(b: any) {
+        // List endpoint uses `rooms[]`, not `bookedRooms[]`
+        const room = b.rooms?.[0] || b.bookedRooms?.[0];
+        return {
+          id: b.bookingId,
+          hotelName: b.hotel?.name || "Hotel",
+          roomType: room?.name || room?.roomType?.name || "Room",
+          checkIn: b.checkin,
+          checkOut: b.checkout,
+          guests: room?.adults ?? b.adults ?? 1,
+          // Top-level price is most reliable; fall back to room.amount or room rate
+          totalPrice: b.price ?? room?.amount ?? room?.rate?.retailRate?.total?.[0]?.amount ?? null,
+          currency: b.currency || "USD",
+          status: b.status,
+          createdAt: b.createdAt,
+        };
+      }
+
+      // Query 1: bookings where clientReference = plain email (our manual book calls)
       const response = await fetch(
         `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userEmail)}`,
         { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
       );
       const data = await response.json();
       console.log('[my-bookings] raw:', JSON.stringify(data).slice(0, 300));
-      const bookings = data?.data || [];
-      res.json(bookings.map((b: any) => ({
-        id: b.bookingId,
-        hotelName: b.hotel?.name || "Hotel",
-        roomType: b.bookedRooms?.[0]?.roomType?.name || "Room",
-        checkIn: b.checkin,
-        checkOut: b.checkout,
-        guests: b.bookedRooms?.[0]?.adults || 1,
-        totalPrice: b.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || null,
-        currency: b.currency || "USD",
-        status: b.status,
-        createdAt: b.createdAt,
-      })));
+      const bookingsFromRef: any[] = data?.data || [];
+
+      // Query 2: fetch individual bookings we recorded server-side (catches SDK-created bookings
+      // where clientReference may differ from plain email)
+      const storedIds = getUserBookingIds(userEmail);
+      const storedIdSet = new Set(bookingsFromRef.map((b: any) => b.bookingId));
+      const extraIds = storedIds.filter(id => !storedIdSet.has(id));
+
+      const extraBookings: any[] = [];
+      await Promise.all(
+        extraIds.map(async (bookingId) => {
+          try {
+            const r = await fetch(
+              `${LITEAPI_BOOK_BASE}/bookings/${bookingId}`,
+              { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
+            );
+            if (r.ok) {
+              const d = await r.json();
+              if (d?.data) extraBookings.push(d.data);
+            }
+          } catch {}
+        })
+      );
+
+      const allBookings = [...bookingsFromRef, ...extraBookings];
+      res.json(allBookings.map(mapBooking));
     } catch (err) {
       console.error("Fetch bookings error:", err);
       res.status(500).json({ message: "Failed to fetch bookings" });
@@ -2187,13 +2235,15 @@ Guest question: ${question}`;
         );
         const booking = sorted[0];
         if (booking) {
+          addUserBookingId(email, booking.bookingId);
+          const room4005 = booking.rooms?.[0] || booking.bookedRooms?.[0];
           return res.json({
             bookingId: booking.bookingId,
             hotelConfirmationCode: booking.supplierBookingId || booking.hotel_confirmation_code || '',
             checkin: booking.checkin,
             checkout: booking.checkout,
             currency: booking.currency || 'USD',
-            price: booking.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || null,
+            price: booking.price ?? room4005?.amount ?? room4005?.rate?.retailRate?.total?.[0]?.amount ?? null,
             hotel: booking.hotel,
             status: booking.status,
           });
@@ -2209,7 +2259,9 @@ Guest question: ${question}`;
         return res.status(400).json({ message: errMsg, liteApiCode: data?.error?.code || data?.code || null });
       }
 
-      res.json(data.data || data);
+      const bookResult = data.data || data;
+      if (bookResult?.bookingId) addUserBookingId(email, bookResult.bookingId);
+      res.json(bookResult);
     } catch (err: any) {
       console.error("Book error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to book" });
