@@ -1,0 +1,43 @@
+Goal: When the Compare Modal opens, fetch full hotel details for each compared hotel from /api/hotels/:id and use the amenities field to populate the facilities comparison table.
+In client/src/components/CompareModal.tsx:
+Step 1 — Add enrichment state. Add these two state variables:
+tsxconst [enrichedFacilities, setEnrichedFacilities] = useState<Record<string, string[]>>({});
+const [loadingFacilities, setLoadingFacilities] = useState(false);
+Step 2 — Fetch on open. Add a useEffect that fires when open becomes true:
+tsxuseEffect(() => {
+  if (!open || hotels.length === 0) return;
+  const hotelsNeedingFetch = hotels.filter(h => !h.facilities?.length);
+  if (hotelsNeedingFetch.length === 0) return;
+  setLoadingFacilities(true);
+  Promise.all(
+    hotelsNeedingFetch.map(async (h) => {
+      try {
+        const res = await fetch(`/api/hotels/${h.id}`);
+        const data = await res.json();
+        return { id: h.id, amenities: data.amenities || [] };
+      } catch {
+        return { id: h.id, amenities: [] };
+      }
+    })
+  ).then(results => {
+    const map: Record<string, string[]> = {};
+    for (const r of results) map[r.id] = r.amenities;
+    setEnrichedFacilities(map);
+    setLoadingFacilities(false);
+  });
+}, [open, hotels]);
+Step 3 — Use enriched data. Create a helper that returns the best available facilities for a hotel:
+tsxconst getFacilities = (h: CompareHotel): string[] =>
+  h.facilities?.length ? h.facilities : (enrichedFacilities[h.id] || []);
+Step 4 — Update hasFeature calls. In the amenity rows rendering, replace h.facilities with getFacilities(h):
+tsx{hasFeature(getFacilities(h), row.keywords) ? (
+  <Check className="w-4 h-4 text-emerald-500" />
+) : (
+  <span className="text-muted-foreground text-sm">—</span>
+)}
+Step 5 — Show loading state. In the FACILITIES & SERVICES section header row, add a subtle loading indicator when loadingFacilities is true:
+tsx{group.label}{loadingFacilities && group.label === "FACILITIES & SERVICES" ? " ⏳" : ""}
+Step 6 — Fix "Check rates" click. In the Price/Night row, wrap the "Check rates" span in a <Link> and add style={{ position: "relative", zIndex: 30 }} so it's clickable above the sticky header.
+Note: /api/hotels/:id does NOT require checkIn/checkOut — it returns hotel metadata including amenities without dates. This call goes to your own Express server, not directly to liteapi, so there are no CORS issues.
+Do not change column widths, title, or scroll behavior.
+ Sonnet 4.6Claude is

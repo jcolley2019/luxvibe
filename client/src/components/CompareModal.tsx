@@ -126,6 +126,35 @@ const BG_PAGE = "hsl(var(--background))";
 export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests }: CompareModalProps) {
   const { currency } = usePreferences();
 
+  const [enrichedFacilities, setEnrichedFacilities] = useState<Record<string, string[]>>({});
+  const [loadingFacilities, setLoadingFacilities] = useState(false);
+
+  useEffect(() => {
+    if (!open || hotels.length === 0) return;
+    const hotelsNeedingFetch = hotels.filter(h => !h.facilities?.length);
+    if (hotelsNeedingFetch.length === 0) return;
+    setLoadingFacilities(true);
+    Promise.all(
+      hotelsNeedingFetch.map(async (h) => {
+        try {
+          const res = await fetch(`/api/hotels/${h.id}`);
+          const data = await res.json();
+          return { id: h.id, amenities: data.amenities || [] };
+        } catch {
+          return { id: h.id, amenities: [] };
+        }
+      })
+    ).then(results => {
+      const map: Record<string, string[]> = {};
+      for (const r of results) map[r.id] = r.amenities;
+      setEnrichedFacilities(map);
+      setLoadingFacilities(false);
+    });
+  }, [open, hotels]);
+
+  const getFacilities = (h: CompareHotel): string[] =>
+    h.facilities?.length ? h.facilities : (enrichedFacilities[h.id] || []);
+
   const buildUrl = (id: string) => {
     const p = new URLSearchParams();
     if (checkIn) p.set("checkIn", checkIn);
@@ -283,13 +312,9 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                         <p className="text-xs text-muted-foreground mt-0.5">incl. taxes & fees</p>
                       </div>
                     ) : (
-                      <a
-                        href={buildUrl(h.id)}
-                        className="text-sm font-semibold text-primary hover:underline cursor-pointer"
-                        style={{ position: "relative", zIndex: 30, display: "inline-block" }}
-                      >
-                        Check rates
-                      </a>
+                      <p className="text-xs text-muted-foreground leading-snug">
+                        Visit hotel page &amp; set dates to see rates
+                      </p>
                     )}
                   </td>
                 ))}
@@ -303,7 +328,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                     className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
                     style={{ background: BG_MUTED }}
                   >
-                    {group.label}
+                    {group.label}{loadingFacilities && group.label === "FACILITIES & SERVICES" ? " ⏳" : ""}
                   </td>
                 </tr>,
                 ...group.rows.map(row => (
@@ -316,7 +341,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                     </td>
                     {hotels.map(h => (
                       <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-2.5 align-middle`}>
-                        {hasFeature(h.facilities, row.keywords) ? (
+                        {hasFeature(getFacilities(h), row.keywords) ? (
                           <Check className="w-4 h-4 text-emerald-500" />
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
