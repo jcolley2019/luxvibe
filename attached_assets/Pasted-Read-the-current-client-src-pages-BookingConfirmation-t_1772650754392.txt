@@ -1,0 +1,38 @@
+Read the current client/src/pages/BookingConfirmation.tsx and server/routes.ts book route carefully, then fix the following:
+The correct flow per liteapi docs:
+
+Prebook → returns prebookId, secretKey, transactionId
+Payment SDK uses secretKey, user pays
+liteapi redirects to returnUrl with transactionId and prebookId in the URL params
+BookingConfirmation page reads BOTH from URL params and immediately calls the book endpoint
+
+Fix 1 — BookingConfirmation.tsx:
+The page receives these URL params from liteapi's redirect:
+
+prebookId — from the original prebook
+transactionId — from liteapi's redirect (may be named tid or transactionId)
+
+Check the CURRENT URL in the browser — it has params like ?prebookId=...&transactionId=tr_cts_...&payment_intent=pi_...
+Read ALL of these from window.location.search using URLSearchParams:
+tsconst params = new URLSearchParams(window.location.search);
+const prebookId = params.get('prebookId');
+const transactionId = params.get('transactionId') || params.get('tid');
+const paymentIntent = params.get('payment_intent');
+Then POST to /api/hotels/book with { prebookId, transactionId, firstName, lastName, email, phone } where the guest details come from the checkout form state (passed via sessionStorage or location state).
+Fix 2 — Store guest details before payment:
+In client/src/pages/Checkout.tsx, before redirecting to payment, save guest details to sessionStorage:
+tssessionStorage.setItem('guestDetails', JSON.stringify({ firstName, lastName, email, phone }));
+In BookingConfirmation.tsx, read them back:
+tsconst guest = JSON.parse(sessionStorage.getItem('guestDetails') || '{}');
+Fix 3 — server/routes.ts book route:
+Make sure the book route accepts transactionId directly in the request body and uses it correctly:
+tsconst { prebookId, transactionId, firstName, lastName, email, phone } = req.body;
+const bookPayload = {
+  prebookId,
+  clientReference: email,
+  holder: { firstName, lastName, email, phone },
+  payment: { method: "TRANSACTION_ID", transactionId },
+  guests: [{ occupancyNumber: 1, firstName, lastName, email }]
+};
+Add detailed logging:
+tsconsole.log('[book] payload:', JSON.stringify(bookPayload));
