@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -126,15 +126,6 @@ const BG_PAGE = "hsl(var(--background))";
 export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests }: CompareModalProps) {
   const { currency } = usePreferences();
 
-  const photoRowRef = useRef<HTMLTableRowElement>(null);
-  const [nameRowTop, setNameRowTop] = useState(152);
-
-  useEffect(() => {
-    if (photoRowRef.current) {
-      setNameRowTop(photoRowRef.current.offsetHeight);
-    }
-  }, [hotels, open]);
-
   const buildUrl = (id: string) => {
     const p = new URLSearchParams();
     if (checkIn) p.set("checkIn", checkIn);
@@ -204,21 +195,20 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
             <thead />
 
             <tbody>
-              {/* Photo row — sticky top:0 */}
+              {/* Combined Hotel Header row — sticky top:0 */}
               <tr
-                ref={photoRowRef}
                 className="border-b border-border"
                 style={{ position: "sticky", top: 0, zIndex: 20, background: BG_PAGE }}
               >
                 <td
-                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-middle`}
+                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-top`}
                   style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED }}
                 >
-                  Photo
+                  Hotel
                 </td>
                 {hotels.map(h => (
                   <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE }}>
-                    <div className="aspect-video overflow-hidden rounded-xl bg-muted">
+                    <div className="aspect-video overflow-hidden rounded-xl bg-muted mb-3">
                       <img
                         src={h.imageUrl || getFallback(h.id)}
                         alt={h.name}
@@ -227,23 +217,6 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                         data-testid={`compare-img-${h.id}`}
                       />
                     </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Name & Location row — top set dynamically from photo row height */}
-              <tr
-                className="border-b border-border"
-                style={{ position: "sticky", top: nameRowTop, zIndex: 20, background: BG_PAGE }}
-              >
-                <td
-                  className={`${LABEL_COL_STYLE} px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground align-top`}
-                  style={{ position: "sticky", left: 0, zIndex: 30, background: BG_MUTED }}
-                >
-                  Name & Location
-                </td>
-                {hotels.map(h => (
-                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-top`} style={{ background: BG_PAGE }}>
                     <p className="font-bold text-sm text-foreground leading-snug" data-testid={`compare-name-${h.id}`}>{h.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{h.address}</p>
                   </td>
