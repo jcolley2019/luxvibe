@@ -2169,6 +2169,38 @@ Guest question: ${question}`;
       let data: any;
       try { data = JSON.parse(rawText); } catch { data = { message: rawText }; }
 
+      // Error 4005 = "duplicate booking attempt with existing client reference"
+      // This means the LiteAPI payment SDK already completed the booking internally
+      // when payment succeeded. Fetch the existing booking and return it as success.
+      if (data?.error?.code === 4005) {
+        console.log('[book] 4005 detected — SDK already booked. Looking up existing booking for:', email);
+        const lookupRes = await fetch(
+          `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(email)}`,
+          { headers: { 'accept': 'application/json', 'X-API-Key': process.env.LITEAPI_KEY! } }
+        );
+        const lookupData = await lookupRes.json();
+        console.log('[book] 4005 lookup:', JSON.stringify(lookupData).slice(0, 400));
+        const bookings: any[] = lookupData?.data || [];
+        // Sort by createdAt descending to get the most recent booking
+        const sorted = [...bookings].sort((a, b) =>
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+        const booking = sorted[0];
+        if (booking) {
+          return res.json({
+            bookingId: booking.bookingId,
+            hotelConfirmationCode: booking.supplierBookingId || booking.hotel_confirmation_code || '',
+            checkin: booking.checkin,
+            checkout: booking.checkout,
+            currency: booking.currency || 'USD',
+            price: booking.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || null,
+            hotel: booking.hotel,
+            status: booking.status,
+          });
+        }
+        return res.status(400).json({ message: 'Booking was processed but could not be retrieved. Please check My Bookings.' });
+      }
+
       if (!rawRes.ok || data.error) {
         const errMsg = typeof data.error === 'string'
           ? data.error

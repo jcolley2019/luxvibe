@@ -151,7 +151,9 @@ export default function BookingConfirmation() {
                       <div>
                         <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Dates</p>
                         <p className="text-sm sm:text-base font-medium">
-                          {format(parseISO(bookingData.checkin), "MMM dd")} - {format(parseISO(bookingData.checkout), "MMM dd, yyyy")}
+                          {(bookingData.checkin || checkoutData?.checkIn)
+                            ? `${format(parseISO(bookingData.checkin || checkoutData?.checkIn), "MMM dd")} - ${format(parseISO(bookingData.checkout || checkoutData?.checkOut), "MMM dd, yyyy")}`
+                            : checkoutData?.checkIn ? `${checkoutData.checkIn} - ${checkoutData.checkOut}` : "See booking details"}
                         </p>
                       </div>
                     </div>
