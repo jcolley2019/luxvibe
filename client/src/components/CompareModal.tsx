@@ -162,7 +162,7 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
 
         {/* Fixed modal header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-          <h2 className="text-lg font-bold text-foreground" aria-hidden="true">Compare Hotels</h2>
+          <h2 className="text-2xl font-bold font-heading text-foreground" aria-hidden="true">Compare Hotels</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
