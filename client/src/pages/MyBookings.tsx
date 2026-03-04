@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, ArrowUpDown, ExternalLink } from "lucide-react";
@@ -11,10 +10,18 @@ import { Link } from "wouter";
 type SortKey = "hotelName" | "id" | "checkIn" | "totalPrice" | "status" | "createdAt";
 type SortDir = "asc" | "desc";
 
-function statusVariant(status: string) {
-  if (status === "confirmed" || status === "CONFIRMED") return "default";
-  if (status === "cancelled" || status === "CANCELLED") return "destructive";
-  return "secondary";
+function statusClass(status: string) {
+  if (status === "confirmed" || status === "CONFIRMED")
+    return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+  if (status === "cancelled" || status === "CANCELLED")
+    return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+  return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
+}
+
+function statusBorderClass(status: string) {
+  if (status === "confirmed" || status === "CONFIRMED") return "border-l-4 border-l-green-500";
+  if (status === "cancelled" || status === "CANCELLED") return "border-l-4 border-l-red-500";
+  return "border-l-4 border-l-yellow-400";
 }
 
 function fmtDate(val: string | null | undefined) {
@@ -133,7 +140,7 @@ export default function MyBookings() {
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell">
                     Booking Date <SortBtn col="createdAt" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap min-w-[80px]">
                     Actions
                   </th>
                 </tr>
@@ -156,42 +163,44 @@ export default function MyBookings() {
                   sorted.map((booking) => (
                     <tr
                       key={booking.id}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                      className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors odd:bg-background even:bg-muted/20 ${statusBorderClass(booking.status)}`}
                       data-testid={`row-booking-${booking.id}`}
                     >
-                      <td className="px-4 py-3 font-medium text-foreground min-w-[140px]">
+                      <td className="px-4 py-4 font-medium text-foreground min-w-[140px]">
                         {booking.hotelName}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px]">
-                        #{booking.id}
+                      <td
+                        title={booking.id}
+                        className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px] cursor-help"
+                      >
+                        {booking.id.slice(0, 8)}…
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell whitespace-nowrap min-w-[120px]">
+                      <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap min-w-[120px]">
                         {booking.roomType}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
                         {booking.guests}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[160px]">
+                      <td className="px-4 py-4 text-muted-foreground whitespace-nowrap min-w-[160px]">
                         {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
                       </td>
-                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                      <td className="px-4 py-4 font-semibold text-foreground whitespace-nowrap">
                         {booking.totalPrice != null
                           ? `$${Number(booking.totalPrice).toFixed(2)}`
                           : <span className="text-muted-foreground font-normal">—</span>}
                       </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={statusVariant(booking.status)}
-                          className="capitalize text-xs"
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusClass(booking.status)}`}
                           data-testid={`status-booking-${booking.id}`}
                         >
                           {booking.status}
-                        </Badge>
+                        </span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
                         {fmtDate((booking as any).createdAt)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4 min-w-[80px] whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
                             <Button
