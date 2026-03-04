@@ -159,6 +159,12 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
         const fetched: string[] = Array.isArray(data.amenities)
           ? data.amenities.filter((a: any) => typeof a === "string" && a !== "Contact hotel for amenities")
           : [];
+        
+        console.log(`[compare] hotel ${h.id} amenities:`, fetched);
+        if (fetched.length === 0) {
+          console.log(`[compare] hotel ${h.id} raw data keys:`, Object.keys(data));
+        }
+
         setEnrichedHotels(prev => prev.map(eh =>
           eh.id === h.id ? { ...eh, facilities: fetched } : eh
         ));
