@@ -142,17 +142,13 @@ export default function MyBookings() {
                 {sorted.length === 0 ? (
                   <tr>
                     <td colSpan={9}>
-                      <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="mb-4 opacity-20">
-                          <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="12" width="54" height="33" rx="2" stroke="currentColor" strokeWidth="2.5"/>
-                            <rect x="11" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                            <rect x="26" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                            <rect x="41" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                            <path d="M3 18L30 3l27 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                          </svg>
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">No Booking Found</p>
+                      <div className="text-center py-12">
+                        <p className="text-muted-foreground mb-2">No bookings found for your account.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Have a booking ID? Use{" "}
+                          <a href="/manage-booking" className="text-primary underline">Manage My Booking</a>
+                          {" "}to look it up directly.
+                        </p>
                       </div>
                     </td>
                   </tr>

@@ -1840,10 +1840,13 @@ Guest question: ${question}`;
       const { bookingId } = req.query as Record<string, string>;
       if (!bookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
 
-      const response = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`, {
+      const url = `${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`;
+      console.log("[lookup] fetching:", url);
+      const response = await fetch(url, {
         headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
       });
       const data = await response.json();
+      console.log("[lookup] response:", JSON.stringify(data).slice(0, 200));
       const b = data?.data || data;
       if (!response.ok || !b || b.error) {
         return res.status(404).json({ message: "Booking not found. Please check your Booking ID." });
@@ -1871,9 +1874,11 @@ Guest question: ${question}`;
 
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
-      const response = await fetch(`${LITEAPI_BOOK_BASE}/bookings`, {
-        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
-      });
+      const userId = req.user?.claims?.sub || req.user?.claims?.email || "";
+      const response = await fetch(
+        `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userId)}`,
+        { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
+      );
       const data = await response.json();
       const bookings = data?.data || [];
       res.json(bookings.map((b: any) => ({
@@ -2134,6 +2139,7 @@ Guest question: ${question}`;
       const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
       const data = await liteApiPost("/rates/book", {
         prebookId,
+        clientReference: `${firstName}_${lastName}_${email}`,
         holder: { firstName, lastName, email, phone },
         payment: {
           method: "TRANSACTION_ID",
