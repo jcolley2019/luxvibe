@@ -429,6 +429,11 @@ export default function HotelDetails() {
       price: rate.price.toString(),
       currency: rate.currency
     });
+    if (!isAuthenticated) {
+      sessionStorage.setItem('lv_post_login_redirect', `/checkout?${params.toString()}`);
+      window.location.href = '/api/login';
+      return;
+    }
     setLocation(`/checkout?${params.toString()}`);
   };
 

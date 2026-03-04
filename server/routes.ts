@@ -7,7 +7,7 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integra
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
 import { litapiBookingRefs } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, or, and, isNull } from "drizzle-orm";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -1897,6 +1897,7 @@ Guest question: ${question}`;
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
       const userEmail = req.user?.email || req.user?.claims?.email || "";
+      const userId: string = req.user?.claims?.sub || req.user?.id || "";
 
       // mapBooking handles both individual GET /bookings/{id} (uses bookedRooms[])
       // and list GET /bookings?clientReference=... (uses rooms[])
@@ -1921,9 +1922,26 @@ Guest question: ${question}`;
         };
       }
 
-      // Step 1: Collect bookingIds from the persistent DB (covers all bookings after the fix)
+      // Step 1: Collect bookingIds from the persistent DB
+      // Match by userId OR guestEmail so bookings made before login still appear
       const refs = await db.select().from(litapiBookingRefs)
-        .where(eq(litapiBookingRefs.guestEmail, userEmail));
+        .where(or(
+          eq(litapiBookingRefs.userId, userId),
+          eq(litapiBookingRefs.guestEmail, userEmail)
+        ));
+
+      // Account linking: back-fill userId for rows that matched by email but have no userId
+      const nullUserRefs = refs.filter(r => r.userId === null);
+      if (nullUserRefs.length > 0 && userId) {
+        await db.update(litapiBookingRefs)
+          .set({ userId })
+          .where(and(
+            eq(litapiBookingRefs.guestEmail, userEmail),
+            isNull(litapiBookingRefs.userId)
+          ));
+        console.log('[my-bookings] Linked', nullUserRefs.length, 'booking ref(s) to userId', userId);
+      }
+
       const dbBookingIds = new Set(refs.map(r => r.bookingId));
       console.log('[my-bookings] DB refs for', userEmail, ':', Array.from(dbBookingIds));
 
