@@ -276,14 +276,20 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                   Price / Night
                 </td>
                 {hotels.map(h => (
-                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-price-${h.id}`}>
+                  <td key={h.id} className={`${HOTEL_COL_STYLE} px-3 py-3 align-middle`} data-testid={`compare-price-${h.id}`} style={{ position: "relative", zIndex: 25 }}>
                     {h.price && h.price > 0 ? (
                       <div>
                         <span className="text-xl font-bold text-foreground">{fmt(h.price)}</span>
                         <p className="text-xs text-muted-foreground mt-0.5">incl. taxes & fees</p>
                       </div>
                     ) : (
-                      <span className="text-sm text-primary font-medium">Check rates</span>
+                      <a
+                        href={buildUrl(h.id)}
+                        className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+                        style={{ position: "relative", zIndex: 30, display: "inline-block" }}
+                      >
+                        Check rates
+                      </a>
                     )}
                   </td>
                 ))}
