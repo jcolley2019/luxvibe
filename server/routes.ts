@@ -102,7 +102,10 @@ async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BA
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data?.error || data?.message || "LiteAPI request failed");
+    const errMsg = typeof data?.error === 'string'
+      ? data.error
+      : data?.error?.message || (typeof data?.message === 'string' ? data.message : JSON.stringify(data));
+    throw new Error(errMsg);
   }
 
   if (ttlMs) {
@@ -2148,17 +2151,30 @@ Guest question: ${question}`;
         guests: [{ occupancyNumber: 1, firstName, lastName, email }]
       };
       console.log('[book] payload:', JSON.stringify(bookPayload));
-      const data = await liteApiPost("/rates/book", bookPayload, LITEAPI_BOOK_BASE);
-      console.log('[book] full response:', JSON.stringify(data));
 
-      if (data.error) {
-        console.error('[book] LiteAPI error full response:', JSON.stringify(data));
-        return res.status(400).json({
-          message: typeof data.error === 'string'
-            ? data.error
-            : data.error?.message || data.message || JSON.stringify(data.error),
-          liteApiCode: data.error?.code || data.code || null,
-        });
+      const rawRes = await fetch(`${LITEAPI_BOOK_BASE}/rates/book`, {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "X-API-Key": process.env.LITEAPI_KEY!,
+        },
+        body: JSON.stringify(bookPayload),
+      });
+
+      const rawText = await rawRes.text();
+      console.log('[book] HTTP status:', rawRes.status);
+      console.log('[book] raw response:', rawText);
+
+      let data: any;
+      try { data = JSON.parse(rawText); } catch { data = { message: rawText }; }
+
+      if (!rawRes.ok || data.error) {
+        const errMsg = typeof data.error === 'string'
+          ? data.error
+          : data?.error?.message || (typeof data?.message === 'string' ? data.message : JSON.stringify(data));
+        console.error('[book] error:', errMsg);
+        return res.status(400).json({ message: errMsg, liteApiCode: data?.error?.code || data?.code || null });
       }
 
       res.json(data.data || data);
