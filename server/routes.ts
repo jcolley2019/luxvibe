@@ -1837,31 +1837,58 @@ Guest question: ${question}`;
 
   app.get("/api/bookings/lookup", async (req, res) => {
     try {
-      const id = parseInt(req.query.id as string, 10);
-      if (isNaN(id)) return res.status(400).json({ message: "Invalid booking ID" });
-      const booking = await storage.getBookingById(id);
-      if (!booking) return res.status(404).json({ message: "Booking not found" });
-      res.json({
-        id: booking.id,
-        hotelName: booking.hotelName,
-        roomType: booking.roomType,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        guests: booking.guests,
-        totalPrice: booking.totalPrice,
-        status: booking.status,
+      const { bookingId } = req.query as Record<string, string>;
+      if (!bookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
+
+      const response = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`, {
+        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
       });
-    } catch {
+      const data = await response.json();
+      const b = data?.data || data;
+      if (!response.ok || !b || b.error) {
+        return res.status(404).json({ message: "Booking not found. Please check your Booking ID." });
+      }
+      res.json({
+        id: b.bookingId || bookingId,
+        confirmationCode: b.supplierBookingId || b.hotel_confirmation_code || "",
+        hotelName: b.hotel?.name || b.hotelName || "Hotel",
+        roomType: b.bookedRooms?.[0]?.roomType?.name || b.roomTypeName || "Room",
+        checkIn: b.checkin || b.checkIn,
+        checkOut: b.checkout || b.checkOut,
+        guests: b.adults || b.guests || 1,
+        totalPrice: b.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || b.totalAmount || null,
+        currency: b.currency || "USD",
+        status: b.status || "CONFIRMED",
+        cancellationPolicy: b.cancellationPolicies || null,
+        guestName: `${b.holder?.firstName || ""} ${b.holder?.lastName || ""}`.trim(),
+        email: b.holder?.email || null,
+      });
+    } catch (err: any) {
+      console.error("Booking lookup error:", err?.message || err);
       res.status(500).json({ message: "Failed to look up booking" });
     }
   });
 
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const bookings = await storage.getUserBookings(userId);
-      res.json(bookings);
+      const response = await fetch(`${LITEAPI_BOOK_BASE}/bookings`, {
+        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+      });
+      const data = await response.json();
+      const bookings = data?.data || [];
+      res.json(bookings.map((b: any) => ({
+        id: b.bookingId,
+        hotelName: b.hotel?.name || b.hotelName || "Hotel",
+        roomType: b.bookedRooms?.[0]?.roomType?.name || "Room",
+        checkIn: b.checkin,
+        checkOut: b.checkout,
+        guests: b.adults || 1,
+        totalPrice: b.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || null,
+        currency: b.currency || "USD",
+        status: b.status,
+      })));
     } catch (err) {
+      console.error("Fetch bookings error:", err);
       res.status(500).json({ message: "Failed to fetch bookings" });
     }
   });
