@@ -1955,10 +1955,11 @@ Guest question: ${question}`;
       console.log('[my-bookings] old clientRef matches:', oldBookings.length);
 
       // Step 3: Merge all unique booking IDs
-      const allIds = new Set<string>([
-        ...dbBookingIds,
-        ...oldBookings.map((b: any) => b.bookingId),
-      ]);
+      const allIds = new Set<string>();
+      dbBookingIds.forEach(id => allIds.add(id));
+      oldBookings.forEach((b: any) => {
+        if (b.bookingId) allIds.add(b.bookingId);
+      });
       console.log('[my-bookings] total unique bookingIds:', allIds.size);
 
       // Step 4: Fetch each booking individually for full detail (bookedRooms, price, etc.)

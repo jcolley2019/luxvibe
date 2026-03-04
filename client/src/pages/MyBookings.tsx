@@ -116,31 +116,31 @@ export default function MyBookings() {
             <table className="min-w-full table-auto text-sm">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[220px]">
                     Hotel <SortBtn col="hotelName" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[100px]">
                     Booking ID <SortBtn col="id" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden md:table-cell">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden md:table-cell w-[100px]">
                     Room Type
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell">
+                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell w-[60px]">
                     Guests
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[160px]">
                     Dates <SortBtn col="checkIn" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[90px]">
                     Amount <SortBtn col="totalPrice" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[110px]">
                     Status <SortBtn col="status" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell">
+                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell w-[100px]">
                     Booking Date <SortBtn col="createdAt" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap min-w-[80px]">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[80px]">
                     Actions
                   </th>
                 </tr>
@@ -166,30 +166,30 @@ export default function MyBookings() {
                       className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors odd:bg-background even:bg-muted/20 ${statusBorderClass(booking.status)}`}
                       data-testid={`row-booking-${booking.id}`}
                     >
-                      <td className="px-4 py-4 font-medium text-foreground min-w-[140px]">
+                      <td className="px-4 py-4 font-medium text-foreground w-[220px]">
                         {booking.hotelName}
                       </td>
                       <td
                         title={booking.id}
-                        className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px] cursor-help"
+                        className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[100px] cursor-help text-center"
                       >
                         {booking.id.slice(0, 8)}…
                       </td>
-                      <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap min-w-[120px]">
+                      <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap w-[100px]">
                         {booking.roomType}
                       </td>
-                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap w-[60px] text-center">
                         {booking.guests}
                       </td>
-                      <td className="px-4 py-4 text-muted-foreground whitespace-nowrap min-w-[160px]">
+                      <td className="px-4 py-4 text-muted-foreground whitespace-nowrap w-[160px]">
                         {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
                       </td>
-                      <td className="px-4 py-4 font-semibold text-foreground whitespace-nowrap">
+                      <td className="px-4 py-4 font-semibold text-foreground whitespace-nowrap w-[90px] text-center">
                         {booking.totalPrice != null
                           ? `$${Number(booking.totalPrice).toFixed(2)}`
                           : <span className="text-muted-foreground font-normal">—</span>}
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 w-[110px]">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusClass(booking.status)}`}
                           data-testid={`status-booking-${booking.id}`}
@@ -197,10 +197,10 @@ export default function MyBookings() {
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                      <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap w-[100px] text-center">
                         {fmtDate((booking as any).createdAt)}
                       </td>
-                      <td className="px-4 py-4 min-w-[80px] whitespace-nowrap">
+                      <td className="px-4 py-4 w-[80px] whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
                             <Button
