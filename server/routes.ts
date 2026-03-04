@@ -1963,18 +1963,21 @@ Guest question: ${question}`;
       console.log('[my-bookings] total unique bookingIds:', allIds.length);
 
       // Step 4: Fetch each booking individually for full detail (bookedRooms, price, etc.)
-      const results = await Promise.all(
-        Array.from(allIds).map(async (bookingId) => {
-          try {
-            const r = await fetch(
-              `${LITEAPI_BOOK_BASE}/bookings/${bookingId}`,
-              { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
-            );
-            const d = await r.json();
-            return d?.data || null;
-          } catch { return null; }
-        })
-      );
+      // Use a sequential loop with delay to avoid hitting LiteAPI rate limits,
+      // which caused random bookings to be dropped when all fetches fired in parallel.
+      const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+      const results: any[] = [];
+      for (const bookingId of allIds) {
+        try {
+          const r = await fetch(
+            `${LITEAPI_BOOK_BASE}/bookings/${bookingId}`,
+            { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
+          );
+          const d = await r.json();
+          results.push(d?.data || null);
+        } catch { results.push(null); }
+        await sleep(120);
+      }
 
       const mapped = results.filter(Boolean).map(mapBooking);
       // Sort by createdAt descending (most recent first)
@@ -2233,11 +2236,13 @@ Guest question: ${question}`;
   app.post(api.hotels.book.path, async (req: any, res) => {
     try {
       console.log('[book] incoming body:', JSON.stringify({ prebookId: req.body.prebookId, transactionId: req.body.transactionId }));
-      const { prebookId, transactionId, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
+      const { prebookId, transactionId, clientReference, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
       const userId: string | null = req.user?.id || req.user?.claims?.sub || null;
 
-      // Look up the unique clientReference generated at prebook time
-      const clientRef = prebookClientRefs.get(prebookId) || `${email}_${Date.now()}`;
+      // Look up the unique clientReference generated at prebook time.
+      // Falls back to the value passed from the frontend (saved in sessionStorage at prebook time),
+      // so it survives server restarts between prebook and book.
+      const clientRef = prebookClientRefs.get(prebookId) || clientReference || `${email}_${Date.now()}`;
       console.log('[book] using clientRef:', clientRef, 'for prebookId:', prebookId);
 
       const bookPayload = {

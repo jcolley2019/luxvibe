@@ -74,6 +74,7 @@ export default function Checkout() {
       const checkoutData = {
         prebookId: data.prebookId,
         transactionId: data.transactionId,
+        clientReference: data.clientReference,
         firstName: variables.firstName,
         lastName: variables.lastName,
         email: variables.email,

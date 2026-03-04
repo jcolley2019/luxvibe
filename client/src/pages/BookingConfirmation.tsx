@@ -68,6 +68,7 @@ export default function BookingConfirmation() {
     const payload = {
       prebookId,
       transactionId: resolvedTransactionId,
+      clientReference: parsedData.clientReference,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
       email: parsedData.email,

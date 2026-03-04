@@ -227,6 +227,7 @@ export const api = {
       input: z.object({
         prebookId: z.string(),
         transactionId: z.string(),
+        clientReference: z.string().optional(),
         firstName: z.string(),
         lastName: z.string(),
         email: z.string().email(),
