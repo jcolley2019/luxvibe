@@ -1860,8 +1860,14 @@ Guest question: ${question}`;
 
   app.get("/api/bookings/lookup", async (req, res) => {
     try {
-      const { bookingId } = req.query as Record<string, string>;
+      const { bookingId, lastName } = req.query as Record<string, string>;
       if (!bookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
+
+      // Step 1: Check our local persistent DB first for ownership/existence
+      const [ref] = await db.select()
+        .from(litapiBookingRefs)
+        .where(eq(litapiBookingRefs.bookingId, bookingId.trim()))
+        .limit(1);
 
       const url = `${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`;
       console.log("[lookup] fetching:", url);
@@ -1870,10 +1876,21 @@ Guest question: ${question}`;
       });
       const data = await response.json();
       console.log("[lookup] response:", JSON.stringify(data).slice(0, 200));
+      
       const b = data?.data || data;
       if (!response.ok || !b || b.error) {
         return res.status(404).json({ message: "Booking not found. Please check your Booking ID." });
       }
+
+      // Step 2: Validate lastName if provided
+      if (lastName?.trim()) {
+        const holderLastName = (b.holder?.lastName || "").trim().toLowerCase();
+        const inputLastName = lastName.trim().toLowerCase();
+        if (holderLastName && holderLastName !== inputLastName) {
+          return res.status(404).json({ message: "Booking not found. Please check your Booking ID and Last Name." });
+        }
+      }
+
       res.json({
         id: b.bookingId || bookingId,
         confirmationCode: b.supplierBookingId || b.hotel_confirmation_code || "",
