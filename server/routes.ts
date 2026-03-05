@@ -8,6 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
 import { litapiBookingRefs } from "@shared/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
+import { sendBookingConfirmationEmail, sendCancellationEmail } from "./email";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -2308,13 +2309,27 @@ Guest question: ${question}`;
         if (booking) {
           await recordBookingRef(userId, booking.bookingId, email, clientRef);
           const room4005 = booking.bookedRooms?.[0] || booking.rooms?.[0];
+          const bookingPrice = booking.price ?? room4005?.rate?.retailRate?.total?.amount ?? room4005?.amount ?? null;
+          // Send confirmation email (non-blocking)
+          sendBookingConfirmationEmail({
+            to: email,
+            guestName: `${firstName} ${lastName}`,
+            bookingId: booking.bookingId,
+            hotelName: booking.hotel?.name || "Hotel",
+            checkIn: booking.checkin,
+            checkOut: booking.checkout,
+            roomType: room4005?.boardName || room4005?.roomType?.name || room4005?.name || "Room",
+            price: bookingPrice,
+            currency: booking.currency || "USD",
+            confirmationCode: booking.supplierBookingId || booking.hotel_confirmation_code || "",
+          }).catch(err => console.error("[email] Non-fatal send error:", err?.message));
           return res.json({
             bookingId: booking.bookingId,
             hotelConfirmationCode: booking.supplierBookingId || booking.hotel_confirmation_code || '',
             checkin: booking.checkin,
             checkout: booking.checkout,
             currency: booking.currency || 'USD',
-            price: booking.price ?? room4005?.rate?.retailRate?.total?.amount ?? room4005?.amount ?? null,
+            price: bookingPrice,
             hotel: booking.hotel,
             status: booking.status,
           });
@@ -2334,11 +2349,85 @@ Guest question: ${question}`;
       if (bookResult?.bookingId) {
         await recordBookingRef(userId, bookResult.bookingId, email, clientRef);
         prebookClientRefs.delete(prebookId); // Clean up
+        // Send confirmation email (non-blocking)
+        const room = bookResult.bookedRooms?.[0] || bookResult.rooms?.[0];
+        sendBookingConfirmationEmail({
+          to: email,
+          guestName: `${firstName} ${lastName}`,
+          bookingId: bookResult.bookingId,
+          hotelName: bookResult.hotel?.name || "Hotel",
+          checkIn: bookResult.checkin,
+          checkOut: bookResult.checkout,
+          roomType: room?.boardName || room?.roomType?.name || room?.name || "Room",
+          price: bookResult.price ?? room?.rate?.retailRate?.total?.amount ?? room?.amount ?? null,
+          currency: bookResult.currency || "USD",
+          confirmationCode: bookResult.supplierBookingId || bookResult.hotelConfirmationCode || "",
+        }).catch(err => console.error("[email] Non-fatal send error:", err?.message));
       }
       res.json(bookResult);
     } catch (err: any) {
       console.error("Book error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to book" });
+    }
+  });
+
+  // Cancel a booking and send cancellation email
+  app.post("/api/bookings/cancel", isAuthenticated, async (req: any, res) => {
+    try {
+      const { bookingId } = z.object({ bookingId: z.string() }).parse(req.body);
+      const userEmail = req.user?.email || req.user?.claims?.email || "";
+      const userId: string = req.user?.claims?.sub || req.user?.id || "";
+
+      // Verify this booking belongs to the user
+      const refs = await db.select().from(litapiBookingRefs)
+        .where(or(
+          eq(litapiBookingRefs.userId, userId),
+          eq(litapiBookingRefs.guestEmail, userEmail)
+        ));
+      const owns = refs.some(r => r.bookingId === bookingId);
+      if (!owns) {
+        return res.status(403).json({ message: "You do not have permission to cancel this booking." });
+      }
+
+      // Fetch current booking details for email
+      const lookupRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
+        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+      });
+      const lookupData = await lookupRes.json();
+      const b = lookupData?.data || lookupData;
+      const hotelName = b?.hotel?.name || "Hotel";
+      const checkIn = b?.checkin || "";
+      const checkOut = b?.checkout || "";
+      const guestName = `${b?.holder?.firstName || ""} ${b?.holder?.lastName || ""}`.trim() || userEmail;
+      const guestEmail = b?.holder?.email || userEmail;
+
+      // Call LiteAPI to cancel
+      const cancelRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
+        method: "DELETE",
+        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+      });
+      const cancelData = await cancelRes.json();
+      console.log("[cancel] LiteAPI response:", JSON.stringify(cancelData).slice(0, 300));
+
+      if (!cancelRes.ok && cancelData?.error) {
+        const msg = cancelData?.error?.message || cancelData?.message || "Cancellation failed.";
+        return res.status(400).json({ message: msg });
+      }
+
+      // Send cancellation email (non-blocking)
+      sendCancellationEmail({
+        to: guestEmail,
+        guestName,
+        bookingId,
+        hotelName,
+        checkIn,
+        checkOut,
+      }).catch(err => console.error("[email] Non-fatal cancellation email error:", err?.message));
+
+      res.json({ success: true, message: "Booking cancelled successfully." });
+    } catch (err: any) {
+      console.error("[cancel] error:", err?.message || err);
+      res.status(500).json({ message: err?.message || "Failed to cancel booking." });
     }
   });
 
