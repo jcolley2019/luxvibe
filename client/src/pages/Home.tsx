@@ -526,7 +526,8 @@ export default function Home() {
     if (city.includes("north las vegas")) return "North Las Vegas";
     if (city.includes("las vegas") || city === "las vegas") {
       if (addr.includes("las vegas blvd") || addr.includes("strip")) return "The Strip";
-      if (addr.includes("fremont")) return "Fremont Street";
+      const downtownTerms = ["fremont", "downtown", "main st", "carson", "4th st"];
+      if (downtownTerms.some(term => addr.includes(term))) return "Downtown";
       if (addr.includes("summerlin") || addr.includes("rampart")) return "Summerlin";
       if (addr.includes("henderson") || addr.includes("green valley")) return "Henderson";
       return "Greater Las Vegas";
@@ -1222,7 +1223,7 @@ export default function Home() {
                     <div className="flex flex-wrap gap-2 mt-3 mb-1">
                       {[
                         { label: "The Strip", value: "The Strip" },
-                        { label: "Fremont Street", value: "Fremont Street" },
+                        { label: "Downtown", value: "Downtown" },
                         { label: "Henderson", value: "Henderson" }
                       ].map((area, idx) => {
                         const isActive = neighborhoodFilter.includes(area.value);
