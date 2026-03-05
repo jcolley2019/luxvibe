@@ -1884,6 +1884,8 @@ Guest question: ${question}`;
       console.log("[lookup] DEBUG: LiteAPI full response data:", JSON.stringify(data));
       
       const b = data?.data || data;
+      console.log("[lookup] DEBUG: Full LiteAPI structure:", JSON.stringify(b, null, 2));
+
       if (!response.ok || !b || b.error) {
         return res.status(404).json({ message: "Booking not found. Please check your Booking ID." });
       }
@@ -1897,15 +1899,33 @@ Guest question: ${question}`;
         }
       }
 
+      // Comprehensive field mapping for totalPrice and roomType
+      const room = b.bookedRooms?.[0] || b.rooms?.[0];
+      const totalPrice = b.price || 
+                         b.totalAmount || 
+                         b.invoice?.amount || 
+                         b.pricing?.total || 
+                         room?.rate?.retailRate?.total?.amount || 
+                         room?.amount || 
+                         room?.price ||
+                         null;
+
+      const roomType = room?.name || 
+                       room?.roomType?.name || 
+                       b.roomTypeName || 
+                       b.roomType || 
+                       room?.rateName || 
+                       "Room";
+
       res.json({
         id: b.bookingId || actualBookingId,
         confirmationCode: b.supplierBookingId || b.hotel_confirmation_code || "",
         hotelName: b.hotel?.name || b.hotelName || "Hotel",
-        roomType: b.bookedRooms?.[0]?.roomType?.name || b.roomTypeName || "Room",
+        roomType,
         checkIn: b.checkin || b.checkIn,
         checkOut: b.checkout || b.checkOut,
         guests: b.adults || b.guests || 1,
-        totalPrice: b.bookedRooms?.[0]?.rate?.retailRate?.total?.[0]?.amount || b.totalAmount || null,
+        totalPrice,
         currency: b.currency || "USD",
         status: b.status || "CONFIRMED",
         cancellationPolicy: b.cancellationPolicies || null,

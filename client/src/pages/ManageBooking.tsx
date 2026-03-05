@@ -123,7 +123,9 @@ export default function ManageBooking() {
                   </p>
                   <p className="text-sm font-medium flex items-center gap-2 leading-tight">
                     <BedDouble className="w-4 h-4 text-primary shrink-0" />
-                    {result.roomType}
+                    {result.roomType ||
+                      result.roomName ||
+                      "See confirmation email"}
                   </p>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -142,7 +144,11 @@ export default function ManageBooking() {
                       Total
                     </p>
                     <p className="text-lg sm:text-xl font-bold text-foreground">
-                      ${parseFloat(result.totalPrice).toFixed(2)}
+                      {result.totalPrice
+                        ? `$${parseFloat(result.totalPrice).toFixed(2)}`
+                        : result.amount
+                          ? `$${parseFloat(result.amount).toFixed(2)}`
+                          : "See confirmation email"}
                     </p>
                   </div>
                 </div>
