@@ -2,13 +2,19 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "Luxvibe <bookings@luxvibe.com>";
+const FROM_EMAIL = "Luxvibe <bookings@luxvibe.io>";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "—";
   try {
-    return new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  } catch { return d; }
+    return new Date(d).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return d;
+  }
 }
 
 export async function sendBookingConfirmationEmail(opts: {
@@ -23,7 +29,18 @@ export async function sendBookingConfirmationEmail(opts: {
   currency: string;
   confirmationCode?: string;
 }) {
-  const { to, guestName, bookingId, hotelName, checkIn, checkOut, roomType, price, currency, confirmationCode } = opts;
+  const {
+    to,
+    guestName,
+    bookingId,
+    hotelName,
+    checkIn,
+    checkOut,
+    roomType,
+    price,
+    currency,
+    confirmationCode,
+  } = opts;
 
   const html = `
 <!DOCTYPE html>
@@ -71,10 +88,14 @@ export async function sendBookingConfirmationEmail(opts: {
                         <p style="margin:0;color:#a0a0c0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Booking ID</p>
                         <p style="margin:4px 0 0;color:#ffffff;font-size:20px;font-weight:700;font-family:monospace;">${bookingId}</p>
                       </td>
-                      ${confirmationCode ? `<td style="text-align:right;">
+                      ${
+                        confirmationCode
+                          ? `<td style="text-align:right;">
                         <p style="margin:0;color:#a0a0c0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Conf. Code</p>
                         <p style="margin:4px 0 0;color:#ffffff;font-size:16px;font-weight:600;">${confirmationCode}</p>
-                      </td>` : ""}
+                      </td>`
+                          : ""
+                      }
                     </tr>
                   </table>
                 </td>
@@ -118,7 +139,7 @@ export async function sendBookingConfirmationEmail(opts: {
             </table>
 
             <p style="margin:0 0 8px;color:#6b7280;font-size:14px;line-height:1.6;">
-              Need to make changes or have questions? Visit <a href="https://luxvibe.com/manage-booking" style="color:#1a1a2e;font-weight:600;">My Bookings</a> or reply to this email.
+              Need to make changes or have questions? Visit <a href="https://luxvibe.io/manage-booking" style="color:#1a1a2e;font-weight:600;">My Bookings</a> or reply to this email.
             </p>
             <p style="margin:0;color:#6b7280;font-size:14px;">We hope you have an incredible stay!</p>
 
@@ -147,10 +168,18 @@ export async function sendBookingConfirmationEmail(opts: {
       subject: `Booking Confirmed – ${hotelName} | Luxvibe`,
       html,
     });
-    console.log("[email] Booking confirmation sent to", to, "id:", result?.data?.id);
+    console.log(
+      "[email] Booking confirmation sent to",
+      to,
+      "id:",
+      result?.data?.id,
+    );
     return result;
   } catch (err: any) {
-    console.error("[email] Failed to send booking confirmation:", err?.message || err);
+    console.error(
+      "[email] Failed to send booking confirmation:",
+      err?.message || err,
+    );
     throw err;
   }
 }
@@ -239,10 +268,10 @@ export async function sendCancellationEmail(opts: {
 
             <p style="margin:0 0 16px;color:#374151;font-size:14px;line-height:1.6;">
               If you did not request this cancellation or have questions, please contact us at 
-              <a href="mailto:support@luxvibe.com" style="color:#1a1a2e;font-weight:600;">support@luxvibe.com</a>.
+              <a href="mailto:support@luxvibe.io" style="color:#1a1a2e;font-weight:600;">support@luxvibe.io</a>.
             </p>
             <p style="margin:0 0 8px;color:#374151;font-size:14px;line-height:1.6;">
-              Ready to plan your next escape? <a href="https://luxvibe.com" style="color:#1a1a2e;font-weight:600;">Browse hotels →</a>
+              Ready to plan your next escape? <a href="https://luxvibe.io" style="color:#1a1a2e;font-weight:600;">Browse hotels →</a>
             </p>
 
             <p style="margin:32px 0 0;color:#374151;font-size:14px;">Warm regards,<br/><strong>The Luxvibe Team</strong></p>
@@ -270,10 +299,18 @@ export async function sendCancellationEmail(opts: {
       subject: `Booking Cancelled – ${hotelName} | Luxvibe`,
       html,
     });
-    console.log("[email] Cancellation email sent to", to, "id:", result?.data?.id);
+    console.log(
+      "[email] Cancellation email sent to",
+      to,
+      "id:",
+      result?.data?.id,
+    );
     return result;
   } catch (err: any) {
-    console.error("[email] Failed to send cancellation email:", err?.message || err);
+    console.error(
+      "[email] Failed to send cancellation email:",
+      err?.message || err,
+    );
     throw err;
   }
 }
