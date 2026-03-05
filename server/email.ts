@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "Luxvibe <onboarding@resend.dev>";
+const FROM_EMAIL = "Luxvibe <bookings@luxvibe.io>";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "—";

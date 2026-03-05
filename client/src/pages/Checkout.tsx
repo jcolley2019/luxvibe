@@ -265,19 +265,31 @@ export default function Checkout() {
                       </p>
                     </div>
                   </div>
-                  
-                  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20">
-                    {!sdkLoaded && (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                  <div className="space-y-3">
+  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <div className="bg-green-500 rounded-full p-1.5">
+        <ShieldCheck className="w-4 h-4 text-white" />
+      </div>
+      <div>
+        <p className="text-sm font-bold text-green-900 dark:text-green-100">Ready to complete payment</p>
+        <p className="text-xs text-green-700 dark:text-green-300">Enter your card details below and click Pay</p>
+      </div>
+    </div>
+    <div className="text-right shrink-0">
+      <p className="text-lg font-bold text-green-900 dark:text-green-100">{currency} {price}</p>
+    </div>
+  </div>
+  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border-2 border-primary/20 rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20 shadow-inner">
+    {!sdkLoaded && (
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
+      </div>
+    )}
+  </div>
+</div>
+              
 
           <div className="space-y-6">
             <Card className="sticky top-24 border-none shadow-md overflow-hidden rounded-2xl">
