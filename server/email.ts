@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "Luxvibe <bookings@luxvibe.io>";
+const FROM_EMAIL = "Luxvibe <onboarding@resend.dev>";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "—";
@@ -139,7 +139,7 @@ export async function sendBookingConfirmationEmail(opts: {
             </table>
 
             <p style="margin:0 0 8px;color:#6b7280;font-size:14px;line-height:1.6;">
-              Need to make changes or have questions? Visit <a href="https://luxvibe.io/manage-booking" style="color:#1a1a2e;font-weight:600;">My Bookings</a> or reply to this email.
+              Need to make changes or have questions? Visit <a href="https://hotel-booking-hub-jcolley2019.replit.app/manage-booking" style="color:#1a1a2e;font-weight:600;">My Bookings</a> or reply to this email.
             </p>
             <p style="margin:0;color:#6b7280;font-size:14px;">We hope you have an incredible stay!</p>
 
@@ -271,7 +271,7 @@ export async function sendCancellationEmail(opts: {
               <a href="mailto:support@luxvibe.io" style="color:#1a1a2e;font-weight:600;">support@luxvibe.io</a>.
             </p>
             <p style="margin:0 0 8px;color:#374151;font-size:14px;line-height:1.6;">
-              Ready to plan your next escape? <a href="https://luxvibe.io" style="color:#1a1a2e;font-weight:600;">Browse hotels →</a>
+              Ready to plan your next escape? <a href="https://hotel-booking-hub-jcolley2019.replit.app" style="color:#1a1a2e;font-weight:600;">Browse hotels →</a>
             </p>
 
             <p style="margin:32px 0 0;color:#374151;font-size:14px;">Warm regards,<br/><strong>The Luxvibe Team</strong></p>
