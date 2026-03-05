@@ -611,11 +611,16 @@ export default function Home() {
       if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
       if (price && price > priceMax) return false;
 
-      if (starFilter.length > 0 || includeUnrated) {
+      // 1. Fix: Filter by star rating
+      if (starFilter.length > 0) {
         const roundedStars = stars ? Math.round(stars) : null;
-        const matchesStar = starFilter.length > 0 && roundedStars !== null && starFilter.includes(roundedStars);
-        const matchesUnrated = includeUnrated && !stars;
-        if (!matchesStar && !matchesUnrated) return false;
+        if (roundedStars === null || !starFilter.includes(roundedStars)) {
+          if (!(includeUnrated && stars === null)) return false;
+        }
+      } else if (isDefaultStarFilter) {
+        // Luxury filter active by default or specifically
+        const roundedStars = stars ? Math.round(stars) : null;
+        if (roundedStars === null || roundedStars < 4) return false;
       }
 
       if (guestRatingMin !== null && (rating === null || rating < guestRatingMin)) return false;
@@ -1190,6 +1195,37 @@ export default function Home() {
                       <>Hotels in <span className="text-primary capitalize">{destination || "your destination"}</span></>
                     )}
                   </h2>
+
+                  {/* Las Vegas Quick-Select Area Chips */}
+                  {destination?.toLowerCase().includes("las vegas") && (
+                    <div className="flex flex-wrap gap-2 mt-3 mb-1">
+                      {[
+                        { label: "The Strip", value: "The Strip" },
+                        { label: "Fremont Street", value: "Downtown / Fremont" },
+                        { label: "Downtown", value: "Downtown / Fremont" },
+                        { label: "Henderson", value: "Henderson" }
+                      ].map((area, idx) => {
+                        const isActive = neighborhoodFilter.includes(area.value);
+                        return (
+                          <button
+                            key={`${area.label}-${idx}`}
+                            onClick={() => {
+                              setNeighborhoodFilter(prev => 
+                                prev.includes(area.value) ? prev.filter(a => a !== area.value) : [...prev, area.value]
+                              );
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                              isActive 
+                                ? "bg-primary text-primary-foreground border-primary" 
+                                : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                            }`}
+                          >
+                            {area.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className="text-sm text-muted-foreground">
                       {(nearMe ? nearbyLoading : isLoading) ? "Searching…" : `${filteredHotels.length} properties found`}
@@ -1199,8 +1235,13 @@ export default function Home() {
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         Luxury &amp; 4–5★ hotels
                         <button
-                          onClick={() => setStarFilter([])}
-                          className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-300 underline underline-offset-2"
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setStarFilter([]);
+                          }}
+                          className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-300 underline underline-offset-2 relative z-10 cursor-pointer"
                           data-testid="button-show-all-ratings"
                         >
                           Show all

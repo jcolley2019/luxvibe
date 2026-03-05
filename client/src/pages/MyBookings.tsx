@@ -23,21 +23,19 @@ type SortKey =
   | "createdAt";
 type SortDir = "asc" | "desc";
 
-function statusClass(status: string) {
-  if (status === "confirmed" || status === "CONFIRMED")
-    return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
-  if (status === "cancelled" || status === "CANCELLED")
-    return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
-  return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
-}
+  function statusClass(status: string) {
+    if (status === "confirmed" || status === "CONFIRMED")
+      return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+    if (status === "cancelled" || status === "CANCELLED")
+      return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+    return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
+  }
 
-function statusBorderClass(status: string) {
-  if (status === "confirmed" || status === "CONFIRMED")
-    return "border-l-4 border-l-green-500";
-  if (status === "cancelled" || status === "CANCELLED")
-    return "border-l-4 border-l-red-500";
-  return "border-l-4 border-l-yellow-400";
-}
+  function statusBorderClass(status: string) {
+    if (status === "confirmed" || status === "CONFIRMED") return "border-l-4 border-l-green-500";
+    if (status === "cancelled" || status === "CANCELLED") return "border-l-4 border-l-red-500";
+    return "border-l-4 border-l-yellow-400";
+  }
 
 function fmtDate(val: string | null | undefined) {
   if (!val) return "—";
@@ -144,7 +142,7 @@ export default function MyBookings() {
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[200px]">
                     Hotel <SortBtn col="hotelName" />
                   </th>
-                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[180px]">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap min-w-[100px]">
                     Booking ID <SortBtn col="id" />
                   </th>
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden md:table-cell w-[90px]">
@@ -165,7 +163,7 @@ export default function MyBookings() {
                   <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden lg:table-cell w-[90px]">
                     Booking Date <SortBtn col="createdAt" />
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[120px]">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap min-w-[80px]">
                     Actions
                   </th>
                 </tr>
@@ -201,28 +199,9 @@ export default function MyBookings() {
                       <td className="px-4 py-4 font-medium text-foreground w-[200px] leading-snug">
                         {booking.hotelName}
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[180px] text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <span title={booking.id} className="cursor-help">
-                            {booking.id}
-                          </span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(booking.id);
-                              setCopiedId(booking.id);
-                              setTimeout(() => setCopiedId(null), 2000);
-                            }}
-                            title="Copy full Booking ID"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            {copiedId === booking.id ? (
-                              <Check className="w-3 h-3 text-green-500" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
+                    <td title={booking.id} className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px] cursor-help">
+                      {booking.id.slice(0, 8)}…
+                    </td>
                       <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap w-[90px]">
                         {booking.roomType}
                       </td>
@@ -253,7 +232,7 @@ export default function MyBookings() {
                       <td className="px-4 py-4 text-muted-foreground hidden lg:table-cell whitespace-nowrap w-[90px] text-center">
                         {fmtDate((booking as any).createdAt)}
                       </td>
-                      <td className="px-4 py-4 w-[120px] whitespace-nowrap">
+                      <td className="px-4 py-4 min-w-[80px] whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}
