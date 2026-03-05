@@ -24,21 +24,42 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const HERO_IMAGES = [
+  // Original locations
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80", // beach
   "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80", // overwater bungalow
   "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80", // new york skyline
-  "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1920&q=80", // las vegas casino
-  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris france
+  "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1920&q=80", // las vegas
+  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris
   "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80", // london
   "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=1920&q=80", // miami beach
-  "https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=1920&q=80", // dallas
-  "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy
-  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80", // luxury hotel pool
+  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80",    // luxury hotel pool
   "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1920&q=80", // bali resort
-  "https://images.unsplash.com/photo-1549144511-f099e773c147?w=1920&q=80", // dubai skyline
+  "https://images.unsplash.com/photo-1549144511-f099e773c147?w=1920&q=80",    // dubai skyline
   "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920&q=80", // paris eiffel night
   "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&q=80", // bali beach
   "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=80", // luxury infinity pool
+  // Santorini & European monuments
+  "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=1920&q=80", // santorini blue domes
+  "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=80", // santorini caldera sunset
+  "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80",    // vatican st peter's square
+  "https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=1920&q=80", // rome colosseum
+  "https://images.unsplash.com/photo-1554992539-5c44fc26abb1?w=1920&q=80",    // rome at night
+  "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy coast
+  // California — Los Angeles
+  "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=1920&q=80", // los angeles skyline
+  "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1920&q=80", // santa monica pier
+  "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1920&q=80",    // malibu beach
+  // California — San Francisco
+  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&q=80", // golden gate bridge
+  "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=1920&q=80", // san francisco bay
+  // California — San Diego
+  "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80", // san diego coronado
+  "https://images.unsplash.com/photo-1507904953637-96429a46671a?w=1920&q=80", // san diego beach
+  // Denver & ski resorts
+  "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?w=1920&q=80", // denver skyline mountains
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80", // colorado rocky mountains
+  "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1920&q=80",    // ski slopes
+  "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=1920&q=80",    // ski resort village
 ];
 
 interface SearchHeroProps {
