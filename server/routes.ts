@@ -1860,20 +1860,21 @@ Guest question: ${question}`;
 
   app.get("/api/bookings/lookup", async (req, res) => {
     try {
-      const { bookingId, lastName } = req.query as Record<string, string>;
-      console.log("[lookup] DEBUG: searching for bookingId:", bookingId, "lastName:", lastName);
-      if (!bookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
+      const { bookingId, lastName, id } = req.query as Record<string, string>;
+      const actualBookingId = bookingId || id;
+      console.log("[lookup] DEBUG: searching for bookingId:", actualBookingId, "lastName:", lastName);
+      if (!actualBookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
 
       // Step 1: Check our local persistent DB first for ownership/existence
       const refs = await db.select()
         .from(litapiBookingRefs)
-        .where(eq(litapiBookingRefs.bookingId, bookingId.trim()))
+        .where(eq(litapiBookingRefs.bookingId, actualBookingId.trim()))
         .limit(1);
       
       console.log("[lookup] DEBUG: DB query returned:", JSON.stringify(refs));
       const ref = refs[0];
 
-      const url = `${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`;
+      const url = `${LITEAPI_BOOK_BASE}/bookings/${actualBookingId.trim()}`;
       console.log("[lookup] DEBUG: fetching from LiteAPI:", url);
       const response = await fetch(url, {
         headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
@@ -1897,7 +1898,7 @@ Guest question: ${question}`;
       }
 
       res.json({
-        id: b.bookingId || bookingId,
+        id: b.bookingId || actualBookingId,
         confirmationCode: b.supplierBookingId || b.hotel_confirmation_code || "",
         hotelName: b.hotel?.name || b.hotelName || "Hotel",
         roomType: b.bookedRooms?.[0]?.roomType?.name || b.roomTypeName || "Room",
