@@ -4,10 +4,23 @@ import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, ArrowUpDown, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  ArrowUpDown,
+  ExternalLink,
+  Copy,
+  Check,
+} from "lucide-react";
 import { Link } from "wouter";
 
-type SortKey = "hotelName" | "id" | "checkIn" | "totalPrice" | "status" | "createdAt";
+type SortKey =
+  | "hotelName"
+  | "id"
+  | "checkIn"
+  | "totalPrice"
+  | "status"
+  | "createdAt";
 type SortDir = "asc" | "desc";
 
 function statusClass(status: string) {
@@ -19,21 +32,30 @@ function statusClass(status: string) {
 }
 
 function statusBorderClass(status: string) {
-  if (status === "confirmed" || status === "CONFIRMED") return "border-l-4 border-l-green-500";
-  if (status === "cancelled" || status === "CANCELLED") return "border-l-4 border-l-red-500";
+  if (status === "confirmed" || status === "CONFIRMED")
+    return "border-l-4 border-l-green-500";
+  if (status === "cancelled" || status === "CANCELLED")
+    return "border-l-4 border-l-red-500";
   return "border-l-4 border-l-yellow-400";
 }
 
 function fmtDate(val: string | null | undefined) {
   if (!val) return "—";
   try {
-    return new Date(val).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' });
-  } catch { return val; }
+    return new Date(val).toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "2-digit",
+    });
+  } catch {
+    return val;
+  }
 }
 
 export default function MyBookings() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { data: bookings, isLoading: isBookingsLoading } = useBookings();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -73,7 +95,10 @@ export default function MyBookings() {
   const sorted = [...filtered].sort((a, b) => {
     let av: any = a[sortKey as keyof typeof a] ?? "";
     let bv: any = b[sortKey as keyof typeof b] ?? "";
-    if (sortKey === "totalPrice") { av = Number(av); bv = Number(bv); }
+    if (sortKey === "totalPrice") {
+      av = Number(av);
+      bv = Number(bv);
+    }
     if (av < bv) return sortDir === "asc" ? -1 : 1;
     if (av > bv) return sortDir === "asc" ? 1 : -1;
     return 0;
@@ -150,11 +175,18 @@ export default function MyBookings() {
                   <tr>
                     <td colSpan={9}>
                       <div className="text-center py-12">
-                        <p className="text-muted-foreground mb-2">No bookings found for your account.</p>
+                        <p className="text-muted-foreground mb-2">
+                          No bookings found for your account.
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Have a booking ID? Use{" "}
-                          <a href="/manage-booking" className="text-primary underline">Manage My Booking</a>
-                          {" "}to look it up directly.
+                          <a
+                            href="/manage-booking"
+                            className="text-primary underline"
+                          >
+                            Manage My Booking
+                          </a>{" "}
+                          to look it up directly.
                         </p>
                       </div>
                     </td>
@@ -169,11 +201,27 @@ export default function MyBookings() {
                       <td className="px-4 py-4 font-medium text-foreground w-[200px] leading-snug">
                         {booking.hotelName}
                       </td>
-                      <td
-                        title={booking.id}
-                        className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[90px] cursor-help text-center"
-                      >
-                        {booking.id.slice(0, 8)}…
+                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[90px] text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <span title={booking.id} className="cursor-help">
+                            {booking.id.slice(0, 8)}…
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(booking.id);
+                              setCopiedId(booking.id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                            title="Copy full Booking ID"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            {copiedId === booking.id ? (
+                              <Check className="w-3 h-3 text-green-500" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap w-[90px]">
                         {booking.roomType}
@@ -182,12 +230,17 @@ export default function MyBookings() {
                         {booking.guests}
                       </td>
                       <td className="px-4 py-4 text-muted-foreground whitespace-nowrap w-[150px]">
-                        {fmtDate(booking.checkIn as string)} – {fmtDate(booking.checkOut as string)}
+                        {fmtDate(booking.checkIn as string)} –{" "}
+                        {fmtDate(booking.checkOut as string)}
                       </td>
                       <td className="px-4 py-4 font-semibold text-foreground whitespace-nowrap w-[80px] text-center">
-                        {booking.totalPrice != null
-                          ? `$${Number(booking.totalPrice).toFixed(2)}`
-                          : <span className="text-muted-foreground font-normal">—</span>}
+                        {booking.totalPrice != null ? (
+                          `$${Number(booking.totalPrice).toFixed(2)}`
+                        ) : (
+                          <span className="text-muted-foreground font-normal">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-4 w-[100px]">
                         <span
@@ -202,7 +255,9 @@ export default function MyBookings() {
                       </td>
                       <td className="px-4 py-4 w-[120px] whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <Link href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}>
+                          <Link
+                            href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}
+                          >
                             <Button
                               variant="outline"
                               size="sm"
@@ -213,7 +268,9 @@ export default function MyBookings() {
                               View
                             </Button>
                           </Link>
-                          <Link href={`/manage-booking?bookingId=${booking.id}`}>
+                          <Link
+                            href={`/manage-booking?bookingId=${booking.id}`}
+                          >
                             <Button
                               variant="ghost"
                               size="sm"
