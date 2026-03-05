@@ -205,6 +205,7 @@ export default function Home() {
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
   const [starFilter, setStarFilter] = useState<number[]>([]);
+  const isDefaultStarFilter = starFilter.length === 2 && starFilter.includes(4) && starFilter.includes(5);
   const [includeUnrated, setIncludeUnrated] = useState(false);
   const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
@@ -678,7 +679,7 @@ export default function Home() {
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
     freeCancellationOnly, mealPlanFilter, facilitiesFilter, landmarks, landmarkDistances,
-    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
+    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter, isDefaultStarFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
@@ -717,12 +718,10 @@ export default function Home() {
     return hotels.filter(h => { const c: string[] = (h as any).boardCodes || []; return codes.some(k => c.includes(k)); }).length;
   };
 
-  const isDefaultStarFilter = starFilter.length === 0;
-
   const activeFilterCount =
     (nameFilter ? 1 : 0) +
     (priceMax < priceRange.max ? 1 : 0) +
-    (isDefaultStarFilter ? 0 : includeUnrated ? starFilter.length + 1 : starFilter.length) +
+    (starFilter.length > 0 || includeUnrated ? 1 : 0) +
     (guestRatingMin !== null ? 1 : 0) +
     brandFilter.length +
     (freeCancellationOnly ? 1 : 0) +
