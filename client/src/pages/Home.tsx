@@ -14,7 +14,7 @@ import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
-type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
+type SortOption = "luxury" | "recommended" | "price_asc" | "price_desc" | "rating";
 
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3958.8;
@@ -201,10 +201,10 @@ export default function Home() {
     );
     const nights = getNights(checkIn || undefined, checkOut || undefined);
 
-  const [sortBy, setSortBy] = useState<SortOption>("rating");
+  const [sortBy, setSortBy] = useState<SortOption>("luxury");
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
-  const [starFilter, setStarFilter] = useState<number[]>([]);
+  const [starFilter, setStarFilter] = useState<number[]>([4, 5]);
   const isDefaultStarFilter = starFilter.length === 2 && starFilter.includes(4) && starFilter.includes(5);
   const [includeUnrated, setIncludeUnrated] = useState(false);
   const [guestRatingMin, setGuestRatingMin] = useState<number | null>(null);
@@ -588,14 +588,40 @@ export default function Home() {
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [hotels]);
 
+  const LAS_VEGAS_LUXURY_HOTELS = [
+    "MGM Grand", "Fontainebleau", "Caesars Palace", "Bellagio", "Wynn",
+    "Encore", "Mandalay Bay", "Venetian", "The Venetian", "Paris Las Vegas",
+    "Treasure Island", "Aria", "Cosmopolitan", "The Cosmopolitan", "Resorts World",
+  ];
+  const isLasVegasSearch = !!(destination?.toLowerCase().includes("las vegas") || destination?.toLowerCase().includes("vegas"));
+
   const sortedHotels = useMemo(() => {
     const source = nearMeResults ?? hotels ?? [];
     const copy = [...source];
     if (sortBy === "price_asc") return copy.sort((a, b) => ((a as any).price || 9999) - ((b as any).price || 9999));
     if (sortBy === "price_desc") return copy.sort((a, b) => ((b as any).price || 0) - ((a as any).price || 0));
     if (sortBy === "rating") return copy.sort((a, b) => ((b as any).rating || 0) - ((a as any).rating || 0));
-    return copy;
-  }, [hotels, nearMeResults, sortBy]);
+
+    // "luxury" sort: Las Vegas icon boost → stars desc → rating desc
+    return copy.sort((a, b) => {
+      const aStars = Math.round((a as any).stars || 0);
+      const bStars = Math.round((b as any).stars || 0);
+      const aRating = (a as any).rating || 0;
+      const bRating = (b as any).rating || 0;
+
+      // Las Vegas iconic hotel boost
+      if (isLasVegasSearch) {
+        const aBoost = LAS_VEGAS_LUXURY_HOTELS.some(n => a.name.toLowerCase().includes(n.toLowerCase())) ? 1 : 0;
+        const bBoost = LAS_VEGAS_LUXURY_HOTELS.some(n => b.name.toLowerCase().includes(n.toLowerCase())) ? 1 : 0;
+        if (aBoost !== bBoost) return bBoost - aBoost;
+      }
+
+      // Stars descending first
+      if (bStars !== aStars) return bStars - aStars;
+      // Then rating descending
+      return bRating - aRating;
+    });
+  }, [hotels, nearMeResults, sortBy, isLasVegasSearch]);
 
   const filteredHotels = useMemo(() => {
     return sortedHotels.filter(h => {
@@ -612,16 +638,12 @@ export default function Home() {
       if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
       if (price && price > priceMax) return false;
 
-      // 1. Fix: Filter by star rating
+      // Star filter: [4,5] is the default luxury state; empty = show all
       if (starFilter.length > 0) {
         const roundedStars = stars ? Math.round(stars) : null;
-        if (roundedStars === null || !starFilter.includes(roundedStars)) {
-          if (!(includeUnrated && stars === null)) return false;
-        }
-      } else if (isDefaultStarFilter) {
-        // Luxury filter active by default or specifically
-        const roundedStars = stars ? Math.round(stars) : null;
-        if (roundedStars === null || roundedStars < 4) return false;
+        const matchesStar = roundedStars !== null && starFilter.includes(roundedStars);
+        const matchesUnrated = includeUnrated && stars === null;
+        if (!matchesStar && !matchesUnrated) return false;
       }
 
       if (guestRatingMin !== null && (rating === null || rating < guestRatingMin)) return false;
@@ -679,7 +701,7 @@ export default function Home() {
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
     freeCancellationOnly, mealPlanFilter, facilitiesFilter, landmarks, landmarkDistances,
-    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter, isDefaultStarFilter]);
+    neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
   const featuredDealBadges = useMemo(() => computeDealBadges(featured ?? []), [featured]);
@@ -721,7 +743,7 @@ export default function Home() {
   const activeFilterCount =
     (nameFilter ? 1 : 0) +
     (priceMax < priceRange.max ? 1 : 0) +
-    (starFilter.length > 0 || includeUnrated ? 1 : 0) +
+    (!isDefaultStarFilter && (starFilter.length > 0 || includeUnrated) ? 1 : 0) +
     (guestRatingMin !== null ? 1 : 0) +
     brandFilter.length +
     (freeCancellationOnly ? 1 : 0) +
@@ -735,8 +757,8 @@ export default function Home() {
   const clearFilters = () => {
     setNameFilter("");
     setPriceMax(priceRange.max);
-    setSortBy("rating");
-    setStarFilter([]);
+    setSortBy("luxury");
+    setStarFilter([4, 5]);
     setIncludeUnrated(false);
     setGuestRatingMin(null);
     setBrandFilter([]);
@@ -1260,7 +1282,8 @@ export default function Home() {
                       className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                       data-testid="select-sort"
                     >
-                      <option value="recommended">Our top picks</option>
+                      <option value="luxury">Luxury first</option>
+                      <option value="recommended">Recommended</option>
                       <option value="price_asc">Price: Low to High</option>
                       <option value="price_desc">Price: High to Low</option>
                       <option value="rating">Top Rated</option>
