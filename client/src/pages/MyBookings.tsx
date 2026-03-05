@@ -144,7 +144,7 @@ export default function MyBookings() {
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[200px]">
                     Hotel <SortBtn col="hotelName" />
                   </th>
-                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[90px]">
+                  <th className="text-center px-4 py-3 font-semibold text-foreground whitespace-nowrap w-[180px]">
                     Booking ID <SortBtn col="id" />
                   </th>
                   <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap hidden md:table-cell w-[90px]">
@@ -201,10 +201,10 @@ export default function MyBookings() {
                       <td className="px-4 py-4 font-medium text-foreground w-[200px] leading-snug">
                         {booking.hotelName}
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[90px] text-center">
+                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap w-[180px] text-center">
                         <div className="flex items-center justify-center gap-1">
                           <span title={booking.id} className="cursor-help">
-                            {booking.id.slice(0, 8)}…
+                            {booking.id}
                           </span>
                           <button
                             onClick={() => {
