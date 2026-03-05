@@ -1951,6 +1951,7 @@ Guest question: ${question}`;
         const room = b.bookedRooms?.[0] || b.rooms?.[0];
         return {
           id: b.bookingId,
+          hotelId: b.hotel?.hotelId || b.hotelId || b.property_id || b.hotel?.property_id || null,
           hotelName: b.hotel?.name || "Hotel",
           roomType: room?.boardName || room?.roomType?.name || room?.name || "Room",
           checkIn: b.checkin,
