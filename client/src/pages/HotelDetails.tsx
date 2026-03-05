@@ -534,7 +534,7 @@ export default function HotelDetails() {
       <div className="container mx-auto px-4 pt-4 pb-20 max-w-5xl">
         {/* Back button */}
         <button
-          onClick={() => setLocation("/")}
+          onClick={() => window.history.back()}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
           data-testid="button-back"
         >
