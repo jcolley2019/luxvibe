@@ -1861,21 +1861,26 @@ Guest question: ${question}`;
   app.get("/api/bookings/lookup", async (req, res) => {
     try {
       const { bookingId, lastName } = req.query as Record<string, string>;
+      console.log("[lookup] DEBUG: searching for bookingId:", bookingId, "lastName:", lastName);
       if (!bookingId?.trim()) return res.status(400).json({ message: "Booking ID is required" });
 
       // Step 1: Check our local persistent DB first for ownership/existence
-      const [ref] = await db.select()
+      const refs = await db.select()
         .from(litapiBookingRefs)
         .where(eq(litapiBookingRefs.bookingId, bookingId.trim()))
         .limit(1);
+      
+      console.log("[lookup] DEBUG: DB query returned:", JSON.stringify(refs));
+      const ref = refs[0];
 
       const url = `${LITEAPI_BOOK_BASE}/bookings/${bookingId.trim()}`;
-      console.log("[lookup] fetching:", url);
+      console.log("[lookup] DEBUG: fetching from LiteAPI:", url);
       const response = await fetch(url, {
         headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
       });
       const data = await response.json();
-      console.log("[lookup] response:", JSON.stringify(data).slice(0, 200));
+      console.log("[lookup] DEBUG: LiteAPI response status:", response.status);
+      console.log("[lookup] DEBUG: LiteAPI full response data:", JSON.stringify(data));
       
       const b = data?.data || data;
       if (!response.ok || !b || b.error) {
