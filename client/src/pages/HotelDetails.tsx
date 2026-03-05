@@ -575,7 +575,7 @@ export default function HotelDetails() {
         {/* Photo Gallery */}
         <div className="grid grid-cols-4 grid-rows-2 gap-1 sm:gap-1.5 h-[200px] xs:h-[240px] sm:h-[380px] rounded-lg sm:rounded-xl overflow-hidden mb-6 relative">
           <div className="col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setGalleryMode("grid"); setShowAllPhotos(true); }}>
-            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover ken-burns" fetchPriority="high" decoding="async" />
+            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover ken-burns" fetchpriority="high" decoding="async" />
           </div>
           {[1, 2, 3, 4].map((i) => (
             <div

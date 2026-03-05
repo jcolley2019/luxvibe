@@ -30,10 +30,10 @@ declare global {
 }
 
 export default function Checkout() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const searchParams = new URLSearchParams(window.location.search);
-  
+
   const offerId = searchParams.get("offerId");
   const hotelId = searchParams.get("hotelId");
   const hotelName = searchParams.get("hotelName");
@@ -86,7 +86,7 @@ export default function Checkout() {
         guests,
         roomName,
         price,
-        currency
+        currency,
       };
       sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
       sessionStorage.setItem("guestDetails", JSON.stringify({
@@ -122,18 +122,18 @@ export default function Checkout() {
         publicKey: prebookData.paymentEnv === "live" ? "live" : "sandbox",
         secretKey: prebookData.secretKey,
         returnUrl: `${window.location.origin}/booking-confirmation?prebookId=${prebookData.prebookId}`,
-        targetElement: '#liteapi-payment',
+        targetElement: "#liteapi-payment",
         appearance: {
-          theme: 'flat',
+          theme: "flat",
           variables: {
-            colorPrimary: '#1d4ed8',
-          }
+            colorPrimary: "#1d4ed8",
+          },
         },
         options: {
           business: {
-            name: 'Luxvibe'
-          }
-        }
+            name: "Luxvibe",
+          },
+        },
       };
 
       try {
@@ -154,12 +154,16 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 container mx-auto px-4 pt-24 pb-8 max-w-4xl">
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 font-heading">Complete your booking</h1>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+
+          {/* ── Left column ── */}
           <div className="md:col-span-2 space-y-6">
+
+            {/* Guest Details Card */}
             <Card className="border-none shadow-sm bg-muted/30 rounded-2xl">
               <CardHeader className="p-5 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -224,11 +228,11 @@ export default function Checkout() {
                         </FormItem>
                       )}
                     />
-                    
+
                     {!prebookData && (
-                      <Button 
-                        type="submit" 
-                        className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20" 
+                      <Button
+                        type="submit"
+                        className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20"
                         disabled={prebookMutation.isPending}
                         data-testid="button-submit-guest-details"
                       >
@@ -247,6 +251,7 @@ export default function Checkout() {
               </CardContent>
             </Card>
 
+            {/* Payment Card — only shown after prebook succeeds */}
             {prebookData && (
               <Card className="border-primary/20 shadow-lg animate-in fade-in slide-in-from-top-4 rounded-2xl">
                 <CardHeader className="p-5 sm:p-6">
@@ -266,35 +271,40 @@ export default function Checkout() {
                     </div>
                   </div>
                   <div className="space-y-3">
-  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <div className="bg-green-500 rounded-full p-1.5">
-        <ShieldCheck className="w-4 h-4 text-white" />
-      </div>
-      <div>
-        <p className="text-sm font-bold text-green-900 dark:text-green-100">Ready to complete payment</p>
-        <p className="text-xs text-green-700 dark:text-green-300">Enter your card details below and click Pay</p>
-      </div>
-    </div>
-    <div className="text-right shrink-0">
-      <p className="text-lg font-bold text-green-900 dark:text-green-100">{currency} {price}</p>
-    </div>
-  </div>
-  <div id="liteapi-payment" className="min-h-[300px] flex items-center justify-center border-2 border-primary/20 rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20 shadow-inner">
-    {!sdkLoaded && (
-      <div className="flex flex-col items-center gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
-      </div>
-    )}
-  </div>
-</div>
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-green-500 rounded-full p-1.5">
+                          <ShieldCheck className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-green-900 dark:text-green-100">Ready to complete payment</p>
+                          <p className="text-xs text-green-700 dark:text-green-300">Enter your card details below and click Pay</p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-lg font-bold text-green-900 dark:text-green-100">{currency} {price}</p>
+                      </div>
+                    </div>
+                    <div
+                      id="liteapi-payment"
+                      className="min-h-[300px] flex items-center justify-center border-2 border-primary/20 rounded-xl p-2 sm:p-4 bg-white dark:bg-black/20 shadow-inner"
+                    >
+                      {!sdkLoaded && (
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">Loading payment gateway...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
-          </div>
-              
 
+          </div>
+          {/* ── End left column ── */}
+
+          {/* ── Right column: Booking Summary ── */}
           <div className="space-y-6">
             <Card className="sticky top-24 border-none shadow-md overflow-hidden rounded-2xl">
               <CardHeader className="bg-primary text-primary-foreground p-5 sm:p-6">
@@ -337,6 +347,8 @@ export default function Checkout() {
               </CardFooter>
             </Card>
           </div>
+          {/* ── End right column ── */}
+
         </div>
       </main>
     </div>

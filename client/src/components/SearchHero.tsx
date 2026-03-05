@@ -601,7 +601,7 @@ export default function SearchHero({
       {/* ── MOBILE layout (below md) ── */}
       <div className="md:hidden">
         <div className="relative h-[320px] overflow-hidden">
-          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover object-center" fetchPriority="high" decoding="async" />
+          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover object-center" fetchpriority="high" decoding="async" />
           <div className="absolute inset-0 bg-black/35" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
             <h1 className="text-[28px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
@@ -814,7 +814,7 @@ export default function SearchHero({
       {/* ── DESKTOP layout (md+) ── */}
       <div className="hidden md:block relative w-full h-[638px]">
         <div className="absolute inset-0 w-full h-full overflow-hidden">
-          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
+          <img src={heroImage} alt="Luxury Hotel" className="w-full h-full object-cover" fetchpriority="high" decoding="async" />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
