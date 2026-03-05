@@ -242,6 +242,8 @@ export function CompareModal({ hotels, open, onClose, checkIn, checkOut, guests 
                         src={h.imageUrl || getFallback(h.id)}
                         alt={h.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => { (e.target as HTMLImageElement).src = getFallback(h.id); }}
                         data-testid={`compare-img-${h.id}`}
                       />

@@ -1463,6 +1463,8 @@ export default function Home() {
                       src={h.imageUrl || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80"}
                       alt={h.name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80"; }}
                     />
                   </div>

@@ -134,6 +134,8 @@ export default function Favorites() {
                     src={hotel.imageUrl || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&q=70"}
                     alt={hotel.name}
                     className="w-12 h-12 rounded-lg object-cover border border-border"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <button
                     onClick={() => toggleCompare(hotel)}

@@ -114,6 +114,8 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             src={hotel.imageUrl || getFallbackImage(hotel.id)}
             alt={hotel.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               (e.target as HTMLImageElement).src = getFallbackImage(hotel.id);
             }}

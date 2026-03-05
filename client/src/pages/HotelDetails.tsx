@@ -575,7 +575,7 @@ export default function HotelDetails() {
         {/* Photo Gallery */}
         <div className="grid grid-cols-4 grid-rows-2 gap-1 sm:gap-1.5 h-[200px] xs:h-[240px] sm:h-[380px] rounded-lg sm:rounded-xl overflow-hidden mb-6 relative">
           <div className="col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setGalleryMode("grid"); setShowAllPhotos(true); }}>
-            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover ken-burns" />
+            <img src={gallery[0]} alt="Main" className="w-full h-full object-cover ken-burns" fetchPriority="high" decoding="async" />
           </div>
           {[1, 2, 3, 4].map((i) => (
             <div
@@ -583,7 +583,7 @@ export default function HotelDetails() {
               className="col-span-1 row-span-1 overflow-hidden group cursor-pointer relative"
               onClick={() => { setGalleryMode("grid"); setShowAllPhotos(true); }}
             >
-              <img src={gallery[i]} alt={`View ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <img src={gallery[i]} alt={`View ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
               {i === 4 && (
                 <div className="absolute inset-0 bg-black/40 hover:bg-black/50 transition-colors flex items-center justify-center">
                   <span className="text-white text-sm font-medium flex items-center gap-1.5">
