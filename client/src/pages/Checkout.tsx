@@ -289,6 +289,10 @@ export default function Checkout() {
     )}
   </div>
 </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
               
 
           <div className="space-y-6">
