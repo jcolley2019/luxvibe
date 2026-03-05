@@ -292,6 +292,10 @@ export async function registerRoutes(
                   price: null as number | null,
                   imageUrl: h.main_photo || h.thumbnail || null,
                   facilities,
+                  neighborhood: h.neighborhood || h.location?.neighborhood || null,
+                  distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
+                  mealPlan: aiBoardCodesMap.get(hotelRate.hotelId)?.[0] || null,
+                  guestRating: h.rating || h.guest_rating || null,
                 };
               })
               .filter((h: any) => h.rating !== null && h.rating >= 8.0 && h.stars !== null && h.stars >= 4 && (h.reviewCount == null || h.reviewCount >= 50))
@@ -891,6 +895,9 @@ export async function registerRoutes(
           .filter((hotelRate: any) => aiRatesMap.has(hotelRate.hotelId))
           .map((hotelRate: any) => {
             const h = (hotelsInfoMap.get(hotelRate.hotelId) || hotelRate) as any;
+            if (hotelRate.hotelId === rateEntries[0].hotelId) {
+              console.log('[search-ai] RAW LITEAPI HOTEL OBJECT:', JSON.stringify(h, null, 2));
+            }
             const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
             const facilities: string[] = rawFacilities
               .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
@@ -911,6 +918,10 @@ export async function registerRoutes(
               lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
               lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
               facilities,
+              neighborhood: h.neighborhood || h.location?.neighborhood || null,
+              distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
+              mealPlan: aiBoardCodesMap.get(hotelRate.hotelId)?.[0] || null,
+              guestRating: h.rating || h.guest_rating || null,
               boardCodes: aiBoardCodesMap.get(hotelRate.hotelId) || [],
               refundable: aiRefundableMap.get(hotelRate.hotelId) || false,
             };
@@ -1030,6 +1041,10 @@ export async function registerRoutes(
           lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
           lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
           facilities,
+          neighborhood: h.neighborhood || h.location?.neighborhood || null,
+          distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
+          mealPlan: boardCodesMap.get(h.id)?.[0] || null,
+          guestRating: h.rating || h.guest_rating || null,
           boardCodes: boardCodesMap.get(h.id) || [],
           refundable: refundableMap.get(h.id) || false,
         };
