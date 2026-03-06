@@ -389,6 +389,7 @@ export default function Home() {
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
   const [freeCancellationOnly, setFreeCancellationOnly] = useState(false);
   const [mealPlanFilter, setMealPlanFilter] = useState<string[]>([]);
+  const [distanceCenterFilter, setDistanceCenterFilter] = useState<number | null>(null);
   const [facilitiesFilter, setFacilitiesFilter] = useState<string[]>([]);
   const [landmarks, setLandmarks] = useState<
     { name: string; lat: number; lng: number }[]
@@ -1117,6 +1118,12 @@ export default function Home() {
         }
       }
 
+      // Distance from city center filter
+      if (distanceCenterFilter !== null) {
+        const d = (hx as any).distanceFromCenter;
+        if (d === null || d === undefined || d > distanceCenterFilter) return false;
+      }
+
       // Neighborhood filter
       if (
         neighborhoodFilter.length > 0 &&
@@ -1137,6 +1144,7 @@ export default function Home() {
     freeCancellationOnly,
     mealPlanFilter,
     facilitiesFilter,
+    distanceCenterFilter,
     landmarks,
     landmarkDistances,
     neighborhoodFilter,
@@ -1218,6 +1226,7 @@ export default function Home() {
     (freeCancellationOnly ? 1 : 0) +
     mealPlanFilter.length +
     facilitiesFilter.length +
+    (distanceCenterFilter !== null ? 1 : 0) +
     propertyTypeFilter.length +
     roomAmenitiesFilter.length +
     Object.values(landmarkDistances).filter((v) => v != null).length +
@@ -1234,6 +1243,7 @@ export default function Home() {
     setFreeCancellationOnly(false);
     setMealPlanFilter([]);
     setFacilitiesFilter([]);
+    setDistanceCenterFilter(null);
     setPropertyTypeFilter([]);
     setRoomAmenitiesFilter([]);
     setNeighborhoodFilter([]);
@@ -1399,8 +1409,8 @@ export default function Home() {
                         },
                         {
                           label: "Breakfast included",
-                          kind: "facility",
-                          value: "Breakfast",
+                          kind: "meal",
+                          value: "Breakfast included",
                         },
                         {
                           label: "Swimming pool",
@@ -1425,13 +1435,15 @@ export default function Home() {
                           ? freeCancellationOnly
                           : item.kind === "type"
                             ? propertyTypeFilter.includes(item.value!)
-                            : facilitiesFilter.some((f) => {
-                                const n = normalizeForFilter(f);
-                                const v = normalizeForFilter(item.value!);
-                                return (
-                                  n === v || n.includes(v) || v.includes(n)
-                                );
-                              });
+                            : item.kind === "meal"
+                              ? mealPlanFilter.includes(item.value!)
+                              : facilitiesFilter.some((f) => {
+                                  const n = normalizeForFilter(f);
+                                  const v = normalizeForFilter(item.value!);
+                                  return (
+                                    n === v || n.includes(v) || v.includes(n)
+                                  );
+                                });
                       return (
                         <label
                           key={item.label}
@@ -1445,6 +1457,11 @@ export default function Home() {
                                 setFreeCancellationOnly(e.target.checked);
                               } else if (item.kind === "type") {
                                 togglePropertyType(item.value!);
+                              } else if (item.kind === "meal") {
+                                if (e.target.checked)
+                                  setMealPlanFilter((prev) => [...prev, item.value!]);
+                                else
+                                  setMealPlanFilter((prev) => prev.filter((m) => m !== item.value!));
                               } else {
                                 if (e.target.checked)
                                   setFacilitiesFilter((prev) => [
@@ -1477,7 +1494,32 @@ export default function Home() {
                   </div>
                 </FilterSection>
 
-                {/* 4. Distance from landmarks — dynamic per destination */}
+                {/* 4. Distance from city center */}
+                <FilterSection title="Distance from city center">
+                  <div className="flex flex-col gap-2">
+                    {([1, 3, 5] as const).map((km) => (
+                      <label
+                        key={km}
+                        className="flex items-center gap-2.5 cursor-pointer group"
+                      >
+                        <input
+                          type="radio"
+                          name="distanceCenter"
+                          checked={distanceCenterFilter === km}
+                          onChange={() => setDistanceCenterFilter(distanceCenterFilter === km ? null : km)}
+                          onClick={() => { if (distanceCenterFilter === km) setDistanceCenterFilter(null); }}
+                          className="accent-primary w-4 h-4"
+                          data-testid={`radio-distance-center-${km}km`}
+                        />
+                        <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                          Less than {km} km
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </FilterSection>
+
+                {/* 5. Distance from landmarks — dynamic per destination */}
                 {(landmarksLoading || landmarks.length > 0) && (
                   <FilterSection title="Distance from landmarks">
                     {landmarksLoading ? (

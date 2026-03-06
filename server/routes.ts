@@ -160,6 +160,15 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 const CITY_COUNTRY_MAP: Record<string, string> = {
   "paris": "FR", "lyon": "FR", "nice": "FR", "marseille": "FR", "bordeaux": "FR",
   "london": "GB", "manchester": "GB", "birmingham": "GB", "edinburgh": "GB", "glasgow": "GB",
@@ -951,8 +960,8 @@ export async function registerRoutes(
         return res.json(results);
       }
 
-      const METADATA_LIMIT = 150;
-      const RATES_BATCH = 25;
+      const METADATA_LIMIT = 400;
+      const RATES_BATCH = 50;
 
       if (placeId) {
         const hotelsData = await liteApiGet("/data/hotels", {
@@ -988,6 +997,17 @@ export async function registerRoutes(
         const rb = b.rating ? parseFloat(String(b.rating)) : 0;
         return rb - ra;
       });
+
+      // Compute geographic centroid to use as city center for distance calculations
+      const coordHotels = hotelsMetadata.filter((h: any) =>
+        (h.location?.latitude ?? h.latitude) && (h.location?.longitude ?? h.longitude)
+      );
+      let centerLat: number | null = null;
+      let centerLng: number | null = null;
+      if (coordHotels.length > 0) {
+        centerLat = coordHotels.reduce((s: number, h: any) => s + (h.location?.latitude ?? h.latitude), 0) / coordHotels.length;
+        centerLng = coordHotels.reduce((s: number, h: any) => s + (h.location?.longitude ?? h.longitude), 0) / coordHotels.length;
+      }
 
       hotelIds = hotelsMetadata.map((h: any) => h.id);
       let ratesMap = new Map<string, number>();
@@ -1064,7 +1084,12 @@ export async function registerRoutes(
           facilityIds,
           facilities,
           neighborhood: h.neighborhood || h.location?.neighborhood || null,
-          distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
+          distanceFromCenter: (() => {
+            const hLat = h.location?.latitude ?? h.latitude ?? null;
+            const hLng = h.location?.longitude ?? h.longitude ?? null;
+            if (hLat && hLng && centerLat && centerLng) return Math.round(haversineKm(hLat, hLng, centerLat, centerLng) * 10) / 10;
+            return null;
+          })(),
           mealPlan: boardCodesMap.get(h.id)?.[0] || null,
           guestRating: h.rating || h.guest_rating || null,
           boardCodes: boardCodesMap.get(h.id) || [],
