@@ -18,7 +18,9 @@ import {
   Heart,
   Waves,
   Gem,
+  ChevronLeft,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -77,6 +79,29 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=1920&q=80", // ski resort village
 ];
 
+const POPULAR_DESTINATIONS = [
+  { placeId: "pop:las-vegas", displayName: "Las Vegas, NV", formattedAddress: "Nevada, United States", types: ["locality"] },
+  { placeId: "pop:new-york", displayName: "New York, NY", formattedAddress: "New York, United States", types: ["locality"] },
+  { placeId: "pop:miami", displayName: "Miami, FL", formattedAddress: "Florida, United States", types: ["locality"] },
+  { placeId: "pop:los-angeles", displayName: "Los Angeles, CA", formattedAddress: "California, United States", types: ["locality"] },
+  { placeId: "pop:paris", displayName: "Paris", formattedAddress: "Île-de-France, France", types: ["locality"] },
+  { placeId: "pop:london", displayName: "London", formattedAddress: "England, United Kingdom", types: ["locality"] },
+  { placeId: "pop:dubai", displayName: "Dubai", formattedAddress: "Dubai, United Arab Emirates", types: ["locality"] },
+  { placeId: "pop:chicago", displayName: "Chicago, IL", formattedAddress: "Illinois, United States", types: ["locality"] },
+  { placeId: "pop:san-francisco", displayName: "San Francisco, CA", formattedAddress: "California, United States", types: ["locality"] },
+  { placeId: "pop:orlando", displayName: "Orlando, FL", formattedAddress: "Florida, United States", types: ["locality"] },
+  { placeId: "pop:cancun", displayName: "Cancún", formattedAddress: "Quintana Roo, Mexico", types: ["locality"] },
+  { placeId: "pop:barcelona", displayName: "Barcelona", formattedAddress: "Catalonia, Spain", types: ["locality"] },
+  { placeId: "pop:rome", displayName: "Rome", formattedAddress: "Lazio, Italy", types: ["locality"] },
+  { placeId: "pop:tokyo", displayName: "Tokyo", formattedAddress: "Tokyo, Japan", types: ["locality"] },
+  { placeId: "pop:sydney", displayName: "Sydney", formattedAddress: "New South Wales, Australia", types: ["locality"] },
+  { placeId: "pop:bangkok", displayName: "Bangkok", formattedAddress: "Bangkok, Thailand", types: ["locality"] },
+  { placeId: "pop:bali", displayName: "Bali", formattedAddress: "Bali, Indonesia", types: ["locality"] },
+  { placeId: "pop:amsterdam", displayName: "Amsterdam", formattedAddress: "North Holland, Netherlands", types: ["locality"] },
+  { placeId: "pop:lisbon", displayName: "Lisbon", formattedAddress: "Lisbon, Portugal", types: ["locality"] },
+  { placeId: "pop:maldives", displayName: "Maldives", formattedAddress: "Republic of Maldives", types: ["country"] },
+];
+
 interface SearchHeroProps {
   variant?: "hero" | "navbar";
   heroImage?: string;
@@ -128,6 +153,7 @@ export default function SearchHero({
   );
 
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [showMobileDestSheet, setShowMobileDestSheet] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [mobileDateOpen, setMobileDateOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
@@ -938,7 +964,7 @@ export default function SearchHero({
             className="bg-white dark:bg-card rounded-3xl shadow-2xl relative"
             ref={mobileAutocompleteRef}
           >
-            {showAutocomplete && (
+            {showAutocomplete && !showMobileDestSheet && (
               <div className="absolute bottom-full left-0 z-[200] mb-1 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-h-48 overflow-y-auto">
                 {nearMeButton}
                 {destination.length >= 2 && placesLoading && (
@@ -1042,7 +1068,10 @@ export default function SearchHero({
                     setPlaceId("");
                     setShowAutocomplete(true);
                   }}
-                  onFocus={() => setShowAutocomplete(true)}
+                  onFocus={() => {
+                    setShowMobileDestSheet(true);
+                    setShowAutocomplete(false);
+                  }}
                   onKeyDown={handleKeyDown}
                   data-testid="input-destination-mobile"
                 />
@@ -1149,6 +1178,221 @@ export default function SearchHero({
           </button>
         </div>
       </div>
+
+      {/* ── Mobile full-screen destination search sheet ── */}
+      <AnimatePresence>
+        {showMobileDestSheet && (
+          <motion.div
+            className="fixed inset-0 z-[300] bg-background flex flex-col md:hidden"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "tween", duration: 0.25 }}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 pt-5 pb-3 border-b border-border shrink-0">
+              <button
+                onClick={() => setShowMobileDestSheet(false)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors shrink-0"
+                data-testid="button-close-dest-sheet"
+              >
+                <ChevronLeft className="w-5 h-5 text-foreground" />
+              </button>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search destinations..."
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-muted text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
+                  value={destination}
+                  onChange={(e) => {
+                    setDestination(e.target.value);
+                    setPlaceId("");
+                    setShowAutocomplete(true);
+                  }}
+                  data-testid="input-destination-sheet"
+                />
+                {destination.length > 0 && (
+                  <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDestination("");
+                      setPlaceId("");
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Scrollable results */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Around my area */}
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setShowMobileDestSheet(false);
+                  handleNearMe();
+                }}
+                disabled={geoLoading}
+                className="w-full text-left px-4 py-3.5 transition-colors flex items-center gap-4 border-b border-border hover:bg-muted/40 active:bg-muted/60"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+                  {geoLoading ? (
+                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                  ) : (
+                    <Navigation className="w-4 h-4 text-blue-600" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Around my area</div>
+                  <div className="text-xs text-muted-foreground">Find hotels near your current location</div>
+                </div>
+              </button>
+
+              {/* Popular destinations (shown when < 2 chars typed) */}
+              {destination.length < 2 && (
+                <>
+                  <div className="px-4 pt-4 pb-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Popular destinations</span>
+                  </div>
+                  {POPULAR_DESTINATIONS.map((place) => (
+                    <button
+                      key={place.placeId}
+                      className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-border/50 last:border-none hover:bg-muted/40 active:bg-muted/60"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setDestination(place.displayName);
+                        setPlaceId(place.placeId);
+                        setShowMobileDestSheet(false);
+                        setShowAutocomplete(false);
+                      }}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <Building2 className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-foreground truncate">{place.displayName}</div>
+                        <div className="text-xs text-muted-foreground truncate">{place.formattedAddress}</div>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* Loading skeletons */}
+              {destination.length >= 2 && placesLoading && (
+                <div className="px-4 py-3 space-y-3">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 animate-pulse">
+                      <div className="w-10 h-10 rounded-full bg-muted shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 w-2/3 rounded bg-muted" />
+                        <div className="h-2.5 w-1/2 rounded bg-muted" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No results */}
+              {destination.length >= 2 && !placesLoading && (places as any[]).length === 0 && (
+                <div className="px-4 py-4 text-sm text-muted-foreground text-center">
+                  No destinations found for "<span className="font-medium text-foreground">{destination}</span>"
+                </div>
+              )}
+
+              {/* API results */}
+              {destination.length >= 2 && !placesLoading && (places as any[]).map((place: any, idx: number) => {
+                const types: string[] = place.types || [];
+                const isHotelType =
+                  String(place.placeId).startsWith("hotel:") ||
+                  types.some((t: string) => ["lodging", "hotel"].includes(t));
+                const isAirport = types.includes("airport");
+                const isLocality = types.some((t: string) =>
+                  ["locality", "administrative_area_level_1", "country", "colloquial_area"].includes(t)
+                );
+                const PlaceIcon = isAirport ? Plane : isHotelType ? BedDouble : isLocality ? Building2 : MapPin;
+                const name = place.displayName || place.placeId;
+                return (
+                  <button
+                    key={place.placeId}
+                    className={cn(
+                      "w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-border/50 last:border-none",
+                      idx === 0 ? "bg-blue-50/40 dark:bg-muted/40" : "hover:bg-muted/40 active:bg-muted/60",
+                    )}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      if (place.hotelId) {
+                        setDestination(name);
+                        setShowMobileDestSheet(false);
+                        setLocation(`/hotel/${place.hotelId}`);
+                      } else {
+                        setDestination(name);
+                        setPlaceId(place.placeId);
+                        setShowMobileDestSheet(false);
+                        setShowAutocomplete(false);
+                      }
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <PlaceIcon className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate">{name}</div>
+                      {place.formattedAddress && (
+                        <div className="text-xs text-muted-foreground truncate">{place.formattedAddress}</div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {/* Matching popular destinations (supplement API results) */}
+              {destination.length >= 2 && !placesLoading && (() => {
+                const apiNames = new Set((places as any[]).map((p: any) => (p.displayName || "").toLowerCase()));
+                const matching = POPULAR_DESTINATIONS.filter(
+                  (p) =>
+                    p.displayName.toLowerCase().includes(destination.toLowerCase()) &&
+                    !apiNames.has(p.displayName.toLowerCase())
+                );
+                if (matching.length === 0) return null;
+                return (
+                  <>
+                    <div className="px-4 pt-3 pb-1">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Suggestions</span>
+                    </div>
+                    {matching.map((place) => (
+                      <button
+                        key={place.placeId}
+                        className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-border/50 last:border-none hover:bg-muted/40 active:bg-muted/60"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setDestination(place.displayName);
+                          setPlaceId(place.placeId);
+                          setShowMobileDestSheet(false);
+                          setShowAutocomplete(false);
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground truncate">{place.displayName}</div>
+                          <div className="text-xs text-muted-foreground truncate">{place.formattedAddress}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── DESKTOP layout (md+) ── */}
       <div className="hidden md:block relative w-full h-[638px]">
