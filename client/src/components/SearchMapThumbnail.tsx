@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Map as MapIcon } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface SearchMapThumbnailProps {
   center: { lat: number; lng: number };
@@ -61,16 +61,13 @@ export function SearchMapThumbnail({ center, hotelCount, onClick }: SearchMapThu
     >
       <div ref={mapRef} className="w-full h-full pointer-events-none" />
 
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-200" />
 
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-        <button
-          className="flex items-center gap-2 bg-white text-foreground text-xs font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors w-full justify-center"
-          data-testid="button-show-on-map"
-        >
-          <MapIcon className="w-3.5 h-3.5" />
-          Show {hotelCount > 0 ? `${hotelCount} properties` : "hotels"} on map
-        </button>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex items-center gap-1.5 bg-white text-foreground text-sm font-semibold px-4 py-2 rounded-full shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200" data-testid="button-show-on-map">
+          <MapPin className="w-4 h-4" />
+          Show on map
+        </div>
       </div>
     </div>
   );
