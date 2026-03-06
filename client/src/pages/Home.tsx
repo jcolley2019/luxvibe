@@ -29,7 +29,7 @@ const MEAL_PLAN_LABELS: Record<string, string> = {
   FB: "Full Board", AI: "All Inclusive", SA: "Self Catering",
 };
 
-const KEY_FACILITIES = [
+const KEY_AMENITIES = [
   "Swimming pool", "Pool", "Outdoor pool", "Indoor pool",
   "Spa", "Fitness center", "Fitness facilities", "Gym",
   "Restaurant", "Bar", "Casino", "Free WiFi", "WiFi",
@@ -211,12 +211,12 @@ export default function Home() {
   const [brandFilter, setBrandFilter] = useState<string[]>([]);
   const [freeCancellationOnly, setFreeCancellationOnly] = useState(false);
   const [mealPlanFilter, setMealPlanFilter] = useState<string[]>([]);
-  const [facilitiesFilter, setFacilitiesFilter] = useState<string[]>([]);
+  const [amenitiesFilter, setAmenitiesFilter] = useState<string[]>([]);
   const [landmarks, setLandmarks] = useState<{ name: string; lat: number; lng: number }[]>([]);
   const [landmarksLoading, setLandmarksLoading] = useState(false);
   const [landmarkDistances, setLandmarkDistances] = useState<Record<string, number | null>>({});
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string[]>([]);
-  const [showAllFacilities, setShowAllFacilities] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<string[]>([]);
   const [showAllPropertyTypes, setShowAllPropertyTypes] = useState(false);
@@ -298,7 +298,7 @@ export default function Home() {
         reviewCount: hotel.reviewCount ?? null,
         price: hotel.price ?? null,
         imageUrl: hotel.imageUrl ?? null,
-        facilities: Array.isArray(hotel.facilities) ? hotel.facilities : [],
+        facilities: Array.isArray(hotel.amenities) ? hotel.amenities : [],
       }];
     });
   };
@@ -319,7 +319,7 @@ export default function Home() {
           reviewCount: h.reviewCount ?? null,
           price: h.price ?? null,
           imageUrl: h.imageUrl ?? null,
-          facilities: Array.isArray(h.facilities) ? h.facilities : [],
+          facilities: Array.isArray(h.amenities) ? h.amenities : [],
         })));
         setCompareOpen(true);
         sessionStorage.removeItem("lv_compare_return_v1");
@@ -454,15 +454,15 @@ export default function Home() {
   }, [destination, isSearchActive]);
 
 
-  // Available facilities from search results — returns [facility, count][] sorted by count
-  const availableFacilities = useMemo((): [string, number][] => {
+  // Available amenities from search results — returns [facility, count][] sorted by count
+  const availableAmenities = useMemo((): [string, number][] => {
     if (!hotels?.length) return [];
     const counts = new Map<string, number>();
     for (const h of hotels) {
       const seen = new Set<string>();
-      for (const f of ((h as any).facilities || []) as string[]) {
+      for (const f of ((h as any).amenities || []) as string[]) {
         const norm = normalizeForFilter(f);
-        const match = KEY_FACILITIES.find(kf => normalizeForFilter(kf) === norm || norm.includes(normalizeForFilter(kf)) || normalizeForFilter(kf).includes(norm));
+        const match = KEY_AMENITIES.find(kf => normalizeForFilter(kf) === norm || norm.includes(normalizeForFilter(kf)) || normalizeForFilter(kf).includes(norm));
         if (match && !seen.has(match)) {
           seen.add(match);
           counts.set(match, (counts.get(match) ?? 0) + 1);
@@ -679,10 +679,10 @@ export default function Home() {
       }
 
       // Facilities
-      if (facilitiesFilter.length > 0) {
-        const hotelFacilities: string[] = (hx.facilities || []).map(normalizeForFilter);
-        const matched = facilitiesFilter.every(req =>
-          hotelFacilities.some(hf => hf.includes(normalizeForFilter(req)) || normalizeForFilter(req).includes(hf))
+      if (amenitiesFilter.length > 0) {
+        const hotelAmenities: string[] = (hx.amenities || []).map(normalizeForFilter);
+        const matched = amenitiesFilter.every(req =>
+          hotelAmenities.some(hf => hf.includes(normalizeForFilter(req)) || normalizeForFilter(req).includes(hf))
         );
         if (!matched) return false;
       }
@@ -701,7 +701,7 @@ export default function Home() {
       return true;
     });
   }, [sortedHotels, nameFilter, priceMax, starFilter, includeUnrated, guestRatingMin, brandFilter,
-    freeCancellationOnly, mealPlanFilter, facilitiesFilter, landmarks, landmarkDistances,
+    freeCancellationOnly, mealPlanFilter, amenitiesFilter, landmarks, landmarkDistances,
     neighborhoodFilter, propertyTypeFilter, roomAmenitiesFilter]);
 
   const searchDealBadges = useMemo(() => computeDealBadges(filteredHotels), [filteredHotels]);
@@ -717,7 +717,7 @@ export default function Home() {
   };
 
   const toggleFacility = (f: string) => {
-    setFacilitiesFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+    setAmenitiesFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
   const toggleNeighborhood = (n: string) => {
@@ -749,7 +749,7 @@ export default function Home() {
     brandFilter.length +
     (freeCancellationOnly ? 1 : 0) +
     mealPlanFilter.length +
-    facilitiesFilter.length +
+    amenitiesFilter.length +
     propertyTypeFilter.length +
     roomAmenitiesFilter.length +
     Object.values(landmarkDistances).filter(v => v != null).length +
@@ -765,7 +765,7 @@ export default function Home() {
     setBrandFilter([]);
     setFreeCancellationOnly(false);
     setMealPlanFilter([]);
-    setFacilitiesFilter([]);
+    setAmenitiesFilter([]);
     setPropertyTypeFilter([]);
     setRoomAmenitiesFilter([]);
     setNeighborhoodFilter([]);
@@ -911,7 +911,7 @@ export default function Home() {
                       const isChecked =
                         item.kind === "cancel" ? freeCancellationOnly :
                         item.kind === "type" ? propertyTypeFilter.includes(item.value!) :
-                        facilitiesFilter.some(f => {
+                        amenitiesFilter.some(f => {
                           const n = normalizeForFilter(f);
                           const v = normalizeForFilter(item.value!);
                           return n === v || n.includes(v) || v.includes(n);
@@ -925,8 +925,8 @@ export default function Home() {
                               if (item.kind === "cancel") { setFreeCancellationOnly(e.target.checked); }
                               else if (item.kind === "type") { togglePropertyType(item.value!); }
                               else {
-                                if (e.target.checked) setFacilitiesFilter(prev => [...prev, item.value!]);
-                                else setFacilitiesFilter(prev => prev.filter(f => {
+                                if (e.target.checked) setAmenitiesFilter(prev => [...prev, item.value!]);
+                                else setAmenitiesFilter(prev => prev.filter(f => {
                                   const n = normalizeForFilter(f); const v = normalizeForFilter(item.value!);
                                   return !(n === v || n.includes(v) || v.includes(n));
                                 }));
@@ -1145,15 +1145,15 @@ export default function Home() {
                   </FilterSection>
                 )}
 
-                {/* 12. Facilities — first 9, show all X */}
-                {availableFacilities.length > 0 && (
-                  <FilterSection title="Facilities" defaultOpen={false}>
+                {/* 12. Amenities — first 9, show all X */}
+                {availableAmenities.length > 0 && (
+                  <FilterSection title="Amenities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
-                      {(showAllFacilities ? availableFacilities : availableFacilities.slice(0, 9)).map(([facility, count]) => (
+                      {(showAllAmenities ? availableAmenities : availableAmenities.slice(0, 9)).map(([facility, count]) => (
                         <label key={facility} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={facilitiesFilter.some(f => {
+                            checked={amenitiesFilter.some(f => {
                               const nf = normalizeForFilter(f); const nk = normalizeForFilter(facility);
                               return nf === nk || nf.includes(nk) || nk.includes(nf);
                             })}
@@ -1166,9 +1166,9 @@ export default function Home() {
                         </label>
                       ))}
                     </div>
-                    {availableFacilities.length > 9 && (
-                      <button onClick={() => setShowAllFacilities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-facilities">
-                        {showAllFacilities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>}
+                    {availableAmenities.length > 9 && (
+                      <button onClick={() => setShowAllAmenities(v => !v)} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1" data-testid="button-show-all-facilities">
+                        {showAllAmenities ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Show all {availableAmenities.length}</>}
                       </button>
                     )}
                   </FilterSection>
