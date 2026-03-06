@@ -48,10 +48,9 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920&q=80", // paris eiffel night
   "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&q=80", // bali beach
   "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=80", // luxury infinity pool
-  // Santorini & European monuments
-  "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=1920&q=80", // santorini blue domes
-  "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=80", // santorini caldera sunset
+  // European monuments
   "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80", // vatican st peter's square
+  "https://images.unsplash.com/photo-1542833277-f9982d1581c0?w=1920&q=80", // leaning tower of pisa
   "https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=1920&q=80", // rome colosseum
   "https://images.unsplash.com/photo-1554992539-5c44fc26abb1?w=1920&q=80", // rome at night
   "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy coast
