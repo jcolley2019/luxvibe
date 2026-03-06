@@ -1,0 +1,36 @@
+# Luxvibe
+
+> Luxvibe is a luxury hotel booking platform that helps travelers discover and book premium hotels, boutique resorts, and unique stays worldwide.
+
+## What Luxvibe Does
+
+Luxvibe aggregates hotel inventory from over 2.6 million properties worldwide and presents them with:
+- Real-time pricing and availability
+- AI-powered vibe search (describe your ideal stay in plain language)
+- AI concierge "Luxe" for personalized recommendations
+- Advanced filtering (stars, amenities, price, distance, rating)
+- Side-by-side hotel comparison
+- Wishlist / favorites management
+- Instant booking confirmation
+- Full booking management and transactional email receipts
+
+## Who It Is For
+
+Luxvibe is designed for travelers who value quality and experience over price alone — those seeking luxury hotels, boutique properties, spa retreats, beach resorts, and curated city stays.
+
+## Key Destinations
+
+Las Vegas, New York, Miami, Los Angeles, Paris, London, Dubai, Chicago, San Francisco, Barcelona, Rome, Tokyo, Bali, Bangkok, Sydney, Amsterdam, Lisbon, Cancún, Orlando, Maldives.
+
+## Technology
+
+- Built with React, TypeScript, and Node.js/Express
+- Hotel data powered by LiteAPI (2.6M+ properties worldwide)
+- AI search and concierge powered by Anthropic Claude
+- Secure payments via LiteAPI booking SDK
+
+## Contact & Links
+
+- Website: https://luxvibe.io
+- Sitemap: https://luxvibe.io/sitemap.xml
+- Email: support@luxvibe.io

@@ -857,6 +857,19 @@ export default function Home() {
     if (city) geocodeQuery(city);
   }, [hotels, destinationCenter, geocodeQuery]);
 
+  // Dynamic page title for SEO
+  useEffect(() => {
+    if (destination) {
+      document.title = `Hotels in ${destination} – Luxury Deals | Luxvibe`;
+    } else if (aiSearch) {
+      document.title = `${aiSearch.slice(0, 50)} – Luxury Hotels | Luxvibe`;
+    } else if (nearMe) {
+      document.title = "Hotels Near Me – Luxury Stays | Luxvibe";
+    } else {
+      document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide";
+    }
+  }, [destination, aiSearch, nearMe]);
+
   const effectiveMapCenter = mapCenter || destinationCenter;
 
   // Neighborhood extraction and available neighborhoods

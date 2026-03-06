@@ -360,6 +360,18 @@ export default function HotelDetails() {
   }, [hotel?.id]);
 
   useEffect(() => {
+    if (hotel?.name) {
+      const city = hotel.city ? `, ${hotel.city}` : "";
+      document.title = `${hotel.name}${city} – Luxury Hotel | Luxvibe`;
+    } else {
+      document.title = "Hotel Details – Luxvibe";
+    }
+    return () => {
+      document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide";
+    };
+  }, [hotel?.name, hotel?.city]);
+
+  useEffect(() => {
     const onScroll = () => {
       const navTop = navRef.current?.getBoundingClientRect().top ?? 0;
       setNavSticky(navTop <= 64);
