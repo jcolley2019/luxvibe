@@ -325,7 +325,7 @@ export async function registerRoutes(
                   facilities,
                   neighborhood: h.neighborhood || h.location?.neighborhood || null,
                   distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
-                  mealPlan: aiBoardCodesMap.get(hotelRate.hotelId)?.[0] || null,
+                  mealPlan: null,
                   guestRating: h.rating || h.guest_rating || null,
                 };
               })
