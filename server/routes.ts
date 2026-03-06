@@ -167,6 +167,8 @@ async function geocodeHotel(name: string, city: string, countryCode: string): Pr
   }
 }
 
+const LITEAPI_KEY = process.env.LITEAPI_KEY_PRODUCTION || process.env.LITEAPI_KEY!;
+
 async function liteApiGet(path: string, params?: Record<string, string>, ttlMs?: number) {
   const url = new URL(`${LITEAPI_BASE}${path}`);
   if (params) {
@@ -184,7 +186,7 @@ async function liteApiGet(path: string, params?: Record<string, string>, ttlMs?:
   const res = await fetch(url.toString(), {
     headers: {
       "accept": "application/json",
-      "X-API-Key": process.env.LITEAPI_KEY!,
+      "X-API-Key": LITEAPI_KEY,
     },
   });
   const data = await res.json();
@@ -208,7 +210,7 @@ async function liteApiPost(path: string, body: any, baseUrl: string = LITEAPI_BA
     headers: {
       "accept": "application/json",
       "content-type": "application/json",
-      "X-API-Key": process.env.LITEAPI_KEY!,
+      "X-API-Key": LITEAPI_KEY,
     },
     body: JSON.stringify(body),
   });
@@ -2020,7 +2022,7 @@ Guest question: ${question}`;
       const url = `${LITEAPI_BOOK_BASE}/bookings/${actualBookingId.trim()}`;
       console.log("[lookup] DEBUG: fetching from LiteAPI:", url);
       const response = await fetch(url, {
-        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY }
       });
       const data = await response.json();
       console.log("[lookup] DEBUG: LiteAPI response status:", response.status);
@@ -2137,7 +2139,7 @@ Guest question: ${question}`;
       // Step 2: Also check old-format clientReference=email (backward compat for pre-fix bookings)
       const oldRes = await fetch(
         `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(userEmail)}`,
-        { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
+        { headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY } }
       );
       const oldData = await oldRes.json();
       const oldBookings: any[] = oldData?.data || [];
@@ -2159,7 +2161,7 @@ Guest question: ${question}`;
         try {
           const r = await fetch(
             `${LITEAPI_BOOK_BASE}/bookings/${bookingId}`,
-            { headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! } }
+            { headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY } }
           );
           const d = await r.json();
           results.push(d?.data || null);
@@ -2408,7 +2410,7 @@ Guest question: ${question}`;
         return res.status(400).json({ message: data.error });
       }
 
-      const apiKey = process.env.LITEAPI_KEY || "";
+      const apiKey = LITEAPI_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
       const inner = data.data || data;
       // Store the clientRef so the book route can look it up by prebookId
@@ -2450,7 +2452,7 @@ Guest question: ${question}`;
         headers: {
           "accept": "application/json",
           "content-type": "application/json",
-          "X-API-Key": process.env.LITEAPI_KEY!,
+          "X-API-Key": LITEAPI_KEY,
         },
         body: JSON.stringify(bookPayload),
       });
@@ -2472,7 +2474,7 @@ Guest question: ${question}`;
         let lookupData: any = null;
         const res1 = await fetch(
           `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(clientRef)}`,
-          { headers: { 'accept': 'application/json', 'X-API-Key': process.env.LITEAPI_KEY! } }
+          { headers: { 'accept': 'application/json', 'X-API-Key': LITEAPI_KEY } }
         );
         const d1 = await res1.json();
         console.log('[book] 4005 lookup by clientRef:', JSON.stringify(d1).slice(0, 300));
@@ -2484,7 +2486,7 @@ Guest question: ${question}`;
           // Fall back to plain email (for old bookings using email as clientReference)
           const res2 = await fetch(
             `${LITEAPI_BOOK_BASE}/bookings?clientReference=${encodeURIComponent(email)}`,
-            { headers: { 'accept': 'application/json', 'X-API-Key': process.env.LITEAPI_KEY! } }
+            { headers: { 'accept': 'application/json', 'X-API-Key': LITEAPI_KEY } }
           );
           const d2 = await res2.json();
           console.log('[book] 4005 fallback by email:', JSON.stringify(d2).slice(0, 300));
@@ -2581,7 +2583,7 @@ Guest question: ${question}`;
 
       // Fetch current booking details for email
       const lookupRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
-        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY }
       });
       const lookupData = await lookupRes.json();
       const b = lookupData?.data || lookupData;
@@ -2594,7 +2596,7 @@ Guest question: ${question}`;
       // Call LiteAPI to cancel
       const cancelRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
         method: "DELETE",
-        headers: { "accept": "application/json", "X-API-Key": process.env.LITEAPI_KEY! }
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY }
       });
       const cancelData = await cancelRes.json();
       console.log("[cancel] LiteAPI response:", JSON.stringify(cancelData).slice(0, 300));
