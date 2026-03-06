@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+import { requireSupabaseAuth } from "./supabase";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
 import { litapiBookingRefs } from "@shared/schema";
@@ -348,6 +349,13 @@ export async function registerRoutes(
 ): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
+
+  app.get("/api/config", (_req, res) => {
+    res.json({
+      supabaseUrl: process.env.SUPABASE_URL || "",
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
+    });
+  });
 
   app.get(api.hotels.featured.path, async (req, res) => {
     try {
@@ -2073,10 +2081,10 @@ Guest question: ${question}`;
     }
   });
 
-  app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
+  app.get(api.bookings.list.path, requireSupabaseAuth, async (req: any, res) => {
     try {
-      const userEmail = req.user?.email || req.user?.claims?.email || "";
-      const userId: string = req.user?.claims?.sub || req.user?.id || "";
+      const userEmail = req.supabaseUser?.email || "";
+      const userId: string = req.supabaseUser?.id || "";
 
       // mapBooking handles both individual GET /bookings/{id} (uses bookedRooms[])
       // and list GET /bookings?clientReference=... (uses rooms[])
@@ -2171,9 +2179,9 @@ Guest question: ${question}`;
     }
   });
 
-  app.post(api.bookings.create.path, isAuthenticated, async (req: any, res) => {
+  app.post(api.bookings.create.path, requireSupabaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.supabaseUser.id;
       const input = api.bookings.create.input.parse(req.body);
 
       const booking = await storage.createBooking({
@@ -2417,7 +2425,10 @@ Guest question: ${question}`;
     try {
       console.log('[book] incoming body:', JSON.stringify({ prebookId: req.body.prebookId, transactionId: req.body.transactionId }));
       const { prebookId, transactionId, clientReference, firstName, lastName, email, phone } = api.hotels.book.input.parse(req.body);
-      const userId: string | null = req.user?.id || req.user?.claims?.sub || null;
+      const { getSupabaseUser } = await import("./supabase");
+      const authHeader = req.headers.authorization as string | undefined;
+      const supaUser = authHeader?.startsWith("Bearer ") ? await getSupabaseUser(authHeader.slice(7)) : null;
+      const userId: string | null = supaUser?.id || null;
 
       // Look up the unique clientReference generated at prebook time.
       // Falls back to the value passed from the frontend (saved in sessionStorage at prebook time),
@@ -2551,11 +2562,11 @@ Guest question: ${question}`;
   });
 
   // Cancel a booking and send cancellation email
-  app.post("/api/bookings/cancel", isAuthenticated, async (req: any, res) => {
+  app.post("/api/bookings/cancel", requireSupabaseAuth, async (req: any, res) => {
     try {
       const { bookingId } = z.object({ bookingId: z.string() }).parse(req.body);
-      const userEmail = req.user?.email || req.user?.claims?.email || "";
-      const userId: string = req.user?.claims?.sub || req.user?.id || "";
+      const userEmail = req.supabaseUser?.email || "";
+      const userId: string = req.supabaseUser?.id || "";
 
       // Verify this booking belongs to the user
       const refs = await db.select().from(litapiBookingRefs)

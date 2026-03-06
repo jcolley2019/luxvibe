@@ -1,47 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { User } from "@shared/models/auth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
-async function fetchUser(): Promise<User | null> {
-  const response = await fetch("/api/auth/user", {
-    credentials: "include",
-  });
-
-  if (response.status === 401) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(`${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
+export interface MappedUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl: string | null;
 }
 
-async function logout(): Promise<void> {
-  window.location.href = "/api/logout";
+function mapSupabaseUser(user: ReturnType<typeof useAuthContext>["user"]): MappedUser | null {
+  if (!user) return null;
+  const fullName: string = user.user_metadata?.full_name || user.user_metadata?.name || "";
+  const parts = fullName.trim().split(/\s+/);
+  const firstName = parts[0] || user.email?.split("@")[0] || "User";
+  const lastName = parts.slice(1).join(" ");
+  return {
+    id: user.id,
+    email: user.email || "",
+    firstName,
+    lastName,
+    profileImageUrl: user.user_metadata?.avatar_url || null,
+  };
 }
 
 export function useAuth() {
-  const queryClient = useQueryClient();
-  const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/user"],
-    queryFn: fetchUser,
-    retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-    },
-  });
+  const { user, session, loading, openLoginModal, closeLoginModal, loginModalOpen, signOut } = useAuthContext();
 
   return {
-    user,
-    isLoading,
+    user: mapSupabaseUser(user),
+    session,
+    isLoading: loading,
     isAuthenticated: !!user,
-    logout: logoutMutation.mutate,
-    isLoggingOut: logoutMutation.isPending,
+    openLoginModal,
+    closeLoginModal,
+    loginModalOpen,
+    logout: signOut,
+    isLoggingOut: false,
   };
 }

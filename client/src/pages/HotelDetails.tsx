@@ -201,7 +201,7 @@ export default function HotelDetails() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openLoginModal } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -442,8 +442,8 @@ export default function HotelDetails() {
       currency: rate.currency
     });
     if (!isAuthenticated) {
-      sessionStorage.setItem('lv_post_login_redirect', `/checkout?${params.toString()}`);
-      window.location.href = '/api/login';
+      sessionStorage.setItem("lv_post_login_redirect", `/checkout?${params.toString()}`);
+      openLoginModal();
       return;
     }
     setLocation(`/checkout?${params.toString()}`);

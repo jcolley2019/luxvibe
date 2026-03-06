@@ -20,6 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
+import { AuthModal } from "@/components/AuthModal";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -212,66 +213,14 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
   );
 }
 
-function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
-        <div className="p-8">
-          <div className="text-center mb-6">
-            <span
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              className="text-3xl font-semibold tracking-[0.18em] text-foreground uppercase"
-            >
-              Luxvibe
-            </span>
-          </div>
-
-          <div className="text-center mb-7">
-            <h2 className="text-xl font-bold text-foreground mb-2">{t("nav.sign_in")}</h2>
-            <p className="text-sm text-muted-foreground">
-              {t("nav.sign_in_sub")}
-            </p>
-          </div>
-
-          <Button
-            onClick={handleLogin}
-            className="w-full h-11 text-sm font-semibold rounded-full"
-            data-testid="button-login-continue"
-          >
-            {t("nav.continue_replit")}
-          </Button>
-
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-muted-foreground">OR</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          <p className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
-            <a href="#" className="text-primary hover:underline">Terms of Service</a>
-            {" "}and{" "}
-            <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, openLoginModal, closeLoginModal, loginModalOpen } = useAuth();
   const { currency, language } = usePreferences();
   const { t } = useTranslation();
   const { dark, toggle: toggleDark } = useDarkMode();
   const favCount = useFavoritesCount();
   const [langOpen, setLangOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
   const [keysTooltip, setKeysTooltip] = useState(false);
   const [langTooltip, setLangTooltip] = useState(false);
   const [favoritesTooltip, setFavoritesTooltip] = useState(false);
@@ -296,7 +245,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   return (
     <>
       <LanguageModal open={langOpen} onClose={() => setLangOpen(false)} />
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <AuthModal open={loginModalOpen} onClose={closeLoginModal} />
 
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -414,7 +363,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             <div className="relative">
               <Link href={isAuthenticated ? "/favorites" : "#"}>
                 <button
-                  onClick={!isAuthenticated ? () => setLoginOpen(true) : undefined}
+                  onClick={!isAuthenticated ? () => openLoginModal() : undefined}
                   onMouseEnter={() => setFavoritesTooltip(true)}
                   onMouseLeave={() => setFavoritesTooltip(false)}
                   className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${
@@ -533,7 +482,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             ) : (
               <div className="relative">
                 <Button
-                  onClick={() => setLoginOpen(true)}
+                  onClick={() => openLoginModal()}
                   onMouseEnter={() => setLoginTooltip(true)}
                   onMouseLeave={() => setLoginTooltip(false)}
                   className="ml-1 h-9 px-5 rounded-full text-sm font-semibold"
