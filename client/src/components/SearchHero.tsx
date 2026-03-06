@@ -38,6 +38,9 @@ import santoriniWater from "@assets/image_1772768514263.png";
 const HERO_IMAGES = [
   santoriniWater,
   // Original locations
+  // Hawaii & Tropical
+  "https://images.unsplash.com/photo-1542259009477-d625272157b7?w=1920&q=80", // hawaii beach
+  "https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=1920&q=80", // honolulu skyline
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80", // beach
   "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80", // overwater bungalow
   "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80", // new york skyline
