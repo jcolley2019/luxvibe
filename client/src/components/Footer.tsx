@@ -1,22 +1,16 @@
 import { useState } from "react";
 import { Bug } from "lucide-react";
 import { Link } from "wouter";
-import { TermsModal } from "@/components/TermsModal";
-import { PrivacyModal } from "@/components/PrivacyModal";
 import { ContactModal } from "@/components/ContactModal";
 import { BugReportModal } from "@/components/BugReportModal";
 
 export function Footer() {
   const year = new Date().getFullYear();
-  const [termsOpen, setTermsOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [bugModalOpen, setBugModalOpen] = useState(false);
 
   return (
     <>
-      <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} />
-      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
       <BugReportModal open={bugModalOpen} onClose={() => setBugModalOpen(false)} />
 
@@ -41,20 +35,20 @@ export function Footer() {
               <a href="mailto:hello@luxvibe.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
                 About
               </a>
-              <button
-                onClick={() => setTermsOpen(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
+              <Link
+                href="/terms"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="footer-link-terms-conditions"
               >
                 Terms &amp; Conditions
-              </button>
-              <button
-                onClick={() => setPrivacyOpen(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="footer-link-privacy-policy"
               >
                 Privacy Policy
-              </button>
+              </Link>
               <button
                 onClick={() => { localStorage.removeItem("lv_cookie_consent"); window.location.reload(); }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"

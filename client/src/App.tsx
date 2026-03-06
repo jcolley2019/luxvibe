@@ -15,6 +15,8 @@ import BookingConfirmation from "@/pages/BookingConfirmation";
 import MyBookings from "@/pages/MyBookings";
 import ManageBooking from "@/pages/ManageBooking";
 import Invite from "@/pages/Invite";
+import TermsPage from "@/pages/TermsPage";
+import PrivacyPage from "@/pages/PrivacyPage";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/manage-booking" component={ManageBooking} />
       <Route path="/invite" component={Invite} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/privacy" component={PrivacyPage} />
       <Route component={NotFound} />
     </Switch>
   );
