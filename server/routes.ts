@@ -219,6 +219,7 @@ const CITY_COUNTRY_MAP: Record<string, string> = {
   "doha": "QA",
   "muscat": "OM",
   "riyadh": "SA", "jeddah": "SA",
+  "maldives": "MV", "male": "MV",
 };
 
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {

@@ -80,26 +80,26 @@ const HERO_IMAGES = [
 ];
 
 const POPULAR_DESTINATIONS = [
-  { placeId: "pop:las-vegas", displayName: "Las Vegas, NV", formattedAddress: "Nevada, United States", types: ["locality"] },
-  { placeId: "pop:new-york", displayName: "New York, NY", formattedAddress: "New York, United States", types: ["locality"] },
-  { placeId: "pop:miami", displayName: "Miami, FL", formattedAddress: "Florida, United States", types: ["locality"] },
-  { placeId: "pop:los-angeles", displayName: "Los Angeles, CA", formattedAddress: "California, United States", types: ["locality"] },
-  { placeId: "pop:paris", displayName: "Paris", formattedAddress: "Île-de-France, France", types: ["locality"] },
-  { placeId: "pop:london", displayName: "London", formattedAddress: "England, United Kingdom", types: ["locality"] },
-  { placeId: "pop:dubai", displayName: "Dubai", formattedAddress: "Dubai, United Arab Emirates", types: ["locality"] },
-  { placeId: "pop:chicago", displayName: "Chicago, IL", formattedAddress: "Illinois, United States", types: ["locality"] },
-  { placeId: "pop:san-francisco", displayName: "San Francisco, CA", formattedAddress: "California, United States", types: ["locality"] },
-  { placeId: "pop:orlando", displayName: "Orlando, FL", formattedAddress: "Florida, United States", types: ["locality"] },
-  { placeId: "pop:cancun", displayName: "Cancún", formattedAddress: "Quintana Roo, Mexico", types: ["locality"] },
-  { placeId: "pop:barcelona", displayName: "Barcelona", formattedAddress: "Catalonia, Spain", types: ["locality"] },
-  { placeId: "pop:rome", displayName: "Rome", formattedAddress: "Lazio, Italy", types: ["locality"] },
-  { placeId: "pop:tokyo", displayName: "Tokyo", formattedAddress: "Tokyo, Japan", types: ["locality"] },
-  { placeId: "pop:sydney", displayName: "Sydney", formattedAddress: "New South Wales, Australia", types: ["locality"] },
-  { placeId: "pop:bangkok", displayName: "Bangkok", formattedAddress: "Bangkok, Thailand", types: ["locality"] },
-  { placeId: "pop:bali", displayName: "Bali", formattedAddress: "Bali, Indonesia", types: ["locality"] },
-  { placeId: "pop:amsterdam", displayName: "Amsterdam", formattedAddress: "North Holland, Netherlands", types: ["locality"] },
-  { placeId: "pop:lisbon", displayName: "Lisbon", formattedAddress: "Lisbon, Portugal", types: ["locality"] },
-  { placeId: "pop:maldives", displayName: "Maldives", formattedAddress: "Republic of Maldives", types: ["country"] },
+  { displayName: "Las Vegas, NV", cityName: "Las Vegas", formattedAddress: "Nevada, United States" },
+  { displayName: "New York, NY", cityName: "New York", formattedAddress: "New York, United States" },
+  { displayName: "Miami, FL", cityName: "Miami", formattedAddress: "Florida, United States" },
+  { displayName: "Los Angeles, CA", cityName: "Los Angeles", formattedAddress: "California, United States" },
+  { displayName: "Paris", cityName: "Paris", formattedAddress: "Île-de-France, France" },
+  { displayName: "London", cityName: "London", formattedAddress: "England, United Kingdom" },
+  { displayName: "Dubai", cityName: "Dubai", formattedAddress: "Dubai, United Arab Emirates" },
+  { displayName: "Chicago, IL", cityName: "Chicago", formattedAddress: "Illinois, United States" },
+  { displayName: "San Francisco, CA", cityName: "San Francisco", formattedAddress: "California, United States" },
+  { displayName: "Orlando, FL", cityName: "Orlando", formattedAddress: "Florida, United States" },
+  { displayName: "Cancún", cityName: "Cancun", formattedAddress: "Quintana Roo, Mexico" },
+  { displayName: "Barcelona", cityName: "Barcelona", formattedAddress: "Catalonia, Spain" },
+  { displayName: "Rome", cityName: "Rome", formattedAddress: "Lazio, Italy" },
+  { displayName: "Tokyo", cityName: "Tokyo", formattedAddress: "Tokyo, Japan" },
+  { displayName: "Sydney", cityName: "Sydney", formattedAddress: "New South Wales, Australia" },
+  { displayName: "Bangkok", cityName: "Bangkok", formattedAddress: "Bangkok, Thailand" },
+  { displayName: "Bali", cityName: "Bali", formattedAddress: "Bali, Indonesia" },
+  { displayName: "Amsterdam", cityName: "Amsterdam", formattedAddress: "North Holland, Netherlands" },
+  { displayName: "Lisbon", cityName: "Lisbon", formattedAddress: "Lisbon, Portugal" },
+  { displayName: "Maldives", cityName: "Maldives", formattedAddress: "Republic of Maldives" },
 ];
 
 interface SearchHeroProps {
@@ -1261,12 +1261,12 @@ export default function SearchHero({
                   </div>
                   {POPULAR_DESTINATIONS.map((place) => (
                     <button
-                      key={place.placeId}
+                      key={place.cityName}
                       className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-border/50 last:border-none hover:bg-muted/40 active:bg-muted/60"
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        setDestination(place.displayName);
-                        setPlaceId(place.placeId);
+                        setDestination(place.cityName);
+                        setPlaceId("");
                         setShowMobileDestSheet(false);
                         setShowAutocomplete(false);
                       }}
@@ -1356,8 +1356,9 @@ export default function SearchHero({
                 const apiNames = new Set((places as any[]).map((p: any) => (p.displayName || "").toLowerCase()));
                 const matching = POPULAR_DESTINATIONS.filter(
                   (p) =>
-                    p.displayName.toLowerCase().includes(destination.toLowerCase()) &&
-                    !apiNames.has(p.displayName.toLowerCase())
+                    (p.displayName.toLowerCase().includes(destination.toLowerCase()) ||
+                     p.cityName.toLowerCase().includes(destination.toLowerCase())) &&
+                    !apiNames.has(p.cityName.toLowerCase())
                 );
                 if (matching.length === 0) return null;
                 return (
@@ -1367,12 +1368,12 @@ export default function SearchHero({
                     </div>
                     {matching.map((place) => (
                       <button
-                        key={place.placeId}
+                        key={place.cityName}
                         className="w-full text-left px-4 py-3 transition-colors flex items-center gap-4 border-b border-border/50 last:border-none hover:bg-muted/40 active:bg-muted/60"
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          setDestination(place.displayName);
-                          setPlaceId(place.placeId);
+                          setDestination(place.cityName);
+                          setPlaceId("");
                           setShowMobileDestSheet(false);
                           setShowAutocomplete(false);
                         }}
