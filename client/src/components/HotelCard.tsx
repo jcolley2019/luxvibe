@@ -1,10 +1,41 @@
 import { Link } from "wouter";
-import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2 } from "lucide-react";
+import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2, Waves, Utensils, Car, Wifi, Dumbbell, Gem, Clock } from "lucide-react";
 import type { HotelSearchResponse, HotelFeaturedResponse, SemanticHotel } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { useFavorites } from "@/context/favorites";
+
+const CARD_FACILITY_ID_ICON: Record<number, { icon: React.ElementType; label: string }> = {
+  54: { icon: Sparkles, label: "Spa/wellness center" },
+  301: { icon: Waves, label: "Swimming pool" },
+  104: { icon: Waves, label: "Outdoor pool" },
+  103: { icon: Waves, label: "Indoor pool" },
+  3: { icon: Utensils, label: "Restaurant" },
+  30: { icon: Gem, label: "Casino" },
+  11: { icon: Dumbbell, label: "Fitness center" },
+  107: { icon: Wifi, label: "Free WiFi" },
+  47: { icon: Wifi, label: "WiFi" },
+  2: { icon: Car, label: "Parking" },
+  46: { icon: Car, label: "Free parking" },
+  52: { icon: Car, label: "Valet parking" },
+};
+
+function getCardFacilityPills(facilityIds?: number[], facilities?: string[]): Array<{ icon: React.ElementType; label: string }> {
+  const pills: Array<{ icon: React.ElementType; label: string }> = [];
+  const seen = new Set<string>();
+  if (facilityIds?.length) {
+    for (const id of facilityIds) {
+      const match = CARD_FACILITY_ID_ICON[id];
+      if (match && !seen.has(match.label)) {
+        seen.add(match.label);
+        pills.push(match);
+      }
+      if (pills.length === 2) return pills;
+    }
+  }
+  return pills;
+}
 
 type SearchHotel = HotelSearchResponse[0];
 type FeaturedHotel = HotelFeaturedResponse[0];
@@ -103,6 +134,8 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
   const price = rawPrice && rawPrice > 0 ? rawPrice : null;
   const nights = getNights(checkIn, checkOut) ?? 1;
   const stars = "stars" in hotel ? (hotel as any).stars as number | null : null;
+  const cardFacilityPills = getCardFacilityPills((hotel as any).facilityIds, (hotel as any).facilities);
+  const isHighDemand = (hotel.rating ?? 0) >= 8.5 && (reviewCount ?? 0) >= 700;
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
@@ -174,6 +207,26 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             <MapPin className="w-3 h-3 mr-1 shrink-0 text-muted-foreground" />
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
+
+          {/* Facility pills */}
+          {cardFacilityPills.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {cardFacilityPills.map(({ icon: Icon, label: pillLabel }) => (
+                <span key={pillLabel} className="text-[10px] px-2 py-0.5 rounded border border-border flex items-center gap-1 text-muted-foreground bg-muted/30">
+                  <Icon className="w-2.5 h-2.5" />
+                  {pillLabel}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* High demand badge */}
+          {isHighDemand && (
+            <div className="flex items-center gap-1 text-[10px] font-semibold text-red-600 dark:text-red-400 mb-2" data-testid={`badge-highdemand-${hotel.id}`}>
+              <Clock className="w-3 h-3 shrink-0" />
+              High demand for your dates
+            </div>
+          )}
 
           {/* Semantic Badges */}
           {(hotel as any).persona || (hotel as any).style || ((hotel as any).semanticTags && (hotel as any).semanticTags.length > 0) ? (

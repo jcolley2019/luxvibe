@@ -4,6 +4,8 @@
 
 Luxvibe is a full-stack hotel booking web application. It features a clean minimal homepage with recommended hotels loaded immediately (no search required), popular destination chips, sort/filter on results, wishlist heart buttons, and rating labels (Exceptional, Wonderful, etc.). It integrates with the LiteAPI travel service for real-time hotel data, uses Replit Auth for user authentication, and implements the full LiteAPI booking flow: places autocomplete → rates search (destination or AI/vibe) → prebook → LiteAPI Payment SDK → book → confirmation.
 
+Hotel search result cards show LiteAPI facility icons (Spa/wellness center, Swimming pool, Restaurant, Casino, Fitness center, Parking, Free WiFi) mapped from LiteAPI's `facilityIds` integer array via `FACILITY_ID_MAP` in `server/routes.ts`. Cards with rating ≥ 8.5 and ≥ 700 reviews show a red "High demand for your dates" alert badge. The search `METADATA_LIMIT` is 150 to ensure full coverage of Las Vegas Strip casinos.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Wine, Sparkles, PlaneTakeoff, BellRing, Coffee, Snowflake, PawPrint, Footprints, BarChart2 } from "lucide-react";
+import { MapPin, Heart, Wifi, Waves, Dumbbell, Utensils, Car, Sparkles, BarChart2, Gem, Clock, Footprints } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import type { DealBadge } from "@/components/HotelCard";
 
@@ -14,40 +14,69 @@ export interface ListHotel {
   price?: number | null;
   imageUrl?: string | null;
   facilities?: string[];
+  facilityIds?: number[];
   distance?: number | null;
 }
 
-const FACILITY_ICON_MAP: Record<string, { icon: React.ElementType; label: string }> = {
-  wifi: { icon: Wifi, label: "WiFi" },
-  "free wifi": { icon: Wifi, label: "Free WiFi" },
-  internet: { icon: Wifi, label: "WiFi" },
-  pool: { icon: Waves, label: "Pool" },
-  "swimming pool": { icon: Waves, label: "Pool" },
-  gym: { icon: Dumbbell, label: "Gym" },
-  fitness: { icon: Dumbbell, label: "Fitness" },
-  restaurant: { icon: Utensils, label: "Restaurant" },
-  dining: { icon: Utensils, label: "Dining" },
-  parking: { icon: Car, label: "Parking" },
-  bar: { icon: Wine, label: "Bar" },
-  spa: { icon: Sparkles, label: "Spa" },
-  "airport shuttle": { icon: PlaneTakeoff, label: "Airport Shuttle" },
-  "room service": { icon: BellRing, label: "Room Service" },
-  breakfast: { icon: Coffee, label: "Breakfast" },
-  "air conditioning": { icon: Snowflake, label: "AC" },
-  "pets allowed": { icon: PawPrint, label: "Pet Friendly" },
+const FACILITY_ID_ICON: Record<number, { icon: React.ElementType; label: string }> = {
+  54: { icon: Sparkles, label: "Spa/wellness center" },
+  301: { icon: Waves, label: "Swimming pool" },
+  104: { icon: Waves, label: "Outdoor pool" },
+  103: { icon: Waves, label: "Indoor pool" },
+  195: { icon: Waves, label: "Heated pool" },
+  3: { icon: Utensils, label: "Restaurant" },
+  30: { icon: Gem, label: "Casino" },
+  11: { icon: Dumbbell, label: "Fitness center" },
+  107: { icon: Wifi, label: "Free WiFi" },
+  47: { icon: Wifi, label: "WiFi" },
+  2: { icon: Car, label: "Parking" },
+  46: { icon: Car, label: "Free parking" },
+  52: { icon: Car, label: "Valet parking" },
 };
 
-function getFacilityPills(facilities: string[] | undefined): Array<{ icon: React.ElementType; label: string }> {
-  if (!facilities?.length) return [];
+const FACILITY_NAME_ICON: Record<string, { icon: React.ElementType; label: string }> = {
+  "spa/wellness center": { icon: Sparkles, label: "Spa/wellness center" },
+  "swimming pool": { icon: Waves, label: "Swimming pool" },
+  "outdoor pool": { icon: Waves, label: "Outdoor pool" },
+  "indoor pool": { icon: Waves, label: "Indoor pool" },
+  "heated pool": { icon: Waves, label: "Heated pool" },
+  "restaurant": { icon: Utensils, label: "Restaurant" },
+  "casino": { icon: Gem, label: "Casino" },
+  "fitness center": { icon: Dumbbell, label: "Fitness center" },
+  "free wifi": { icon: Wifi, label: "Free WiFi" },
+  "wifi": { icon: Wifi, label: "WiFi" },
+  "parking": { icon: Car, label: "Parking" },
+  "free parking": { icon: Car, label: "Free parking" },
+  "valet parking": { icon: Car, label: "Valet parking" },
+};
+
+function getFacilityPills(facilityIds?: number[], facilities?: string[]): Array<{ icon: React.ElementType; label: string }> {
   const pills: Array<{ icon: React.ElementType; label: string }> = [];
-  for (const f of facilities) {
-    const key = f.toLowerCase();
-    const match = FACILITY_ICON_MAP[key] ?? Object.entries(FACILITY_ICON_MAP).find(([k]) => key.includes(k))?.[1];
-    if (match && !pills.some((p) => p.label === match.label)) {
-      pills.push(match);
+  const seen = new Set<string>();
+
+  if (facilityIds?.length) {
+    for (const id of facilityIds) {
+      const match = FACILITY_ID_ICON[id];
+      if (match && !seen.has(match.label)) {
+        seen.add(match.label);
+        pills.push(match);
+      }
+      if (pills.length === 3) return pills;
     }
-    if (pills.length === 3) break;
   }
+
+  if (pills.length < 3 && facilities?.length) {
+    for (const f of facilities) {
+      const key = f.toLowerCase();
+      const match = FACILITY_NAME_ICON[key] ?? Object.entries(FACILITY_NAME_ICON).find(([k]) => key.includes(k))?.[1];
+      if (match && !seen.has(match.label)) {
+        seen.add(match.label);
+        pills.push(match);
+      }
+      if (pills.length === 3) return pills;
+    }
+  }
+
   return pills;
 }
 
@@ -129,11 +158,15 @@ export function HotelListCard({
   const totalPrice = price ? price * nights : null;
   const label = getRatingLabel(hotel.rating ?? null);
 
-  console.log(`[HotelListCard] ${hotel.name}: distance=${hotel.distance}, facilities=${hotel.facilities?.length}`);
-
   const discountPct = dealInfo?.discount;
   const originalPrice = price && discountPct ? Math.round(price / (1 - discountPct / 100)) : null;
-  const facilityPills = getFacilityPills((hotel as any).facilities);
+
+  const facilityPills = getFacilityPills(
+    (hotel as any).facilityIds,
+    (hotel as any).facilities,
+  );
+
+  const isHighDemand = (hotel.rating ?? 0) >= 8.5 && (hotel.reviewCount ?? 0) >= 700;
 
   return (
     <Link href={detailsUrl} data-testid={`card-hotel-${hotel.id}`}>
@@ -196,18 +229,28 @@ export function HotelListCard({
               <span>{hotel.distance.toFixed(1)} mi from centre</span>
             </div>
           )}
+
+          {/* Facility pills */}
           {facilityPills.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1">
-              {facilityPills.slice(0, 2).map(({ icon: Icon, label }) => (
-                <span key={label} className="text-[10px] px-2 py-0.5 rounded-full border border-border flex items-center gap-1 text-muted-foreground bg-muted/30">
-                  <Icon className="w-2.5 h-2.5" />
-                  {label}
+            <div className="flex flex-wrap gap-1.5 mb-1">
+              {facilityPills.map(({ icon: Icon, label: pillLabel }) => (
+                <span key={pillLabel} className="text-[11px] px-2 py-0.5 rounded border border-border flex items-center gap-1 text-muted-foreground bg-muted/30">
+                  <Icon className="w-3 h-3" />
+                  {pillLabel}
                 </span>
               ))}
             </div>
           )}
 
-          {/* Price + CTA — mobile only (shown below details, above sm breakpoint hidden) */}
+          {/* High demand alert */}
+          {isHighDemand && (
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400 mt-1" data-testid={`badge-highdemand-${hotel.id}`}>
+              <Clock className="w-3 h-3 shrink-0" />
+              High demand for your dates
+            </div>
+          )}
+
+          {/* Price + CTA — mobile only */}
           <div className="sm:hidden mt-auto pt-3 border-t border-border flex items-center justify-between gap-3">
             <div>
               {discountPct && (
@@ -218,7 +261,7 @@ export function HotelListCard({
               {price ? (
                 <>
                   {originalPrice && originalPrice > price && (
-                    <div className="text-xs text-muted-foreground line-through">{originalPrice.toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground line-through">US${originalPrice.toLocaleString()}</div>
                   )}
                   <div className="text-lg font-bold text-foreground">US${price.toLocaleString()}</div>
                   <div className="text-xs text-muted-foreground">/ night · incl. taxes</div>
@@ -242,7 +285,6 @@ export function HotelListCard({
 
         {/* Price + CTA — desktop only */}
         <div className="hidden sm:flex w-[200px] shrink-0 p-4 flex-col items-end justify-between border-l border-border">
-          {/* Rating badge top right */}
           <div className="flex items-center gap-2 mb-2 self-end">
             <div className="text-right">
               <div className="text-sm font-semibold text-foreground">{label}</div>

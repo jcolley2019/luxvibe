@@ -13,6 +13,27 @@ import { sendBookingConfirmationEmail, sendCancellationEmail } from "./email";
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
 
+const FACILITY_ID_MAP: Record<number, string> = {
+  54: "Spa/wellness center",
+  1102: "Spa/wellness center",
+  1814: "Spa/wellness center",
+  301: "Swimming pool",
+  104: "Outdoor pool",
+  103: "Indoor pool",
+  195: "Heated pool",
+  3: "Restaurant",
+  30: "Casino",
+  11: "Fitness center",
+  1725: "Fitness center",
+  107: "Free WiFi",
+  47: "WiFi",
+  2: "Parking",
+  46: "Free parking",
+  52: "Valet parking",
+  2083: "Parking",
+  1: "24-hour front desk",
+};
+
 class ApiCache {
   private cache = new Map<string, { value: any; expiry: number }>();
 
@@ -276,11 +297,11 @@ export async function registerRoutes(
             const hotels = data?.data || [];
             const scored = hotels
               .map((h: any) => {
-                const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-                const facilities: string[] = rawFacilities
-                  .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+                const facilityIds: number[] = h.facilityIds || [];
+                const facilities: string[] = facilityIds
+                  .map((id: number) => FACILITY_ID_MAP[id])
                   .filter(Boolean)
-                  .slice(0, 30);
+                  .slice(0, 10);
                 return {
                   id: h.id,
                   name: h.name || "Hotel",
@@ -291,6 +312,7 @@ export async function registerRoutes(
                   reviewCount: h.reviews_total || h.reviewCount || null,
                   price: null as number | null,
                   imageUrl: h.main_photo || h.thumbnail || null,
+                  facilityIds,
                   facilities,
                   neighborhood: h.neighborhood || h.location?.neighborhood || null,
                   distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
@@ -569,11 +591,11 @@ export async function registerRoutes(
           offset: "0",
         });
         return ((data?.data || []) as any[]).map((h: any) => {
-          const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-          const facilities: string[] = rawFacilities
-            .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+          const facilityIds: number[] = h.facilityIds || [];
+          const facilities: string[] = facilityIds
+            .map((id: number) => FACILITY_ID_MAP[id])
             .filter(Boolean)
-            .slice(0, 30);
+            .slice(0, 10);
           return {
             id: h.id,
             name: h.name || "Hotel",
@@ -584,6 +606,7 @@ export async function registerRoutes(
             reviewCount: h.reviews_total || h.reviewCount || null,
             price: null as number | null,
             imageUrl: h.main_photo || h.thumbnail || null,
+            facilityIds,
             facilities,
           };
         }).filter((h: any) => h.stars !== null && h.stars >= 3);
@@ -895,14 +918,11 @@ export async function registerRoutes(
           .filter((hotelRate: any) => aiRatesMap.has(hotelRate.hotelId))
           .map((hotelRate: any) => {
             const h = (hotelsInfoMap.get(hotelRate.hotelId) || hotelRate) as any;
-            if (hotelRate.hotelId === rateEntries[0].hotelId) {
-              console.log('[search-ai] RAW LITEAPI HOTEL OBJECT:', JSON.stringify(h, null, 2));
-            }
-            const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-            const facilities: string[] = rawFacilities
-              .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+            const facilityIds: number[] = h.facilityIds || [];
+            const facilities: string[] = facilityIds
+              .map((id: number) => FACILITY_ID_MAP[id])
               .filter(Boolean)
-              .slice(0, 30);
+              .slice(0, 10);
 
             return {
               id: hotelRate.hotelId,
@@ -917,6 +937,7 @@ export async function registerRoutes(
               distance: h.distance_from_city_center || h.distance || null,
               lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
               lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
+              facilityIds,
               facilities,
               neighborhood: h.neighborhood || h.location?.neighborhood || null,
               distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
@@ -930,7 +951,7 @@ export async function registerRoutes(
         return res.json(results);
       }
 
-      const METADATA_LIMIT = 100;
+      const METADATA_LIMIT = 150;
       const RATES_BATCH = 25;
 
       if (placeId) {
@@ -1021,11 +1042,11 @@ export async function registerRoutes(
       }
 
       const results = hotelsMetadata.map((h: any) => {
-        const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-        const facilities: string[] = rawFacilities
-          .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
+        const facilityIds: number[] = h.facilityIds || [];
+        const facilities: string[] = facilityIds
+          .map((id: number) => FACILITY_ID_MAP[id])
           .filter(Boolean)
-          .slice(0, 30);
+          .slice(0, 10);
 
         return {
           id: h.id,
@@ -1040,6 +1061,7 @@ export async function registerRoutes(
           distance: h.distance_from_city_center || h.distance || null,
           lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
           lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
+          facilityIds,
           facilities,
           neighborhood: h.neighborhood || h.location?.neighborhood || null,
           distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
@@ -1049,8 +1071,6 @@ export async function registerRoutes(
           refundable: refundableMap.get(h.id) || false,
         };
       });
-
-      console.log('[hotel-data-sample]', JSON.stringify(results[0], null, 2));
 
       // Return results immediately, geocode in background to populate next cached request
       // Only include hotels that have a valid price (fully booked / no-availability hotels are excluded)
