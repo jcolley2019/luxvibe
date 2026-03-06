@@ -2385,22 +2385,22 @@ export default function Home() {
                   {
                     icon: "🔒",
                     title: "Secure Booking",
-                    desc: "Enterprise-grade security for payments & data.",
+                    desc: "Encrypted payments via our certified payment partner.",
                   },
                   {
                     icon: "🕐",
                     title: "24/7 Support",
-                    desc: "Help available round the clock, anytime.",
+                    desc: "Round-the-clock assistance for every stage of your trip.",
                   },
                   {
-                    icon: "💰",
-                    title: "Best Price Guarantee",
-                    desc: "We'll match any lower price you find.",
+                    icon: "⚡",
+                    title: "Instant Confirmation",
+                    desc: "Every booking confirmed in real time — no waiting.",
                   },
                   {
-                    icon: "✨",
-                    title: "Handpicked Hotels",
-                    desc: "Every property vetted for quality & comfort.",
+                    icon: "🌍",
+                    title: "2.6M+ Properties",
+                    desc: "Access millions of hotels worldwide through LiteAPI.",
                   },
                 ].map((f, i) => (
                   <div key={f.title} className="flex items-center gap-3">

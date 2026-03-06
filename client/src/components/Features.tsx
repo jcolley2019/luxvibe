@@ -1,10 +1,10 @@
-import { ShieldCheck, Clock, CreditCard, Sparkles } from "lucide-react";
+import { ShieldCheck, Clock, Zap, Globe } from "lucide-react";
 
 const features = [
-  { icon: ShieldCheck, title: "Secure Booking", description: "Enterprise-grade security for payments & data." },
-  { icon: Clock, title: "24/7 Support", description: "Help available round the clock, anytime." },
-  { icon: CreditCard, title: "Best Price Guarantee", description: "We'll match any lower price you find." },
-  { icon: Sparkles, title: "Handpicked Hotels", description: "Every property vetted for quality & comfort." },
+  { icon: ShieldCheck, title: "Secure Booking", description: "Encrypted payments via our certified payment partner." },
+  { icon: Clock, title: "24/7 Support", description: "Round-the-clock assistance for every stage of your trip." },
+  { icon: Zap, title: "Instant Confirmation", description: "Every booking confirmed in real time — no waiting." },
+  { icon: Globe, title: "2.6M+ Properties", description: "Access millions of hotels worldwide through LiteAPI." },
 ];
 
 export function Features() {
