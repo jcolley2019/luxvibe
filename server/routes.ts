@@ -9,7 +9,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
 import { litapiBookingRefs } from "@shared/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
-import { sendBookingConfirmationEmail, sendCancellationEmail } from "./email";
+import { sendBookingConfirmationEmail, sendCancellationEmail, sendInviteEmail } from "./email";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -2629,7 +2629,6 @@ Guest question: ${question}`;
       const senderName = req.supabaseUser?.user_metadata?.full_name || req.supabaseUser?.email || "A friend";
       const referralLink = `https://luxvibe.io/signup?ref=${req.supabaseUser?.id}`;
 
-      const { sendInviteEmail } = await import("./email");
       await sendInviteEmail({ to: email, senderName, referralLink });
 
       res.json({ success: true });
