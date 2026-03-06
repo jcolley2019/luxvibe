@@ -2625,13 +2625,27 @@ Guest question: ${question}`;
 
   app.post("/api/invite", requireSupabaseAuth, async (req: any, res) => {
     try {
-      const { email } = z.object({ email: z.string().email() }).parse(req.body);
-      const senderName = req.supabaseUser?.user_metadata?.full_name || req.supabaseUser?.email || "A friend";
-      const referralLink = `https://luxvibe.io/signup?ref=${req.supabaseUser?.id}`;
+      const { emails, referralCode } = z.object({
+        emails: z.array(z.string().email()).min(1).max(20),
+        referralCode: z.string().optional(),
+      }).parse(req.body);
 
-      await sendInviteEmail({ to: email, senderName, referralLink });
+      const senderName = req.supabaseUser?.user_metadata?.full_name
+        || req.supabaseUser?.user_metadata?.name
+        || req.supabaseUser?.email
+        || "A friend";
+      const userId = req.supabaseUser?.id || "";
+      const referralLink = `https://luxvibe.io/?ref=${referralCode || userId}`;
 
-      res.json({ success: true });
+      const results = await Promise.allSettled(
+        emails.map(email => sendInviteEmail({ to: email, senderName, referralLink }))
+      );
+
+      const sent = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      console.log(`[invite] sent=${sent} failed=${failed} by=${senderName}`);
+
+      res.json({ success: sent > 0, sent, failed });
     } catch (err: any) {
       console.error("[invite] error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to send invitation" });

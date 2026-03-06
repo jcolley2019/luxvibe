@@ -34,8 +34,12 @@ export default function Invite() {
 
   const sendEmail = async () => {
     if (!emailInput.trim()) return;
-    
-    const emails = emailInput.split(/[, ]+/).filter(e => e.includes("@"));
+
+    const emails = emailInput
+      .split(/[,\s]+/)
+      .map(e => e.trim())
+      .filter(e => e.includes("@") && e.includes("."));
+
     if (emails.length === 0) {
       toast({ title: "Invalid email", description: "Please enter at least one valid email address.", variant: "destructive" });
       return;
@@ -43,18 +47,26 @@ export default function Invite() {
 
     setSending(true);
     try {
-      const { supabase } = await import("@/lib/supabase");
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      for (const email of emails) {
-        await apiRequest("POST", "/api/invite", { email: email.trim() }, {
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`
-          }
+      const res = await apiRequest("POST", "/api/invite", {
+        emails,
+        referralCode: referralCode,
+      });
+      const data = await res.json();
+      const sent = data.sent ?? emails.length;
+      const failed = data.failed ?? 0;
+      setEmailInput("");
+      if (failed > 0) {
+        toast({
+          title: `${sent} invite${sent !== 1 ? "s" : ""} sent`,
+          description: `${failed} address${failed !== 1 ? "es" : ""} could not be delivered.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: `${sent} invite${sent !== 1 ? "s" : ""} sent!`,
+          description: "Your friends will receive an invitation email shortly.",
         });
       }
-      setEmailInput("");
-      toast({ title: "Invites sent!", description: "Your friends will receive an invitation email shortly." });
     } catch (err: any) {
       toast({ title: "Failed to send", description: err.message || "Could not send invitations.", variant: "destructive" });
     } finally {
