@@ -14,25 +14,95 @@ const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
 
 const FACILITY_ID_MAP: Record<number, string> = {
+  // Spa / wellness
   54: "Spa/wellness center",
   1102: "Spa/wellness center",
   1814: "Spa/wellness center",
+  // Pools
   301: "Swimming pool",
   104: "Outdoor pool",
   103: "Indoor pool",
+  120: "Outdoor pool",
+  122: "Indoor pool",
+  192: "Swimming pool",
+  193: "Swimming pool",
   195: "Heated pool",
+  832: "Swimming pool",
+  835: "Swimming pool",
+  // Food & drink
   3: "Restaurant",
+  115: "Restaurant",
+  116: "Restaurant",
+  7: "Bar",
+  // Entertainment
   30: "Casino",
+  // Fitness
   11: "Fitness center",
   1725: "Fitness center",
+  530: "Fitness center",
+  // WiFi
   107: "Free WiFi",
   47: "WiFi",
+  // Parking
   2: "Parking",
   46: "Free parking",
   52: "Valet parking",
+  161: "Parking",
+  162: "Parking",
+  180: "Street parking",
   2083: "Parking",
-  1: "24-hour front desk",
+  // Front desk
+  8: "24-hour front desk",
+  // Non-smoking
+  16: "Non-smoking rooms",
+  108: "Non-smoking rooms",
+  // Pets
+  4: "Pets allowed",
+  // Room service
+  5: "Room service",
+  // Business
+  20: "Business center",
+  6: "Business center",
+  // Family
+  28: "Family rooms",
+  // Air conditioning
+  109: "Air conditioning",
+  // Wheelchair / accessibility
+  185: "Wheelchair accessible",
+  25: "Wheelchair accessible",
+  // Airport shuttle
+  17: "Airport shuttle",
+  139: "Airport shuttle",
+  140: "Airport shuttle",
+  128: "Airport shuttle",
+  129: "Airport shuttle",
+  // EV charging
+  182: "Electric vehicle charging station",
+  765: "Electric vehicle charging station",
+  2014: "Electric vehicle charging station",
+  2413: "Electric vehicle charging station",
+  967: "Electric vehicle charging station",
+  // Laundry
+  22: "Laundry",
+  23: "Laundry",
+  // Breakfast
+  24: "Breakfast included",
+  529: "Breakfast included",
+  // Other useful
+  10: "Sauna",
+  63: "Hot tub/Jacuzzi",
+  80: "Heating",
+  15: "Terrace",
+  241: "Steam room",
+  124: "Concierge service",
+  91: "Luggage storage",
 };
+
+function uniqueFacilities(facilityIds: number[]): string[] {
+  return [...new Set(
+    facilityIds.map((id) => FACILITY_ID_MAP[id]).filter(Boolean) as string[]
+  )];
+}
 
 class ApiCache {
   private cache = new Map<string, { value: any; expiry: number }>();
@@ -308,10 +378,7 @@ export async function registerRoutes(
             const scored = hotels
               .map((h: any) => {
                 const facilityIds: number[] = h.facilityIds || [];
-                const facilities: string[] = facilityIds
-                  .map((id: number) => FACILITY_ID_MAP[id])
-                  .filter(Boolean)
-                  .slice(0, 10);
+                const facilities: string[] = uniqueFacilities(facilityIds).slice(0, 10);
                 return {
                   id: h.id,
                   name: h.name || "Hotel",
@@ -602,10 +669,7 @@ export async function registerRoutes(
         });
         return ((data?.data || []) as any[]).map((h: any) => {
           const facilityIds: number[] = h.facilityIds || [];
-          const facilities: string[] = facilityIds
-            .map((id: number) => FACILITY_ID_MAP[id])
-            .filter(Boolean)
-            .slice(0, 10);
+          const facilities: string[] = uniqueFacilities(facilityIds).slice(0, 10);
           return {
             id: h.id,
             name: h.name || "Hotel",
@@ -929,10 +993,7 @@ export async function registerRoutes(
           .map((hotelRate: any) => {
             const h = (hotelsInfoMap.get(hotelRate.hotelId) || hotelRate) as any;
             const facilityIds: number[] = h.facilityIds || [];
-            const facilities: string[] = facilityIds
-              .map((id: number) => FACILITY_ID_MAP[id])
-              .filter(Boolean)
-              .slice(0, 10);
+            const facilities: string[] = uniqueFacilities(facilityIds).slice(0, 10);
 
             return {
               id: hotelRate.hotelId,
@@ -1014,6 +1075,7 @@ export async function registerRoutes(
       let ratesMap = new Map<string, number>();
       let boardCodesMap = new Map<string, string[]>();
       let refundableMap = new Map<string, boolean>();
+      let roomAmenitiesMap = new Map<string, string[]>();
 
       // Fetch rates in parallel batches for comprehensive coverage
       try {
@@ -1054,6 +1116,12 @@ export async function registerRoutes(
                 }
                 if (codes.length) boardCodesMap.set(hotel.hotelId, codes);
                 if (hasRefundable) refundableMap.set(hotel.hotelId, true);
+                // Collect unique room amenities from all room types
+                const amenitySet = new Set<string>();
+                for (const rt of hotel.roomTypes) {
+                  for (const a of rt.amenities || []) amenitySet.add(a);
+                }
+                if (amenitySet.size > 0) roomAmenitiesMap.set(hotel.hotelId, [...amenitySet]);
               }
             }
           }
@@ -1064,10 +1132,7 @@ export async function registerRoutes(
 
       const results = hotelsMetadata.map((h: any) => {
         const facilityIds: number[] = h.facilityIds || [];
-        const facilities: string[] = facilityIds
-          .map((id: number) => FACILITY_ID_MAP[id])
-          .filter(Boolean)
-          .slice(0, 10);
+        const facilities: string[] = uniqueFacilities(facilityIds).slice(0, 10);
 
         return {
           id: h.id,
@@ -1095,12 +1160,17 @@ export async function registerRoutes(
           guestRating: h.rating || h.guest_rating || null,
           boardCodes: boardCodesMap.get(h.id) || [],
           refundable: refundableMap.get(h.id) || false,
+          amenities: roomAmenitiesMap.get(h.id) || [],
         };
       });
 
       // Return results immediately, geocode in background to populate next cached request
-      // Only include hotels that have a valid price (fully booked / no-availability hotels are excluded)
-      const finalResults = results.filter((h: any) => h.price && h.price > 0);
+      // Sort priced hotels first; hotels without prices appear at the end (no-availability for selected dates)
+      const finalResults = [...results].sort((a: any, b: any) => {
+        const aHasPrice = a.price && a.price > 0 ? 1 : 0;
+        const bHasPrice = b.price && b.price > 0 ? 1 : 0;
+        return bHasPrice - aHasPrice;
+      });
       apiCache.set(cacheKey, finalResults, 300000);
       res.json(finalResults);
 
@@ -1910,9 +1980,13 @@ Guest question: ${question}`;
         console.error("Similar hotels rates error:", rateErr?.message || rateErr);
       }
 
-      // Only return hotels with a valid price (exclude fully booked / no-availability hotels)
-      const pricedResults = results.filter((h: any) => h.price && h.price > 0);
-      res.json(pricedResults);
+      // Sort priced hotels first; hotels without prices (no availability for selected dates) at the end
+      const sortedResults = [...results].sort((a: any, b: any) => {
+        const aHasPrice = a.price && a.price > 0 ? 1 : 0;
+        const bHasPrice = b.price && b.price > 0 ? 1 : 0;
+        return bHasPrice - aHasPrice;
+      });
+      res.json(sortedResults);
     } catch (err: any) {
       console.error("Similar hotels error:", err?.message || err);
       res.status(500).json({ message: "Failed to fetch similar hotels" });

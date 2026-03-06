@@ -85,63 +85,81 @@ const MEAL_PLAN_LABELS: Record<string, string> = {
 };
 
 const KEY_FACILITIES = [
+  "Free WiFi",
+  "Non-smoking rooms",
   "Swimming pool",
-  "Pool",
-  "Outdoor pool",
-  "Indoor pool",
-  "Spa",
   "Fitness center",
+  "Air conditioning",
+  "Wheelchair accessible",
+  "Parking",
+  "Free parking",
+  "Restaurant",
+  "Family rooms",
+  "24-hour front desk",
+  "Pets allowed",
+  "Spa/wellness center",
+  "Room service",
+  "Business center",
+  "Electric vehicle charging station",
+  "Airport shuttle",
+  "Casino",
+  "Bar",
+  "Heated pool",
+  "Indoor pool",
+  "Outdoor pool",
+  "Sauna",
+  "Hot tub/Jacuzzi",
+  "Steam room",
+  "Laundry",
+  "Concierge service",
+  "Luggage storage",
+  "Pool",
+  "WiFi",
   "Fitness facilities",
   "Gym",
-  "Restaurant",
-  "Bar",
-  "Casino",
-  "Free WiFi",
-  "WiFi",
-  "Parking",
-  "Airport shuttle",
-  "Business center",
   "Meeting rooms",
-  "Pet friendly",
-  "Pets allowed",
-  "24-hour front desk",
-  "Room service",
-  "Laundry",
-  "Laundry service",
-  "Non-smoking rooms",
-  "Family rooms",
-  "Accessible facilities",
-  "Wheelchair accessible",
-  "Air conditioning",
-  "Microwave",
-  "Mini bar",
-  "Balcony",
-  "Ocean view",
-  "Kitchen",
+  "Breakfast included",
 ];
 
 const KEY_ROOM_AMENITIES = [
+  "Private bathroom",
+  "Hair dryer",
+  "TV",
   "Air conditioning",
-  "Flat-screen TV",
+  "Desk",
+  "Heating",
+  "Refrigerator",
+  "Coffee/tea maker",
+  "Shower",
+  "Bathtub",
   "Mini bar",
   "Safe",
-  "Hairdryer",
-  "Bathtub",
-  "Shower",
-  "Coffee maker",
-  "Microwave",
-  "Refrigerator",
   "Balcony",
   "Kitchen",
   "Washing machine",
   "Iron",
-  "Work desk",
   "Telephone",
   "Bathrobe",
   "Slippers",
   "Sea view",
   "City view",
+  "Microwave",
 ];
+
+// Aliases used only for matching — maps canonical name → alternate strings found in API data
+const ROOM_AMENITY_ALIASES: Record<string, string[]> = {
+  "Hair dryer": ["hairdryer", "hair dryer"],
+  "TV": ["television", "flat-screen tv", "flat screen tv", "tv", "lcd tv", "led tv"],
+  "Desk": ["work desk", "writing desk", "desk"],
+  "Refrigerator": ["fridge", "refrigerator", "mini fridge"],
+  "Coffee/tea maker": ["coffee maker", "tea maker", "coffee/tea maker", "coffee machine", "kettle", "electric kettle"],
+  "Mini bar": ["minibar", "mini bar", "mini-bar"],
+  "Kitchen": ["kitchenette", "kitchen"],
+  "Iron": ["ironing facilities", "iron", "ironing board"],
+  "Air conditioning": ["air conditioning", "air conditioner", "a/c"],
+  "Private bathroom": ["private bathroom", "en suite bathroom", "ensuite"],
+  "Washing machine": ["washing machine", "washer", "laundry machine"],
+};
 
 const FIXED_MEAL_PLANS: { label: string; codes: string[] }[] = [
   { label: "Breakfast included", codes: ["BB"] },
@@ -956,12 +974,15 @@ export default function Home() {
       const seen = new Set<string>();
       for (const a of amenities) {
         const norm = normalizeForFilter(a);
-        const match = KEY_ROOM_AMENITIES.find(
-          (ka) =>
-            normalizeForFilter(ka) === norm ||
-            norm.includes(normalizeForFilter(ka)) ||
-            normalizeForFilter(ka).includes(norm),
-        );
+        let match: string | undefined;
+        for (const ka of KEY_ROOM_AMENITIES) {
+          const kaNorm = normalizeForFilter(ka);
+          const aliases = (ROOM_AMENITY_ALIASES[ka] || [kaNorm]).map(normalizeForFilter);
+          if (aliases.some((al) => norm === al || norm.includes(al) || al.includes(norm))) {
+            match = ka;
+            break;
+          }
+        }
         if (match && !seen.has(match)) {
           seen.add(match);
           counts.set(match, (counts.get(match) ?? 0) + 1);
@@ -1115,13 +1136,12 @@ export default function Home() {
             amenities.push(normalizeForFilter(a));
         for (const a of hx.amenities || [])
           amenities.push(normalizeForFilter(a));
-        const matched = roomAmenitiesFilter.every((req) =>
-          amenities.some(
-            (a) =>
-              a.includes(normalizeForFilter(req)) ||
-              normalizeForFilter(req).includes(a),
-          ),
-        );
+        const matched = roomAmenitiesFilter.every((req) => {
+          const reqAliases = (ROOM_AMENITY_ALIASES[req] || [normalizeForFilter(req)]).map(normalizeForFilter);
+          return amenities.some((a) =>
+            reqAliases.some((al) => a === al || a.includes(al) || al.includes(a))
+          );
+        });
         if (!matched) return false;
       }
 
@@ -2716,6 +2736,95 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+
+                {/* Facilities */}
+                {availableFacilities.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold mb-3">Facilities</p>
+                    <div className="space-y-3">
+                      {(showAllFacilities
+                        ? availableFacilities
+                        : availableFacilities.slice(0, 9)
+                      ).map(([facility, count]) => {
+                        const active = facilitiesFilter.some((f) => {
+                          const nf = normalizeForFilter(f);
+                          const nk = normalizeForFilter(facility);
+                          return nf === nk || nf.includes(nk) || nk.includes(nf);
+                        });
+                        return (
+                          <label key={facility} className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={() => toggleFacility(facility)}
+                              className="w-4 h-4 accent-primary"
+                              data-testid={`check-mobile-fac-${facility.replace(/\s+/g, "-").toLowerCase()}`}
+                            />
+                            <span className="text-sm flex-1">{facility}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {availableFacilities.length > 9 && (
+                      <button
+                        onClick={() => setShowAllFacilities((v) => !v)}
+                        className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
+                        data-testid="button-mobile-show-all-facilities"
+                      >
+                        {showAllFacilities ? (
+                          <><ChevronUp className="w-3 h-3" />Show less</>
+                        ) : (
+                          <><ChevronDown className="w-3 h-3" />Show all {availableFacilities.length}</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Room amenities */}
+                {availableRoomAmenities.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold mb-3">Room amenities</p>
+                    <div className="space-y-3">
+                      {(showAllRoomAmenities
+                        ? availableRoomAmenities
+                        : availableRoomAmenities.slice(0, 9)
+                      ).map(([amenity, count]) => (
+                        <label key={amenity} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={roomAmenitiesFilter.includes(amenity)}
+                            onChange={() =>
+                              setRoomAmenitiesFilter((prev) =>
+                                prev.includes(amenity)
+                                  ? prev.filter((a) => a !== amenity)
+                                  : [...prev, amenity]
+                              )
+                            }
+                            className="w-4 h-4 accent-primary"
+                            data-testid={`check-mobile-amenity-${amenity.replace(/\s+/g, "-").toLowerCase()}`}
+                          />
+                          <span className="text-sm flex-1">{amenity}</span>
+                          <span className="text-xs text-muted-foreground">({count})</span>
+                        </label>
+                      ))}
+                    </div>
+                    {availableRoomAmenities.length > 9 && (
+                      <button
+                        onClick={() => setShowAllRoomAmenities((v) => !v)}
+                        className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
+                        data-testid="button-mobile-show-all-amenities"
+                      >
+                        {showAllRoomAmenities ? (
+                          <><ChevronUp className="w-3 h-3" />Show less</>
+                        ) : (
+                          <><ChevronDown className="w-3 h-3" />Show all {availableRoomAmenities.length}</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Distance from centre */}
                 <div>
