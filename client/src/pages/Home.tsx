@@ -41,6 +41,8 @@ import {
   PiggyBank,
   BarChart2,
   Trash2,
+  Check,
+  Pencil,
 } from "lucide-react";
 import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,9 @@ type SortOption =
   | "recommended"
   | "price_asc"
   | "price_desc"
+  | "stars_asc"
+  | "stars_desc"
+  | "distance"
   | "rating";
 
 function haversineMiles(
@@ -413,6 +418,8 @@ export default function Home() {
   const [forceExpand, setForceExpand] = useState(0);
   const [forceCollapse, setForceCollapse] = useState(0);
   const [allSectionsOpen, setAllSectionsOpen] = useState(true);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showMobileSort, setShowMobileSort] = useState(false);
 
   const {
     data: hotels,
@@ -987,6 +994,18 @@ export default function Home() {
     if (sortBy === "rating")
       return copy.sort(
         (a, b) => ((b as any).rating || 0) - ((a as any).rating || 0),
+      );
+    if (sortBy === "stars_asc")
+      return copy.sort(
+        (a, b) => ((a as any).stars || 0) - ((b as any).stars || 0),
+      );
+    if (sortBy === "stars_desc")
+      return copy.sort(
+        (a, b) => ((b as any).stars || 0) - ((a as any).stars || 0),
+      );
+    if (sortBy === "distance")
+      return copy.sort(
+        (a, b) => ((a as any).distanceFromCenter ?? 9999) - ((b as any).distanceFromCenter ?? 9999),
       );
 
     // "luxury" sort: Las Vegas icon boost → stars desc → rating desc
@@ -1953,6 +1972,93 @@ export default function Home() {
 
             {/* ── Results ── */}
             <div className="flex-1 min-w-0">
+
+              {/* ── Mobile: search summary + Filters/Sort ── */}
+              <div className="lg:hidden mb-4 space-y-2">
+                {/* Search summary bar */}
+                <button
+                  onClick={() => setShowSearchPanel(true)}
+                  className="w-full flex items-center justify-between border border-border rounded-xl px-4 py-3 bg-background text-left shadow-sm"
+                  data-testid="button-mobile-search-summary"
+                >
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">
+                      {destination || (nearMe ? "Near You" : aiSearch || "Search")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {checkIn && checkOut
+                        ? `${new Date(checkIn).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date(checkOut).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                        : "Select dates"}{" "}
+                      &bull; {guests} Guest{Number(guests) !== 1 ? "s" : ""}, 1 room
+                    </p>
+                  </div>
+                  <Pencil className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+
+                {/* Filters + Sort row */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowMobileFilters(true)}
+                    className="flex-1 flex items-center justify-center gap-2 border border-border rounded-xl py-2.5 text-sm font-medium bg-background hover:bg-muted/50 transition-colors"
+                    data-testid="button-mobile-filters"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    Filters
+                    {(() => {
+                      let count = 0;
+                      if (nameFilter) count++;
+                      if (priceMax < priceRange.max) count++;
+                      if (facilitiesFilter.length) count += facilitiesFilter.length;
+                      if (mealPlanFilter.length) count += mealPlanFilter.length;
+                      if (!isDefaultStarFilter && starFilter.length > 0) count++;
+                      if (freeCancellationOnly) count++;
+                      if (distanceCenterFilter !== null) count++;
+                      return count > 0 ? (
+                        <span className="bg-primary text-primary-foreground rounded-full text-xs w-5 h-5 flex items-center justify-center font-semibold">
+                          {count}
+                        </span>
+                      ) : null;
+                    })()}
+                  </button>
+                  <div className="relative flex-1">
+                    <button
+                      onClick={() => setShowMobileSort((v) => !v)}
+                      className="w-full flex items-center justify-center gap-2 border border-border rounded-xl py-2.5 text-sm font-medium bg-background hover:bg-muted/50 transition-colors"
+                      data-testid="button-mobile-sort"
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                      Sort
+                    </button>
+                    {showMobileSort && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowMobileSort(false)} />
+                        <div className="absolute right-0 top-full mt-1 bg-background border border-border rounded-xl shadow-lg z-50 w-56 py-1 overflow-hidden">
+                          {([
+                            { value: "luxury", label: "Our top picks" },
+                            { value: "price_asc", label: "Price (low to high)" },
+                            { value: "price_desc", label: "Price (high to low)" },
+                            { value: "stars_asc", label: "Stars (low to high)" },
+                            { value: "stars_desc", label: "Stars (high to low)" },
+                            { value: "distance", label: "Distance from centre" },
+                            { value: "rating", label: "Rating (high to low)" },
+                          ] as { value: SortOption; label: string }[]).map((opt) => (
+                            <button
+                              key={opt.value}
+                              onClick={() => { setSortBy(opt.value); setShowMobileSort(false); }}
+                              className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-muted/50 transition-colors ${sortBy === opt.value ? "text-primary font-semibold" : "text-foreground"}`}
+                              data-testid={`option-sort-${opt.value}`}
+                            >
+                              {opt.label}
+                              {sortBy === opt.value && <Check className="w-4 h-4 text-primary" />}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Header row */}
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1978,39 +2084,6 @@ export default function Home() {
                     )}
                   </h2>
 
-                  {/* Las Vegas Quick-Select Area Chips */}
-                  {destination?.toLowerCase().includes("las vegas") && (
-                    <div className="flex flex-wrap gap-2 mt-3 mb-1">
-                      {[
-                        { label: "The Strip", value: "The Strip" },
-                        { label: "Downtown", value: "Downtown" },
-                        { label: "Henderson", value: "Henderson" },
-                      ].map((area, idx) => {
-                        const isActive = neighborhoodFilter.includes(
-                          area.value,
-                        );
-                        return (
-                          <button
-                            key={`${area.label}-${idx}`}
-                            onClick={() => {
-                              setNeighborhoodFilter((prev) =>
-                                prev.includes(area.value)
-                                  ? prev.filter((a) => a !== area.value)
-                                  : [...prev, area.value],
-                              );
-                            }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                              isActive
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                            }`}
-                          >
-                            {area.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className="text-sm text-muted-foreground">
                       {(nearMe ? nearbyLoading : isLoading)
@@ -2038,8 +2111,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Sort + View toggle */}
-                <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+                {/* Sort + View toggle (desktop only) */}
+                <div className="hidden lg:flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground hidden sm:inline">
                       Sort by:
@@ -2050,11 +2123,14 @@ export default function Home() {
                       className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                       data-testid="select-sort"
                     >
-                      <option value="luxury">Luxury first</option>
+                      <option value="luxury">Our top picks</option>
                       <option value="recommended">Recommended</option>
                       <option value="price_asc">Price: Low to High</option>
                       <option value="price_desc">Price: High to Low</option>
-                      <option value="rating">Top Rated</option>
+                      <option value="stars_asc">Stars: Low to High</option>
+                      <option value="stars_desc">Stars: High to Low</option>
+                      <option value="distance">Distance from centre</option>
+                      <option value="rating">Rating: High to Low</option>
                     </select>
                   </div>
                   {/* List / Map toggle */}
@@ -2501,6 +2577,224 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* ── Mobile Filters Sheet ── */}
+      <AnimatePresence>
+        {showMobileFilters && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-50 lg:hidden"
+              onClick={() => setShowMobileFilters(false)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-background rounded-t-2xl max-h-[92dvh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+                <h2 className="text-lg font-bold">Filters</h2>
+                <button
+                  onClick={() => setShowMobileFilters(false)}
+                  className="p-1 rounded-full hover:bg-muted transition-colors"
+                  data-testid="button-close-mobile-filters"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
+
+                {/* Property name */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Property name</label>
+                  <input
+                    type="text"
+                    placeholder="For example: Hilton"
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                    data-testid="input-mobile-name-filter"
+                  />
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Price (per night)</label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    US${priceRange.min} → {priceMax >= priceRange.max ? `US$${priceRange.max.toLocaleString()}+` : `US$${priceMax.toLocaleString()}`}
+                  </p>
+                  <input
+                    type="range"
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(Number(e.target.value))}
+                    className="w-full accent-primary"
+                    data-testid="input-mobile-price-max"
+                  />
+                </div>
+
+                {/* Popular filters */}
+                <div>
+                  <p className="text-sm font-semibold mb-3">Popular filters</p>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={freeCancellationOnly}
+                        onChange={() => setFreeCancellationOnly((v) => !v)}
+                        className="w-4 h-4 accent-primary"
+                        data-testid="check-mobile-free-cancel"
+                      />
+                      <span className="text-sm">Free cancellation</span>
+                    </label>
+                    {[
+                      { label: "Parking", ids: ["Free parking", "Parking", "Valet parking"] },
+                      { label: "Swimming pool", ids: ["Swimming pool", "Heated pool", "Indoor pool", "Outdoor pool"] },
+                      { label: "Spa/wellness center", ids: ["Spa/wellness center"] },
+                      { label: "Restaurant", ids: ["Restaurant"] },
+                      { label: "Free WiFi", ids: ["Free WiFi"] },
+                      { label: "Fitness center", ids: ["Fitness center"] },
+                    ].map(({ label, ids }) => {
+                      const active = ids.some((id) => facilitiesFilter.includes(id));
+                      return (
+                        <label key={label} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={active}
+                            onChange={() => {
+                              setFacilitiesFilter((prev) => {
+                                if (active) return prev.filter((f) => !ids.includes(f));
+                                return [...new Set([...prev, ...ids])];
+                              });
+                            }}
+                            className="w-4 h-4 accent-primary"
+                            data-testid={`check-mobile-facility-${label.replace(/\s+/g, "-").toLowerCase()}`}
+                          />
+                          <span className="text-sm">{label}</span>
+                        </label>
+                      );
+                    })}
+                    {/* Breakfast */}
+                    {FIXED_MEAL_PLANS.map((opt) => (
+                      <label key={opt.label} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={mealPlanFilter.includes(opt.label)}
+                          onChange={() => {
+                            setMealPlanFilter((prev) =>
+                              prev.includes(opt.label)
+                                ? prev.filter((l) => l !== opt.label)
+                                : [...prev, opt.label],
+                            );
+                          }}
+                          className="w-4 h-4 accent-primary"
+                          data-testid={`check-mobile-meal-${opt.label.replace(/\s+/g, "-").toLowerCase()}`}
+                        />
+                        <span className="text-sm">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Distance from centre */}
+                <div>
+                  <p className="text-sm font-semibold mb-3">
+                    Distance from the center{destination ? ` of ${destination}` : ""}
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { label: "Less than 1 km", value: 1 },
+                      { label: "Less than 3 km", value: 3 },
+                      { label: "Less than 5 km", value: 5 },
+                    ].map(({ label, value }) => (
+                      <label key={value} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={distanceCenterFilter === value}
+                          onChange={() =>
+                            setDistanceCenterFilter((prev) => (prev === value ? null : value))
+                          }
+                          className="w-4 h-4 accent-primary"
+                          data-testid={`check-mobile-distance-${value}`}
+                        />
+                        <span className="text-sm">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Star rating */}
+                <div>
+                  <p className="text-sm font-semibold mb-3">Star rating</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() =>
+                          setStarFilter((prev) =>
+                            prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+                          )
+                        }
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          starFilter.includes(s)
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background border-border text-muted-foreground"
+                        }`}
+                        data-testid={`button-mobile-star-${s}`}
+                      >
+                        {s}★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reservation policy */}
+                <div>
+                  <p className="text-sm font-semibold mb-3">Reservation policy</p>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={freeCancellationOnly}
+                      onChange={() => setFreeCancellationOnly((v) => !v)}
+                      className="w-4 h-4 accent-primary"
+                      data-testid="check-mobile-free-cancel-2"
+                    />
+                    <span className="text-sm">Free cancellation</span>
+                  </label>
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <div className="shrink-0 border-t border-border px-5 py-4 flex gap-3">
+                <button
+                  onClick={() => { clearFilters(); }}
+                  className="flex items-center gap-2 border border-border rounded-full px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                  data-testid="button-mobile-clear-filters"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear filters
+                </button>
+                <button
+                  onClick={() => setShowMobileFilters(false)}
+                  className="flex-1 bg-primary text-primary-foreground rounded-full py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors"
+                  data-testid="button-mobile-show-results"
+                >
+                  Show results ({filteredHotels.length})
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <CompareModal
         hotels={compareList}
