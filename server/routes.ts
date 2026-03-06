@@ -2623,5 +2623,21 @@ Guest question: ${question}`;
     }
   });
 
+  app.post("/api/invite", requireSupabaseAuth, async (req: any, res) => {
+    try {
+      const { email } = z.object({ email: z.string().email() }).parse(req.body);
+      const senderName = req.supabaseUser?.user_metadata?.full_name || req.supabaseUser?.email || "A friend";
+      const referralLink = `https://luxvibe.io/signup?ref=${req.supabaseUser?.id}`;
+
+      const { sendInviteEmail } = await import("./email");
+      await sendInviteEmail({ to: email, senderName, referralLink });
+
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[invite] error:", err?.message || err);
+      res.status(400).json({ message: err?.message || "Failed to send invitation" });
+    }
+  });
+
   return httpServer;
 }

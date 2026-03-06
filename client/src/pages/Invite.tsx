@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Copy, Check, Search } from "lucide-react";
 import { SiFacebook, SiLinkedin, SiWhatsapp, SiX } from "react-icons/si";
 
+import { apiRequest } from "@/lib/queryClient";
+
 export default function Invite() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -19,7 +21,8 @@ export default function Invite() {
     ? `LV-${user.id.toString().slice(-6).toUpperCase()}`
     : "LV-XXXXXX";
 
-  const referralLink = `${window.location.origin}/?ref=${referralCode}`;
+  // Using the actual production domain as requested by user message classification for referral links
+  const referralLink = `https://luxvibe.io/signup?ref=${user?.id || ""}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink).then(() => {
@@ -29,14 +32,27 @@ export default function Invite() {
     });
   };
 
-  const sendEmail = () => {
+  const sendEmail = async () => {
     if (!emailInput.trim()) return;
+    
+    const emails = emailInput.split(/[, ]+/).filter(e => e.includes("@"));
+    if (emails.length === 0) {
+      toast({ title: "Invalid email", description: "Please enter at least one valid email address.", variant: "destructive" });
+      return;
+    }
+
     setSending(true);
-    setTimeout(() => {
-      setSending(false);
+    try {
+      for (const email of emails) {
+        await apiRequest("POST", "/api/invite", { email: email.trim() });
+      }
       setEmailInput("");
       toast({ title: "Invites sent!", description: "Your friends will receive an invitation email shortly." });
-    }, 1000);
+    } catch (err: any) {
+      toast({ title: "Failed to send", description: err.message || "Could not send invitations.", variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
   };
 
   const shareText = encodeURIComponent("Book luxury hotels with Luxvibe! Use my referral link:");
