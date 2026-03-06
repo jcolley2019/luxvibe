@@ -1315,7 +1315,7 @@ export default function Home() {
           <div className="flex gap-6">
             {/* ── Filter Sidebar ── */}
             <aside className="w-72 shrink-0 hidden lg:block">
-              <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20">
+              <div className="bg-white dark:bg-card border border-border rounded-xl">
                 {/* Show on Map thumbnail */}
                 {effectiveMapCenter && (
                   <SearchMapThumbnail
@@ -1378,7 +1378,7 @@ export default function Home() {
                 </div>
 
                 {/* 1. Property name */}
-                <FilterSection title="Property name">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Property name">
                   <input
                     type="text"
                     placeholder="e.g. Hilton, Bellagio…"
@@ -1390,7 +1390,7 @@ export default function Home() {
                 </FilterSection>
 
                 {/* 2. Price (per night) */}
-                <FilterSection title="Price (per night)">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Price (per night)">
                   <p className="text-xs text-muted-foreground mb-2">
                     US${priceRange.min} →{" "}
                     {priceMax >= priceRange.max
@@ -1409,7 +1409,7 @@ export default function Home() {
                 </FilterSection>
 
                 {/* 3. Popular filters — 7 fixed items */}
-                <FilterSection title="Popular filters">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Popular filters">
                   <div className="flex flex-col gap-2">
                     {(
                       [
@@ -1507,7 +1507,7 @@ export default function Home() {
                 </FilterSection>
 
                 {/* 4. Distance from city center */}
-                <FilterSection title="Distance from city center">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Distance from city center">
                   <div className="flex flex-col gap-2">
                     {([1, 3, 5] as const).map((km) => (
                       <label
@@ -1533,7 +1533,7 @@ export default function Home() {
 
                 {/* 5. Distance from landmarks — dynamic per destination */}
                 {(landmarksLoading || landmarks.length > 0) && (
-                  <FilterSection title="Distance from landmarks">
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Distance from landmarks">
                     {landmarksLoading ? (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -1583,7 +1583,7 @@ export default function Home() {
                 )}
 
                 {/* 5. Reservation policy — free cancellation only */}
-                <FilterSection title="Reservation policy">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Reservation policy">
                   <label className="flex items-center gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1600,7 +1600,7 @@ export default function Home() {
 
                 {/* 6. Brand — first 9, show all X */}
                 {availableBrands.length > 0 && (
-                  <FilterSection title="Brand" defaultOpen={false}>
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Brand" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllBrands
                         ? availableBrands
@@ -1650,7 +1650,7 @@ export default function Home() {
 
                 {/* 7. Property type — with counts, first 9 */}
                 {availablePropertyTypes.length > 0 && (
-                  <FilterSection title="Property type" defaultOpen={false}>
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Property type" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllPropertyTypes
                         ? availablePropertyTypes
@@ -1699,7 +1699,7 @@ export default function Home() {
                 )}
 
                 {/* 8. Star rating — unchanged */}
-                <FilterSection title="Star rating">
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Star rating">
                   <div className="flex flex-col gap-2">
                     {[5, 4, 3, 2, 1].map((star) => (
                       <label
@@ -1747,7 +1747,7 @@ export default function Home() {
                 </FilterSection>
 
                 {/* 9. Meal plans — 4 named options with counts */}
-                <FilterSection title="Meal plans" defaultOpen={false}>
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Meal plans" defaultOpen={false}>
                   <div className="flex flex-col gap-2">
                     {FIXED_MEAL_PLANS.map((opt) => {
                       const count = getMealPlanCount(opt.codes);
@@ -1781,7 +1781,7 @@ export default function Home() {
                 </FilterSection>
 
                 {/* 10. Guest rating — unchanged */}
-                <FilterSection title="Guest rating" defaultOpen={false}>
+                <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Guest rating" defaultOpen={false}>
                   <div className="flex flex-col gap-2">
                     {(
                       [
@@ -1814,7 +1814,7 @@ export default function Home() {
 
                 {/* 11. Room amenities — first 9, show all X */}
                 {availableRoomAmenities.length > 0 && (
-                  <FilterSection title="Amenities" defaultOpen={false}>
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Amenities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllRoomAmenities
                         ? availableRoomAmenities
@@ -1864,7 +1864,7 @@ export default function Home() {
 
                 {/* 12. Facilities — first 9, show all X */}
                 {availableFacilities.length > 0 && (
-                  <FilterSection title="Facilities" defaultOpen={false}>
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Facilities" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllFacilities
                         ? availableFacilities
@@ -1920,7 +1920,7 @@ export default function Home() {
 
                 {/* 13. Neighborhood — first 9, show all X */}
                 {availableNeighborhoods.length > 0 && (
-                  <FilterSection title="Neighborhood" defaultOpen={false}>
+                  <FilterSection forceExpand={forceExpand} forceCollapse={forceCollapse} title="Neighborhood" defaultOpen={false}>
                     <div className="flex flex-col gap-2">
                       {(showAllNeighborhoods
                         ? availableNeighborhoods
