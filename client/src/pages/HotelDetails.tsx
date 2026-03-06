@@ -97,11 +97,11 @@ function getRoomAmenityIcon(name: string): any {
   return Check;
 }
 
-type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description";
+type TabId = "overview" | "amenities" | "rooms" | "reviews" | "description";
 
 const TABS: { id: TabId; labelKey: string }[] = [
   { id: "overview", labelKey: "hotel.overview" },
-  { id: "facilities", labelKey: "hotel.amenities" },
+  { id: "amenities", labelKey: "hotel.amenities" },
   { id: "rooms", labelKey: "hotel.rooms" },
   { id: "reviews", labelKey: "hotel.reviews" },
   { id: "description", labelKey: "hotel.overview" },
@@ -159,7 +159,7 @@ function generateHighlights(name: string, description: string, amenities: string
     highlights.push({
       icon: "🧖",
       titleKey: "hotel.highlight_wellness",
-      text: `Rejuvenate at the hotel's world-class spa and wellness facilities, featuring premium treatments and amenities designed for ultimate relaxation.`,
+      text: `Rejuvenate at the hotel's world-class spa and wellness amenities, featuring premium treatments and amenities designed for ultimate relaxation.`,
     });
   }
 
@@ -167,7 +167,7 @@ function generateHighlights(name: string, description: string, amenities: string
     highlights.push({
       icon: "💼",
       titleKey: "hotel.highlight_business",
-      text: `${name} offers state-of-the-art conference facilities and business services, making it the ideal destination for both corporate events and productive stays.`,
+      text: `${name} offers state-of-the-art conference amenities and business services, making it the ideal destination for both corporate events and productive stays.`,
     });
   }
 
@@ -310,7 +310,7 @@ export default function HotelDetails() {
 
   const sectionRefs: Record<TabId, React.RefObject<HTMLDivElement>> = {
     overview: useRef<HTMLDivElement>(null),
-    facilities: useRef<HTMLDivElement>(null),
+    amenities: useRef<HTMLDivElement>(null),
     rooms: useRef<HTMLDivElement>(null),
     reviews: useRef<HTMLDivElement>(null),
     description: useRef<HTMLDivElement>(null),
@@ -458,7 +458,7 @@ export default function HotelDetails() {
   const highlights = generateHighlights(hotel.name, hotel.description, hotel.amenities);
   const SENTIMENT_LABELS: Record<string, string> = {
     cleanliness: "Cleanliness", location: "Location", staff: "Staff",
-    facilities: "Facilities", value: "Value", comfort: "Comfort",
+    amenities: "Facilities", value: "Value", comfort: "Comfort",
     amenities: "Amenities", service: "Service", room: "Room Quality",
     food: "Food & Dining", wifi: "WiFi", "value for money": "Value",
   };
@@ -661,10 +661,10 @@ export default function HotelDetails() {
         </div>
 
         {/* ─── Facilities Section ─── */}
-        <div ref={sectionRefs.facilities} className="pb-10">
+        <div ref={sectionRefs.amenities} className="pb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">{t("hotel.popular_facilities")}</h2>
-            <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">{t("hotel.see_all_facilities")}</button>
+            <h2 className="text-xl font-bold">{t("hotel.popular_amenities")}</h2>
+            <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">{t("hotel.see_all_amenities")}</button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-3">
             {hotel.amenities.slice(0, 15).map((amenity) => {
