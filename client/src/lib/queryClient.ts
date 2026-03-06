@@ -21,8 +21,9 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: { headers?: Record<string, string> }
 ): Promise<Response> {
-  const headers: Record<string, string> = { ...getAuthHeaders() };
+  const headers: Record<string, string> = { ...getAuthHeaders(), ...(options?.headers || {}) };
   if (data) headers["Content-Type"] = "application/json";
 
   const res = await fetch(url, {

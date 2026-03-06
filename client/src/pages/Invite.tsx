@@ -43,8 +43,15 @@ export default function Invite() {
 
     setSending(true);
     try {
+      const { supabase } = await import("@/lib/supabase");
+      const { data: { session } } = await supabase.auth.getSession();
+      
       for (const email of emails) {
-        await apiRequest("POST", "/api/invite", { email: email.trim() });
+        await apiRequest("POST", "/api/invite", { email: email.trim() }, {
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`
+          }
+        });
       }
       setEmailInput("");
       toast({ title: "Invites sent!", description: "Your friends will receive an invitation email shortly." });
