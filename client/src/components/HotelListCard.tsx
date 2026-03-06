@@ -250,11 +250,28 @@ export function HotelListCard({
             </div>
           )}
 
-          {/* Price + CTA — mobile only */}
+          {/* Price + Rating — mobile only */}
           <div className="sm:hidden mt-auto pt-3 border-t border-border flex items-center justify-between gap-3">
-            <div>
+            {/* Left: rating badge + label + review count */}
+            <div className="flex items-center gap-2 min-w-0">
+              {hotel.rating ? (
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
+                    {hotel.rating % 1 === 0 ? hotel.rating.toFixed(0) : hotel.rating.toFixed(1)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-foreground leading-tight">{label}</div>
+                    {hotel.reviewCount ? (
+                      <div className="text-[11px] text-muted-foreground leading-tight">· {hotel.reviewCount.toLocaleString()} reviews</div>
+                    ) : null}
+                  </div>
+                </>
+              ) : null}
+            </div>
+            {/* Right: discount + price */}
+            <div className="text-right shrink-0">
               {discountPct && (
-                <div className="inline-block bg-emerald-500 text-white text-[11px] font-bold px-2 py-0.5 rounded mb-1">
+                <div className="inline-block bg-emerald-500 text-white text-[11px] font-bold px-2 py-0.5 rounded mb-0.5">
                   {discountPct}% OFF
                 </div>
               )}
@@ -263,22 +280,12 @@ export function HotelListCard({
                   {originalPrice && originalPrice > price && (
                     <div className="text-xs text-muted-foreground line-through">US${originalPrice.toLocaleString()}</div>
                   )}
-                  <div className="text-lg font-bold text-foreground">US${price.toLocaleString()}</div>
-                  <div className="text-xs text-muted-foreground">/ night · incl. taxes</div>
+                  <div className="text-lg font-bold text-foreground leading-tight">US${price.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">/ night · incl. taxes & fees</div>
                 </>
               ) : (
                 <div className="text-sm text-muted-foreground">Check rates</div>
               )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {hotel.rating && (
-                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white text-sm font-bold flex items-center justify-center">
-                  {hotel.rating % 1 === 0 ? hotel.rating.toFixed(0) : hotel.rating.toFixed(1)}
-                </div>
-              )}
-              <div className="px-3 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg">
-                See availability
-              </div>
             </div>
           </div>
         </div>
