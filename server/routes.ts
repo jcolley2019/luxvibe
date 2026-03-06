@@ -276,8 +276,8 @@ export async function registerRoutes(
             const hotels = data?.data || [];
             const scored = hotels
               .map((h: any) => {
-                const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-                const facilities: string[] = rawFacilities
+                const rawAmenities: any[] = h.hotelFacilities || h.amenities || [];
+                const amenities: string[] = rawAmenities
                   .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
                   .filter(Boolean)
                   .slice(0, 30);
@@ -291,7 +291,7 @@ export async function registerRoutes(
                   reviewCount: h.reviews_total || h.reviewCount || null,
                   price: null as number | null,
                   imageUrl: h.main_photo || h.thumbnail || null,
-                  facilities,
+                  amenities,
                   neighborhood: h.neighborhood || h.location?.neighborhood || null,
                   distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
                   mealPlan: aiBoardCodesMap.get(hotelRate.hotelId)?.[0] || null,
@@ -569,8 +569,8 @@ export async function registerRoutes(
           offset: "0",
         });
         return ((data?.data || []) as any[]).map((h: any) => {
-          const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-          const facilities: string[] = rawFacilities
+          const rawAmenities: any[] = h.hotelFacilities || h.amenities || [];
+          const amenities: string[] = rawAmenities
             .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
             .filter(Boolean)
             .slice(0, 30);
@@ -584,7 +584,7 @@ export async function registerRoutes(
             reviewCount: h.reviews_total || h.reviewCount || null,
             price: null as number | null,
             imageUrl: h.main_photo || h.thumbnail || null,
-            facilities,
+            amenities,
           };
         }).filter((h: any) => h.stars !== null && h.stars >= 3);
       };
@@ -898,8 +898,8 @@ export async function registerRoutes(
             if (hotelRate.hotelId === rateEntries[0].hotelId) {
               console.log('[search-ai] RAW LITEAPI HOTEL OBJECT:', JSON.stringify(h, null, 2));
             }
-            const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-            const facilities: string[] = rawFacilities
+            const rawAmenities: any[] = h.hotelFacilities || h.amenities || [];
+            const amenities: string[] = rawAmenities
               .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
               .filter(Boolean)
               .slice(0, 30);
@@ -917,7 +917,7 @@ export async function registerRoutes(
               distance: h.distance_from_city_center || h.distance || null,
               lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
               lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
-              facilities,
+              amenities,
               neighborhood: h.neighborhood || h.location?.neighborhood || null,
               distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
               mealPlan: aiBoardCodesMap.get(hotelRate.hotelId)?.[0] || null,
@@ -1021,8 +1021,8 @@ export async function registerRoutes(
       }
 
       const results = hotelsMetadata.map((h: any) => {
-        const rawFacilities: any[] = h.hotelFacilities || h.facilities || [];
-        const facilities: string[] = rawFacilities
+        const rawAmenities: any[] = h.hotelFacilities || h.amenities || [];
+        const amenities: string[] = rawAmenities
           .map((f: any) => (typeof f === "string" ? f : f.name || f.facilityName || f.description || ""))
           .filter(Boolean)
           .slice(0, 30);
@@ -1040,7 +1040,7 @@ export async function registerRoutes(
           distance: h.distance_from_city_center || h.distance || null,
           lat: h.location?.latitude ?? h.latitude ?? h.lat ?? null,
           lng: h.location?.longitude ?? h.longitude ?? h.lng ?? null,
-          facilities,
+          amenities,
           neighborhood: h.neighborhood || h.location?.neighborhood || null,
           distanceFromCenter: h.distance_from_center || h.location?.distance_from_city_center || null,
           mealPlan: boardCodesMap.get(h.id)?.[0] || null,
@@ -1323,8 +1323,8 @@ export async function registerRoutes(
       // Strip normalizedName before sending to client
       const rooms: any[] = roomDataList.map(({ normalizedName, ...rest }) => rest);
 
-      // Use the facilities[] array from the API which has names directly
-      const amenities: string[] = (hotelRaw.facilities || [])
+      // Use the amenities[] array from the API which has names directly
+      const amenities: string[] = (hotelRaw.amenities || [])
         .map((f: any) => f.name || f)
         .filter(Boolean)
         .slice(0, 60);
