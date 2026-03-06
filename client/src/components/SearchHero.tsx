@@ -50,7 +50,6 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80", // paris
   "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80", // london
   "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=1920&q=80", // miami beach
-  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80", // luxury hotel pool
   "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1920&q=80", // bali resort
   "https://images.unsplash.com/photo-1549144511-f099e773c147?w=1920&q=80", // dubai skyline
   "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920&q=80", // paris eiffel night
