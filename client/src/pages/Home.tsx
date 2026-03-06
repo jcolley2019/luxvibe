@@ -40,6 +40,7 @@ import {
   Gem,
   PiggyBank,
   BarChart2,
+  Trash2,
 } from "lucide-react";
 import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
@@ -411,6 +412,7 @@ export default function Home() {
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [forceExpand, setForceExpand] = useState(0);
   const [forceCollapse, setForceCollapse] = useState(0);
+  const [allSectionsOpen, setAllSectionsOpen] = useState(true);
 
   const {
     data: hotels,
@@ -1294,7 +1296,7 @@ export default function Home() {
           <div className="flex gap-6">
             {/* ── Filter Sidebar ── */}
             <aside className="w-72 shrink-0 hidden lg:block">
-              <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <div className="bg-white dark:bg-card border border-border rounded-xl sticky top-20">
                 {/* Show on Map thumbnail */}
                 {effectiveMapCenter && (
                   <SearchMapThumbnail
@@ -1318,8 +1320,20 @@ export default function Home() {
                 )}
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                  <div className="flex flex-col gap-1">
+                <div className="px-4 py-4 border-b border-border">
+                  <button
+                    className="w-full flex items-center justify-between group"
+                    onClick={() => {
+                      const next = !allSectionsOpen;
+                      setAllSectionsOpen(next);
+                      setForceExpand(0);
+                      setForceCollapse(0);
+                      setTimeout(() => {
+                        if (next) setForceExpand((v) => v + 1);
+                        else setForceCollapse((v) => v + 1);
+                      }, 0);
+                    }}
+                  >
                     <h3 className="font-bold text-base flex items-center gap-2">
                       <SlidersHorizontal className="w-4 h-4" />
                       Filters
@@ -1329,38 +1343,17 @@ export default function Home() {
                         </span>
                       )}
                     </h3>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setForceExpand(0);
-                          setForceCollapse(0);
-                          setTimeout(() => setForceExpand((v) => v + 1), 0);
-                        }}
-                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
-                      >
-                        Open All
-                      </button>
-                      <span className="text-muted-foreground/30 text-[10px]">
-                        |
-                      </span>
-                      <button
-                        onClick={() => {
-                          setForceExpand(0);
-                          setForceCollapse(0);
-                          setTimeout(() => setForceCollapse((v) => v + 1), 0);
-                        }}
-                        className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter"
-                      >
-                        Close All
-                      </button>
-                    </div>
-                  </div>
+                    {allSectionsOpen
+                      ? <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      : <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    }
+                  </button>
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                    className="mt-3 w-full flex items-center justify-center gap-2 border border-border rounded-lg py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
                     data-testid="button-clear-filters"
                   >
-                    <X className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     Clear filters
                   </button>
                 </div>
