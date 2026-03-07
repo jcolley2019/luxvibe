@@ -184,6 +184,7 @@ function FeaturedHotelCard({ hotelId, destination }: { hotelId: string; destinat
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const { data: post, isLoading, isError } = useQuery<BlogPost>({
     queryKey: ["/api/blog/posts", slug],
@@ -266,11 +267,14 @@ export default function BlogPost() {
       <Navbar />
 
       {/* Hero image */}
-      <div className="w-full h-[55vh] relative overflow-hidden">
+      <div className="w-full h-[55vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
         <img
           src={post.heroImageUrl}
           alt={post.title}
-          className="w-full h-full object-cover"
+          loading="eager"
+          fetchpriority="high"
+          onLoad={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 max-w-4xl mx-auto">

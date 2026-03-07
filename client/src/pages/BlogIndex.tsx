@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { MapPin, Calendar, ArrowRight } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface BlogPost {
   id: number;
@@ -20,6 +20,48 @@ function formatDate(iso: string) {
     month: "long",
     day: "numeric",
   });
+}
+
+function BlogCard({ post }: { post: BlogPost }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <Link href={`/blog/${post.slug}`} data-testid={`card-blog-${post.id}`}>
+      <article className="group rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
+        <div className="overflow-hidden aspect-[16/10] relative bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
+          <img
+            src={post.heroImageUrl}
+            alt={post.title}
+            loading="eager"
+            onLoad={() => setLoaded(true)}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+          />
+        </div>
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              {post.destination}
+            </span>
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </div>
+          <h2 className="text-base font-bold text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
+            {post.title}
+          </h2>
+          <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+          <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary">
+            Read more <ArrowRight className="w-4 h-4" />
+          </div>
+        </div>
+      </article>
+    </Link>
+  );
 }
 
 export default function BlogIndex() {
@@ -73,36 +115,7 @@ export default function BlogIndex() {
         {!isLoading && posts.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
-              <Link key={post.id} href={`/blog/${post.slug}`} data-testid={`card-blog-${post.id}`}>
-                <article className="group rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
-                  <div className="overflow-hidden aspect-[16/10] relative">
-                    <img
-                      src={post.heroImageUrl}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {post.destination}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(post.publishedAt)}
-                      </span>
-                    </div>
-                    <h2 className="text-base font-bold text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
-                      {post.title}
-                    </h2>
-                    <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
-                    <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary">
-                      Read more <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </article>
-              </Link>
+              <BlogCard key={post.id} post={post} />
             ))}
           </div>
         )}
