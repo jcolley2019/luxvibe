@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Request, Response, NextFunction } from "express";
 
+export const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+);
+
 export async function getSupabaseUser(token: string) {
   const supabase = createClient(
     process.env.SUPABASE_URL!,

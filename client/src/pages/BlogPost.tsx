@@ -16,6 +16,9 @@ interface BlogPost {
   excerpt: string;
   publishedAt: string;
   hotelIds: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImageUrl?: string;
 }
 
 interface HotelSummary {
@@ -212,10 +215,10 @@ export default function BlogPost() {
       el.setAttribute("content", content);
     };
 
-    setMeta("description", post.excerpt);
-    setMeta("og:title", post.title, true);
-    setMeta("og:description", post.excerpt, true);
-    setMeta("og:image", post.heroImageUrl, true);
+    setMeta("description", post.seoDescription || post.excerpt);
+    setMeta("og:title", post.seoTitle || post.title, true);
+    setMeta("og:description", post.seoDescription || post.excerpt, true);
+    setMeta("og:image", post.ogImageUrl || post.heroImageUrl, true);
     setMeta("og:url", `https://luxvibe.io/blog/${post.slug}`, true);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;

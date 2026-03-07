@@ -7,7 +7,8 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integra
 import { requireSupabaseAuth } from "./supabase";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
-import { litapiBookingRefs, blogPosts, insertBlogPostSchema } from "@shared/schema";
+import { litapiBookingRefs } from "@shared/schema";
+import { supabaseAdmin } from "./supabase";
 import { eq, or, and, isNull } from "drizzle-orm";
 import { sendBookingConfirmationEmail, sendCancellationEmail, sendInviteEmail } from "./email";
 
@@ -2684,8 +2685,13 @@ Guest question: ${question}`;
   // GET /api/blog/posts — list all published posts
   app.get("/api/blog/posts", async (_req, res) => {
     try {
-      const posts = await storage.getAllPublishedPosts();
-      res.json(posts);
+      const { data, error } = await supabaseAdmin
+        .from("blog_posts")
+        .select("*")
+        .eq("status", "published")
+        .order("published_at", { ascending: false });
+      if (error) throw error;
+      res.json(data ?? []);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
@@ -2694,15 +2700,42 @@ Guest question: ${question}`;
   // GET /api/blog/posts/:slug — get single post
   app.get("/api/blog/posts/:slug", async (req, res) => {
     try {
-      const post = await storage.getPostBySlug(req.params.slug);
-      if (!post) return res.status(404).json({ message: "Post not found" });
-      res.json(post);
+      const { data, error } = await supabaseAdmin
+        .from("blog_posts")
+        .select("*")
+        .eq("slug", req.params.slug)
+        .eq("status", "published")
+        .single();
+      if (error || !data) return res.status(404).json({ message: "Post not found" });
+      res.json(data);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
   });
 
   // POST /api/blog/posts — create or update a post (admin only)
+  const upsertBlogPostSchema = z.object({
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    destination: z.string().min(1),
+    heroImageUrl: z.string().url().optional(),
+    hero_image_url: z.string().url().optional(),
+    contentHtml: z.string().optional(),
+    content_html: z.string().optional(),
+    excerpt: z.string().min(1),
+    publishedAt: z.coerce.date().optional(),
+    published_at: z.coerce.date().optional(),
+    hotelIds: z.array(z.string()).optional(),
+    hotel_ids: z.array(z.string()).optional(),
+    seoTitle: z.string().optional(),
+    seo_title: z.string().optional(),
+    seoDescription: z.string().optional(),
+    seo_description: z.string().optional(),
+    ogImageUrl: z.string().optional(),
+    og_image_url: z.string().optional(),
+    status: z.enum(["draft", "published"]).default("draft"),
+  });
+
   app.post("/api/blog/posts", requireSupabaseAuth, async (req: any, res) => {
     const adminEmail = process.env.BLOG_ADMIN_EMAIL;
     const userEmail = req.supabaseUser?.email;
@@ -2710,9 +2743,29 @@ Guest question: ${question}`;
       return res.status(403).json({ message: "Forbidden" });
     }
     try {
-      const data = insertBlogPostSchema.parse(req.body);
-      const post = await storage.upsertPost(data);
-      res.json(post);
+      const body = upsertBlogPostSchema.parse(req.body);
+      const row = {
+        slug: body.slug,
+        title: body.title,
+        destination: body.destination,
+        heroImageUrl: body.hero_image_url ?? body.heroImageUrl ?? "",
+        contentHtml: body.content_html ?? body.contentHtml ?? "",
+        excerpt: body.excerpt,
+        publishedAt: (body.published_at ?? body.publishedAt ?? new Date()).toISOString(),
+        hotelIds: body.hotel_ids ?? body.hotelIds ?? [],
+        seoTitle: body.seo_title ?? body.seoTitle ?? null,
+        seoDescription: body.seo_description ?? body.seoDescription ?? null,
+        ogImageUrl: body.og_image_url ?? body.ogImageUrl ?? null,
+        status: body.status,
+        updatedAt: new Date().toISOString(),
+      };
+      const { data, error } = await supabaseAdmin
+        .from("blog_posts")
+        .upsert(row, { onConflict: "slug" })
+        .select()
+        .single();
+      if (error) throw error;
+      res.json(data);
     } catch (err: any) {
       res.status(400).json({ message: err.message });
     }
@@ -2755,7 +2808,11 @@ Guest question: ${question}`;
   // GET /sitemap.xml — dynamic sitemap including blog posts
   app.get("/sitemap.xml", async (_req, res) => {
     try {
-      const posts = await storage.getAllPublishedPosts();
+      const { data: posts = [] } = await supabaseAdmin
+        .from("blog_posts")
+        .select("slug, updatedAt")
+        .eq("status", "published")
+        .order("published_at", { ascending: false });
       const staticUrls = [
         { loc: "https://luxvibe.io/", changefreq: "daily", priority: "1.0" },
         { loc: "https://luxvibe.io/blog", changefreq: "weekly", priority: "0.9" },
@@ -2770,7 +2827,7 @@ Guest question: ${question}`;
         loc: `https://luxvibe.io/blog/${p.slug}`,
         changefreq: "monthly",
         priority: "0.8",
-        lastmod: p.updatedAt ? p.updatedAt.toISOString().split("T")[0] : undefined,
+        lastmod: (p as any).updatedAt ? (p as any).updatedAt.split("T")[0] : undefined,
       }));
 
       const allUrls = [...staticUrls, ...blogUrls];
