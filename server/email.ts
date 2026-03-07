@@ -322,44 +322,60 @@ export async function sendInviteEmail(opts: {
 }) {
   const { to, senderName, referralLink } = opts;
 
-  const html = `
-<!DOCTYPE html>
-<html>
+  const year = new Date().getFullYear();
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>You're Invited to Luxvibe</title>
+  <title>You're invited to Luxvibe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+<body style="margin:0;padding:0;background:#f8fafc;font-family:'Plus Jakarta Sans',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
+    <tr><td align="center" style="padding:0 16px;">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden;">
+
+        <!-- Body -->
         <tr>
-          <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:4px;">LUXVIBE</h1>
-            <p style="margin:8px 0 0;color:#a0a0c0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Your Travel Escape</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:40px;text-align:center;">
-            <p style="margin:0 0 8px;color:#374151;font-size:20px;font-weight:700;">${senderName} invited you to join Luxvibe!</p>
-            <p style="margin:0 0 32px;color:#6b7280;font-size:16px;line-height:1.6;">
-              Discover and book the world's most luxurious hotels with AI-powered search and exclusive rates.
+          <td style="padding:48px 48px 40px;text-align:center;">
+            <!-- Logo -->
+            <p style="margin:0 0 36px;font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:#1e3a5f;letter-spacing:2px;">Luxvibe</p>
+
+            <!-- Body copy -->
+            <p style="margin:0 0 32px;font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;color:#374151;line-height:1.65;">
+              ${senderName} invited you to check out Luxvibe — great rates on luxury hotels worldwide.
             </p>
-            <a href="${referralLink}" style="display:inline-block;background:#1a1a2e;color:#ffffff;padding:16px 40px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:0.5px;">Accept Invitation →</a>
+
+            <!-- CTA -->
+            <a href="${referralLink}"
+               style="display:inline-block;background:#2463eb;color:#ffffff;padding:16px 40px;border-radius:12px;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:600;">
+              View Luxvibe
+            </a>
           </td>
         </tr>
+
+        <!-- Footer -->
         <tr>
-          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} Luxvibe. All rights reserved.</p>
-            <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;">You received this because ${senderName} invited you to Luxvibe.</p>
+          <td style="border-top:1px solid #e5e7eb;padding:20px 48px;text-align:center;">
+            <p style="margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:#9ca3af;">
+              © ${year} Luxvibe &middot; You received this because ${senderName} invited you.
+            </p>
           </td>
         </tr>
+
       </table>
     </td></tr>
   </table>
 </body>
 </html>`;
+
+  const text = `${senderName} invited you to check out Luxvibe — great rates on luxury hotels worldwide.
+
+Visit: ${referralLink}
+
+— Luxvibe`;
 
   try {
     const result = await resend.emails.send({
@@ -367,6 +383,7 @@ export async function sendInviteEmail(opts: {
       to,
       subject: `${senderName} invited you to Luxvibe`,
       html,
+      text,
     });
     console.log("[email] Invite sent to", to, "id:", result?.data?.id);
     return result;
