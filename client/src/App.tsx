@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,6 +24,14 @@ import BlogPost from "@/pages/BlogPost";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  return null;
+}
 
 function ReferralCapture() {
   useEffect(() => {
@@ -69,6 +77,7 @@ function App() {
         <FavoritesProvider>
           <AuthProvider>
             <TooltipProvider>
+              <ScrollToTop />
               <ReferralCapture />
               <div className="flex flex-col min-h-screen">
                 <ReferralBanner />
