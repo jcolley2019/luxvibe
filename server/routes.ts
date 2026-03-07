@@ -2691,6 +2691,7 @@ Guest question: ${question}`;
     seoTitle: p.seo_title || p.seoTitle,
     seoDescription: p.seo_description || p.seoDescription,
     ogImageUrl: p.og_image_url || p.ogImageUrl,
+    tags: p.tags || [],
   });
 
   // GET /api/blog/posts — list all published posts
@@ -2745,6 +2746,7 @@ Guest question: ${question}`;
     ogImageUrl: z.string().optional(),
     og_image_url: z.string().optional(),
     status: z.enum(["draft", "published"]).default("draft"),
+    tags: z.array(z.string()).optional().default([]),
   });
 
   app.post("/api/blog/posts", requireSupabaseAuth, async (req: any, res) => {
@@ -2768,6 +2770,7 @@ Guest question: ${question}`;
         seoDescription: body.seo_description ?? body.seoDescription ?? null,
         ogImageUrl: body.og_image_url ?? body.ogImageUrl ?? null,
         status: body.status,
+        tags: body.tags,
         updatedAt: new Date().toISOString(),
       };
       const { data, error } = await supabaseAdmin

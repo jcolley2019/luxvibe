@@ -249,15 +249,26 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <span
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              className="text-lg xs:text-xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
-            >
-              Luxvibe
-            </span>
-          </Link>
+          <div className="flex items-center gap-6">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              <span
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-lg xs:text-xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
+              >
+                Luxvibe
+              </span>
+            </Link>
+
+            {/* Nav Links */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/blog">
+                <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Journal
+                </a>
+              </Link>
+            </nav>
+          </div>
 
           {/* Central slot (compact search bar on hotel pages) */}
           {centralSlot && (
@@ -355,30 +366,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               {keysTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
                   {t("nav.manage_bookings")}
-                </div>
-              )}
-            </div>
-
-            {/* Favorites heart — red when there are saved favorites */}
-            <div className="relative">
-              <Link href={isAuthenticated ? "/favorites" : "#"}>
-                <button
-                  onClick={!isAuthenticated ? () => openLoginModal() : undefined}
-                  onMouseEnter={() => setFavoritesTooltip(true)}
-                  onMouseLeave={() => setFavoritesTooltip(false)}
-                  className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${
-                    hasFavorites
-                      ? "border-red-400 bg-red-50 dark:bg-red-950/30 text-red-500 hover:border-red-500"
-                      : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"
-                  }`}
-                  data-testid="button-favorites"
-                >
-                  <Heart className={`w-4 h-4 transition-all ${hasFavorites ? "fill-red-500 text-red-500" : ""}`} />
-                </button>
-              </Link>
-              {favoritesTooltip && (
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  {isAuthenticated ? "My Favorites" : "Login to view Favorites"}
                 </div>
               )}
             </div>
