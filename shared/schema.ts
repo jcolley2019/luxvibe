@@ -44,6 +44,30 @@ export const insertLitapiBookingRefSchema = createInsertSchema(litapiBookingRefs
 export type LitapiBookingRef = typeof litapiBookingRefs.$inferSelect;
 export type InsertLitapiBookingRef = z.infer<typeof insertLitapiBookingRefSchema>;
 
+// === BLOG POSTS ===
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  destination: text("destination").notNull(),
+  heroImageUrl: text("hero_image_url").notNull(),
+  contentHtml: text("content_html").notNull(),
+  excerpt: text("excerpt").notNull(),
+  publishedAt: timestamp("published_at").notNull().defaultNow(),
+  hotelIds: text("hotel_ids").array().notNull().default([]),
+  status: text("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+
 // === EXPLICIT API CONTRACT TYPES ===
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;

@@ -14,7 +14,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend
 - **Framework**: React 18 with TypeScript, bundled by Vite
-- **Routing**: Wouter (lightweight client-side router) with routes: `/` (home/search), `/hotel/:id` (details), `/checkout` (guest form + payment), `/booking-confirmation` (post-payment booking), `/my-bookings` (user bookings)
+- **Routing**: Wouter (lightweight client-side router) with routes: `/` (home/search), `/hotel/:id` (details), `/checkout` (guest form + payment), `/booking-confirmation` (post-payment booking), `/my-bookings` (user bookings), `/blog` (blog index), `/blog/:slug` (blog post), `/invite` (referral), `/favorites`, `/terms`, `/privacy`
 - **State Management**: TanStack React Query for server state (caching, fetching, mutations)
 - **UI Components**: shadcn/ui (new-york style) built on Radix UI primitives with Tailwind CSS
 - **Styling**: Tailwind CSS with CSS variables for theming, custom fonts (Plus Jakarta Sans for body, Playfair Display for headings)
@@ -99,3 +99,21 @@ Preferred communication style: Simple, everyday language.
 - shadcn/ui ecosystem (Radix UI, Tailwind CSS, class-variance-authority)
 - `react-i18next` + `i18next` - Internationalization (15 languages: EN, FR, ES, DE, IT, PT, NL, TR, RU, JA, ZH, KO, AR, EL, RO)
 - `leaflet` + `@types/leaflet` - Interactive maps for hotel location display
+- `@tailwindcss/typography` - Prose styles for blog post content HTML
+
+## Blog Feature
+
+Travel blog at `/blog` and `/blog/:slug`. Data stored in `blog_posts` Postgres table (Drizzle schema in `shared/schema.ts`). 
+
+**API routes:**
+- `GET /api/blog/posts` — list all published posts (newest first)
+- `GET /api/blog/posts/:slug` — get single post by slug
+- `POST /api/blog/posts` — create/update post (requires auth + `BLOG_ADMIN_EMAIL` env var)
+- `GET /api/blog/hotel-summary/:id` — lightweight hotel data (name, stars, images, amenities) from LiteAPI for blog featured hotels
+- `GET /sitemap.xml` — dynamic sitemap including all published blog post URLs
+
+**Admin setup:** Set `BLOG_ADMIN_EMAIL` environment secret to the email address of the user who should have write access to the blog.
+
+**Pages:**
+- `client/src/pages/BlogIndex.tsx` — grid of post cards with hero image, title, destination, date, excerpt
+- `client/src/pages/BlogPost.tsx` — full post with hero, HTML body (`prose` styled), featured hotel cards (image carousel + reviews from LiteAPI), related posts footer. SEO meta tags (og:title, og:image, description, canonical) set dynamically via useEffect.

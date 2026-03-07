@@ -7,7 +7,7 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integra
 import { requireSupabaseAuth } from "./supabase";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
-import { litapiBookingRefs } from "@shared/schema";
+import { litapiBookingRefs, blogPosts, insertBlogPostSchema } from "@shared/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
 import { sendBookingConfirmationEmail, sendCancellationEmail, sendInviteEmail } from "./email";
 
@@ -2676,6 +2676,115 @@ Guest question: ${question}`;
     } catch (err: any) {
       console.warn("[referrals] LiteAPI fetch failed:", err?.message);
       res.json({ data: { referrals: [] } });
+    }
+  });
+
+  // ─── BLOG ROUTES ─────────────────────────────────────────────────────────
+
+  // GET /api/blog/posts — list all published posts
+  app.get("/api/blog/posts", async (_req, res) => {
+    try {
+      const posts = await storage.getAllPublishedPosts();
+      res.json(posts);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // GET /api/blog/posts/:slug — get single post
+  app.get("/api/blog/posts/:slug", async (req, res) => {
+    try {
+      const post = await storage.getPostBySlug(req.params.slug);
+      if (!post) return res.status(404).json({ message: "Post not found" });
+      res.json(post);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // POST /api/blog/posts — create or update a post (admin only)
+  app.post("/api/blog/posts", requireSupabaseAuth, async (req: any, res) => {
+    const adminEmail = process.env.BLOG_ADMIN_EMAIL;
+    const userEmail = req.supabaseUser?.email;
+    if (!adminEmail || userEmail !== adminEmail) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    try {
+      const data = insertBlogPostSchema.parse(req.body);
+      const post = await storage.upsertPost(data);
+      res.json(post);
+    } catch (err: any) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+  // GET /api/blog/hotel-summary/:id — lightweight hotel info for blog post display
+  app.get("/api/blog/hotel-summary/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = await liteApiGet(`/data/hotel`, { hotelId: id });
+      const hotel = data?.data;
+      if (!hotel) return res.status(404).json({ message: "Hotel not found" });
+
+      const images: string[] = (hotel.hotelImages || [])
+        .slice(0, 6)
+        .map((img: any) => img.urlHd || img.url || "")
+        .filter(Boolean);
+
+      const facilityIds: number[] = hotel.facilities?.facilityIds || [];
+      const amenities: string[] = facilityIds
+        .slice(0, 8)
+        .map((fid: number) => FACILITY_ID_MAP[fid])
+        .filter(Boolean);
+
+      res.json({
+        id,
+        name: hotel.name || "",
+        stars: hotel.starRating || 0,
+        city: hotel.city?.name || hotel.address?.city || "",
+        country: hotel.address?.country || "",
+        images,
+        amenities: [...new Set(amenities)].slice(0, 6),
+        mainImage: images[0] || hotel.thumbnail || "",
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // GET /sitemap.xml — dynamic sitemap including blog posts
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const posts = await storage.getAllPublishedPosts();
+      const staticUrls = [
+        { loc: "https://luxvibe.io/", changefreq: "daily", priority: "1.0" },
+        { loc: "https://luxvibe.io/blog", changefreq: "weekly", priority: "0.9" },
+        ...[
+          "Las+Vegas","New+York","Miami","Los+Angeles","Paris","London","Dubai",
+          "Barcelona","Tokyo","Bali","Rome","Bangkok","Amsterdam","Sydney",
+          "Chicago","San+Francisco","Lisbon","Orlando","Cancun",
+        ].map(d => ({ loc: `https://luxvibe.io/?destination=${d}`, changefreq: "daily", priority: "0.7" })),
+      ];
+
+      const blogUrls = posts.map(p => ({
+        loc: `https://luxvibe.io/blog/${p.slug}`,
+        changefreq: "monthly",
+        priority: "0.8",
+        lastmod: p.updatedAt ? p.updatedAt.toISOString().split("T")[0] : undefined,
+      }));
+
+      const allUrls = [...staticUrls, ...blogUrls];
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+      res.type("application/xml").send(xml);
+    } catch (err: any) {
+      res.status(500).send("Error generating sitemap");
     }
   });
 
