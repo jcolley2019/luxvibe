@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
-import { MapPin, Calendar, ArrowRight } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface BlogPost {
@@ -10,20 +10,22 @@ interface BlogPost {
   title: string;
   destination: string;
   heroImageUrl: string;
+  contentHtml: string;
   excerpt: string;
   publishedAt: string;
+  tags?: string[];
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+function readingTime(html: string) {
+  if (!html) return 1;
+  const text = html.replace(/<[^>]+>/g, " ");
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
 }
 
 function BlogCard({ post }: { post: BlogPost }) {
   const [loaded, setLoaded] = useState(false);
+  const mins = readingTime(post.contentHtml);
   return (
     <Link href={`/blog/${post.slug}`} data-testid={`card-blog-${post.id}`}>
       <article className="group rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
@@ -37,7 +39,7 @@ function BlogCard({ post }: { post: BlogPost }) {
           />
         </div>
         <div className="p-5 flex flex-col flex-1">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
               <MapPin className="w-3 h-3" />
               {post.destination}
@@ -50,11 +52,27 @@ function BlogCard({ post }: { post: BlogPost }) {
                 day: "numeric",
               })}
             </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {mins} min read
+            </span>
           </div>
           <h2 className="text-base font-bold text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
             {post.title}
           </h2>
           <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3" data-testid={`tags-${post.id}`}>
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[#2463eb]/10 text-[#2463eb] dark:bg-[#2463eb]/20 dark:text-blue-300"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary">
             Read more <ArrowRight className="w-4 h-4" />
           </div>

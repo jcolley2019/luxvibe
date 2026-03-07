@@ -262,10 +262,8 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link href="/blog">
-                <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                  Journal
-                </a>
+              <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Journal
               </Link>
             </nav>
           </div>

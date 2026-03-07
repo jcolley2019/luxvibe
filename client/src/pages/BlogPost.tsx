@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
 import { Navbar } from "@/components/Navbar";
-import { MapPin, Calendar, Star, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { MapPin, Calendar, Star, ChevronLeft, ChevronRight, ArrowRight, Clock, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ interface BlogPost {
   seoTitle?: string;
   seoDescription?: string;
   ogImageUrl?: string;
+  tags?: string[];
 }
 
 interface HotelSummary {
@@ -44,6 +45,12 @@ function formatDate(iso: string) {
     month: "long",
     day: "numeric",
   });
+}
+
+function readingTime(html: string) {
+  const text = html.replace(/<[^>]+>/g, " ");
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
 }
 
 function StarRow({ count }: { count: number }) {
@@ -182,6 +189,85 @@ function FeaturedHotelCard({ hotelId, destination }: { hotelId: string; destinat
   );
 }
 
+function SocialShareBar({ url, title, image }: { url: string; title: string; image: string }) {
+  const encoded = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+  const encodedImage = encodeURIComponent(image);
+
+  return (
+    <div className="flex items-center gap-3 py-5 border-y border-border mb-10" data-testid="social-share-bar">
+      <span className="text-sm font-medium text-muted-foreground mr-1">Share:</span>
+      <a
+        href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encoded}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="share-twitter"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.258 5.63 5.906-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+        X / Twitter
+      </a>
+      <a
+        href={`https://www.facebook.com/sharer/sharer.php?u=${encoded}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="share-facebook"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        </svg>
+        Facebook
+      </a>
+      <a
+        href={`https://pinterest.com/pin/create/button/?url=${encoded}&media=${encodedImage}&description=${encodedTitle}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="share-pinterest"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" />
+        </svg>
+        Pinterest
+      </a>
+    </div>
+  );
+}
+
+function FaqSection({ destination }: { destination: string }) {
+  const faqs = [
+    {
+      q: `Is ${destination} expensive for hotels?`,
+      a: `${destination} offers a wide range of accommodation options to suit different budgets. Luxury properties and five-star resorts typically command premium rates, especially in central or beachfront locations. Booking in advance and travelling in the shoulder season can yield significant savings, while boutique hotels and design-led properties often provide excellent value without sacrificing quality.`,
+    },
+    {
+      q: `What is the best area to stay in ${destination}?`,
+      a: `The ideal neighbourhood in ${destination} depends on your priorities. Staying centrally puts you within easy reach of landmarks, restaurants, and transport links. Beachfront or waterfront zones are popular for leisure travellers seeking relaxation, while quieter residential areas can offer a more authentic local experience. Consider proximity to the attractions most important to your trip when choosing your base.`,
+    },
+    {
+      q: `When is the best time to visit ${destination}?`,
+      a: `The best time to visit ${destination} varies by traveller preference. The peak season typically brings the best weather but also higher prices and larger crowds. Shoulder seasons offer a sweet spot — pleasant conditions with fewer visitors and more competitive hotel rates. If you prefer a quieter atmosphere, the off-peak months can be surprisingly rewarding, though it's worth checking local events and weather patterns before you book.`,
+    },
+  ];
+
+  return (
+    <section className="mb-14" data-testid="faq-section">
+      <h2 className="text-2xl font-bold mb-6 text-foreground">Frequently Asked Questions</h2>
+      <div className="space-y-5">
+        {faqs.map((faq, i) => (
+          <div key={i} className="rounded-xl border border-border bg-muted/30 p-5">
+            <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -198,7 +284,7 @@ export default function BlogPost() {
     queryKey: ["/api/blog/posts"],
   });
 
-  const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 3);
+  const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 2);
 
   useEffect(() => {
     if (!post) return;
@@ -262,6 +348,9 @@ export default function BlogPost() {
     );
   }
 
+  const postUrl = `https://luxvibe.io/blog/${post.slug}`;
+  const mins = readingTime(post.contentHtml);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -287,6 +376,10 @@ export default function BlogPost() {
               <Calendar className="w-4 h-4" />
               {formatDate(post.publishedAt)}
             </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              {mins} min read
+            </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">{post.title}</h1>
         </div>
@@ -295,15 +388,46 @@ export default function BlogPost() {
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 md:px-6 py-12">
         {/* Back link */}
-        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ChevronLeft className="w-4 h-4" /> Back to blog
         </Link>
 
+        {/* Author byline */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8" data-testid="author-byline">
+          <Users className="w-4 h-4" />
+          <span>By the Luxvibe Team</span>
+        </div>
+
+        {/* Social share bar */}
+        <SocialShareBar url={postUrl} title={post.title} image={post.heroImageUrl} />
+
         {/* Body HTML */}
         <div
-          className="prose prose-lg dark:prose-invert max-w-none mb-14"
+          className="prose prose-lg dark:prose-invert max-w-none mb-10"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}
         />
+
+        {/* Booking CTA buttons */}
+        {post.hotelIds && post.hotelIds.length > 0 && (
+          <div className="mb-14 p-6 rounded-2xl bg-gradient-to-br from-[#1e3a5f]/5 to-[#2463eb]/5 border border-[#2463eb]/20">
+            <h3 className="text-lg font-bold text-foreground mb-1">Ready to book your stay?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Search live rates and availability for hotels in {post.destination} on Luxvibe.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {post.hotelIds.map((id) => (
+                <a
+                  key={id}
+                  href={`/?destination=${encodeURIComponent(post.destination)}`}
+                  data-testid={`cta-book-${id}`}
+                  className="bg-[#2463eb] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#1e3a5f] transition-colors text-sm"
+                >
+                  Book This Hotel
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Featured hotels */}
         {post.hotelIds && post.hotelIds.length > 0 && (
@@ -318,6 +442,9 @@ export default function BlogPost() {
             </div>
           </section>
         )}
+
+        {/* FAQ */}
+        <FaqSection destination={post.destination} />
       </div>
 
       {/* Related posts */}
@@ -325,11 +452,11 @@ export default function BlogPost() {
         <section className="border-t border-border bg-muted/30 py-14">
           <div className="max-w-6xl mx-auto px-4">
             <h2 className="text-xl font-bold mb-8 text-foreground">More from the journal</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               {relatedPosts.map((p) => (
                 <Link key={p.id} href={`/blog/${p.slug}`} data-testid={`card-related-${p.id}`}>
                   <article className="group rounded-xl overflow-hidden border border-border bg-card hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="aspect-[16/9] overflow-hidden">
+                    <div className="aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
                       <img
                         src={p.heroImageUrl}
                         alt={p.title}
@@ -340,9 +467,12 @@ export default function BlogPost() {
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
                         <MapPin className="w-3 h-3" /> {p.destination}
                       </p>
-                      <h3 className="text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                      <h3 className="text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2 mb-2">
                         {p.title}
                       </h3>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                        Read more <ArrowRight className="w-3 h-3" />
+                      </span>
                     </div>
                   </article>
                 </Link>
