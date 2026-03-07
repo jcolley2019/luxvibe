@@ -2682,6 +2682,17 @@ Guest question: ${question}`;
 
   // ─── BLOG ROUTES ─────────────────────────────────────────────────────────
 
+  const mapPost = (p: any) => ({
+    ...p,
+    heroImageUrl: p.hero_image_url || p.heroImageUrl,
+    contentHtml: p.content_html || p.contentHtml,
+    hotelIds: p.hotel_ids || p.hotelIds,
+    publishedAt: p.published_at || p.publishedAt,
+    seoTitle: p.seo_title || p.seoTitle,
+    seoDescription: p.seo_description || p.seoDescription,
+    ogImageUrl: p.og_image_url || p.ogImageUrl,
+  });
+
   // GET /api/blog/posts — list all published posts
   app.get("/api/blog/posts", async (_req, res) => {
     try {
@@ -2691,7 +2702,7 @@ Guest question: ${question}`;
         .eq("status", "published")
         .order("published_at", { ascending: false });
       if (error) throw error;
-      res.json(data ?? []);
+      res.json((data ?? []).map(mapPost));
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
@@ -2707,7 +2718,7 @@ Guest question: ${question}`;
         .eq("status", "published")
         .single();
       if (error || !data) return res.status(404).json({ message: "Post not found" });
-      res.json(data);
+      res.json(mapPost(data));
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
