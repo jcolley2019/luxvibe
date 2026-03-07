@@ -2694,6 +2694,22 @@ Guest question: ${question}`;
     tags: p.tags || [],
   });
 
+  // GET /api/blog/posts/destination/:destination — list posts by destination
+  app.get("/api/blog/posts/destination/:destination", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("blog_posts")
+        .select("*")
+        .eq("status", "published")
+        .ilike("destination", req.params.destination)
+        .order("published_at", { ascending: false });
+      if (error) return res.status(500).json({ message: error.message });
+      res.json((data || []).map(mapPost));
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // GET /api/blog/posts — list all published posts
   app.get("/api/blog/posts", async (_req, res) => {
     try {
