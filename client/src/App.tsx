@@ -1,4 +1,5 @@
 import { Switch, Route } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { PreferencesProvider } from "@/context/preferences";
 import { FavoritesProvider } from "@/context/favorites";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ReferralBanner } from "@/components/ReferralBanner";
 import Home from "@/pages/Home";
 import HotelDetails from "@/pages/HotelDetails";
 import Checkout from "@/pages/Checkout";
@@ -20,6 +22,23 @@ import PrivacyPage from "@/pages/PrivacyPage";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
+
+function ReferralCapture() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      localStorage.setItem("pendingReferralCode", ref);
+      localStorage.removeItem("referralBannerDismissed");
+      fetch("/api/referrals/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ref }),
+      }).catch(() => {});
+    }
+  }, []);
+  return null;
+}
 
 function Router() {
   return (
@@ -46,7 +65,9 @@ function App() {
         <FavoritesProvider>
           <AuthProvider>
             <TooltipProvider>
+              <ReferralCapture />
               <div className="flex flex-col min-h-screen">
+                <ReferralBanner />
                 <Router />
                 <Footer />
               </div>

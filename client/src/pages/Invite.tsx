@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Check, Search } from "lucide-react";
 import { SiFacebook, SiLinkedin, SiWhatsapp, SiX } from "react-icons/si";
-
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Invite() {
@@ -17,12 +17,33 @@ export default function Invite() {
   const [sending, setSending] = useState(false);
   const [referralSearch, setReferralSearch] = useState("");
 
-  const referralCode = user?.id
-    ? `LV-${user.id.toString().slice(-6).toUpperCase()}`
-    : "LV-XXXXXX";
+  const referralLink = `https://luxvibe.io/?ref=${user?.id || ""}`;
 
-  // Using the actual production domain as requested by user message classification for referral links
-  const referralLink = `https://luxvibe.io/signup?ref=${user?.id || ""}`;
+  const { data: referralsData } = useQuery<any>({
+    queryKey: ["/api/guest/referrals"],
+    enabled: !!user,
+    retry: false,
+  });
+
+  const referrals: any[] = referralsData?.data?.referrals
+    ?? referralsData?.referrals
+    ?? [];
+
+  const vouchersEarned = referrals.filter(
+    (r: any) => r.status === "credited" || r.status === "completed"
+  ).length;
+  const upcomingVouchers = referrals.filter(
+    (r: any) => r.status === "pending"
+  ).length;
+
+  const filteredReferrals = referrals.filter((r: any) => {
+    if (!referralSearch.trim()) return true;
+    const search = referralSearch.toLowerCase();
+    return (
+      (r.name || r.email || "").toLowerCase().includes(search) ||
+      (r.status || "").toLowerCase().includes(search)
+    );
+  });
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink).then(() => {
@@ -47,9 +68,9 @@ export default function Invite() {
 
     setSending(true);
     try {
-      const res = await apiRequest("POST", "/api/invite", {
+      const res = await apiRequest("POST", "/api/guest/referrals/email/invite", {
         emails,
-        referralCode: referralCode,
+        referralCode: user?.id,
       });
       const data = await res.json();
       const sent = data.sent ?? emails.length;
@@ -101,10 +122,20 @@ export default function Invite() {
   ];
 
   const STATS = [
-    { label: "Referrals", value: 0 },
-    { label: "Vouchers Earned", value: 0 },
-    { label: "Upcoming Vouchers", value: 0 },
+    { label: "Referrals", value: referrals.length },
+    { label: "Vouchers Earned", value: vouchersEarned },
+    { label: "Upcoming Vouchers", value: upcomingVouchers },
   ];
+
+  function statusBadge(status: string) {
+    const map: Record<string, string> = {
+      credited: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      completed: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+      cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    };
+    return map[status] || "bg-muted text-muted-foreground";
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -180,7 +211,7 @@ export default function Invite() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {STATS.map((s) => (
-            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative">
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative" data-testid={`stat-${s.label.toLowerCase().replace(/\s/g, "-")}`}>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{s.label}</p>
               <p className="text-3xl font-bold text-foreground">{s.value}</p>
               <div className="absolute top-4 right-4 opacity-10">
@@ -209,23 +240,52 @@ export default function Invite() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="mb-4 opacity-20">
-              <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="12" width="54" height="33" rx="2" stroke="currentColor" strokeWidth="2.5"/>
-                <rect x="11" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="26" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="41" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <path d="M3 18L30 3l27 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-              </svg>
+          {filteredReferrals.length > 0 ? (
+            <div className="border border-border rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name / Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Credit Earned</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredReferrals.map((r: any, i: number) => (
+                    <tr key={r.id || i} className="border-t border-border" data-testid={`row-referral-${i}`}>
+                      <td className="px-4 py-3 font-medium text-foreground">{r.name || r.email || r.referredEmail || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadge(r.status)}`}>
+                          {r.status || "—"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-foreground">
+                        {r.creditEarned != null ? `$${Number(r.creditEarned).toFixed(2)}` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm font-semibold text-foreground mb-1">
-              You haven't referred anyone yet, what are you waiting for?
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Share your referral link with family and friends to earn discount vouchers.
-            </p>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-4 opacity-20">
+                <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="12" width="54" height="33" rx="2" stroke="currentColor" strokeWidth="2.5"/>
+                  <rect x="11" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                  <rect x="26" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                  <rect x="41" y="21" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M3 18L30 3l27 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <p className="text-sm font-semibold text-foreground mb-1">
+                You haven't referred anyone yet, what are you waiting for?
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Share your referral link with family and friends to earn discount vouchers.
+              </p>
+            </div>
+          )}
         </div>
       </main>
     </div>

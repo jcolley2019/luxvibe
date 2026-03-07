@@ -2623,32 +2623,75 @@ Guest question: ${question}`;
     }
   });
 
-  app.post("/api/invite", requireSupabaseAuth, async (req: any, res) => {
+  // POST /api/guest/referrals/email/invite
+  // Tries LiteAPI first; falls back to Resend if LiteAPI rejects the call.
+  app.post("/api/guest/referrals/email/invite", requireSupabaseAuth, async (req: any, res) => {
     try {
       const { emails, referralCode } = z.object({
         emails: z.array(z.string().email()).min(1).max(20),
         referralCode: z.string().optional(),
       }).parse(req.body);
 
+      const userId = req.supabaseUser?.id || "";
       const senderName = req.supabaseUser?.user_metadata?.full_name
         || req.supabaseUser?.user_metadata?.name
         || req.supabaseUser?.email
         || "A friend";
-      const userId = req.supabaseUser?.id || "";
       const referralLink = `https://luxvibe.io/?ref=${referralCode || userId}`;
 
+      // Try LiteAPI guest referral invite
+      try {
+        const liteRes = await liteApiPost("/guest/referrals/email/invite", {
+          guestId: userId,
+          emails,
+          referralLink,
+        });
+        console.log("[invite] LiteAPI response:", JSON.stringify(liteRes).slice(0, 200));
+        const sent = emails.length;
+        return res.json({ success: true, sent, failed: 0, source: "liteapi" });
+      } catch (liteErr: any) {
+        console.warn("[invite] LiteAPI failed, falling back to Resend:", liteErr?.message);
+      }
+
+      // Fallback: Resend
       const results = await Promise.allSettled(
         emails.map(email => sendInviteEmail({ to: email, senderName, referralLink }))
       );
-
       const sent = results.filter(r => r.status === "fulfilled").length;
       const failed = results.filter(r => r.status === "rejected").length;
-      console.log(`[invite] sent=${sent} failed=${failed} by=${senderName}`);
-
-      res.json({ success: sent > 0, sent, failed });
+      console.log(`[invite] Resend fallback: sent=${sent} failed=${failed}`);
+      res.json({ success: sent > 0, sent, failed, source: "resend" });
     } catch (err: any) {
       console.error("[invite] error:", err?.message || err);
       res.status(400).json({ message: err?.message || "Failed to send invitation" });
+    }
+  });
+
+  // GET /api/guest/referrals — fetch referral stats/history from LiteAPI
+  app.get("/api/guest/referrals", requireSupabaseAuth, async (req: any, res) => {
+    try {
+      const userId = req.supabaseUser?.id || "";
+      const data = await liteApiGet("/guest/referrals", { guestId: userId });
+      res.json(data);
+    } catch (err: any) {
+      console.warn("[referrals] LiteAPI fetch failed:", err?.message);
+      res.json({ data: { referrals: [] } });
+    }
+  });
+
+  // POST /api/referrals/track — record a referral link click (no auth needed)
+  app.post("/api/referrals/track", async (req, res) => {
+    try {
+      const { ref } = z.object({ ref: z.string().min(1) }).parse(req.body);
+      try {
+        const data = await liteApiPost("/referrals", { ref });
+        console.log("[referral-track] LiteAPI response:", JSON.stringify(data).slice(0, 100));
+      } catch (liteErr: any) {
+        console.warn("[referral-track] LiteAPI failed (non-fatal):", liteErr?.message);
+      }
+      res.json({ success: true });
+    } catch (err: any) {
+      res.json({ success: false });
     }
   });
 
