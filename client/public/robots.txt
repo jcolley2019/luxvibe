@@ -1,9 +1,26 @@
+# Allow all crawlers by default
 User-agent: *
 Allow: /
-
-# Sitemaps
-Sitemap: https://luxvibe.io/sitemap.xml
-
-# Block API routes from crawlers
 Disallow: /api/
-Disallow: /api/auth/
+
+# OpenAI search crawler — allow for ChatGPT search results
+User-agent: OAI-SearchBot
+Allow: /
+
+# Block OpenAI training bot (search still works without this)
+User-agent: GPTBot
+Disallow: /
+
+# Perplexity crawler
+User-agent: PerplexityBot
+Allow: /
+
+# Anthropic crawler
+User-agent: ClaudeBot
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://luxvibe.io/sitemap.xml
