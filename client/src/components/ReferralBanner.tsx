@@ -29,7 +29,7 @@ export function ReferralBanner() {
 
   return (
     <div
-      className="w-full bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between gap-4 text-sm"
+      className="w-full bg-primary text-primary-foreground px-4 md:px-8 py-3 md:py-4 flex items-center justify-between gap-4 text-sm md:text-base"
       data-testid="banner-referral"
     >
       <p className="flex-1 text-center font-medium">
@@ -41,7 +41,7 @@ export function ReferralBanner() {
           variant="secondary"
           onClick={handleSignUp}
           data-testid="button-referral-signup"
-          className="h-7 text-xs px-3"
+          className="h-7 md:h-auto text-xs px-3 md:px-5 md:py-2"
         >
           Sign Up
         </Button>
