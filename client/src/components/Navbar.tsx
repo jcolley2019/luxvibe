@@ -412,6 +412,13 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
+                      <Link href="/blog" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <Lightbulb className="w-4 h-4 text-muted-foreground" />
+                        Journal
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
                       <Link href="/favorites" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Heart className={`w-4 h-4 ${hasFavorites ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
                         My Favorites
