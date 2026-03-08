@@ -17,6 +17,29 @@ function fmtDate(d: string | null | undefined) {
   }
 }
 
+const EMAIL_HEADER = `
+  <!-- Header -->
+  <tr>
+    <td style="background:linear-gradient(135deg,#1e3a5f 0%,#152d4a 100%);padding:40px 40px 32px;text-align:center;">
+      <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;">LUXVIBE</h1>
+      <p style="margin:10px 0 0;color:#7ea8cc;font-size:13px;letter-spacing:1px;font-style:italic;">Luxury Stays. Unbeatable Rates.</p>
+    </td>
+  </tr>
+`;
+
+const EMAIL_FOOTER = (to: string) => `
+  <!-- Footer -->
+  <tr>
+    <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:28px 40px;text-align:center;">
+      <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.7;">
+        You're receiving this because you booked through Luxvibe.<br/>
+        Questions? Contact <a href="mailto:hello@luxvibe.io" style="color:#1e3a5f;font-weight:600;text-decoration:none;">hello@luxvibe.io</a>
+      </p>
+      <p style="margin:12px 0 0;color:#9ca3af;font-size:11px;">© ${new Date().getFullYear()} Luxvibe. All rights reserved.</p>
+    </td>
+  </tr>
+`;
+
 export async function sendBookingConfirmationEmail(opts: {
   to: string;
   guestName: string;
@@ -50,49 +73,43 @@ export async function sendBookingConfirmationEmail(opts: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Booking Confirmed – Luxvibe</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+<body style="margin:0;padding:0;background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:40px 0;">
+    <tr><td align="center" style="padding:0 16px;">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
 
-        <!-- Header -->
-        <tr>
-          <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:4px;">LUXVIBE</h1>
-            <p style="margin:8px 0 0;color:#a0a0c0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Your Travel Escape</p>
-          </td>
-        </tr>
+        ${EMAIL_HEADER}
 
         <!-- Success Banner -->
         <tr>
-          <td style="background:#10b981;padding:20px 40px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">✓ Booking Confirmed!</p>
+          <td style="background:#059669;padding:18px 40px;text-align:center;">
+            <p style="margin:0;color:#ffffff;font-size:17px;font-weight:700;letter-spacing:0.5px;">✓ &nbsp;Booking Confirmed!</p>
           </td>
         </tr>
 
         <!-- Body -->
         <tr>
           <td style="padding:40px;">
-            <p style="margin:0 0 24px;color:#374151;font-size:16px;">Hi ${guestName},</p>
-            <p style="margin:0 0 32px;color:#374151;font-size:16px;line-height:1.6;">
-              Great news — your reservation at <strong>${hotelName}</strong> is confirmed. Here's everything you need to know.
+            <p style="margin:0 0 8px;color:#111827;font-size:17px;font-weight:600;">Hi ${guestName},</p>
+            <p style="margin:0 0 32px;color:#4b5563;font-size:15px;line-height:1.7;">
+              Your reservation at <strong style="color:#111827;">${hotelName}</strong> is confirmed. We look forward to welcoming you.
             </p>
 
             <!-- Booking ID Box -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;margin-bottom:32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1e3a5f 0%,#2463eb 100%);border-radius:12px;margin-bottom:28px;">
               <tr>
                 <td style="padding:20px 24px;">
-                  <table width="100%">
+                  <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td>
-                        <p style="margin:0;color:#a0a0c0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Booking ID</p>
-                        <p style="margin:4px 0 0;color:#ffffff;font-size:20px;font-weight:700;font-family:monospace;">${bookingId}</p>
+                        <p style="margin:0;color:#93c5fd;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Booking Reference</p>
+                        <p style="margin:6px 0 0;color:#ffffff;font-size:20px;font-weight:700;font-family:monospace;letter-spacing:1px;">${bookingId}</p>
                       </td>
                       ${
                         confirmationCode
                           ? `<td style="text-align:right;">
-                        <p style="margin:0;color:#a0a0c0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Conf. Code</p>
-                        <p style="margin:4px 0 0;color:#ffffff;font-size:16px;font-weight:600;">${confirmationCode}</p>
+                        <p style="margin:0;color:#93c5fd;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Conf. Code</p>
+                        <p style="margin:6px 0 0;color:#ffffff;font-size:16px;font-weight:600;">${confirmationCode}</p>
                       </td>`
                           : ""
                       }
@@ -102,58 +119,54 @@ export async function sendBookingConfirmationEmail(opts: {
               </tr>
             </table>
 
-            <!-- Details Grid -->
+            <!-- Details Table -->
             <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:32px;">
-              <tr style="background:#f9fafb;">
-                <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
-                  <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Hotel</p>
-                  <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${hotelName}</p>
+              <tr style="background:#f8fafc;">
+                <td colspan="2" style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Hotel</p>
+                  <p style="margin:5px 0 0;color:#111827;font-size:16px;font-weight:700;">${hotelName}</p>
                 </td>
               </tr>
               <tr>
-                <td style="padding:0;">
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Check-in</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkIn)}</p>
-                      </td>
-                      <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Check-out</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkOut)}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:16px 20px;border-right:1px solid #e5e7eb;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Room</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${roomType}</p>
-                      </td>
-                      <td style="padding:16px 20px;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Total Paid</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:18px;font-weight:700;">${currency} ${Number(price).toFixed(2)}</p>
-                      </td>
-                    </tr>
-                  </table>
+                <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Check-in</p>
+                  <p style="margin:5px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkIn)}</p>
+                </td>
+                <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Check-out</p>
+                  <p style="margin:5px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkOut)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 20px;border-right:1px solid #e5e7eb;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Room Type</p>
+                  <p style="margin:5px 0 0;color:#111827;font-size:15px;font-weight:600;">${roomType}</p>
+                </td>
+                <td style="padding:16px 20px;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Total Paid</p>
+                  <p style="margin:5px 0 0;color:#1e3a5f;font-size:20px;font-weight:800;">${currency} ${Number(price).toFixed(2)}</p>
                 </td>
               </tr>
             </table>
 
-            <p style="margin:0 0 8px;color:#6b7280;font-size:14px;line-height:1.6;">
-              Need to make changes or have questions? Visit <a href="https://hotel-booking-hub-jcolley2019.replit.app/manage-booking" style="color:#1a1a2e;font-weight:600;">My Bookings</a> or reply to this email.
-            </p>
-            <p style="margin:0;color:#6b7280;font-size:14px;">We hope you have an incredible stay!</p>
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="https://luxvibe.io/my-bookings"
+                     style="display:inline-block;background:linear-gradient(135deg,#1e3a5f 0%,#2463eb 100%);color:#ffffff;padding:15px 40px;border-radius:50px;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:0.5px;">
+                    View My Booking &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
 
-            <p style="margin:32px 0 0;color:#374151;font-size:14px;">Warm regards,<br/><strong>The Luxvibe Team</strong></p>
+            <p style="margin:0;color:#4b5563;font-size:14px;line-height:1.7;">We hope you have an extraordinary stay.<br/>
+            <strong style="color:#111827;">The Luxvibe Team</strong></p>
           </td>
         </tr>
 
-        <!-- Footer -->
-        <tr>
-          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} Luxvibe. All rights reserved.</p>
-            <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;">This email was sent to ${to} because you made a booking with Luxvibe.</p>
-          </td>
-        </tr>
+        ${EMAIL_FOOTER(to)}
 
       </table>
     </td></tr>
@@ -202,89 +215,78 @@ export async function sendCancellationEmail(opts: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Booking Cancelled – Luxvibe</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+<body style="margin:0;padding:0;background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:40px 0;">
+    <tr><td align="center" style="padding:0 16px;">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
 
-        <!-- Header -->
-        <tr>
-          <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:4px;">LUXVIBE</h1>
-            <p style="margin:8px 0 0;color:#a0a0c0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Your Travel Escape</p>
-          </td>
-        </tr>
+        ${EMAIL_HEADER}
 
         <!-- Cancelled Banner -->
         <tr>
-          <td style="background:#ef4444;padding:20px 40px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">Booking Cancelled</p>
+          <td style="background:#d97706;padding:18px 40px;text-align:center;">
+            <p style="margin:0;color:#ffffff;font-size:17px;font-weight:700;letter-spacing:0.5px;">✕ &nbsp;Booking Cancelled</p>
           </td>
         </tr>
 
         <!-- Body -->
         <tr>
           <td style="padding:40px;">
-            <p style="margin:0 0 24px;color:#374151;font-size:16px;">Hi ${guestName},</p>
-            <p style="margin:0 0 32px;color:#374151;font-size:16px;line-height:1.6;">
-              Your reservation at <strong>${hotelName}</strong> has been cancelled. Here are the details of the cancelled booking.
+            <p style="margin:0 0 8px;color:#111827;font-size:17px;font-weight:600;">Hi ${guestName},</p>
+            <p style="margin:0 0 32px;color:#4b5563;font-size:15px;line-height:1.7;">
+              Your reservation at <strong style="color:#111827;">${hotelName}</strong> has been cancelled. Below are the details of the cancelled booking for your records.
             </p>
 
             <!-- Booking ID Box -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#374151;border-radius:12px;margin-bottom:32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#78350f;border-radius:12px;margin-bottom:28px;">
               <tr>
                 <td style="padding:20px 24px;">
-                  <p style="margin:0;color:#d1d5db;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Booking ID</p>
-                  <p style="margin:4px 0 0;color:#ffffff;font-size:20px;font-weight:700;font-family:monospace;">${bookingId}</p>
+                  <p style="margin:0;color:#fcd34d;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Cancelled Booking ID</p>
+                  <p style="margin:6px 0 0;color:#ffffff;font-size:20px;font-weight:700;font-family:monospace;letter-spacing:1px;">${bookingId}</p>
                 </td>
               </tr>
             </table>
 
-            <!-- Details -->
+            <!-- Details Table -->
             <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:32px;">
-              <tr style="background:#f9fafb;">
-                <td style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
-                  <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Hotel</p>
-                  <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${hotelName}</p>
+              <tr style="background:#f8fafc;">
+                <td colspan="2" style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Hotel</p>
+                  <p style="margin:5px 0 0;color:#111827;font-size:16px;font-weight:700;">${hotelName}</p>
                 </td>
               </tr>
               <tr>
-                <td style="padding:0;">
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="padding:16px 20px;border-right:1px solid #e5e7eb;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Check-in (was)</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkIn)}</p>
-                      </td>
-                      <td style="padding:16px 20px;width:50%;">
-                        <p style="margin:0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Check-out (was)</p>
-                        <p style="margin:4px 0 0;color:#111827;font-size:15px;font-weight:600;">${fmtDate(checkOut)}</p>
-                      </td>
-                    </tr>
-                  </table>
+                <td style="padding:16px 20px;border-right:1px solid #e5e7eb;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Check-in (was)</p>
+                  <p style="margin:5px 0 0;color:#6b7280;font-size:15px;font-weight:600;text-decoration:line-through;">${fmtDate(checkIn)}</p>
+                </td>
+                <td style="padding:16px 20px;width:50%;vertical-align:top;">
+                  <p style="margin:0;color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Check-out (was)</p>
+                  <p style="margin:5px 0 0;color:#6b7280;font-size:15px;font-weight:600;text-decoration:line-through;">${fmtDate(checkOut)}</p>
                 </td>
               </tr>
             </table>
 
-            <p style="margin:0 0 16px;color:#374151;font-size:14px;line-height:1.6;">
-              If you did not request this cancellation or have questions, please contact us at 
-              <a href="mailto:support@luxvibe.io" style="color:#1a1a2e;font-weight:600;">support@luxvibe.io</a>.
-            </p>
-            <p style="margin:0 0 8px;color:#374151;font-size:14px;line-height:1.6;">
-              Ready to plan your next escape? <a href="https://hotel-booking-hub-jcolley2019.replit.app" style="color:#1a1a2e;font-weight:600;">Browse hotels →</a>
-            </p>
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="https://luxvibe.io"
+                     style="display:inline-block;background:linear-gradient(135deg,#1e3a5f 0%,#2463eb 100%);color:#ffffff;padding:15px 40px;border-radius:50px;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:0.5px;">
+                    Find Another Hotel &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
 
-            <p style="margin:32px 0 0;color:#374151;font-size:14px;">Warm regards,<br/><strong>The Luxvibe Team</strong></p>
+            <p style="margin:0;color:#4b5563;font-size:14px;line-height:1.7;">
+              If you did not request this cancellation, please contact us at <a href="mailto:hello@luxvibe.io" style="color:#1e3a5f;font-weight:600;text-decoration:none;">hello@luxvibe.io</a>.<br/>
+              <strong style="color:#111827;">The Luxvibe Team</strong>
+            </p>
           </td>
         </tr>
 
-        <!-- Footer -->
-        <tr>
-          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} Luxvibe. All rights reserved.</p>
-            <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;">This email was sent to ${to} because you have a booking with Luxvibe.</p>
-          </td>
-        </tr>
+        ${EMAIL_FOOTER(to)}
 
       </table>
     </td></tr>
