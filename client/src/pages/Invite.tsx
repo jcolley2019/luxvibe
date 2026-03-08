@@ -18,6 +18,7 @@ export default function Invite() {
   const [referralSearch, setReferralSearch] = useState("");
 
   const referralLink = `https://luxvibe.io/?ref=${user?.id || ""}`;
+  const displayLink = `luxvibe.io/r/${user?.id?.slice(0, 8) || ""}`;
 
   const { data: referralsData } = useQuery<any>({
     queryKey: ["/api/guest/referrals"],
@@ -179,7 +180,7 @@ export default function Invite() {
             </p>
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-1 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground truncate font-mono">
-                {referralLink}
+                {displayLink}
               </div>
               <button
                 onClick={copyLink}
@@ -190,14 +191,14 @@ export default function Invite() {
                 {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {SOCIAL.map((s) => (
                 <a
                   key={s.label}
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors w-full"
                   data-testid={`button-share-${s.label.toLowerCase().replace(/\s|\//g, "-")}`}
                 >
                   {s.icon}
@@ -211,9 +212,9 @@ export default function Invite() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {STATS.map((s) => (
-            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative" data-testid={`stat-${s.label.toLowerCase().replace(/\s/g, "-")}`}>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{s.label}</p>
-              <p className="text-3xl font-bold text-foreground">{s.value}</p>
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative flex flex-col items-center justify-center min-h-[140px]" data-testid={`stat-${s.label.toLowerCase().replace(/\s/g, "-")}`}>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3 text-center">{s.label}</p>
+              <p className="text-3xl font-bold text-foreground text-center">{s.value}</p>
               <div className="absolute top-4 right-4 opacity-10">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                   <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2"/>
