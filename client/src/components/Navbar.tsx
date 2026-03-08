@@ -498,8 +498,8 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                   {t("nav.login")}
                 </Button>
                 {loginTooltip && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 hidden md:block">
-                    {t("nav.login_tooltip")}
+                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
+                    Login to Book
                   </div>
                 )}
               </div>
