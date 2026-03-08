@@ -875,12 +875,12 @@ export default function SearchHero({
           />
           <div className="absolute inset-0 bg-black/35" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-            <h1 className="text-[28px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
+            <h1 className="text-[42px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
               Luxury Stays.
               <br />
               Unbeatable Rates.
             </h1>
-            <p className="text-white/90 text-sm font-medium drop-shadow-md">
+            <p className="text-white/90 text-base font-medium drop-shadow-md">
               Discover stays that redefine extraordinary
             </p>
           </div>
