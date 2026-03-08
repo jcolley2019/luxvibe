@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users } from "lucide-react";
+import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users, BookOpen } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
 
@@ -226,6 +226,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [favoritesTooltip, setFavoritesTooltip] = useState(false);
   const [guideTooltip, setGuideTooltip] = useState(false);
   const [loginTooltip, setLoginTooltip] = useState(false);
+  const [journalTooltip, setJournalTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -254,7 +255,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             <Link href="/" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <span
                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                className="text-lg xs:text-xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
+                className="text-2xl xs:text-2xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
               >
                 Luxvibe
               </span>
@@ -262,9 +263,24 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
             {/* Nav Links */}
             <nav className="flex items-center gap-6">
-              <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Journal
-              </Link>
+              {/* Journal Link - Text on desktop, Icon on mobile */}
+              <div className="relative">
+                <Link
+                  href="/blog"
+                  onMouseEnter={() => setJournalTooltip(true)}
+                  onMouseLeave={() => setJournalTooltip(false)}
+                  className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
+                  data-testid="nav-link-journal"
+                >
+                  <BookOpen className="w-4 h-4 md:hidden" />
+                  <span className="hidden md:inline">Journal</span>
+                </Link>
+                {journalTooltip && (
+                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
+                    Journal
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
 
