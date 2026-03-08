@@ -21,6 +21,7 @@ import TermsPage from "@/pages/TermsPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import BlogIndex from "@/pages/BlogIndex";
 import BlogPost from "@/pages/BlogPost";
+import LogoAssets from "@/pages/LogoAssets";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -65,6 +66,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/blog" component={BlogIndex} />
       <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/logo-assets" component={LogoAssets} />
       <Route component={NotFound} />
     </Switch>
   );
