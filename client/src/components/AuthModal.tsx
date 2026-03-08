@@ -99,7 +99,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden" aria-describedby={undefined}>
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           <div className="text-center mb-6">
             <span
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -234,7 +234,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             </button>
           </p>
 
-          <p className="text-center text-xs text-muted-foreground mt-3">
+          <p className="text-center text-xs text-muted-foreground mt-3 leading-relaxed">
             By continuing, you agree to our{" "}
             <a href="#" className="text-primary hover:underline">Terms of Service</a>
             {" "}and{" "}
