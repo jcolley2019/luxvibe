@@ -10,7 +10,7 @@ import { db } from "./db";
 import { litapiBookingRefs } from "@shared/schema";
 import { supabaseAdmin } from "./supabase";
 import { eq, or, and, isNull } from "drizzle-orm";
-import { sendBookingConfirmationEmail, sendCancellationEmail, sendInviteEmail } from "./email";
+import { sendBookingConfirmationEmail, sendCancellationEmail, sendInviteEmail, sendBugReportEmail } from "./email";
 
 const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
 const LITEAPI_BOOK_BASE = "https://book.liteapi.travel/v3.0";
@@ -2677,6 +2677,21 @@ Guest question: ${question}`;
     } catch (err: any) {
       console.warn("[referrals] LiteAPI fetch failed:", err?.message);
       res.json({ data: { referrals: [] } });
+    }
+  });
+
+  // POST /api/bug-report — submit a bug report via email
+  app.post("/api/bug-report", async (req: any, res) => {
+    try {
+      const { title, description, email } = req.body;
+      if (!title || !description) {
+        return res.status(400).json({ message: "title and description are required" });
+      }
+      await sendBugReportEmail({ title, description, email });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[bug-report] Error:", err?.message || err);
+      res.status(500).json({ message: "Failed to submit bug report" });
     }
   });
 

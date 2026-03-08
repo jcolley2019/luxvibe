@@ -13,21 +13,52 @@ interface BugReportModalProps {
 export function BugReportModal({ open, onClose }: BugReportModalProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    description: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Report sent",
-      description: "Thank you for your feedback. We'll look into it.",
-    });
-    
-    setIsSubmitting(false);
-    onClose();
+
+    try {
+      const res = await fetch("/api/bug-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.name,
+          description: formData.description,
+          email: formData.email,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit bug report");
+      }
+
+      toast({
+        title: "Report sent",
+        description: "Thank you for your feedback. We'll look into it.",
+      });
+
+      setFormData({ name: "", email: "", description: "" });
+      onClose();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to send report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -39,6 +70,9 @@ export function BugReportModal({ open, onClose }: BugReportModalProps) {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Name</label>
             <Input 
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
               placeholder="Jane Bloggs" 
               className="rounded-xl border-border bg-background"
               required
@@ -48,7 +82,10 @@ export function BugReportModal({ open, onClose }: BugReportModalProps) {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Email</label>
             <Input 
+              name="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="jane@example.com" 
               className="rounded-xl border-border bg-background"
               required
@@ -58,6 +95,9 @@ export function BugReportModal({ open, onClose }: BugReportModalProps) {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Description (Required)</label>
             <Textarea 
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
               placeholder="I clicked on 'X' and then hit 'Confirm'..." 
               className="rounded-xl border-border bg-background min-h-[100px] resize-none"
               required

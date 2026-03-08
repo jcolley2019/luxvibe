@@ -315,6 +315,78 @@ export async function sendCancellationEmail(opts: {
   }
 }
 
+export async function sendBugReportEmail(opts: {
+  title: string;
+  description: string;
+  email?: string;
+}) {
+  const { title, description, email: userEmail } = opts;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bug Report from Luxvibe</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:4px;">BUG REPORT</h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px;">
+            <h2 style="margin:0 0 24px;color:#1a1a2e;font-size:20px;font-weight:600;">${title}</h2>
+            
+            <div style="background:#f9fafb;border-left:4px solid #ef4444;padding:16px 20px;margin-bottom:32px;border-radius:4px;">
+              <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">
+                ${description.replace(/\n/g, '<br />')}
+              </p>
+            </div>
+
+            ${userEmail ? `<p style="margin:0;color:#6b7280;font-size:13px;">
+              <strong>User Email:</strong> ${userEmail}
+            </p>` : ''}
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">This bug report was submitted via Luxvibe</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: "hello@luxvibe.io",
+      subject: `🐛 Bug Report: ${title}`,
+      html,
+      replyTo: userEmail || "noreply@luxvibe.io",
+    });
+    console.log("[email] Bug report sent, id:", result?.data?.id);
+    return result;
+  } catch (err: any) {
+    console.error("[email] Failed to send bug report:", err?.message || err);
+    throw err;
+  }
+}
+
 export async function sendInviteEmail(opts: {
   to: string;
   senderName: string;
