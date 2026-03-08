@@ -98,10 +98,10 @@ export default function BlogIndex() {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-[#1e3a5f] text-white py-16 px-4 text-center">
-        <p className="text-sm font-semibold tracking-[3px] uppercase text-blue-300 mb-3">The Luxvibe Journal</p>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Travel Inspiration</h1>
-        <p className="text-blue-100 text-lg max-w-xl mx-auto">
+      <section className="bg-[#1e3a5f] text-white py-10 md:py-16 px-4 text-center">
+        <p className="text-xs md:text-sm font-semibold tracking-[3px] uppercase text-blue-300 mb-3">The Luxvibe Journal</p>
+        <h1 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4">Travel Inspiration</h1>
+        <p className="text-blue-100 text-base md:text-lg max-w-xl mx-auto">
           Hotel guides, destination tips, and travel stories from around the world.
         </p>
       </section>
@@ -131,7 +131,7 @@ export default function BlogIndex() {
         )}
 
         {!isLoading && posts.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
             {posts.map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}

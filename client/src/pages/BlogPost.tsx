@@ -356,7 +356,7 @@ export default function BlogPost() {
       <Navbar />
 
       {/* Hero image */}
-      <div className="w-full h-[55vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
+      <div className="w-full h-[250px] md:h-[55vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
         <img
           src={post.heroImageUrl}
           alt={post.title}
@@ -366,22 +366,22 @@ export default function BlogPost() {
           className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 max-w-4xl mx-auto">
-          <div className="flex flex-wrap items-center gap-3 text-white/80 text-sm mb-3">
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-12 max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 text-white/80 text-xs md:text-sm mb-2 md:mb-3">
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
               {post.destination}
             </span>
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
               {formatDate(post.publishedAt)}
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
+              <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" />
               {mins} min read
             </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">{post.title}</h1>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">{post.title}</h1>
         </div>
       </div>
 
@@ -403,7 +403,7 @@ export default function BlogPost() {
 
         {/* Body HTML */}
         <div
-          className="prose prose-lg dark:prose-invert max-w-none mb-10"
+          className="prose prose-base md:prose-lg dark:prose-invert max-w-full overflow-x-hidden prose-img:w-full prose-img:h-auto prose-img:rounded-xl mb-10"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}
         />
 

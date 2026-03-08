@@ -36,6 +36,13 @@ export function Footer() {
                 About
               </a>
               <Link
+                href="/blog"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="footer-link-journal"
+              >
+                Journal
+              </Link>
+              <Link
                 href="/terms"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="footer-link-terms-conditions"
