@@ -212,7 +212,7 @@ export default function Invite() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {STATS.map((s) => (
-            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative flex flex-col items-center justify-center min-h-[140px]" data-testid={`stat-${s.label.toLowerCase().replace(/\s/g, "-")}`}>
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 relative min-h-[6rem] flex flex-col items-center justify-end pb-4" data-testid={`stat-${s.label.toLowerCase().replace(/\s/g, "-")}`}>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3 text-center">{s.label}</p>
               <p className="text-3xl font-bold text-foreground text-center">{s.value}</p>
               <div className="absolute top-4 right-4 opacity-10">
