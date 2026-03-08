@@ -2095,6 +2095,9 @@ Guest question: ${question}`;
       // List endpoint: rooms[0].amount is a top-level number
       function mapBooking(b: any) {
         const room = b.bookedRooms?.[0] || b.rooms?.[0];
+        const isConfirmed = b.status === "CONFIRMED" || b.status === "confirmed";
+        const refundableTag = room?.refundableTag || b.refundableTag || room?.rate?.refundableTag;
+        const cancellable = isConfirmed && refundableTag === "RFN";
         return {
           id: b.bookingId,
           hotelId: b.hotel?.hotelId || b.hotelId || b.property_id || b.hotel?.property_id || null,
@@ -2110,6 +2113,7 @@ Guest question: ${question}`;
           currency: b.currency || "USD",
           status: b.status,
           createdAt: b.createdAt,
+          cancellable,
         };
       }
 
@@ -2620,6 +2624,68 @@ Guest question: ${question}`;
       res.json({ success: true, message: "Booking cancelled successfully." });
     } catch (err: any) {
       console.error("[cancel] error:", err?.message || err);
+      res.status(500).json({ message: err?.message || "Failed to cancel booking." });
+    }
+  });
+
+  // POST /api/bookings/:bookingId/cancel — URL param style cancel endpoint
+  app.post("/api/bookings/:bookingId/cancel", requireSupabaseAuth, async (req: any, res) => {
+    try {
+      const { bookingId } = req.params;
+      if (!bookingId) return res.status(400).json({ message: "Missing bookingId." });
+
+      const userEmail = req.supabaseUser?.email || "";
+      const userId: string = req.supabaseUser?.id || "";
+
+      // Verify this booking belongs to the user
+      const refs = await db.select().from(litapiBookingRefs)
+        .where(or(
+          eq(litapiBookingRefs.userId, userId),
+          eq(litapiBookingRefs.guestEmail, userEmail)
+        ));
+      const owns = refs.some(r => r.bookingId === bookingId);
+      if (!owns) {
+        return res.status(403).json({ message: "You do not have permission to cancel this booking." });
+      }
+
+      // Fetch current booking details for email
+      const lookupRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY }
+      });
+      const lookupData = await lookupRes.json();
+      const b = lookupData?.data || lookupData;
+      const hotelName = b?.hotel?.name || "Hotel";
+      const checkIn = b?.checkin || "";
+      const checkOut = b?.checkout || "";
+      const guestName = `${b?.holder?.firstName || ""} ${b?.holder?.lastName || ""}`.trim() || userEmail;
+      const guestEmail = b?.holder?.email || userEmail;
+
+      // Call LiteAPI to cancel
+      const cancelRes = await fetch(`${LITEAPI_BOOK_BASE}/bookings/${bookingId}`, {
+        method: "DELETE",
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY }
+      });
+      const cancelData = await cancelRes.json();
+      console.log("[cancel/:id] LiteAPI response:", JSON.stringify(cancelData).slice(0, 300));
+
+      if (!cancelRes.ok && cancelData?.error) {
+        const msg = cancelData?.error?.message || cancelData?.message || "Cancellation failed.";
+        return res.status(400).json({ message: msg });
+      }
+
+      // Send cancellation email (non-blocking)
+      sendCancellationEmail({
+        to: guestEmail,
+        guestName,
+        bookingId,
+        hotelName,
+        checkIn,
+        checkOut,
+      }).catch(err => console.error("[email] Non-fatal cancellation email error:", err?.message));
+
+      res.json({ success: true, message: "Booking cancelled successfully." });
+    } catch (err: any) {
+      console.error("[cancel/:id] error:", err?.message || err);
       res.status(500).json({ message: err?.message || "Failed to cancel booking." });
     }
   });

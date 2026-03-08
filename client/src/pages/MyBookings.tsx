@@ -3,16 +3,29 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Loader2,
   Search,
   ArrowUpDown,
   ExternalLink,
-  Copy,
-  Check,
+  XCircle,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 type SortKey =
   | "hotelName"
@@ -23,19 +36,19 @@ type SortKey =
   | "createdAt";
 type SortDir = "asc" | "desc";
 
-  function statusClass(status: string) {
-    if (status === "confirmed" || status === "CONFIRMED")
-      return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
-    if (status === "cancelled" || status === "CANCELLED")
-      return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
-    return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
-  }
+function statusClass(status: string) {
+  if (status === "confirmed" || status === "CONFIRMED")
+    return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+  if (status === "cancelled" || status === "CANCELLED")
+    return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+  return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
+}
 
-  function statusBorderClass(status: string) {
-    if (status === "confirmed" || status === "CONFIRMED") return "border-l-4 border-l-green-500";
-    if (status === "cancelled" || status === "CANCELLED") return "border-l-4 border-l-red-500";
-    return "border-l-4 border-l-yellow-400";
-  }
+function statusBorderClass(status: string) {
+  if (status === "confirmed" || status === "CONFIRMED") return "border-l-4 border-l-green-500";
+  if (status === "cancelled" || status === "CANCELLED") return "border-l-4 border-l-red-500";
+  return "border-l-4 border-l-yellow-400";
+}
 
 function fmtDate(val: string | null | undefined) {
   if (!val) return "—";
@@ -53,10 +66,29 @@ function fmtDate(val: string | null | undefined) {
 export default function MyBookings() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { data: bookings, isLoading: isBookingsLoading } = useBookings();
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [pendingCancel, setPendingCancel] = useState<{ id: string; hotelName: string } | null>(null);
+
+  const cancelMutation = useMutation({
+    mutationFn: (bookingId: string) =>
+      apiRequest("POST", `/api/bookings/${bookingId}/cancel`),
+    onSuccess: () => {
+      toast({ title: "Your booking has been cancelled." });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      setPendingCancel(null);
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Cancellation failed",
+        description: err?.message || "Please try again or contact support.",
+        variant: "destructive",
+      });
+      setPendingCancel(null);
+    },
+  });
 
   if (isAuthLoading || isBookingsLoading) {
     return (
@@ -113,9 +145,36 @@ export default function MyBookings() {
     );
   }
 
+  const isCancelled = (status: string) =>
+    status === "cancelled" || status === "CANCELLED";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+
+      {/* Confirmation dialog */}
+      <AlertDialog open={!!pendingCancel} onOpenChange={(open) => { if (!open) setPendingCancel(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your stay at <strong>{pendingCancel?.hotelName}</strong>? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-dialog-keep">Keep booking</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => pendingCancel && cancelMutation.mutate(pendingCancel.id)}
+              disabled={cancelMutation.isPending}
+              data-testid="button-cancel-dialog-confirm"
+            >
+              {cancelMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              Yes, cancel booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <main className="flex-1 container mx-auto px-4 py-10 max-w-7xl">
         {/* Header */}
@@ -199,9 +258,9 @@ export default function MyBookings() {
                       <td className="px-4 py-4 font-medium text-foreground w-[200px] leading-snug">
                         {booking.hotelName}
                       </td>
-                    <td title={booking.id} className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px] cursor-help">
-                      {booking.id.slice(0, 8)}…
-                    </td>
+                      <td title={booking.id} className="px-4 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap min-w-[100px] cursor-help">
+                        {booking.id.slice(0, 8)}…
+                      </td>
                       <td className="px-4 py-4 text-muted-foreground hidden md:table-cell whitespace-nowrap w-[90px]">
                         {booking.roomType}
                       </td>
@@ -233,7 +292,7 @@ export default function MyBookings() {
                         {fmtDate((booking as any).createdAt)}
                       </td>
                       <td className="px-4 py-4 min-w-[80px] whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Link
                             href={`/hotel/${booking.hotelId}?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}&guests=${booking.guests}`}
                           >
@@ -247,18 +306,29 @@ export default function MyBookings() {
                               View
                             </Button>
                           </Link>
-                          <Link
-                            href={`/manage-booking?bookingId=${booking.id}`}
-                          >
+
+                          {!isCancelled(booking.status) && (booking as any).cancellable === true && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-7 text-xs text-muted-foreground"
-                              data-testid={`button-manage-booking-${booking.id}`}
+                              className="h-7 text-xs gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                              onClick={() => setPendingCancel({ id: booking.id, hotelName: booking.hotelName })}
+                              data-testid={`button-cancel-booking-${booking.id}`}
                             >
-                              Manage
+                              <XCircle className="w-3 h-3" />
+                              Cancel
                             </Button>
-                          </Link>
+                          )}
+
+                          {!isCancelled(booking.status) && (booking as any).cancellable === false && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] text-muted-foreground bg-muted border border-border cursor-default"
+                              data-testid={`badge-nonrefundable-${booking.id}`}
+                            >
+                              Non-refundable
+                            </Badge>
+                          )}
                         </div>
                       </td>
                     </tr>
