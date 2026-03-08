@@ -70,7 +70,6 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=1920&q=80", // san francisco bay
   // California — San Diego
   "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80", // san diego coronado
-  "https://images.unsplash.com/photo-1507904953637-96429a46671a?w=1920&q=80", // san diego beach
   // Denver & ski resorts
   "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?w=1920&q=80", // denver skyline mountains
   "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80", // colorado rocky mountains
