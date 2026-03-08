@@ -287,7 +287,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 data-testid="button-language"
               >
                 <Globe className="w-4 h-4 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">{language}</span>
               </button>
               {langTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
