@@ -1,40 +1,123 @@
+import { useEffect, useRef } from "react";
+
+type Variant = {
+  label: string;
+  filename: string;
+  bgColor: string | null;
+  textColor: string;
+};
+
+const logoVariants: Variant[] = [
+  { label: "Black on White", filename: "luxvibe-logo-black-on-white.png", bgColor: "#ffffff", textColor: "#000000" },
+  { label: "White on Black", filename: "luxvibe-logo-white-on-black.png", bgColor: "#000000", textColor: "#ffffff" },
+  { label: "White – Transparent BG", filename: "luxvibe-logo-white-transparent.png", bgColor: null, textColor: "#ffffff" },
+  { label: "Black – Transparent BG", filename: "luxvibe-logo-black-transparent.png", bgColor: null, textColor: "#000000" },
+];
+
+const monogramVariants: Variant[] = [
+  { label: "Black on White", filename: "luxvibe-monogram-black-on-white.png", bgColor: "#ffffff", textColor: "#000000" },
+  { label: "White on Black", filename: "luxvibe-monogram-white-on-black.png", bgColor: "#000000", textColor: "#ffffff" },
+  { label: "White – Transparent BG", filename: "luxvibe-monogram-white-transparent.png", bgColor: null, textColor: "#ffffff" },
+  { label: "Black – Transparent BG", filename: "luxvibe-monogram-black-transparent.png", bgColor: null, textColor: "#000000" },
+];
+
+const checkerboard: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)",
+  backgroundSize: "20px 20px",
+  backgroundPosition: "0 0,0 10px,10px -10px,-10px 0px",
+  backgroundColor: "#fff",
+};
+
+function AssetCanvas({
+  variant,
+  width,
+  height,
+  text,
+  fontSize,
+  letterSpacing,
+}: {
+  variant: Variant;
+  width: number;
+  height: number;
+  text: string;
+  fontSize: number;
+  letterSpacing: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      if (variant.bgColor) {
+        ctx.fillStyle = variant.bgColor;
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.fillStyle = variant.textColor;
+      ctx.font = `600 ${fontSize}px 'Cormorant Garamond', serif`;
+      (ctx as any).letterSpacing = `${letterSpacing}px`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, width / 2, height / 2);
+    };
+
+    document.fonts.ready.then(draw);
+  }, [variant, width, height, text, fontSize, letterSpacing]);
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = variant.filename;
+    a.click();
+    a.remove();
+  };
+
+  return (
+    <div style={{ borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}>
+      <div style={{ position: "relative" }}>
+        {!variant.bgColor && (
+          <div style={{ ...checkerboard, position: "absolute", inset: 0 }} />
+        )}
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          style={{ width: "100%", display: "block", position: "relative" }}
+        />
+      </div>
+      <div style={{ background: "#f0f0f0", padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: "12px", color: "#555", fontWeight: 600 }}>{variant.label}</span>
+        <button
+          onClick={handleDownload}
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            padding: "5px 14px",
+            background: "#111",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = "#333")}
+          onMouseOut={(e) => (e.currentTarget.style.background = "#111")}
+        >
+          Download PNG
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LogoAssets() {
-  const logoStyle: React.CSSProperties = {
-    fontFamily: "'Cormorant Garamond', serif",
-    fontWeight: 600,
-    letterSpacing: "0.18em",
-    textTransform: "uppercase" as const,
-    lineHeight: 1,
-  };
-
-  const monogramStyle: React.CSSProperties = {
-    fontFamily: "'Cormorant Garamond', serif",
-    fontWeight: 600,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase" as const,
-    lineHeight: 1,
-  };
-
-  const checkerboard: React.CSSProperties = {
-    backgroundImage:
-      "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
-    backgroundSize: "20px 20px",
-    backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
-    backgroundColor: "#fff",
-  };
-
-  const variants: {
-    label: string;
-    bg: string | React.CSSProperties;
-    color: string;
-    border?: string;
-  }[] = [
-    { label: "Black on White", bg: "#ffffff", color: "#000000", border: "1px solid #e0e0e0" },
-    { label: "White on Black", bg: "#000000", color: "#ffffff" },
-    { label: "White on Transparent", bg: checkerboard, color: "#ffffff" },
-    { label: "Black on Transparent", bg: checkerboard, color: "#000000" },
-  ];
-
   return (
     <div style={{ fontFamily: "sans-serif", padding: "40px", maxWidth: "1100px", margin: "0 auto", background: "#f5f5f5", minHeight: "100vh" }}>
       <div style={{ background: "#fff", borderRadius: "12px", padding: "32px", marginBottom: "32px", border: "1px solid #e0e0e0" }}>
@@ -46,64 +129,42 @@ export default function LogoAssets() {
           <strong>Monogram font:</strong> Same — Cormorant Garamond Semibold, Letter-spacing 0.08em
         </p>
         <p style={{ color: "#555", marginBottom: "0" }}>
-          <strong>Canva tip:</strong> Search "Cormorant Garamond" in Canva's font picker. Set weight to Bold or use the closest available weight. Apply uppercase, wide letter spacing. For transparent backgrounds, export as PNG with "Transparent background" enabled.
+          <strong>Downloads:</strong> Full logo exports at 2400×800 px. Monogram exports at 800×800 px. Checkerboard pattern indicates a transparent background.
         </p>
       </div>
 
-      <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Full Logo — 3:1 ratio (2400 × 800)</h2>
+      <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Full Logo — 2400 × 800</h2>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "48px" }}>
-        {variants.map((v) => (
-          <div key={v.label} style={{ borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-            <div
-              style={{
-                ...(typeof v.bg === "string" ? { background: v.bg } : v.bg),
-                border: v.border || "none",
-                aspectRatio: "3 / 1",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "8px 8px 0 0",
-              }}
-            >
-              <span style={{ ...logoStyle, color: v.color, fontSize: "clamp(28px, 4vw, 64px)" }}>
-                Luxvibe
-              </span>
-            </div>
-            <div style={{ background: "#f0f0f0", padding: "8px 12px", fontSize: "12px", color: "#555", fontWeight: 600 }}>
-              {v.label}
-            </div>
-          </div>
+        {logoVariants.map((v) => (
+          <AssetCanvas
+            key={v.filename}
+            variant={v}
+            width={2400}
+            height={800}
+            text="LUXVIBE"
+            fontSize={220}
+            letterSpacing={40}
+          />
         ))}
       </div>
 
-      <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Monogram — LV (Square)</h2>
+      <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Monogram — 800 × 800</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px", marginBottom: "48px" }}>
-        {variants.map((v) => (
-          <div key={v.label} style={{ borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-            <div
-              style={{
-                ...(typeof v.bg === "string" ? { background: v.bg } : v.bg),
-                border: v.border || "none",
-                aspectRatio: "1 / 1",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "8px 8px 0 0",
-              }}
-            >
-              <span style={{ ...monogramStyle, color: v.color, fontSize: "clamp(36px, 5vw, 80px)" }}>
-                LV
-              </span>
-            </div>
-            <div style={{ background: "#f0f0f0", padding: "8px 12px", fontSize: "12px", color: "#555", fontWeight: 600 }}>
-              {v.label}
-            </div>
-          </div>
+        {monogramVariants.map((v) => (
+          <AssetCanvas
+            key={v.filename}
+            variant={v}
+            width={800}
+            height={800}
+            text="LV"
+            fontSize={300}
+            letterSpacing={25}
+          />
         ))}
       </div>
 
       <div style={{ background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "8px", padding: "16px 20px", fontSize: "13px", color: "#856404" }}>
-        <strong>How to export with transparent background from Canva:</strong> When downloading, choose PNG format and tick the "Transparent background" checkbox. The checkerboard pattern above represents transparent areas — it won't appear in the exported file.
+        <strong>Note:</strong> Each PNG downloads at full resolution (2400×800 or 800×800). Transparent background variants have no background layer — the checkerboard shown is for display only and will not appear in the downloaded file.
       </div>
     </div>
   );
