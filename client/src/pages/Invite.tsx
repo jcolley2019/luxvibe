@@ -8,10 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Copy, Check, Search } from "lucide-react";
 import { SiFacebook, SiLinkedin, SiWhatsapp, SiX } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "react-i18next";
 
 export default function Invite() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -123,9 +125,9 @@ export default function Invite() {
   ];
 
   const STATS = [
-    { label: "Referrals", value: referrals.length },
-    { label: "Vouchers Earned", value: vouchersEarned },
-    { label: "Upcoming Vouchers", value: upcomingVouchers },
+    { label: t("invite.stat_referrals"), value: referrals.length },
+    { label: t("invite.stat_vouchers"), value: vouchersEarned },
+    { label: t("invite.stat_upcoming"), value: upcomingVouchers },
   ];
 
   function statusBadge(status: string) {
@@ -143,16 +145,16 @@ export default function Invite() {
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10 max-w-4xl">
-        <h1 className="text-2xl font-bold text-foreground mb-6">Invite Friends &amp; Referrals</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-6">{t("invite.title")}</h1>
 
         {/* Top two-column panel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* Email invite */}
           <div className="bg-card border border-border rounded-xl p-5">
-            <p className="text-sm font-semibold text-foreground mb-3">Email an invite</p>
+            <p className="text-sm font-semibold text-foreground mb-3">{t("invite.email_header")}</p>
             <div className="flex gap-2 mb-2">
               <Input
-                placeholder="Enter emails separated by commas"
+                placeholder={t("invite.email_placeholder")}
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 className="flex-1 text-sm"
@@ -165,18 +167,18 @@ export default function Invite() {
                 className="shrink-0 text-sm px-4"
                 data-testid="button-send-invite"
               >
-                {sending ? "Sending…" : "Send email"}
+                {sending ? t("invite.sending") : t("invite.send")}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Add multiple email addresses separated by commas or space
+              {t("invite.email_helper")}
             </p>
           </div>
 
           {/* Copy referral link */}
           <div className="bg-card border border-border rounded-xl p-5">
             <p className="text-sm font-semibold text-foreground mb-3">
-              Copy referral link and share it with your follower
+              {t("invite.link_header")}
             </p>
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-1 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground truncate font-mono">
@@ -228,11 +230,11 @@ export default function Invite() {
         {/* Referrals history */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-foreground">Referrals history</h2>
+            <h2 className="text-base font-bold text-foreground">{t("invite.history_title")}</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
-                placeholder="Search for a referral"
+                placeholder={t("invite.history_search")}
                 value={referralSearch}
                 onChange={(e) => setReferralSearch(e.target.value)}
                 className="pl-8 h-8 text-xs w-48"
@@ -246,9 +248,9 @@ export default function Invite() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name / Email</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Credit Earned</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("invite.history_name")}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("invite.history_status")}</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("invite.history_credit")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -280,10 +282,10 @@ export default function Invite() {
                 </svg>
               </div>
               <p className="text-sm font-semibold text-foreground mb-1">
-                You haven't referred anyone yet, what are you waiting for?
+                {t("invite.history_empty")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Share your referral link with family and friends to earn discount vouchers.
+                {t("invite.history_empty_sub")}
               </p>
             </div>
           )}

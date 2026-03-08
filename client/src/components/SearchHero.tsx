@@ -865,13 +865,14 @@ export default function SearchHero({
     <>
       {/* ── MOBILE layout (below md) ── */}
       <div className="md:hidden">
-        <div className="relative h-[320px] overflow-hidden">
+        <div className="relative h-[320px] overflow-hidden bg-black">
           <img
             src={heroImage}
             alt="Luxury Hotel"
             className="w-full h-full object-cover object-center"
             fetchPriority="high"
             decoding="async"
+            onError={(e) => { (e.target as HTMLImageElement).src = santoriniWater; }}
           />
           <div className="absolute inset-0 bg-black/35" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
@@ -1396,13 +1397,14 @@ export default function SearchHero({
 
       {/* ── DESKTOP layout (md+) ── */}
       <div className="hidden md:block relative w-full h-[638px]">
-        <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
           <img
             src={heroImage}
             alt="Luxury Hotel"
             className="w-full h-full object-cover"
             fetchPriority="high"
             decoding="async"
+            onError={(e) => { (e.target as HTMLImageElement).src = santoriniWater; }}
           />
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
