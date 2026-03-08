@@ -2683,11 +2683,11 @@ Guest question: ${question}`;
   // POST /api/bug-report — submit a bug report via email
   app.post("/api/bug-report", async (req: any, res) => {
     try {
-      const { title, description, email } = req.body;
-      if (!title || !description) {
-        return res.status(400).json({ message: "title and description are required" });
+      const { name, email, description } = req.body;
+      if (!name || !description) {
+        return res.status(400).json({ message: "name and description are required" });
       }
-      await sendBugReportEmail({ title, description, email });
+      await sendBugReportEmail({ title: name, description, email });
       res.json({ success: true });
     } catch (err: any) {
       console.error("[bug-report] Error:", err?.message || err);

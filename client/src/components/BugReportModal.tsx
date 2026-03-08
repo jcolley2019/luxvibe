@@ -33,9 +33,9 @@ export function BugReportModal({ open, onClose }: BugReportModalProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: formData.name,
-          description: formData.description,
+          name: formData.name,
           email: formData.email,
+          description: formData.description,
         }),
       });
 
