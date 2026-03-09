@@ -137,11 +137,11 @@ function CircleProfileCanvas() {
       ctx.fill();
 
       ctx.fillStyle = "#ffffff";
-      ctx.font = `600 190px 'Cormorant Garamond', serif`;
+      ctx.font = `600 220px 'Cormorant Garamond', serif`;
       (ctx as any).letterSpacing = "12px";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("LV", SIZE / 2 + 6, SIZE / 2 + 4);
+      ctx.fillText("LV", SIZE / 2 + 6, SIZE / 2 + 22);
 
       setReady(true);
     };
