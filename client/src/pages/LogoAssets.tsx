@@ -195,6 +195,139 @@ function CircleProfileCanvas() {
   );
 }
 
+function OffsetMonogramCanvas({
+  bgColor,
+  fgColor,
+  circle,
+  filename,
+  label,
+  previewSize = 200,
+}: {
+  bgColor: string;
+  fgColor: string;
+  circle: boolean;
+  filename: string;
+  label: string;
+  previewSize?: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
+  const SIZE = 800;
+
+  useEffect(() => {
+    const draw = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      const fontSize = 340;
+      const lX = SIZE * 0.408;
+      const lY = SIZE * 0.570;
+      const vX = SIZE * 0.592;
+      const vY = SIZE * 0.430;
+      const font = `600 ${fontSize}px 'Cormorant Garamond', serif`;
+
+      if (circle) {
+        ctx.beginPath();
+        ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
+        ctx.fillStyle = bgColor;
+        ctx.fill();
+        ctx.save();
+        ctx.clip();
+      } else {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, SIZE, SIZE);
+      }
+
+      const lOff = document.createElement("canvas");
+      lOff.width = SIZE; lOff.height = SIZE;
+      const lCtx = lOff.getContext("2d")!;
+      lCtx.fillStyle = fgColor;
+      lCtx.font = font;
+      (lCtx as any).letterSpacing = "0px";
+      lCtx.textAlign = "center";
+      lCtx.textBaseline = "middle";
+      lCtx.fillText("L", lX, lY);
+
+      const vOff = document.createElement("canvas");
+      vOff.width = SIZE; vOff.height = SIZE;
+      const vCtx = vOff.getContext("2d")!;
+      vCtx.fillStyle = fgColor;
+      vCtx.font = font;
+      (vCtx as any).letterSpacing = "0px";
+      vCtx.textAlign = "center";
+      vCtx.textBaseline = "middle";
+      vCtx.fillText("V", vX, vY);
+
+      lCtx.globalCompositeOperation = "destination-out";
+      lCtx.drawImage(vOff, 0, 0);
+
+      ctx.drawImage(lOff, 0, 0);
+      ctx.drawImage(vOff, 0, 0);
+
+      if (circle) ctx.restore();
+
+      setReady(true);
+    };
+    document.fonts.ready.then(draw);
+  }, [bgColor, fgColor, circle]);
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    a.remove();
+  };
+
+  const previewStyle: React.CSSProperties = circle
+    ? { borderRadius: "50%", overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.18)", width: previewSize, height: previewSize }
+    : { borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.14)", width: previewSize, height: previewSize };
+
+  const transparentBg = bgColor === "transparent";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+      <div style={{ ...previewStyle, ...(transparentBg ? checkerboard : {}) }}>
+        <canvas
+          ref={canvasRef}
+          width={SIZE}
+          height={SIZE}
+          style={{ width: previewSize, height: previewSize, display: "block" }}
+        />
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ fontSize: "12px", color: "#666", margin: "0 0 10px", fontWeight: 600 }}>{label}</p>
+        <button
+          onClick={handleDownload}
+          disabled={!ready}
+          style={{
+            fontSize: "12px",
+            fontWeight: 700,
+            padding: "7px 20px",
+            background: ready ? "#000" : "#999",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: ready ? "pointer" : "default",
+            letterSpacing: "0.04em",
+          }}
+          onMouseOver={(e) => { if (ready) e.currentTarget.style.background = "#333"; }}
+          onMouseOut={(e) => { if (ready) e.currentTarget.style.background = "#000"; }}
+        >
+          Download PNG
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LogoAssets() {
   return (
     <div style={{ fontFamily: "sans-serif", padding: "40px", maxWidth: "1100px", margin: "0 auto", background: "#f5f5f5", minHeight: "100vh" }}>
@@ -215,6 +348,17 @@ export default function LogoAssets() {
         <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Social Media Profile Photo</h2>
         <p style={{ color: "#555", fontSize: "13px", marginBottom: "28px" }}>400 × 400 px — optimised for Instagram, X, LinkedIn and Facebook profile pictures</p>
         <CircleProfileCanvas />
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: "12px", padding: "40px", marginBottom: "40px", border: "1px solid #e0e0e0" }}>
+        <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "4px" }}>Offset Interlocking Monogram — 800 × 800</h2>
+        <p style={{ color: "#555", fontSize: "13px", marginBottom: "32px" }}>Diagonal offset with V in front of L — classic luxury typographic interlock</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px", justifyItems: "center" }}>
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={false} filename="luxvibe-offset-monogram-black-on-white.png" label="Black on White" />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={false} filename="luxvibe-offset-monogram-white-on-black.png" label="White on Black" />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={true}  filename="luxvibe-offset-monogram-circle-black.png"   label="Circle — Black" />
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={true}  filename="luxvibe-offset-monogram-circle-white.png"   label="Circle — White" />
+        </div>
       </div>
 
       <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Full Logo — 2400 × 800</h2>
