@@ -202,6 +202,9 @@ function OffsetMonogramCanvas({
   filename,
   label,
   previewSize = 200,
+  fontSize: fontSizeProp = 340,
+  lPos = [0.408, 0.570],
+  vPos = [0.592, 0.430],
 }: {
   bgColor: string;
   fgColor: string;
@@ -209,6 +212,9 @@ function OffsetMonogramCanvas({
   filename: string;
   label: string;
   previewSize?: number;
+  fontSize?: number;
+  lPos?: [number, number];
+  vPos?: [number, number];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -223,11 +229,11 @@ function OffsetMonogramCanvas({
 
       ctx.clearRect(0, 0, SIZE, SIZE);
 
-      const fontSize = 340;
-      const lX = SIZE * 0.408;
-      const lY = SIZE * 0.570;
-      const vX = SIZE * 0.592;
-      const vY = SIZE * 0.430;
+      const fontSize = fontSizeProp;
+      const lX = SIZE * lPos[0];
+      const lY = SIZE * lPos[1];
+      const vX = SIZE * vPos[0];
+      const vY = SIZE * vPos[1];
       const font = `600 ${fontSize}px 'Cormorant Garamond', serif`;
 
       if (circle) {
@@ -273,7 +279,7 @@ function OffsetMonogramCanvas({
       setReady(true);
     };
     document.fonts.ready.then(draw);
-  }, [bgColor, fgColor, circle]);
+  }, [bgColor, fgColor, circle, fontSizeProp, lPos, vPos]);
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
@@ -353,11 +359,20 @@ export default function LogoAssets() {
       <div style={{ background: "#fff", borderRadius: "12px", padding: "40px", marginBottom: "40px", border: "1px solid #e0e0e0" }}>
         <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "4px" }}>Offset Interlocking Monogram — 800 × 800</h2>
         <p style={{ color: "#555", fontSize: "13px", marginBottom: "32px" }}>Diagonal offset with V in front of L — classic luxury typographic interlock</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px", justifyItems: "center" }}>
+        <p style={{ color: "#888", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 16px" }}>Diagonal — L lower-left · V upper-right</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px", justifyItems: "center", marginBottom: "40px" }}>
           <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={false} filename="luxvibe-offset-monogram-black-on-white.png" label="Black on White" />
           <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={false} filename="luxvibe-offset-monogram-white-on-black.png" label="White on Black" />
           <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={true}  filename="luxvibe-offset-monogram-circle-black.png"   label="Circle — Black" />
           <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={true}  filename="luxvibe-offset-monogram-circle-white.png"   label="Circle — White" />
+        </div>
+
+        <p style={{ color: "#888", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 16px" }}>Vertical — L upper · V lower · Larger</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px", justifyItems: "center" }}>
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={false} filename="luxvibe-offset-v2-black-on-white.png" label="Black on White" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={false} filename="luxvibe-offset-v2-white-on-black.png" label="White on Black" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={true}  filename="luxvibe-offset-v2-circle-black.png"   label="Circle — Black" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={true}  filename="luxvibe-offset-v2-circle-white.png"   label="Circle — White" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
         </div>
       </div>
 
