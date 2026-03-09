@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Variant = {
   label: string;
@@ -117,6 +117,84 @@ function AssetCanvas({
   );
 }
 
+function CircleProfileCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
+  const SIZE = 400;
+
+  useEffect(() => {
+    const draw = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      ctx.beginPath();
+      ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#000000";
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `600 190px 'Cormorant Garamond', serif`;
+      (ctx as any).letterSpacing = "12px";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("LV", SIZE / 2 + 6, SIZE / 2 + 4);
+
+      setReady(true);
+    };
+    document.fonts.ready.then(draw);
+  }, []);
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "luxvibe-lv-profile-400x400.png";
+    a.click();
+    a.remove();
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+      <div style={{ borderRadius: "50%", overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.18)", width: 200, height: 200 }}>
+        <canvas
+          ref={canvasRef}
+          width={SIZE}
+          height={SIZE}
+          style={{ width: "200px", height: "200px", display: "block" }}
+        />
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ fontSize: "13px", color: "#555", margin: "0 0 12px" }}>400 × 400 px &nbsp;·&nbsp; Black circle &nbsp;·&nbsp; White LV</p>
+        <button
+          onClick={handleDownload}
+          disabled={!ready}
+          style={{
+            fontSize: "14px",
+            fontWeight: 700,
+            padding: "10px 28px",
+            background: ready ? "#000" : "#999",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            cursor: ready ? "pointer" : "default",
+            letterSpacing: "0.04em",
+          }}
+          onMouseOver={(e) => { if (ready) e.currentTarget.style.background = "#333"; }}
+          onMouseOut={(e) => { if (ready) e.currentTarget.style.background = "#000"; }}
+        >
+          Download PNG
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LogoAssets() {
   return (
     <div style={{ fontFamily: "sans-serif", padding: "40px", maxWidth: "1100px", margin: "0 auto", background: "#f5f5f5", minHeight: "100vh" }}>
@@ -131,6 +209,12 @@ export default function LogoAssets() {
         <p style={{ color: "#555", marginBottom: "0" }}>
           <strong>Downloads:</strong> Full logo exports at 2400×800 px. Monogram exports at 800×800 px. Checkerboard pattern indicates a transparent background.
         </p>
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: "12px", padding: "40px", marginBottom: "40px", border: "1px solid #e0e0e0", textAlign: "center" }}>
+        <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Social Media Profile Photo</h2>
+        <p style={{ color: "#555", fontSize: "13px", marginBottom: "28px" }}>400 × 400 px — optimised for Instagram, X, LinkedIn and Facebook profile pictures</p>
+        <CircleProfileCanvas />
       </div>
 
       <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "20px" }}>Full Logo — 2400 × 800</h2>
