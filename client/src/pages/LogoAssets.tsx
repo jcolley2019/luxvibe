@@ -369,10 +369,10 @@ export default function LogoAssets() {
 
         <p style={{ color: "#888", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 16px" }}>Vertical — L upper · V lower · Larger</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px", justifyItems: "center" }}>
-          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={false} filename="luxvibe-offset-v2-black-on-white.png" label="Black on White" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
-          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={false} filename="luxvibe-offset-v2-white-on-black.png" label="White on Black" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
-          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={true}  filename="luxvibe-offset-v2-circle-black.png"   label="Circle — Black" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
-          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={true}  filename="luxvibe-offset-v2-circle-white.png"   label="Circle — White" fontSize={390} lPos={[0.44, 0.375]} vPos={[0.56, 0.625]} />
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={false} filename="luxvibe-offset-v2-black-on-white.png" label="Black on White" fontSize={390} lPos={[0.44, 0.430]} vPos={[0.56, 0.680]} />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={false} filename="luxvibe-offset-v2-white-on-black.png" label="White on Black" fontSize={390} lPos={[0.44, 0.430]} vPos={[0.56, 0.680]} />
+          <OffsetMonogramCanvas bgColor="#000000" fgColor="#ffffff" circle={true}  filename="luxvibe-offset-v2-circle-black.png"   label="Circle — Black" fontSize={390} lPos={[0.44, 0.430]} vPos={[0.56, 0.680]} />
+          <OffsetMonogramCanvas bgColor="#ffffff" fgColor="#000000" circle={true}  filename="luxvibe-offset-v2-circle-white.png"   label="Circle — White" fontSize={390} lPos={[0.44, 0.430]} vPos={[0.56, 0.680]} />
         </div>
       </div>
 
