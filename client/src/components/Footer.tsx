@@ -32,9 +32,9 @@ export function Footer() {
 
             {/* Nav links */}
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-              <a href="mailto:hello@luxvibe.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
+              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
                 About
-              </a>
+              </Link>
               <Link
                 href="/blog"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
