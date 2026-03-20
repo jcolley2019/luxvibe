@@ -1,48 +1,32 @@
 # Luxvibe
 
-> Luxvibe is a luxury hotel booking platform offering curated stays at boutique resorts, 5-star hotels, and unique properties across 190+ countries. Book directly at https://luxvibe.io.
+Luxvibe is a luxury hotel booking platform powered by LiteAPI.
 
 ## Overview
 
-Luxvibe makes it easy to search, compare, and book luxury hotels worldwide. It gives travellers access to over 2 million properties through a clean, fast interface with AI-powered discovery tools, competitive rates, and instant confirmation.
+Luxvibe helps travelers discover and book luxury hotels worldwide. The platform provides access to 2 million+ hotels across 190+ countries with real-time availability and pricing.
 
-## Core Features
+## Key Features
 
-- **Hotel search** – Search by destination, check-in/check-out dates, and number of guests. Results include star ratings, guest review scores, nightly prices, and hotel photos.
-- **AI Vibe Search** – Describe your ideal trip in natural language (e.g. "romantic beachfront hideaway" or "business-friendly city centre hotel") and the AI returns curated matches.
-- **AI Concierge "Luxe"** – An on-site AI travel assistant that answers questions about hotels, destinations, and local tips.
-- **Compare Hotels** – Side-by-side comparison of up to 4 hotels across price, rating, amenities, and location.
-- **Favourites** – Save hotels across sessions without needing an account.
-- **My Bookings** – Track all reservations, view itinerary details, and cancel eligible bookings in one place.
-- **Referral Programme** – Share a personal link and earn credit towards future bookings when friends complete a stay.
-- **Travel Journal** – Editorial travel content and destination guides to inspire trip planning.
-- **Multilingual** – Full interface translation across 15 languages including English, French, Spanish, German, Italian, Portuguese, Arabic, Japanese, Chinese, and Korean.
+- **Search & Discover** – Search by destination, dates, and guest count. Real-time availability and pricing across luxury properties globally.
+- **Compare Hotels** – Side-by-side comparison of multiple properties to find the perfect fit.
+- **AI-Generated Landmarks** – Visual guides to destinations with AI-generated city landmark imagery.
+- **Interactive Maps** – Explore hotel locations with detailed mapping and neighborhood information.
+- **Luxury Filters** – Curated filters for premium amenities, star ratings, and boutique experiences.
+- **Book Directly** – Instant booking with real-time confirmation on eligible properties.
 
-## Destinations
+## Coverage
 
-Luxvibe covers hotels in every major travel market. Popular destinations include:
+190+ countries · 2 million+ hotels · All luxury segments from boutique to 5-star resorts
 
-Las Vegas · New York · Miami · Los Angeles · San Francisco · Chicago · Orlando · Honolulu · Paris · London · Rome · Barcelona · Amsterdam · Lisbon · Dubai · Tokyo · Bali · Bangkok · Sydney · Cancún · Santorini · Maldives · Amalfi Coast · Ibiza · Marrakech · Cape Town · Singapore · Hong Kong · Zürich · Vienna
+## For Travelers
 
-## Pricing & Booking
+Luxvibe is built for travelers seeking premium hotel experiences. Whether planning a luxury getaway, business trip, or romantic escape, find and book the perfect high-end accommodation with confidence.
 
-- No booking fees added by Luxvibe
-- Rates sourced live from hotel inventory via LiteAPI
-- Prices shown in the user's local currency
-- Instant confirmation on eligible properties
-- Free cancellation clearly labelled where available
+## Website
 
-## Who It's For
+https://luxvibe.io
 
-Luxvibe is built for travellers who want the quality of a luxury travel agent with the speed and transparency of an online booking platform. It suits solo travellers, couples, families, and business travellers looking for premium accommodation.
+## Contact
 
-## Company
-
-- Website: https://luxvibe.io
-- Booking enquiries: bookings@luxvibe.io
-- General / press: hello@luxvibe.io
-
-## Additional Resources
-
-- Full product description: https://luxvibe.io/llms-full.txt
-- Sitemap: https://luxvibe.io/sitemap.xml
+bookings@luxvibe.io
