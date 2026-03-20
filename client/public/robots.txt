@@ -1,26 +1,79 @@
-# Allow all crawlers by default
+# Luxvibe — robots.txt
+# https://luxvibe.io
+
+# Default: allow all web crawlers
 User-agent: *
 Allow: /
 Disallow: /api/
 
-# OpenAI search crawler — allow for ChatGPT search results
+# ── Google ──────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+
+# Google AI (Gemini / AI Overviews) — allow for AI search inclusion
+User-agent: Google-Extended
+Allow: /
+
+# ── OpenAI / ChatGPT ─────────────────────────────────────────────────────
+# OAI-SearchBot = ChatGPT search results (allow)
 User-agent: OAI-SearchBot
 Allow: /
 
-# Block OpenAI training bot (search still works without this)
+# GPTBot = ChatGPT training data — allow so ChatGPT can learn about Luxvibe
 User-agent: GPTBot
-Disallow: /
-
-# Perplexity crawler
-User-agent: PerplexityBot
 Allow: /
 
-# Anthropic crawler
+# ── Anthropic / Claude ───────────────────────────────────────────────────
 User-agent: ClaudeBot
 Allow: /
 
-# Bing
+User-agent: anthropic-ai
+Allow: /
+
+# ── Perplexity ───────────────────────────────────────────────────────────
+User-agent: PerplexityBot
+Allow: /
+
+# ── Meta AI ──────────────────────────────────────────────────────────────
+User-agent: meta-externalagent
+Allow: /
+
+# ── Apple ────────────────────────────────────────────────────────────────
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ── Microsoft Bing / Copilot ─────────────────────────────────────────────
 User-agent: Bingbot
+Allow: /
+
+User-agent: MSNBot
+Allow: /
+
+# ── Amazon Alexa ─────────────────────────────────────────────────────────
+User-agent: Amazonbot
+Allow: /
+
+# ── You.com ──────────────────────────────────────────────────────────────
+User-agent: YouBot
+Allow: /
+
+# ── Bytedance / TikTok ───────────────────────────────────────────────────
+User-agent: Bytespider
+Allow: /
+
+# ── Common Crawl (source for many LLM training sets) ─────────────────────
+User-agent: CCBot
+Allow: /
+
+# ── Diffbot (used by many AI knowledge graphs) ───────────────────────────
+User-agent: Diffbot
+Allow: /
+
+# ── Cohere ───────────────────────────────────────────────────────────────
+User-agent: cohere-ai
 Allow: /
 
 Sitemap: https://luxvibe.io/sitemap.xml

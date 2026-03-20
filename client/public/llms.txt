@@ -1,15 +1,48 @@
 # Luxvibe
 
-> Luxury hotel booking platform with competitive rates on boutique resorts and 5-star properties worldwide.
+> Luxvibe is a luxury hotel booking platform offering curated stays at boutique resorts, 5-star hotels, and unique properties across 190+ countries. Book directly at https://luxvibe.io.
 
-## What Luxvibe Does
-Luxvibe helps travelers discover and book luxury hotels at competitive rates. Search by destination, dates, and guest count. Powered by LiteAPI with access to 2+ million properties globally.
+## Overview
 
-## Key Destinations
-Las Vegas, New York, Miami, Paris, London, Dubai, Tokyo, Bali, Barcelona, Rome, Bangkok, Amsterdam, Sydney, Chicago, San Francisco, Lisbon, Orlando, Cancun
+Luxvibe makes it easy to search, compare, and book luxury hotels worldwide. It gives travellers access to over 2 million properties through a clean, fast interface with AI-powered discovery tools, competitive rates, and instant confirmation.
 
-## How to Book
-Visit https://luxvibe.io, enter your destination and dates, compare rates, and book directly. No account required to search.
+## Core Features
 
-## Contact
-bookings@luxvibe.io
+- **Hotel search** – Search by destination, check-in/check-out dates, and number of guests. Results include star ratings, guest review scores, nightly prices, and hotel photos.
+- **AI Vibe Search** – Describe your ideal trip in natural language (e.g. "romantic beachfront hideaway" or "business-friendly city centre hotel") and the AI returns curated matches.
+- **AI Concierge "Luxe"** – An on-site AI travel assistant that answers questions about hotels, destinations, and local tips.
+- **Compare Hotels** – Side-by-side comparison of up to 4 hotels across price, rating, amenities, and location.
+- **Favourites** – Save hotels across sessions without needing an account.
+- **My Bookings** – Track all reservations, view itinerary details, and cancel eligible bookings in one place.
+- **Referral Programme** – Share a personal link and earn credit towards future bookings when friends complete a stay.
+- **Travel Journal** – Editorial travel content and destination guides to inspire trip planning.
+- **Multilingual** – Full interface translation across 15 languages including English, French, Spanish, German, Italian, Portuguese, Arabic, Japanese, Chinese, and Korean.
+
+## Destinations
+
+Luxvibe covers hotels in every major travel market. Popular destinations include:
+
+Las Vegas · New York · Miami · Los Angeles · San Francisco · Chicago · Orlando · Honolulu · Paris · London · Rome · Barcelona · Amsterdam · Lisbon · Dubai · Tokyo · Bali · Bangkok · Sydney · Cancún · Santorini · Maldives · Amalfi Coast · Ibiza · Marrakech · Cape Town · Singapore · Hong Kong · Zürich · Vienna
+
+## Pricing & Booking
+
+- No booking fees added by Luxvibe
+- Rates sourced live from hotel inventory via LiteAPI
+- Prices shown in the user's local currency
+- Instant confirmation on eligible properties
+- Free cancellation clearly labelled where available
+
+## Who It's For
+
+Luxvibe is built for travellers who want the quality of a luxury travel agent with the speed and transparency of an online booking platform. It suits solo travellers, couples, families, and business travellers looking for premium accommodation.
+
+## Company
+
+- Website: https://luxvibe.io
+- Booking enquiries: bookings@luxvibe.io
+- General / press: hello@luxvibe.io
+
+## Additional Resources
+
+- Full product description: https://luxvibe.io/llms-full.txt
+- Sitemap: https://luxvibe.io/sitemap.xml

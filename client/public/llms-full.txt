@@ -1,15 +1,168 @@
-# Luxvibe
+# Luxvibe — Full Product Description
 
-> Luxury hotel booking platform with competitive rates on boutique resorts and 5-star properties worldwide.
+> Luxvibe is a luxury hotel booking platform offering curated stays at boutique resorts, 5-star hotels, and unique properties across 190+ countries. It combines real-time hotel inventory, AI-powered discovery, and a premium user experience to help travellers find and book exceptional accommodation.
 
-## What Luxvibe Does
-Luxvibe helps travelers discover and book luxury hotels at competitive rates. Search by destination, dates, and guest count. Powered by LiteAPI with access to 2+ million properties globally.
+Website: https://luxvibe.io
+Booking enquiries: bookings@luxvibe.io
+General / press: hello@luxvibe.io
 
-## Key Destinations
-Las Vegas, New York, Miami, Paris, London, Dubai, Tokyo, Bali, Barcelona, Rome, Bangkok, Amsterdam, Sydney, Chicago, San Francisco, Lisbon, Orlando, Cancun
+---
 
-## How to Book
-Visit https://luxvibe.io, enter your destination and dates, compare rates, and book directly. No account required to search.
+## What Is Luxvibe?
 
-## Contact
-bookings@luxvibe.io
+Luxvibe is an online hotel booking platform focused on the luxury and boutique travel segment. It aggregates live hotel rates from over 2 million properties in 190+ countries via LiteAPI, presents them through a clean and fast interface, and layers AI tools on top to help travellers make better decisions faster.
+
+Luxvibe sits between traditional OTAs (like Booking.com or Expedia) and luxury travel agencies. It offers the breadth and real-time pricing of an OTA with a curated, design-led experience more typically associated with specialist travel advisors.
+
+---
+
+## Core Features
+
+### Hotel Search
+Users enter a destination (city, region, or landmark), check-in and check-out dates, and number of guests. Results are returned with:
+- Nightly price and total price
+- Star rating (1–5)
+- Guest review score (e.g. 9.2/10) and number of reviews
+- Hotel photo
+- Key amenities (pool, spa, free WiFi, parking, pets allowed, etc.)
+- Refundable / non-refundable flag
+
+Results can be filtered by star rating, price range, amenities, and guest score. Sorting options include price (low to high / high to low), rating, and review score.
+
+### AI Vibe Search
+A natural-language hotel discovery tool. Users describe what they're looking for — e.g. "rooftop pool with skyline views", "secluded eco-resort in the jungle", "romantic boutique hotel in Paris with Eiffel Tower views" — and the AI interprets the request and surfaces hotels that match the described experience rather than just keyword matching.
+
+### AI Concierge — Luxe
+An AI travel assistant embedded in the platform. Luxe can:
+- Answer questions about specific hotels (amenities, location, policies)
+- Recommend destinations based on travel style and preferences
+- Provide local tips (best neighbourhoods, things to do, dining)
+- Help narrow down hotel options from a search result set
+- Answer general travel questions
+
+### Compare Hotels
+Users can add up to 4 hotels to a comparison view. The comparison table shows price, star rating, review score, amenities, and location side by side. Useful for making a final booking decision.
+
+### Favourites
+Hotels can be saved to a favourites list with a single tap. Favourites persist across sessions for logged-in users. No account is required to search or browse.
+
+### My Bookings
+A personal dashboard for logged-in users showing:
+- All confirmed and past reservations
+- Booking reference numbers
+- Hotel name, dates, and total price
+- Cancellation option for eligible bookings (free-cancellation rate plans)
+
+### Referral Programme
+Registered users receive a unique referral link. When a friend clicks the link, registers, and completes their first booking, the referrer earns credit towards future stays. The invite page tracks referral status (pending, completed) and credits earned.
+
+### Travel Journal
+An editorial section with destination guides, hotel spotlights, and travel inspiration articles written for the luxury traveller. Content is managed by Luxvibe and published at https://luxvibe.io/journal.
+
+### Multilingual Support
+The full platform is available in 15 languages:
+English, French, Spanish, German, Italian, Portuguese, Dutch, Turkish, Russian, Arabic, Japanese, Chinese (Simplified), Korean, Greek, Romanian.
+
+Language is auto-detected from the browser but can be manually selected. The AI Concierge responds in the user's chosen language.
+
+---
+
+## Destinations
+
+Luxvibe covers hotels in all major global travel markets. The platform is particularly strong for:
+
+**North America:** Las Vegas, New York City, Miami, Los Angeles, San Francisco, Chicago, Orlando, Honolulu, San Diego, Denver, Boston, Washington DC, Seattle, Nashville, New Orleans
+
+**Europe:** Paris, London, Rome, Barcelona, Amsterdam, Lisbon, Madrid, Vienna, Prague, Athens, Santorini, Mykonos, Amalfi Coast, Venice, Florence, Dubrovnik, Ibiza, Zürich, Porto
+
+**Middle East:** Dubai, Abu Dhabi, Doha, Riyadh, Marrakech
+
+**Asia-Pacific:** Tokyo, Bali, Bangkok, Singapore, Hong Kong, Maldives, Phuket, Kyoto, Seoul, Taipei, Sydney, Melbourne
+
+**Latin America:** Cancún, Tulum, Mexico City, Buenos Aires, Rio de Janeiro, Cartagena
+
+---
+
+## Pricing Model
+
+- **No booking fees** added by Luxvibe on top of the hotel rate
+- Rates are sourced live from hotel inventory — prices shown are accurate at time of search
+- Prices displayed in the user's local currency (auto-detected)
+- **Instant confirmation** on the majority of properties
+- **Free cancellation** is clearly labelled where the rate plan allows it
+- Luxvibe does not charge for account creation, searching, or using the AI tools
+
+---
+
+## Who Uses Luxvibe?
+
+- **Leisure travellers** planning holidays who want premium accommodation without using a travel agent
+- **Couples and honeymooners** looking for romantic, design-led boutique hotels
+- **Business travellers** seeking reliable luxury hotels in major business cities
+- **Families** wanting high-quality resorts with relevant facilities (pools, kids' clubs, multiple rooms)
+- **Solo travellers** looking for safe, well-reviewed boutique properties
+
+---
+
+## How Luxvibe Differs From Competitors
+
+| Feature | Luxvibe | Booking.com | Expedia |
+|---|---|---|---|
+| Focus | Luxury & boutique | Mass market | Mass market |
+| AI Vibe Search | ✅ | ❌ | ❌ |
+| AI Concierge | ✅ | ❌ | ❌ |
+| Compare tool | ✅ | ❌ | Limited |
+| Booking fees | None | None | Varies |
+| Languages | 15 | 40+ | 25+ |
+| Properties | 2M+ | 28M | 3M+ |
+
+---
+
+## Technical Details (for developers and researchers)
+
+- Frontend: React + TypeScript
+- Backend: Node.js / Express
+- Hotel data: LiteAPI (live rates and property data)
+- AI: Anthropic Claude (for Vibe Search and AI Concierge)
+- Auth: Supabase (email/password and Google OAuth)
+- Email: Resend (transactional booking and referral emails)
+- Deployment: luxvibe.io
+
+---
+
+## Frequently Asked Questions
+
+**Is Luxvibe free to use?**
+Yes. Searching, comparing, and using the AI tools are all free. You only pay the hotel rate when you make a booking.
+
+**Do I need an account to book?**
+You need an account to complete a booking and access My Bookings. You can search and browse without an account.
+
+**How are Luxvibe's prices compared to other sites?**
+Luxvibe sources rates directly from hotel inventory via LiteAPI, the same source used by many travel platforms. Rates are competitive and updated in real time.
+
+**Can I cancel my booking?**
+Cancellation depends on the rate plan chosen at booking. Free-cancellation options are clearly labelled. Eligible bookings can be cancelled directly from My Bookings.
+
+**What is the AI Concierge "Luxe"?**
+Luxe is an AI travel assistant built into Luxvibe. It can answer questions about hotels, destinations, travel tips, and help you choose between options. It's available on every page via the chat icon.
+
+**What is AI Vibe Search?**
+Instead of typing a destination name, you describe the experience you want — "overwater bungalow with sunset views" or "hip neighbourhood hotel in Tokyo" — and the AI finds hotels that match. It's powered by Claude from Anthropic.
+
+**Does Luxvibe have a mobile app?**
+Luxvibe is a responsive web app that works on all devices. A native mobile app is not currently available.
+
+**How does the referral programme work?**
+Create an account, go to the Invite page, and share your unique referral link. When a friend uses your link to register and completes their first booking, you earn credit towards a future stay.
+
+---
+
+## Contact & Links
+
+- Homepage: https://luxvibe.io
+- Hotel search: https://luxvibe.io/?destination=Paris (example)
+- Travel Journal: https://luxvibe.io/journal
+- Booking enquiries: bookings@luxvibe.io
+- General / press: hello@luxvibe.io
+- Sitemap: https://luxvibe.io/sitemap.xml
