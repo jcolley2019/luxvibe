@@ -60,7 +60,7 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1542833277-f9982d1581c0?w=1920&q=80", // leaning tower of pisa
   "https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=1920&q=80", // rome colosseum
   "https://images.unsplash.com/photo-1554992539-5c44fc26abb1?w=1920&q=80", // rome at night
-  "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1920&q=80", // italy coast
+  "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1920&q=80", // luxury resort pool
   // California — Los Angeles
   "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=1920&q=80", // los angeles skyline
   "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1920&q=80", // santa monica pier
