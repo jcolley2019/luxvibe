@@ -16,6 +16,18 @@ interface BlogPost {
   tags?: string[];
 }
 
+const DESTINATION_FALLBACKS: Record<string, string> = {
+  Nashville: "https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=1200&q=80",
+  London:    "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80",
+  Dubai:     "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80",
+  "Las Vegas": "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1200&q=80",
+};
+const GENERIC_FALLBACK = "https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=1200&q=80";
+
+function fallbackFor(destination: string) {
+  return DESTINATION_FALLBACKS[destination] ?? GENERIC_FALLBACK;
+}
+
 function readingTime(html: string) {
   if (!html) return 1;
   const text = html.replace(/<[^>]+>/g, " ");
@@ -25,16 +37,18 @@ function readingTime(html: string) {
 
 function BlogCard({ post }: { post: BlogPost }) {
   const [loaded, setLoaded] = useState(false);
+  const [src, setSrc] = useState(post.heroImageUrl || fallbackFor(post.destination));
   const mins = readingTime(post.contentHtml);
   return (
     <Link href={`/blog/${post.slug}`} data-testid={`card-blog-${post.id}`}>
       <article className="group rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
         <div className="overflow-hidden aspect-[16/10] relative bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
           <img
-            src={post.heroImageUrl}
+            src={src}
             alt={post.title}
             loading="eager"
             onLoad={() => setLoaded(true)}
+            onError={() => { setSrc(fallbackFor(post.destination)); setLoaded(true); }}
             className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
           />
         </div>

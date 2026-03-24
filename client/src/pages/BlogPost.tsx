@@ -53,6 +53,17 @@ function readingTime(html: string) {
   return Math.max(1, Math.round(words / 200));
 }
 
+const DESTINATION_FALLBACKS: Record<string, string> = {
+  Nashville:    "https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=1200&q=80",
+  London:       "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80",
+  Dubai:        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80",
+  "Las Vegas":  "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1200&q=80",
+};
+const GENERIC_FALLBACK = "https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=1200&q=80";
+function fallbackFor(destination: string) {
+  return DESTINATION_FALLBACKS[destination] ?? GENERIC_FALLBACK;
+}
+
 function StarRow({ count }: { count: number }) {
   return (
     <span className="flex items-center gap-0.5">
@@ -271,6 +282,7 @@ function FaqSection({ destination }: { destination: string }) {
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   const { data: post, isLoading, isError } = useQuery<BlogPost>({
     queryKey: ["/api/blog/posts", slug],
@@ -288,6 +300,8 @@ export default function BlogPost() {
 
   useEffect(() => {
     if (!post) return;
+    setImageSrc(post.heroImageUrl || fallbackFor(post.destination));
+    setImageLoaded(false);
     document.title = `${post.title} — Luxvibe`;
 
     const setMeta = (name: string, content: string, prop = false) => {
@@ -358,11 +372,12 @@ export default function BlogPost() {
       {/* Hero image */}
       <div className="w-full h-[250px] md:h-[55vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
         <img
-          src={post.heroImageUrl}
+          src={imageSrc ?? fallbackFor(post.destination)}
           alt={post.title}
           loading="eager"
           fetchpriority="high"
           onLoad={() => setImageLoaded(true)}
+          onError={() => { setImageSrc(fallbackFor(post.destination)); setImageLoaded(true); }}
           className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
