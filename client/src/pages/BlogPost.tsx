@@ -54,7 +54,7 @@ function readingTime(html: string) {
 }
 
 const DESTINATION_FALLBACKS: Record<string, string> = {
-  Nashville:    "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1200&q=80",
+  Nashville:    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=80",
   London:       "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80",
   Dubai:        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80",
   "Las Vegas":  "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=1200&q=80",
