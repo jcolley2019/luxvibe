@@ -311,24 +311,121 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   "saudi arabia": "SA", "hong kong": "HK",
 };
 
+const US_STATE_ABBR = new Set([
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY",
+  "LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND",
+  "OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+]);
+
+const US_STATE_NAMES: Record<string, true> = {
+  "alabama":true,"alaska":true,"arizona":true,"arkansas":true,"california":true,
+  "colorado":true,"connecticut":true,"delaware":true,"florida":true,"georgia":true,
+  "hawaii":true,"idaho":true,"illinois":true,"indiana":true,"iowa":true,"kansas":true,
+  "kentucky":true,"louisiana":true,"maine":true,"maryland":true,"massachusetts":true,
+  "michigan":true,"minnesota":true,"mississippi":true,"missouri":true,"montana":true,
+  "nebraska":true,"nevada":true,"new hampshire":true,"new jersey":true,"new mexico":true,
+  "new york":true,"north carolina":true,"north dakota":true,"ohio":true,"oklahoma":true,
+  "oregon":true,"pennsylvania":true,"rhode island":true,"south carolina":true,
+  "south dakota":true,"tennessee":true,"texas":true,"utah":true,"vermont":true,
+  "virginia":true,"washington":true,"west virginia":true,"wisconsin":true,"wyoming":true,
+};
+
+// Famous US landmarks/areas → nearest bookable city
+const US_LANDMARK_TO_CITY: Record<string, string> = {
+  "red rocks": "Morrison",
+  "red rocks amphitheatre": "Morrison",
+  "red rocks amphitheater": "Morrison",
+  "red rocks colorado": "Morrison",
+  "yosemite": "Mariposa",
+  "grand canyon": "Tusayan",
+  "yellowstone": "West Yellowstone",
+  "niagara falls": "Niagara Falls",
+  "times square": "New York",
+  "central park": "New York",
+  "golden gate": "San Francisco",
+  "french quarter": "New Orleans",
+  "bourbon street": "New Orleans",
+  "south beach": "Miami Beach",
+  "the strip": "Las Vegas",
+  "las vegas strip": "Las Vegas",
+  "hollywood": "Los Angeles",
+  "beverly hills": "Beverly Hills",
+  "vail": "Vail",
+  "aspen": "Aspen",
+  "park city": "Park City",
+  "napa valley": "Napa",
+  "napa": "Napa",
+  "sonoma": "Sonoma",
+  "cape cod": "Barnstable",
+  "outer banks": "Kill Devil Hills",
+  "myrtle beach": "Myrtle Beach",
+  "ocean city": "Ocean City",
+  "key west": "Key West",
+  "sedona": "Sedona",
+  "scottsdale": "Scottsdale",
+  "brooklyn": "New York",
+  "manhattan": "New York",
+  "silicon valley": "San Jose",
+  "walt disney world": "Orlando",
+  "disney world": "Orlando",
+  "universal studios": "Orlando",
+};
+
 function resolveDestination(destination: string): { cityName: string; countryCode: string } {
   const parts = destination.split(",").map(p => p.trim());
-  
+
   if (parts.length >= 2) {
     const city = parts[0];
-    const countryPart = parts[parts.length - 1].toLowerCase();
-    const countryCode = countryPart.length === 2
-      ? countryPart.toUpperCase()
-      : COUNTRY_NAME_TO_CODE[countryPart] || "";
-    if (countryCode) {
-      return { cityName: city, countryCode };
+    const lastPart = parts[parts.length - 1].trim();
+    const lastLower = lastPart.toLowerCase();
+
+    // US state abbreviation takes priority over 2-letter country codes (e.g. "Denver, CO")
+    if (lastPart.length === 2 && US_STATE_ABBR.has(lastPart.toUpperCase())) {
+      return { cityName: city, countryCode: "US" };
+    }
+
+    // US state full name (e.g. "Denver, Colorado")
+    if (US_STATE_NAMES[lastLower]) {
+      return { cityName: city, countryCode: "US" };
+    }
+
+    // Standard country code or name
+    const countryCode = lastPart.length === 2
+      ? lastPart.toUpperCase()
+      : COUNTRY_NAME_TO_CODE[lastLower] || "";
+    if (countryCode) return { cityName: city, countryCode };
+  }
+
+  const cityLower = destination.toLowerCase().trim();
+
+  // Check landmark aliases first (e.g. "Red Rocks" → Morrison, CO)
+  const landmarkCity = US_LANDMARK_TO_CITY[cityLower];
+  if (landmarkCity) return { cityName: landmarkCity, countryCode: "US" };
+
+  const countryCode = CITY_COUNTRY_MAP[cityLower];
+  if (countryCode) return { cityName: destination, countryCode };
+
+  // Also check landmark after stripping state suffix (e.g. "Red Rocks Colorado")
+  for (const [landmark, mappedCity] of Object.entries(US_LANDMARK_TO_CITY)) {
+    if (cityLower.startsWith(landmark)) {
+      return { cityName: mappedCity, countryCode: "US" };
     }
   }
-  
-  const cityLower = destination.toLowerCase().trim();
-  const countryCode = CITY_COUNTRY_MAP[cityLower];
-  if (countryCode) {
-    return { cityName: destination, countryCode };
+
+  // Detect US state anywhere in the destination string (e.g. "Morrison Colorado", "Red Rocks Colorado")
+  // Check full state names embedded in the string
+  for (const stateName of Object.keys(US_STATE_NAMES)) {
+    const re = new RegExp(`\\b${stateName}\\b`, "i");
+    if (re.test(destination)) {
+      const cityPart = destination.replace(re, "").replace(/[\s,]+$/, "").trim();
+      return { cityName: cityPart || destination, countryCode: "US" };
+    }
+  }
+  // Check state abbreviations at end of string (e.g. "Morrison CO" or "Morrison, CO")
+  const stateAbbrMatch = destination.match(/[,\s]+([A-Z]{2})$/);
+  if (stateAbbrMatch && US_STATE_ABBR.has(stateAbbrMatch[1])) {
+    const cityPart = destination.slice(0, destination.length - stateAbbrMatch[0].length).trim();
+    return { cityName: cityPart || destination, countryCode: "US" };
   }
 
   return { cityName: destination, countryCode: "" };
@@ -1037,12 +1134,50 @@ export async function registerRoutes(
       const RATES_BATCH = 50;
 
       if (placeId) {
-        const hotelsData = await liteApiGet("/data/hotels", {
-          placeId,
-          limit: String(METADATA_LIMIT),
-          offset: "0",
-        });
-        hotelsMetadata = hotelsData?.data || [];
+        if (placeId.startsWith("hotel:")) {
+          // User selected a specific hotel from autocomplete — search nearby hotels via that hotel's city
+          const hotelId = placeId.slice(6);
+          const singleHotelData = await liteApiGet("/data/hotel", { hotelId });
+          const h = singleHotelData?.data?.[0] ?? singleHotelData?.data;
+          if (h) {
+            const cityName = h.city || h.address?.city?.name || "";
+            const countryCode = h.countryCode || h.country_code || "US";
+            const nearbyData = await liteApiGet("/data/hotels", {
+              cityName,
+              countryCode,
+              limit: String(METADATA_LIMIT),
+              offset: "0",
+            });
+            hotelsMetadata = nearbyData?.data || [];
+            // Ensure the selected hotel is first in results
+            const existing = hotelsMetadata.find((m: any) => m.id === hotelId);
+            if (!existing) hotelsMetadata.unshift(h);
+            else {
+              hotelsMetadata = [existing, ...hotelsMetadata.filter((m: any) => m.id !== hotelId)];
+            }
+          }
+        } else {
+          const hotelsData = await liteApiGet("/data/hotels", {
+            placeId,
+            limit: String(METADATA_LIMIT),
+            offset: "0",
+          });
+          hotelsMetadata = hotelsData?.data || [];
+
+          // If LiteAPI doesn't support this placeId (e.g. Google Places ID), fall back to destination text
+          if (hotelsMetadata.length === 0 && destination) {
+            const resolved = resolveDestination(destination);
+            if (resolved.countryCode) {
+              const fallbackData = await liteApiGet("/data/hotels", {
+                cityName: resolved.cityName,
+                countryCode: resolved.countryCode,
+                limit: String(METADATA_LIMIT),
+                offset: "0",
+              });
+              hotelsMetadata = fallbackData?.data || [];
+            }
+          }
+        }
       } else if (destination) {
         const resolved = resolveDestination(destination);
         if (!resolved.countryCode) {

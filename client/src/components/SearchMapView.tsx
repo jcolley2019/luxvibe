@@ -82,6 +82,21 @@ export function SearchMapView({ hotels, center, currency = "USD", checkIn, check
     setSelectedHotel(hotel);
   }, []);
 
+  // Re-center map when center changes significantly (new search destination)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !computedCenter) return;
+    const currentCenter = mapInstanceRef.current.getCenter();
+    const latDiff = Math.abs(currentCenter.lat - computedCenter.lat);
+    const lngDiff = Math.abs(currentCenter.lng - computedCenter.lng);
+    // Only fly if the center moved more than ~5km (~0.05 degrees)
+    if (latDiff > 0.05 || lngDiff > 0.05) {
+      mapInstanceRef.current.flyTo([computedCenter.lat, computedCenter.lng], 13, {
+        animate: true,
+        duration: 0.8,
+      });
+    }
+  }, [computedCenter?.lat, computedCenter?.lng]);
+
   useEffect(() => {
     if (!mapRef.current || !computedCenter) return;
     if (mapInstanceRef.current) return;
