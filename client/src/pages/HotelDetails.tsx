@@ -788,7 +788,43 @@ export default function HotelDetails() {
 
         {/* ─── Rooms Section ─── */}
         <div id="rooms" ref={sectionRefs.rooms} className="border-t border-border pt-8 pb-10">
-          <h2 className="text-xl font-bold mb-4">{t("hotel.choose_your_room")}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">{t("hotel.choose_your_room")}</h2>
+            {/* Price comparison links */}
+            {(() => {
+              const hotelQuery = encodeURIComponent(`${hotel.name}${hotel.city ? `, ${hotel.city}` : ""}`);
+              const expediaCheckIn = format(parseISO(checkIn), "MM/dd/yyyy");
+              const expediaCheckOut = format(parseISO(checkOut), "MM/dd/yyyy");
+              const adultsCount = parseInt(guests) || 2;
+              const expediaUrl = `https://www.expedia.com/Hotel-Search?destination=${hotelQuery}&startDate=${encodeURIComponent(expediaCheckIn)}&endDate=${encodeURIComponent(expediaCheckOut)}&rooms=1&adults=${adultsCount}`;
+              const bookingUrl = `https://www.booking.com/searchresults.html?ss=${hotelQuery}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adultsCount}`;
+              return (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="hidden sm:inline">Compare:</span>
+                  <a
+                    href={expediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                    data-testid="link-compare-expedia"
+                  >
+                    Expedia
+                    <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                  <a
+                    href={bookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                    data-testid="link-compare-booking"
+                  >
+                    Booking.com
+                    <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                </div>
+              );
+            })()}
+          </div>
 
           {/* Savings tip */}
           {(() => {

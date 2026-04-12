@@ -454,7 +454,14 @@ export default function SearchHero({
               e.preventDefault(); // prevent input blur before state updates
               if (place.hotelId) {
                 setDestination(name);
-                setLocation(`/hotel/${place.hotelId}`);
+                const hp = new URLSearchParams();
+                const ciDate = date?.from ?? addDays(new Date(), 7);
+                const coDate = date?.to ?? addDays(new Date(), 14);
+                hp.set("checkIn", format(ciDate, "yyyy-MM-dd"));
+                hp.set("checkOut", format(coDate, "yyyy-MM-dd"));
+                const totalG = rooms.reduce((s, r) => s + r.adults + r.children, 0);
+                hp.set("guests", String(totalG || 2));
+                setLocation(`/hotel/${place.hotelId}?${hp.toString()}`);
               } else {
                 setDestination(name);
                 setPlaceId(place.placeId);
@@ -1028,7 +1035,14 @@ export default function SearchHero({
                         e.preventDefault();
                         if (place.hotelId) {
                           setDestination(name);
-                          setLocation(`/hotel/${place.hotelId}`);
+                          const hp = new URLSearchParams();
+                          const ciDate = date?.from ?? addDays(new Date(), 7);
+                          const coDate = date?.to ?? addDays(new Date(), 14);
+                          hp.set("checkIn", format(ciDate, "yyyy-MM-dd"));
+                          hp.set("checkOut", format(coDate, "yyyy-MM-dd"));
+                          const totalG = rooms.reduce((s, r) => s + r.adults + r.children, 0);
+                          hp.set("guests", String(totalG || 2));
+                          setLocation(`/hotel/${place.hotelId}?${hp.toString()}`);
                         } else {
                           setDestination(name);
                           setPlaceId(place.placeId);
@@ -1327,8 +1341,15 @@ export default function SearchHero({
                       e.preventDefault();
                       if (place.hotelId) {
                         setDestination(name);
+                        const hp = new URLSearchParams();
+                        const ciDate = date?.from ?? addDays(new Date(), 7);
+                        const coDate = date?.to ?? addDays(new Date(), 14);
+                        hp.set("checkIn", format(ciDate, "yyyy-MM-dd"));
+                        hp.set("checkOut", format(coDate, "yyyy-MM-dd"));
+                        const totalG = rooms.reduce((s, r) => s + r.adults + r.children, 0);
+                        hp.set("guests", String(totalG || 2));
                         setShowMobileDestSheet(false);
-                        setLocation(`/hotel/${place.hotelId}`);
+                        setLocation(`/hotel/${place.hotelId}?${hp.toString()}`);
                       } else {
                         setDestination(name);
                         setPlaceId(place.placeId);
