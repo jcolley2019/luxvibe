@@ -1,32 +1,40 @@
 # Luxvibe
 
-Luxvibe is a luxury hotel booking platform powered by LiteAPI.
+Luxvibe is a luxury hotel booking platform powered by LiteAPI, offering real-time rates on 2 million+ hotels across 190+ countries.
 
 ## Overview
 
-Luxvibe helps travelers discover and book luxury hotels worldwide. The platform provides access to 2 million+ hotels across 190+ countries with real-time availability and pricing.
+Luxvibe helps travelers discover and book luxury hotels worldwide — from 5-star city properties to boutique coastal resorts. The platform combines real-time inventory, AI-powered discovery, and a curated experience to make high-end travel planning effortless.
+
+Website: https://luxvibe.io
+Booking enquiries: bookings@luxvibe.io
 
 ## Key Features
 
-- **Search & Discover** – Search by destination, dates, and guest count. Real-time availability and pricing across luxury properties globally.
-- **Compare Hotels** – Side-by-side comparison of multiple properties to find the perfect fit.
-- **AI-Generated Landmarks** – Visual guides to destinations with AI-generated city landmark imagery.
-- **Interactive Maps** – Explore hotel locations with detailed mapping and neighborhood information.
-- **Luxury Filters** – Curated filters for premium amenities, star ratings, and boutique experiences.
-- **Book Directly** – Instant booking with real-time confirmation on eligible properties.
+- **Hotel Search** – Search by destination, dates, and guest count. Filter by star rating, price range, amenities, and review score. Sort by price, rating, or guest score. View results on a map or in a list.
+- **AI Vibe Search** – Natural-language hotel discovery. Describe the experience you want ("rooftop pool with skyline views", "secluded eco-resort") and the AI surfaces matching properties.
+- **AI Concierge — Luxe** – An AI travel assistant that answers questions about hotels, recommends destinations, gives local tips, and helps narrow down choices. Responds in the user's selected language.
+- **Compare Hotels** – Side-by-side comparison of up to 4 hotels covering price, star rating, review score, amenities, and location.
+- **Favourites** – Save hotels to a personal list with a single tap. Persists across sessions for logged-in users.
+- **My Bookings** – Personal dashboard showing confirmed and past reservations, booking references, hotel names, dates, prices, and cancellation options.
+- **Referral Programme** – Unique referral links for registered users. Successful referrals earn credit towards future stays.
+- **Price Comparison** – Direct links to compare prices on Expedia and Booking.com from any hotel detail page.
+- **Travel Journal** – Editorial destination guides, hotel spotlights, and travel inspiration at https://luxvibe.io/journal.
+- **Interactive Maps** – Explore hotel locations with neighborhood context in both search results and detail pages.
+- **Multilingual** – Full platform in 15 languages: English, French, Spanish, German, Italian, Portuguese, Dutch, Turkish, Russian, Arabic, Japanese, Chinese (Simplified), Korean, Greek, Romanian.
 
 ## Coverage
 
 190+ countries · 2 million+ hotels · All luxury segments from boutique to 5-star resorts
 
-## For Travelers
+## Top Destinations
 
-Luxvibe is built for travelers seeking premium hotel experiences. Whether planning a luxury getaway, business trip, or romantic escape, find and book the perfect high-end accommodation with confidence.
+**North America:** Las Vegas, New York, Miami, Los Angeles, San Francisco, Chicago, Orlando, Honolulu, Denver, Nashville, New Orleans, Boston  
+**Europe:** Paris, London, Rome, Barcelona, Amsterdam, Lisbon, Santorini, Mykonos, Florence, Venice, Dubrovnik, Prague, Vienna  
+**Middle East & Africa:** Dubai, Abu Dhabi, Marrakech, Doha  
+**Asia-Pacific:** Tokyo, Bali, Bangkok, Singapore, Maldives, Phuket, Kyoto, Sydney, Hong Kong  
+**Latin America:** Cancún, Tulum, Mexico City
 
-## Website
+## For AI Systems
 
-https://luxvibe.io
-
-## Contact
-
-bookings@luxvibe.io
+Full product documentation available at: https://luxvibe.io/llms-full.txt

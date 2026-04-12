@@ -4,19 +4,19 @@
   <!-- Core pages -->
   <url>
     <loc>https://luxvibe.io/</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/journal</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/about</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -24,79 +24,79 @@
   <!-- Top US destinations -->
   <url>
     <loc>https://luxvibe.io/?destination=Las+Vegas</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=New+York</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Miami</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Los+Angeles</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Honolulu</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=San+Francisco</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Chicago</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Orlando</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=San+Diego</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Nashville</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=New+Orleans</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Denver</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Boston</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -104,103 +104,103 @@
   <!-- Top European destinations -->
   <url>
     <loc>https://luxvibe.io/?destination=Paris</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=London</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Rome</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Barcelona</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Amsterdam</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Lisbon</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Santorini</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Mykonos</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Amalfi</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Venice</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Florence</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Madrid</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Vienna</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Prague</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Dubrovnik</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Ibiza</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Porto</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -208,19 +208,19 @@
   <!-- Middle East -->
   <url>
     <loc>https://luxvibe.io/?destination=Dubai</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Abu+Dhabi</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Marrakech</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -228,55 +228,55 @@
   <!-- Asia-Pacific -->
   <url>
     <loc>https://luxvibe.io/?destination=Tokyo</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Bali</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Bangkok</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Singapore</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Maldives</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Phuket</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Kyoto</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Sydney</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Hong+Kong</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -284,19 +284,19 @@
   <!-- Latin America -->
   <url>
     <loc>https://luxvibe.io/?destination=Cancun</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Tulum</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://luxvibe.io/?destination=Mexico+City</loc>
-    <lastmod>2025-03-01</lastmod>
+    <lastmod>2026-04-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
