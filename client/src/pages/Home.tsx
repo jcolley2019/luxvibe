@@ -2118,10 +2118,16 @@ export default function Home() {
                   </h2>
 
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground" data-testid="text-results-count">
                       {(nearMe ? nearbyLoading : isLoading)
                         ? "Searching…"
-                        : `${filteredHotels.length} properties found`}
+                        : filteredHotels.length === 0
+                          ? "No hotels found"
+                          : destination
+                            ? `${filteredHotels.length} hotel${filteredHotels.length === 1 ? "" : "s"} in ${destination}`
+                            : nearMe
+                              ? `${filteredHotels.length} hotel${filteredHotels.length === 1 ? "" : "s"} near you`
+                              : `${filteredHotels.length} hotel${filteredHotels.length === 1 ? "" : "s"} found`}
                     </p>
                     {isDefaultStarFilter && !isLoading && (
                       <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
@@ -2218,30 +2224,46 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              ) : error ? (
-                <div className="text-center py-16 bg-muted/30 rounded-2xl border border-dashed border-border">
-                  <p className="text-destructive font-medium mb-2">
-                    {(error as Error).message || "Something went wrong."}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Try adding the country, e.g. "Paris, France".
-                  </p>
-                </div>
-              ) : filteredHotels.length === 0 ? (
-                <div className="text-center py-16 bg-muted/30 rounded-2xl border border-dashed border-border">
-                  <h3 className="text-lg font-semibold mb-2">
-                    No hotels found
+              ) : error || filteredHotels.length === 0 ? (
+                <div className="text-center py-12 px-6 bg-muted/20 rounded-2xl border border-dashed border-border" data-testid="empty-search-state">
+                  <div className="w-14 h-14 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">
+                    {activeFilterCount > 0
+                      ? "No hotels match your filters"
+                      : destination
+                        ? `No hotels found in ${destination}`
+                        : "No hotels found"}
                   </h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your filters or dates.
+                  <p className="text-sm text-muted-foreground mb-5">
+                    {activeFilterCount > 0
+                      ? "Try relaxing your filters to see more options."
+                      : error
+                        ? "We couldn't recognise that destination. Try a city name or explore popular destinations below:"
+                        : "Try different dates, a nearby city, or explore these popular destinations:"}
                   </p>
-                  {activeFilterCount > 0 && (
+                  {activeFilterCount > 0 ? (
                     <button
                       onClick={clearFilters}
-                      className="mt-3 text-sm text-primary hover:underline"
+                      className="text-sm font-medium text-primary hover:underline"
+                      data-testid="button-clear-filters"
                     >
-                      Clear filters
+                      Clear all filters
                     </button>
+                  ) : (
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {["Paris", "New York", "Tokyo", "Dubai", "Bali", "London", "Barcelona", "Santorini"].map((city) => (
+                        <a
+                          key={city}
+                          href={`/?destination=${encodeURIComponent(city)}&checkIn=${checkIn || ""}&checkOut=${checkOut || ""}&guests=${guests || "2"}`}
+                          className="px-3.5 py-1.5 rounded-full border border-border bg-background hover:border-primary/50 hover:bg-primary/5 text-sm font-medium text-foreground transition-colors"
+                          data-testid={`link-suggest-${city.toLowerCase()}`}
+                        >
+                          {city}
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </div>
               ) : (

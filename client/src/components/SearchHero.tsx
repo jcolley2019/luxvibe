@@ -19,6 +19,7 @@ import {
   Waves,
   Gem,
   ChevronLeft,
+  Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
@@ -152,6 +153,29 @@ export default function SearchHero({
 
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [showMobileDestSheet, setShowMobileDestSheet] = useState(false);
+
+  const [recentSearches, setRecentSearches] = useState<{ name: string; placeId?: string }[]>(() => {
+    try { return JSON.parse(localStorage.getItem("luxvibe_recent_searches") || "[]"); } catch { return []; }
+  });
+
+  const saveRecentSearch = (name: string, placeId?: string) => {
+    if (!name || name === "Around my area") return;
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((s) => s.name !== name);
+      const updated = [{ name, placeId }, ...filtered].slice(0, 5);
+      localStorage.setItem("luxvibe_recent_searches", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const removeRecentSearch = (name: string) => {
+    setRecentSearches((prev) => {
+      const updated = prev.filter((s) => s.name !== name);
+      localStorage.setItem("luxvibe_recent_searches", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const [dateOpen, setDateOpen] = useState(false);
   const [mobileDateOpen, setMobileDateOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
@@ -172,8 +196,9 @@ export default function SearchHero({
   useEffect(() => {
     if (initialDestination) {
       setDestination(initialDestination);
+      saveRecentSearch(initialDestination);
     }
-  }, [initialDestination]);
+  }, [initialDestination]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -234,8 +259,10 @@ export default function SearchHero({
     if (placeId) {
       params.set("placeId", placeId);
       params.set("destination", destination);
+      saveRecentSearch(destination, placeId);
     } else if (destination && destination !== "Around my area") {
       params.set("destination", destination);
+      saveRecentSearch(destination);
     }
     if (date?.from) params.set("checkIn", format(date.from, "yyyy-MM-dd"));
     if (date?.to) params.set("checkOut", format(date.to, "yyyy-MM-dd"));
@@ -395,6 +422,42 @@ export default function SearchHero({
   const autocompleteDropdown = showAutocomplete && (
     <div className="absolute top-full left-0 z-[200] mt-2 bg-white dark:bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full min-w-[280px] max-h-[380px] overflow-y-auto">
       {nearMeButton}
+      {destination.length < 2 && recentSearches.length > 0 && (
+        <div className="border-t border-border/50">
+          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recent searches</span>
+          </div>
+          {recentSearches.map((s) => (
+            <div
+              key={s.name}
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-muted/40 group cursor-pointer border-b border-border/30 last:border-none"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setDestination(s.name);
+                if (s.placeId) setPlaceId(s.placeId);
+                setShowAutocomplete(false);
+              }}
+            >
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-muted flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm font-medium text-foreground truncate">{s.name}</span>
+              <button
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200 dark:hover:bg-muted"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  removeRecentSearch(s.name);
+                }}
+                aria-label="Remove"
+                data-testid={`button-remove-recent-${s.name}`}
+              >
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       {destination.length >= 2 && placesLoading && (
         <div className="px-4 py-3 space-y-3">
           {[0, 1, 2].map((i) => (
@@ -465,6 +528,7 @@ export default function SearchHero({
               } else {
                 setDestination(name);
                 setPlaceId(place.placeId);
+                saveRecentSearch(name, place.placeId);
               }
               setShowAutocomplete(false);
             }}
@@ -1046,6 +1110,7 @@ export default function SearchHero({
                         } else {
                           setDestination(name);
                           setPlaceId(place.placeId);
+                          saveRecentSearch(name, place.placeId);
                         }
                         setShowAutocomplete(false);
                       }}
@@ -1266,6 +1331,44 @@ export default function SearchHero({
                 </div>
               </button>
 
+              {/* Recent searches (shown when < 2 chars typed) */}
+              {destination.length < 2 && recentSearches.length > 0 && (
+                <>
+                  <div className="px-4 pt-4 pb-1">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recent searches</span>
+                  </div>
+                  {recentSearches.map((s) => (
+                    <div
+                      key={s.name}
+                      className="flex items-center gap-4 px-4 py-3 border-b border-border/50 hover:bg-muted/40 active:bg-muted/60 group cursor-pointer"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setDestination(s.name);
+                        if (s.placeId) setPlaceId(s.placeId);
+                        setShowMobileDestSheet(false);
+                        setShowAutocomplete(false);
+                      }}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <span className="flex-1 text-sm font-medium text-foreground truncate">{s.name}</span>
+                      <button
+                        className="opacity-0 group-hover:opacity-60 transition-opacity p-1.5"
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          removeRecentSearch(s.name);
+                        }}
+                        aria-label="Remove"
+                      >
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+
               {/* Popular destinations (shown when < 2 chars typed) */}
               {destination.length < 2 && (
                 <>
@@ -1353,6 +1456,7 @@ export default function SearchHero({
                       } else {
                         setDestination(name);
                         setPlaceId(place.placeId);
+                        saveRecentSearch(name, place.placeId);
                         setShowMobileDestSheet(false);
                         setShowAutocomplete(false);
                       }

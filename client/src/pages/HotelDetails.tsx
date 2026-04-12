@@ -826,6 +826,29 @@ export default function HotelDetails() {
             })()}
           </div>
 
+          {/* Trust signals */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-5 text-xs text-muted-foreground" data-testid="trust-signals">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              Best rate guarantee
+            </span>
+            <span className="hidden sm:inline text-border">·</span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              No hidden fees
+            </span>
+            <span className="hidden sm:inline text-border">·</span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              Instant confirmation
+            </span>
+            <span className="hidden sm:inline text-border">·</span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              Secure payment
+            </span>
+          </div>
+
           {/* Savings tip */}
           {(() => {
             const maxDiscount = hotel.roomTypes.reduce((max: number, r: any) => Math.max(max, r.discountPercent || 0), 0);
@@ -1099,10 +1122,12 @@ export default function HotelDetails() {
 
                       {/* ── Right: rate rows ── */}
                       <div className="flex-1 divide-y divide-border/40">
-                        {group.rates.map((rate: any) => {
+                        {group.rates.map((rate: any, rateIdx: number) => {
                           const fmtPrice = (v: number) => new Intl.NumberFormat("en", { style: "currency", currency: rate.currency, maximumFractionDigits: 0 }).format(v);
                           const nightCount = rate.nights ?? differenceInDays(parseISO(checkOut), parseISO(checkIn));
                           const hasMeals = (rate.boardCode && rate.boardCode !== "RO") || (rate.mealsIncluded && rate.mealsIncluded !== "No meals included");
+                          const isTopPick = rateIdx === 0 && group.rates.length > 1;
+                          const isHighDemand = (rate.discountPercent ?? 0) >= 20;
                           return (
                             <div
                               key={rate.offerId}
@@ -1110,7 +1135,19 @@ export default function HotelDetails() {
                               data-testid={`rate-${rate.offerId}`}
                             >
                               <div className="flex-1 min-w-0 space-y-1">
-                                <p className="font-bold text-sm text-foreground">{rate.boardName}</p>
+                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                  <p className="font-bold text-sm text-foreground">{rate.boardName}</p>
+                                  {isTopPick && !isHighDemand && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40" data-testid={`badge-top-pick-${rate.offerId}`}>
+                                      Our pick
+                                    </span>
+                                  )}
+                                  {isHighDemand && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/40" data-testid={`badge-high-demand-${rate.offerId}`}>
+                                      🔥 High demand
+                                    </span>
+                                  )}
+                                </div>
                                 {hasMeals ? (
                                   <p className="text-xs text-emerald-600 flex items-center gap-1.5">
                                     <Check className="w-3.5 h-3.5 shrink-0" />

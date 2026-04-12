@@ -21,8 +21,10 @@ import {
   ArrowUpDown,
   ExternalLink,
   XCircle,
+  RefreshCw,
 } from "lucide-react";
 import { Link } from "wouter";
+import { addDays, differenceInDays, format, parseISO, isPast } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -306,6 +308,31 @@ export default function MyBookings() {
                               View
                             </Button>
                           </Link>
+
+                          {(() => {
+                            if (!booking.checkOut || !booking.hotelId) return null;
+                            const outDate = parseISO(booking.checkOut as string);
+                            if (!isPast(outDate)) return null;
+                            const nights = differenceInDays(
+                              outDate,
+                              parseISO(booking.checkIn as string),
+                            ) || 1;
+                            const newCheckIn = format(addDays(new Date(), 30), "yyyy-MM-dd");
+                            const newCheckOut = format(addDays(new Date(), 30 + nights), "yyyy-MM-dd");
+                            return (
+                              <Link href={`/hotel/${booking.hotelId}?checkIn=${newCheckIn}&checkOut=${newCheckOut}&guests=${booking.guests || 2}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs gap-1 text-primary border-primary/30 hover:bg-primary/5"
+                                  data-testid={`button-book-again-${booking.id}`}
+                                >
+                                  <RefreshCw className="w-3 h-3" />
+                                  Book again
+                                </Button>
+                              </Link>
+                            );
+                          })()}
 
                           {!isCancelled(booking.status) && (booking as any).cancellable === true && (
                             <Button
