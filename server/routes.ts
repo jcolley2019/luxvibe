@@ -1220,6 +1220,35 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/hotels/semantic-search", async (req, res) => {
+    try {
+      const query = req.query.query as string;
+      if (!query) {
+        return res.status(400).json({ message: "Query parameter is required" });
+      }
+      const data = await liteApiGet("/data/hotels/semantic-search", { query });
+      const hotels = Array.isArray(data?.data) ? data.data : [];
+      const results = hotels.map((h: any) => ({
+        id: h.id || h.hotelId || "",
+        name: h.name || "Hotel",
+        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+        city: h.city || null,
+        country: h.country || null,
+        photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
+        relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
+        semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
+        persona: h.persona || null,
+        style: h.style || null,
+        locationType: h.location_type || h.locationType || null,
+        story: h.story || h.contextual_story || null,
+      }));
+      res.json(results);
+    } catch (err: any) {
+      console.error("Semantic search error:", err?.message || err);
+      res.status(500).json({ message: "Failed to perform semantic search" });
+    }
+  });
+
   app.get(api.hotels.get.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
@@ -2368,35 +2397,6 @@ Guest question: ${question}`;
     } catch (err: any) {
       console.error("AI concierge error:", err?.message || err);
       res.status(500).json({ message: "Failed to get response from AI concierge" });
-    }
-  });
-
-  app.get("/api/hotels/semantic-search", async (req, res) => {
-    try {
-      const query = req.query.query as string;
-      if (!query) {
-        return res.status(400).json({ message: "Query parameter is required" });
-      }
-      const data = await liteApiGet("/data/hotels/semantic-search", { query });
-      const hotels = Array.isArray(data?.data) ? data.data : [];
-      const results = hotels.map((h: any) => ({
-        id: h.id || h.hotelId || "",
-        name: h.name || "Hotel",
-        address: [h.address, h.city, h.country].filter(Boolean).join(", "),
-        city: h.city || null,
-        country: h.country || null,
-        photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
-        relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
-        semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
-        persona: h.persona || null,
-        style: h.style || null,
-        locationType: h.location_type || h.locationType || null,
-        story: h.story || h.contextual_story || null,
-      }));
-      res.json(results);
-    } catch (err: any) {
-      console.error("Semantic search error:", err?.message || err);
-      res.status(500).json({ message: "Failed to perform semantic search" });
     }
   });
 
