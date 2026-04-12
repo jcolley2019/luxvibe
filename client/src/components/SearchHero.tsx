@@ -101,6 +101,101 @@ const POPULAR_DESTINATIONS = [
   { displayName: "Maldives", cityName: "Maldives", formattedAddress: "Republic of Maldives" },
 ];
 
+// Popular venues/neighborhoods shown when a city is detected in autocomplete results
+const CITY_LANDMARKS: Record<string, Array<{ label: string; search: string }>> = {
+  "denver": [
+    { label: "🎸 Red Rocks", search: "Red Rocks Amphitheatre" },
+    { label: "🏈 Empower Field", search: "Empower Field at Mile High" },
+    { label: "🏒 Ball Arena", search: "Ball Arena Denver" },
+    { label: "🍺 Coors Field", search: "Coors Field Denver" },
+    { label: "🏙️ LoDo", search: "LoDo Denver" },
+    { label: "🛍️ Cherry Creek", search: "Cherry Creek Denver" },
+  ],
+  "new york": [
+    { label: "🗽 Statue of Liberty", search: "Statue of Liberty" },
+    { label: "🌿 Central Park", search: "Central Park" },
+    { label: "⏱️ Times Square", search: "Times Square" },
+    { label: "🌉 Brooklyn Bridge", search: "Brooklyn Bridge" },
+    { label: "🏢 Empire State Bldg", search: "Empire State Building" },
+    { label: "🎭 Broadway", search: "Broadway New York" },
+    { label: "🛍️ SoHo", search: "SoHo New York" },
+    { label: "🏀 Madison Square Garden", search: "Madison Square Garden" },
+  ],
+  "las vegas": [
+    { label: "✨ The Strip", search: "Las Vegas Strip" },
+    { label: "🎰 Fremont Street", search: "Fremont Street Las Vegas" },
+    { label: "🏘️ Henderson", search: "Henderson Nevada" },
+    { label: "🏔️ Summerlin", search: "Summerlin Las Vegas" },
+    { label: "🏈 Allegiant Stadium", search: "Allegiant Stadium Las Vegas" },
+  ],
+  "miami": [
+    { label: "🏖️ South Beach", search: "South Beach Miami" },
+    { label: "🌆 Brickell", search: "Brickell Miami" },
+    { label: "🎨 Wynwood", search: "Wynwood Miami" },
+    { label: "🌴 Coral Gables", search: "Coral Gables" },
+    { label: "⛵ Coconut Grove", search: "Coconut Grove Miami" },
+  ],
+  "chicago": [
+    { label: "🏙️ The Loop", search: "The Loop Chicago" },
+    { label: "🛍️ Magnificent Mile", search: "Magnificent Mile Chicago" },
+    { label: "⚾ Wrigley Field", search: "Wrigleyville Chicago" },
+    { label: "🌊 Navy Pier", search: "Navy Pier Chicago" },
+    { label: "🌳 Lincoln Park", search: "Lincoln Park Chicago" },
+  ],
+  "los angeles": [
+    { label: "🎬 Hollywood", search: "Hollywood Los Angeles" },
+    { label: "💎 Beverly Hills", search: "Beverly Hills" },
+    { label: "🌊 Santa Monica", search: "Santa Monica" },
+    { label: "🎡 Venice Beach", search: "Venice Beach Los Angeles" },
+    { label: "🌴 Malibu", search: "Malibu California" },
+  ],
+  "san francisco": [
+    { label: "🌉 Golden Gate", search: "Golden Gate Bridge" },
+    { label: "🦭 Fisherman's Wharf", search: "Fisherman's Wharf San Francisco" },
+    { label: "🏝️ Alcatraz Area", search: "Fisherman's Wharf San Francisco" },
+    { label: "🏘️ Nob Hill", search: "Nob Hill San Francisco" },
+    { label: "🌈 Castro", search: "Castro San Francisco" },
+  ],
+  "boston": [
+    { label: "⚾ Fenway Park", search: "Fenway Park Boston" },
+    { label: "🏛️ Faneuil Hall", search: "Faneuil Hall Boston" },
+    { label: "🌿 Boston Common", search: "Boston Common" },
+    { label: "🎓 Cambridge", search: "Cambridge Massachusetts" },
+  ],
+  "seattle": [
+    { label: "🐟 Pike Place Market", search: "Pike Place Market Seattle" },
+    { label: "🗼 Space Needle", search: "Space Needle Seattle" },
+    { label: "🎨 Capitol Hill", search: "Capitol Hill Seattle" },
+  ],
+  "nashville": [
+    { label: "🎸 Broadway/Honky Tonk", search: "Broadway Nashville" },
+    { label: "🎵 Music Row", search: "Music Row Nashville" },
+    { label: "🏘️ The Gulch", search: "The Gulch Nashville" },
+    { label: "🌳 12 South", search: "12 South Nashville" },
+  ],
+  "new orleans": [
+    { label: "🎷 French Quarter", search: "French Quarter" },
+    { label: "🎺 Bourbon Street", search: "Bourbon Street New Orleans" },
+    { label: "🌿 Garden District", search: "Garden District New Orleans" },
+  ],
+  "orlando": [
+    { label: "🏰 Walt Disney World", search: "Walt Disney World" },
+    { label: "🎢 Universal Studios", search: "Universal Studios Orlando" },
+    { label: "🌴 International Drive", search: "International Drive Orlando" },
+  ],
+  "honolulu": [
+    { label: "🏖️ Waikiki Beach", search: "Waikiki Beach Honolulu" },
+    { label: "🌋 Diamond Head", search: "Diamond Head Honolulu" },
+    { label: "⚓ Pearl Harbor", search: "Pearl Harbor Honolulu" },
+  ],
+  "washington": [
+    { label: "🏛️ National Mall", search: "National Mall Washington DC" },
+    { label: "🌸 Georgetown", search: "Georgetown Washington DC" },
+    { label: "⚾ Capitol Hill", search: "Capitol Hill Washington DC" },
+    { label: "🌊 Dupont Circle", search: "Dupont Circle Washington DC" },
+  ],
+};
+
 interface SearchHeroProps {
   variant?: "hero" | "navbar";
   heroImage?: string;
@@ -549,6 +644,44 @@ export default function SearchHero({
           </button>
         );
       })}
+      {/* ── Popular in [City] landmark chips ── */}
+      {(() => {
+        const cityResult = (places as any[]).find((p: any) =>
+          p.types?.some((t: string) => ["locality", "administrative_area_level_1", "colloquial_area"].includes(t)) &&
+          !String(p.placeId).startsWith("hotel:")
+        );
+        if (!cityResult) return null;
+        const cityKey = cityResult.displayName.toLowerCase().replace(/,.*$/, "").trim();
+        const landmarks = CITY_LANDMARKS[cityKey] ??
+          Object.entries(CITY_LANDMARKS).find(([k]) => cityKey.includes(k) || k.includes(cityKey))?.[1] ??
+          null;
+        if (!landmarks || landmarks.length === 0) return null;
+        return (
+          <div className="border-t border-border/50 px-3 pt-2.5 pb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+              Popular in {cityResult.displayName.replace(/,.*$/, "")}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {landmarks.map((lm) => (
+                <button
+                  key={lm.search}
+                  className="px-2.5 py-1 text-xs rounded-full border border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors font-medium whitespace-nowrap"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setDestination(lm.search);
+                    setPlaceId("");
+                    saveRecentSearch(lm.search);
+                    setShowAutocomplete(false);
+                  }}
+                  data-testid={`chip-landmark-${lm.search.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  {lm.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 
@@ -1131,6 +1264,43 @@ export default function SearchHero({
                     </button>
                   );
                 })}
+                {/* ── Popular in [City] landmark chips (mobile compact) ── */}
+                {(() => {
+                  const cityResult = (places as any[]).find((p: any) =>
+                    p.types?.some((t: string) => ["locality", "administrative_area_level_1", "colloquial_area"].includes(t)) &&
+                    !String(p.placeId).startsWith("hotel:")
+                  );
+                  if (!cityResult) return null;
+                  const cityKey = cityResult.displayName.toLowerCase().replace(/,.*$/, "").trim();
+                  const landmarks = CITY_LANDMARKS[cityKey] ??
+                    Object.entries(CITY_LANDMARKS).find(([k]) => cityKey.includes(k) || k.includes(cityKey))?.[1] ??
+                    null;
+                  if (!landmarks || landmarks.length === 0) return null;
+                  return (
+                    <div className="border-t border-border/50 px-3 pt-2 pb-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                        Popular in {cityResult.displayName.replace(/,.*$/, "")}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {landmarks.map((lm) => (
+                          <button
+                            key={lm.search}
+                            className="px-2 py-0.5 text-[11px] rounded-full border border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors font-medium whitespace-nowrap"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setDestination(lm.search);
+                              setPlaceId("");
+                              saveRecentSearch(lm.search);
+                              setShowAutocomplete(false);
+                            }}
+                          >
+                            {lm.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
@@ -1474,6 +1644,45 @@ export default function SearchHero({
                   </button>
                 );
               })}
+
+              {/* ── Popular in [City] landmark chips (mobile sheet) ── */}
+              {destination.length >= 2 && !placesLoading && (() => {
+                const cityResult = (places as any[]).find((p: any) =>
+                  p.types?.some((t: string) => ["locality", "administrative_area_level_1", "colloquial_area"].includes(t)) &&
+                  !String(p.placeId).startsWith("hotel:")
+                );
+                if (!cityResult) return null;
+                const cityKey = cityResult.displayName.toLowerCase().replace(/,.*$/, "").trim();
+                const landmarks = CITY_LANDMARKS[cityKey] ??
+                  Object.entries(CITY_LANDMARKS).find(([k]) => cityKey.includes(k) || k.includes(cityKey))?.[1] ??
+                  null;
+                if (!landmarks || landmarks.length === 0) return null;
+                return (
+                  <div className="border-t border-border/50 px-4 pt-3 pb-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                      Popular in {cityResult.displayName.replace(/,.*$/, "")}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {landmarks.map((lm) => (
+                        <button
+                          key={lm.search}
+                          className="px-2.5 py-1 text-xs rounded-full border border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors font-medium whitespace-nowrap"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setDestination(lm.search);
+                            setPlaceId("");
+                            saveRecentSearch(lm.search);
+                            setShowMobileDestSheet(false);
+                            setShowAutocomplete(false);
+                          }}
+                        >
+                          {lm.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Matching popular destinations (supplement API results) */}
               {destination.length >= 2 && !placesLoading && (() => {
