@@ -3199,13 +3199,37 @@ ${allUrls.map(u => `  <url>
     }
   });
 
-  // GET /api/flights/airports — airport / city IATA code lookup
+  // GET /api/flights/airports — airport search via LiteAPI Flights airports API
   app.get("/api/flights/airports", async (req, res) => {
     try {
-      const q = ((req.query.q as string) || "").toUpperCase().slice(0, 10);
+      const q = ((req.query.q as string) || "").trim().toUpperCase().slice(0, 20);
       if (!q || q.length < 2) return res.json([]);
-      const data = await liteApiGet("/data/iataCodes", { iataCode: q }, 86400000);
-      res.json(data?.data || []);
+      // Try exact IATA lookup first (3-letter code)
+      if (q.length === 3) {
+        try {
+          const exact = await liteApiGet(`/data/flights/airports/iatas/${q}`, undefined, 86400000);
+          if (exact?.data) {
+            const d = exact.data;
+            return res.json([{
+              iataCode: d.iata || q,
+              name: d.name,
+              cityName: d.city,
+              countryCode: d.country,
+              state: d.state,
+            }]);
+          }
+        } catch { /* fall through to search */ }
+      }
+      // Search airports endpoint
+      const results = await liteApiGet("/data/flights/airports", { search: q }, 86400000);
+      const airports = (results?.data || []).slice(0, 8).map((d: any) => ({
+        iataCode: d.iata || d.iataCode,
+        name: d.name,
+        cityName: d.city || d.cityName,
+        countryCode: d.country || d.countryCode,
+        state: d.state,
+      }));
+      res.json(airports);
     } catch {
       res.json([]);
     }

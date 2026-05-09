@@ -23,6 +23,7 @@ interface AirportSuggestion {
   name?: string;
   cityName?: string;
   countryCode?: string;
+  state?: string;
 }
 
 interface FlightDuration { iso8601: string; minutes: number; }
@@ -115,6 +116,7 @@ function AirportInput({
   value: string; onChange: (v: string) => void; placeholder: string; label: string; testId: string;
 }) {
   const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
+  const [selectedAirport, setSelectedAirport] = useState<AirportSuggestion | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -128,15 +130,21 @@ function AirportInput({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Clear selected label when value is cleared externally
+  useEffect(() => {
+    if (!value) setSelectedAirport(null);
+  }, [value]);
+
   const handleChange = useCallback((raw: string) => {
     const v = raw.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
     onChange(v);
+    setSelectedAirport(null);
     if (debounce.current) clearTimeout(debounce.current);
     if (v.length >= 2) {
       setLoading(true);
       debounce.current = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/flights/airports?q=${v}`);
+          const res = await fetch(`/api/flights/airports?q=${encodeURIComponent(v)}`);
           const data = await res.json();
           setSuggestions(Array.isArray(data) ? data.slice(0, 6) : []);
           setOpen(true);
@@ -148,6 +156,17 @@ function AirportInput({
       setOpen(false);
     }
   }, [onChange]);
+
+  function handleSelect(s: AirportSuggestion) {
+    onChange(s.iataCode);
+    setSelectedAirport(s);
+    setOpen(false);
+    setSuggestions([]);
+  }
+
+  const subtitle = selectedAirport
+    ? [selectedAirport.cityName, selectedAirport.countryCode].filter(Boolean).join(", ")
+    : null;
 
   return (
     <div ref={ref} className="relative flex-1 min-w-0">
@@ -161,30 +180,41 @@ function AirportInput({
           onFocus={() => value.length >= 2 && suggestions.length > 0 && setOpen(true)}
           placeholder={placeholder}
           maxLength={3}
-          className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground font-mono font-semibold text-lg tracking-widest uppercase placeholder:font-sans placeholder:font-normal placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          className="w-full pl-9 pr-3 pt-3 pb-1.5 border border-border rounded-xl bg-background text-foreground font-mono font-semibold text-lg tracking-widest uppercase placeholder:font-sans placeholder:font-normal placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           data-testid={testId}
           autoComplete="off"
         />
         {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+        {subtitle && (
+          <div className="absolute left-9 bottom-1.5 text-[10px] text-muted-foreground truncate max-w-[calc(100%-3rem)] pointer-events-none">
+            {subtitle}
+          </div>
+        )}
       </div>
       <AnimatePresence>
         {open && suggestions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full mt-1 w-full min-w-[220px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
+            className="absolute top-full mt-1 w-full min-w-[260px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
           >
             {suggestions.map((s, i) => (
               <button
                 key={i}
                 type="button"
-                onMouseDown={() => { onChange(s.iataCode); setOpen(false); setSuggestions([]); }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-muted/60 transition-colors"
+                onMouseDown={() => handleSelect(s)}
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors border-b border-border last:border-0"
+                data-testid={`airport-option-${s.iataCode}`}
               >
-                <span className="font-mono font-bold text-sm text-foreground w-8 shrink-0">{s.iataCode}</span>
-                <span className="text-sm text-muted-foreground truncate">
-                  {s.cityName || s.name || s.iataCode}
-                  {s.countryCode ? `, ${s.countryCode}` : ""}
-                </span>
+                <span className="font-mono font-bold text-sm text-foreground w-8 shrink-0 mt-0.5">{s.iataCode}</span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">
+                    {s.cityName || s.name || s.iataCode}
+                    {s.countryCode ? <span className="text-muted-foreground font-normal">, {s.countryCode}</span> : null}
+                  </div>
+                  {s.name && (
+                    <div className="text-xs text-muted-foreground truncate">{s.name}</div>
+                  )}
+                </div>
               </button>
             ))}
           </motion.div>
