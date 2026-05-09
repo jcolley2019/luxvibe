@@ -23,6 +23,7 @@ import BlogIndex from "@/pages/BlogIndex";
 import BlogPost from "@/pages/BlogPost";
 import LogoAssets from "@/pages/LogoAssets";
 import About from "@/pages/About";
+import Flights from "@/pages/Flights";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/logo-assets" component={LogoAssets} />
       <Route path="/about" component={About} />
+      <Route path="/flights" component={Flights} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -3199,6 +3199,39 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/flights/airports — airport / city IATA code lookup
+  app.get("/api/flights/airports", async (req, res) => {
+    try {
+      const q = ((req.query.q as string) || "").toUpperCase().slice(0, 10);
+      if (!q || q.length < 2) return res.json([]);
+      const data = await liteApiGet("/data/iataCodes", { iataCode: q }, 86400000);
+      res.json(data?.data || []);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // POST /api/flights/search — proxy to LiteAPI Flights rates endpoint
+  app.post("/api/flights/search", async (req, res) => {
+    try {
+      const result = await fetch(`${LITEAPI_BASE}/flights/rates`, {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "X-API-Key": LITEAPI_KEY,
+        },
+        body: JSON.stringify(req.body),
+        signal: AbortSignal.timeout(30000),
+      });
+      const data = await result.json() as any;
+      res.status(result.ok ? 200 : result.status).json(data);
+    } catch (err: any) {
+      console.error("[flights/search]", err?.message);
+      res.status(500).json({ error: { message: "Failed to search flights" } });
+    }
+  });
+
   // POST /api/referrals/track — record a referral link click (no auth needed)
   app.post("/api/referrals/track", async (req, res) => {
     try {
