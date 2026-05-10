@@ -3519,6 +3519,32 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/loyalty/points — fetch loyalty points for the currently-authenticated user
+  app.get("/api/loyalty/points", async (req, res) => {
+    try {
+      const user = (req as any).user as { email?: string; id?: string } | undefined;
+      if (!user?.email) {
+        return res.json({ points: 0, upcomingPoints: 0, exists: false });
+      }
+      const data = await liteApiGet("/guests", {}, 10000) as any;
+      const guests: any[] = data?.data || [];
+      const guest = guests.find((g: any) => g.email?.toLowerCase() === user.email!.toLowerCase());
+      if (!guest) {
+        return res.json({ points: 0, upcomingPoints: 0, exists: false });
+      }
+      return res.json({
+        points: guest.points ?? 0,
+        upcomingPoints: guest.upcomingPoints ?? 0,
+        guestId: guest.id,
+        exists: true,
+        bookingCount: (guest.bookings || []).length,
+      });
+    } catch (err: any) {
+      console.error("[loyalty/points]", err?.message);
+      res.json({ points: 0, upcomingPoints: 0, exists: false });
+    }
+  });
+
   // POST /api/referrals/track — record a referral link click (no auth needed)
   app.post("/api/referrals/track", async (req, res) => {
     try {

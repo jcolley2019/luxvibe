@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2, Waves, Utensils, Car, Wifi, Dumbbell, Gem, Clock } from "lucide-react";
+import { MapPin, Heart, Tag, ThumbsUp, Sparkles, BarChart2, Waves, Utensils, Car, Wifi, Dumbbell, Gem, Clock, Coffee, Beer, ConciergeBell, Users, Flame, Bus, Sunrise } from "lucide-react";
 import type { HotelSearchResponse, HotelFeaturedResponse, SemanticHotel } from "@shared/routes";
 import { usePreferences } from "@/context/preferences";
 import { useTranslation } from "react-i18next";
@@ -7,18 +7,61 @@ import { Badge } from "@/components/ui/badge";
 import { useFavorites } from "@/context/favorites";
 
 const CARD_FACILITY_ID_ICON: Record<number, { icon: React.ElementType; label: string }> = {
-  54: { icon: Sparkles, label: "Spa/wellness center" },
-  301: { icon: Waves, label: "Swimming pool" },
-  104: { icon: Waves, label: "Outdoor pool" },
-  103: { icon: Waves, label: "Indoor pool" },
+  // Spa / wellness
+  54: { icon: Sparkles, label: "Spa" },
+  1102: { icon: Sparkles, label: "Spa" },
+  1814: { icon: Sparkles, label: "Spa" },
+  // Pools
+  301: { icon: Waves, label: "Pool" },
+  104: { icon: Waves, label: "Pool" },
+  103: { icon: Waves, label: "Pool" },
+  120: { icon: Waves, label: "Pool" },
+  122: { icon: Waves, label: "Pool" },
+  192: { icon: Waves, label: "Pool" },
+  193: { icon: Waves, label: "Pool" },
+  195: { icon: Waves, label: "Pool" },
+  832: { icon: Waves, label: "Pool" },
+  835: { icon: Waves, label: "Pool" },
+  // Food & drink
   3: { icon: Utensils, label: "Restaurant" },
+  115: { icon: Utensils, label: "Restaurant" },
+  116: { icon: Utensils, label: "Restaurant" },
+  7: { icon: Beer, label: "Bar" },
+  // Breakfast
+  24: { icon: Coffee, label: "Breakfast" },
+  529: { icon: Coffee, label: "Breakfast" },
+  // Entertainment
   30: { icon: Gem, label: "Casino" },
-  11: { icon: Dumbbell, label: "Fitness center" },
+  // Fitness
+  11: { icon: Dumbbell, label: "Gym" },
+  1725: { icon: Dumbbell, label: "Gym" },
+  530: { icon: Dumbbell, label: "Gym" },
+  // WiFi
   107: { icon: Wifi, label: "Free WiFi" },
   47: { icon: Wifi, label: "WiFi" },
+  // Parking
   2: { icon: Car, label: "Parking" },
   46: { icon: Car, label: "Free parking" },
-  52: { icon: Car, label: "Valet parking" },
+  52: { icon: Car, label: "Valet" },
+  161: { icon: Car, label: "Parking" },
+  162: { icon: Car, label: "Parking" },
+  2083: { icon: Car, label: "Parking" },
+  // Room service
+  5: { icon: ConciergeBell, label: "Room service" },
+  // Airport shuttle
+  17: { icon: Bus, label: "Shuttle" },
+  139: { icon: Bus, label: "Shuttle" },
+  140: { icon: Bus, label: "Shuttle" },
+  128: { icon: Bus, label: "Shuttle" },
+  129: { icon: Bus, label: "Shuttle" },
+  // Sauna / hot tub
+  10: { icon: Flame, label: "Sauna" },
+  63: { icon: Waves, label: "Hot tub" },
+  241: { icon: Flame, label: "Steam room" },
+  // Family
+  28: { icon: Users, label: "Family rooms" },
+  // Breakfast terrace
+  15: { icon: Sunrise, label: "Terrace" },
 };
 
 function getCardFacilityPills(facilityIds?: number[], facilities?: string[]): Array<{ icon: React.ElementType; label: string }> {
@@ -31,7 +74,7 @@ function getCardFacilityPills(facilityIds?: number[], facilities?: string[]): Ar
         seen.add(match.label);
         pills.push(match);
       }
-      if (pills.length === 2) return pills;
+      if (pills.length === 4) return pills;
     }
   }
   return pills;
@@ -208,15 +251,23 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
             <span className="line-clamp-1">{hotel.address}</span>
           </div>
 
-          {/* Facility pills */}
+          {/* Facility icons — up to 4, icon-only with tooltip */}
           {cardFacilityPills.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
+            <div className="flex items-center gap-1.5 mb-2" data-testid={`facilities-${hotel.id}`}>
               {cardFacilityPills.map(({ icon: Icon, label: pillLabel }) => (
-                <span key={pillLabel} className="text-[10px] px-2 py-0.5 rounded border border-border flex items-center gap-1 text-muted-foreground bg-muted/30">
-                  <Icon className="w-2.5 h-2.5" />
-                  {pillLabel}
+                <span
+                  key={pillLabel}
+                  title={pillLabel}
+                  className="w-7 h-7 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                >
+                  <Icon className="w-3.5 h-3.5" />
                 </span>
               ))}
+              {cardFacilityPills.length > 0 && (
+                <span className="text-[10px] text-muted-foreground ml-0.5">
+                  {cardFacilityPills.map(p => p.label).join(" · ")}
+                </span>
+              )}
             </div>
           )}
 

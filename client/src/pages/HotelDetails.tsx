@@ -15,7 +15,7 @@ import {
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
   BedDouble, Users, Maximize2, ChevronRight, CalendarDays,
-  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search
+  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search, Gem
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useFavorites } from "@/context/favorites";
@@ -60,15 +60,29 @@ function formatCancelTime(iso: string | null | undefined): string {
   }
 }
 
-const FACILITY_ICONS: Record<string, any> = {
-  "Restaurant": Utensils, "Parking": Car, "Fitness Center": Dumbbell, "Free WiFi": Wifi,
-  "Breakfast": Coffee, "Pool": Waves, "Spa": Sparkles, "Bar": Beer,
-  "Room Service": ConciergeBell, "Elevator": Building2, "Airport Shuttle": Plane,
-  "Business Center": Briefcase, "24-hour Front Desk": Clock, "Non-Smoking Rooms": Leaf,
-  "Laundry": ShowerHead, "Air Conditioning": Wind, "Pet Friendly": Leaf,
-  "Currency Exchange": Lock, "Luggage Storage": Briefcase, "Concierge": ConciergeBell,
-  "Daily Housekeeping": Bed, "Family Rooms": Building2, "Accessible": Accessibility,
-  "EV Charging": Zap, "Sauna": ShowerHead,
+const FACILITY_ICONS: Record<string, React.ElementType> = {
+  "Restaurant": Utensils, "Parking": Car, "Free parking": Car, "Valet parking": Car,
+  "Fitness center": Dumbbell, "Fitness facilities": Dumbbell, "Gym": Dumbbell,
+  "Free WiFi": Wifi, "WiFi": Wifi,
+  "Breakfast": Coffee, "Breakfast included": Coffee,
+  "Swimming pool": Waves, "Indoor pool": Waves, "Outdoor pool": Waves,
+  "Heated pool": Waves, "Pool": Waves, "Hot tub/Jacuzzi": Waves,
+  "Spa/wellness center": Sparkles, "Spa": Sparkles, "Steam room": FlameKindling,
+  "Bar": Beer,
+  "Room service": ConciergeBell, "Concierge service": ConciergeBell, "Concierge": ConciergeBell,
+  "Elevator": Building2, "Airport shuttle": Plane,
+  "Business center": Briefcase,
+  "24-hour front desk": Clock,
+  "Non-smoking rooms": Leaf,
+  "Laundry": ShowerHead,
+  "Air conditioning": Wind,
+  "Pets allowed": Leaf, "Pet Friendly": Leaf,
+  "Luggage storage": Briefcase,
+  "Daily Housekeeping": Bed, "Family rooms": Users,
+  "Wheelchair accessible": Accessibility,
+  "Electric vehicle charging station": Zap,
+  "Sauna": Flame, "Heating": Thermometer,
+  "Terrace": Leaf, "Casino": Gem,
 };
 
 const ROOM_AMENITY_ICONS: Record<string, any> = {
@@ -263,6 +277,7 @@ export default function HotelDetails() {
   }, []);
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [showAllFacilities, setShowAllFacilities] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
   const wishlist = hotel ? isFavorite(hotel.id) : false;
   const toggleWishlist = () => {
@@ -702,21 +717,41 @@ export default function HotelDetails() {
 
         {/* ─── Facilities Section ─── */}
         <div ref={sectionRefs.facilities} className="pb-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-bold">{t("hotel.popular_facilities")}</h2>
-            <button className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">{t("hotel.see_all_facilities")}</button>
+            {hotel.amenities.length > 10 && (
+              <button
+                onClick={() => setShowAllFacilities(v => !v)}
+                className="text-sm text-primary font-medium hover:underline underline-offset-2 transition-colors"
+              >
+                {showAllFacilities ? "Show less" : `Show all ${hotel.amenities.length}`}
+              </button>
+            )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-3">
-            {hotel.amenities.slice(0, 15).map((amenity) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {(showAllFacilities ? hotel.amenities : hotel.amenities.slice(0, 10)).map((amenity) => {
               const Icon = FACILITY_ICONS[amenity] || Building2;
               return (
-                <div key={amenity} className="flex items-center gap-2 text-sm text-foreground">
-                  <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span>{amenity}</span>
+                <div
+                  key={amenity}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-muted/20 hover:bg-primary/5 hover:border-primary/20 transition-colors text-center group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center shadow-sm group-hover:border-primary/30 transition-colors">
+                    <Icon className="w-4.5 h-4.5 text-primary" style={{ width: "18px", height: "18px" }} />
+                  </div>
+                  <span className="text-xs font-medium text-foreground leading-tight">{amenity}</span>
                 </div>
               );
             })}
           </div>
+          {!showAllFacilities && hotel.amenities.length > 10 && (
+            <button
+              onClick={() => setShowAllFacilities(true)}
+              className="mt-4 w-full py-2.5 text-sm font-medium text-muted-foreground border border-dashed border-border rounded-xl hover:text-foreground hover:border-border/80 hover:bg-muted/20 transition-colors"
+            >
+              + {hotel.amenities.length - 10} more amenities
+            </button>
+          )}
         </div>
 
         {/* ─── Review Highlights ─── */}

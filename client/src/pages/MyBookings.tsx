@@ -27,6 +27,9 @@ import {
   ArrowRight,
   Users,
   CheckCircle2,
+  Gift,
+  Star,
+  TrendingUp,
 } from "lucide-react";
 import { Link } from "wouter";
 import { addDays, differenceInDays, format, parseISO, isPast } from "date-fns";
@@ -235,6 +238,15 @@ export default function MyBookings() {
   });
   const flightBookings: any[] = flightBookingsData?.bookings || [];
 
+  const { data: loyaltyData } = useQuery({
+    queryKey: ["/api/loyalty/points"],
+    queryFn: async () => {
+      const res = await fetch("/api/loyalty/points");
+      return res.json() as Promise<{ points: number; upcomingPoints: number; exists: boolean; bookingCount?: number }>;
+    },
+    enabled: isAuthenticated,
+  });
+
   const cancelMutation = useMutation({
     mutationFn: (bookingId: string) =>
       apiRequest("POST", `/api/bookings/${bookingId}/cancel`),
@@ -327,6 +339,48 @@ export default function MyBookings() {
       </AlertDialog>
 
       <main className="flex-1 container mx-auto px-4 py-10 max-w-7xl">
+        {/* Loyalty Points Widget */}
+        {loyaltyData && loyaltyData.exists && (
+          <div className="mb-8 rounded-2xl overflow-hidden border border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30" data-testid="loyalty-widget">
+            <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-amber-500 flex items-center justify-center shadow-md shrink-0">
+                  <Gift className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Luxvibe Rewards</p>
+                  <p className="text-2xl font-bold text-amber-900 dark:text-amber-100 leading-none mt-0.5">
+                    {loyaltyData.points.toLocaleString()} <span className="text-base font-medium">points</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6 sm:ml-6 flex-wrap">
+                {loyaltyData.upcomingPoints > 0 && (
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <div>
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-wide font-medium">Upcoming</p>
+                      <p className="text-sm font-bold text-amber-800 dark:text-amber-200">+{loyaltyData.upcomingPoints} pts</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-wide font-medium">Earn rate</p>
+                    <p className="text-sm font-bold text-amber-800 dark:text-amber-200">1% cashback</p>
+                  </div>
+                </div>
+              </div>
+              <div className="sm:ml-auto shrink-0">
+                <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug max-w-[200px]">
+                  Points are earned on every completed stay and can be redeemed on future bookings.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold text-foreground">My bookings</h1>

@@ -35,6 +35,7 @@ import {
   Tag,
   ChevronDown,
   Check,
+  Gift,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -495,6 +496,23 @@ export default function Checkout() {
                     </div>
                   </div>
                 </div>
+
+                {/* Loyalty points earning preview */}
+                {price && Number(price) > 0 && (
+                  <div className="mt-4 flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                    <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
+                      <Gift className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-amber-900 dark:text-amber-100">
+                        Earn ~{Math.max(1, Math.round(Number(price) * 0.01))} Luxvibe reward points
+                      </p>
+                      <p className="text-[10px] text-amber-700 dark:text-amber-300">
+                        1% cashback on every booking
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="bg-muted/30 p-4">
                 <p className="text-[10px] sm:text-[11px] text-muted-foreground text-center w-full leading-relaxed">
