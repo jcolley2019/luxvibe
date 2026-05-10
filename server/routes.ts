@@ -3249,17 +3249,37 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // POST /api/flights/prebook/:prebookId/services — attach optional seat/baggage services
+  app.post("/api/flights/prebook/:prebookId/services", async (req, res) => {
+    try {
+      const { prebookId } = req.params;
+      const { services } = req.body;
+      if (!services?.length) return res.status(400).json({ message: "services array is required" });
+      const result = await fetch(`${LITEAPI_BASE}/flights/prebooks/${prebookId}/services`, {
+        method: "POST",
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        body: JSON.stringify({ services }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const data = await result.json() as any;
+      const apiKey = LITEAPI_KEY || "";
+      const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
+      const inner = data.data?.[0] ?? data.data ?? data;
+      res.status(result.ok ? 200 : result.status).json({ ...inner, paymentEnv });
+    } catch (err: any) {
+      console.error("[flights/prebook-services]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to attach services" });
+    }
+  });
+
   // POST /api/flights/book — complete a flight booking after payment
   app.post("/api/flights/book", async (req, res) => {
     try {
-      const { prebookId, transactionId, clientReference, passengers, contactEmail, contactPhone } = req.body;
+      const { prebookId, transactionId, clientReference } = req.body;
       if (!prebookId || !transactionId) return res.status(400).json({ message: "prebookId and transactionId are required" });
       const clientRef = flightPrebookRefs.get(prebookId) || clientReference;
       const bookBody: any = { prebookId, transactionId };
       if (clientRef) bookBody.clientReference = clientRef;
-      if (passengers?.length) bookBody.passengers = passengers;
-      if (contactEmail) bookBody.contactEmail = contactEmail;
-      if (contactPhone) bookBody.contactPhone = contactPhone;
       console.log("[flights/book] prebookId:", prebookId, "transactionId:", transactionId);
       const result = await fetch(`${LITEAPI_BASE}/flights/bookings`, {
         method: "POST",

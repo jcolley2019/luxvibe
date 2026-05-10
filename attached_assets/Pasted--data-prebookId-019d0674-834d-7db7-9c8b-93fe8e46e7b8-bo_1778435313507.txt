@@ -1,0 +1,328 @@
+{
+  "data": [
+    {
+      "prebookId": "019d0674-834d-7db7-9c8b-93fe8e46e7b8",
+      "booking": {
+        "timestamp": "2026-03-19T14:16:40Z",
+        "journey": {
+          "journeyKey": "30073d47d441f174",
+          "segments": [
+            {
+              "segmentKey": "b4cd7e77",
+              "originCode": "JFK",
+              "originName": "John F. Kennedy International Airport",
+              "destinationCode": "FRA",
+              "destinationName": "Frankfurt Main Airport",
+              "departureTime": "2026-07-02T16:10:00",
+              "arrivalTime": "2026-07-03T05:55:00",
+              "direction": "OUTBOUND",
+              "duration": {
+                "iso8601": "PT7H45M",
+                "minutes": 465
+              },
+              "flight": {
+                "marketingNumber": "2017",
+                "operatingNumber": "2017"
+              },
+              "carrier": {
+                "marketingCode": "DE",
+                "marketingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "marketingName": "Condor Flugdienst",
+                "operatingCode": "DE",
+                "operatingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "operatingName": "Condor Flugdienst"
+              }
+            },
+            {
+              "segmentKey": "35125125",
+              "originCode": "FRA",
+              "originName": "Frankfurt Main Airport",
+              "destinationCode": "CDG",
+              "destinationName": "Charles de Gaulle International Airport",
+              "departureTime": "2026-07-03T08:30:00",
+              "arrivalTime": "2026-07-03T09:50:00",
+              "direction": "OUTBOUND",
+              "duration": {
+                "iso8601": "PT1H20M",
+                "minutes": 80
+              },
+              "flight": {
+                "marketingNumber": "4265",
+                "operatingNumber": "4265"
+              },
+              "carrier": {
+                "marketingCode": "DE",
+                "marketingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "marketingName": "Condor Flugdienst",
+                "operatingCode": "DE",
+                "operatingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "operatingName": "Condor Flugdienst"
+              }
+            },
+            {
+              "segmentKey": "f15d5c4e",
+              "originCode": "CDG",
+              "originName": "Charles de Gaulle International Airport",
+              "destinationCode": "FRA",
+              "destinationName": "Frankfurt Main Airport",
+              "departureTime": "2026-08-02T08:25:00",
+              "arrivalTime": "2026-08-02T09:55:00",
+              "direction": "INBOUND",
+              "duration": {
+                "iso8601": "PT1H30M",
+                "minutes": 90
+              },
+              "flight": {
+                "marketingNumber": "4292",
+                "operatingNumber": "4292"
+              },
+              "carrier": {
+                "marketingCode": "DE",
+                "marketingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "marketingName": "Condor Flugdienst",
+                "operatingCode": "DE",
+                "operatingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "operatingName": "Condor Flugdienst"
+              }
+            },
+            {
+              "segmentKey": "7eccefc8",
+              "originCode": "FRA",
+              "originName": "Frankfurt Main Airport",
+              "destinationCode": "JFK",
+              "destinationName": "John F. Kennedy International Airport",
+              "departureTime": "2026-08-02T11:25:00",
+              "arrivalTime": "2026-08-02T14:10:00",
+              "direction": "INBOUND",
+              "duration": {
+                "iso8601": "PT8H45M",
+                "minutes": 525
+              },
+              "flight": {
+                "marketingNumber": "2016",
+                "operatingNumber": "2016"
+              },
+              "carrier": {
+                "marketingCode": "DE",
+                "marketingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "marketingName": "Condor Flugdienst",
+                "operatingCode": "DE",
+                "operatingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "operatingName": "Condor Flugdienst"
+              }
+            }
+          ],
+          "pricing": {
+            "display": {
+              "total": 740.27,
+              "currency": "USD",
+              "base": 421.87,
+              "fees": 0,
+              "taxes": 318.4,
+              "perPassenger": {
+                "adult": {
+                  "base": 421.87,
+                  "currency": "USD",
+                  "fees": 0,
+                  "taxes": 318.4,
+                  "total": 740.27
+                },
+                "child": {
+                  "base": 0,
+                  "currency": "USD",
+                  "fees": 0,
+                  "taxes": 0,
+                  "total": 0
+                },
+                "infant": {
+                  "base": 0,
+                  "currency": "USD",
+                  "fees": 0,
+                  "taxes": 0,
+                  "total": 0
+                }
+              }
+            },
+            "converted": true,
+            "fxInfo": {
+              "rate": 1.16860517,
+              "source": "nuitee",
+              "timestamp": "2026-03-19T13:53:04.287Z"
+            }
+          },
+          "terms": {
+            "changeable": true,
+            "refundable": false,
+            "summary": [
+              {
+                "level": "warning",
+                "message": "Change fee applies"
+              },
+              {
+                "level": "danger",
+                "message": "Non-refundable"
+              }
+            ],
+            "changeFee": {
+              "pricing": {
+                "display": {
+                  "amount": 75,
+                  "currency": "USD"
+                },
+                "converted": false
+              },
+              "percent": null,
+              "applicability": "beforeDeparture",
+              "label": "Change fee (before departure)"
+            },
+            "refundFee": null
+          }
+        },
+        "passengers": [
+          {
+            "firstName": "JOHN",
+            "lastName": "Doe",
+            "middleName": "Joshua",
+            "birthday": "1996-04-28",
+            "gender": "M",
+            "nationality": "TN",
+            "documentType": "passport",
+            "documentNumber": "123456789",
+            "documentIssueCountry": "US",
+            "documentExpiry": "2030-04-28"
+          }
+        ],
+        "order": {
+          "reference": {
+            "orderId": "OQTYXX",
+            "airlineBookings": [
+              {
+                "airlineCode": "DE",
+                "airlineName": "Condor Flugdienst",
+                "airlinePnr": "DCDE"
+              }
+            ]
+          }
+        },
+        "contact": {
+          "firstName": "JOHN",
+          "email": "j.doe@example.com"
+        },
+        "selectedServices": [
+          {
+            "passengerIndex": 0,
+            "serviceId": "g6Rwc2lk2SQwMTlkMDY3NC1hMzQzLTc0OGEtYmYyYS1jMDk4ZmNjMTk2ZGGhcMtAfB6PXCj1w6Fjo1VTRA==",
+            "quantity": 1
+          }
+        ]
+      },
+      "price": 1149.28,
+      "currency": "USD",
+      "transactionId": "tr_cts_t0LaZePPxdCM_Kyskafml",
+      "secretKey": "pi_3TChUfA4FXPoRk9Y0tQbfO9i_secret_fwHM73I5dHKOmcWJ3K468UX3g",
+      "servicesAttachable": {
+        "expiresAt": "2026-03-19T14:31:42.493Z",
+        "groups": [
+          {
+            "available": true,
+            "category": "seat",
+            "label": "Seat Selection",
+            "services": [
+              {
+                "serviceId": "g6Rwc2lk2SQwMTlkMDY3NC1hYWY1LTczMjktODhiNy03OTdlNTc5YWJmZjWhcMtANdR64UeuFKFjo1VTRA==",
+                "name": "Seat 7A",
+                "category": "seat",
+                "passengerType": "ALL",
+                "segmentKey": "35125125",
+                "pricing": {
+                  "display": {
+                    "amount": 21.83,
+                    "currency": "USD"
+                  },
+                  "converted": true,
+                  "fxInfo": {
+                    "rate": 1.16860517,
+                    "source": "nuitee",
+                    "timestamp": "2026-03-19T13:53:04.287Z"
+                  }
+                },
+                "metadata": {
+                  "seat": {
+                    "available": true,
+                    "position": "window",
+                    "seatColumn": "A",
+                    "seatNumber": "7A",
+                    "seatRow": 7,
+                    "seatType": "extra_legroom"
+                  }
+                }
+              },
+              {
+                "serviceId": "g6Rwc2lk2SQwMTlkMDY3NC1hYWY1LTczMjktODhiNy03OTdmZmYzMTczMGWhcMtANdR64UeuFKFjo1VTRA==",
+                "name": "Seat 7B",
+                "category": "seat",
+                "passengerType": "ALL",
+                "segmentKey": "35125125",
+                "pricing": {
+                  "display": {
+                    "amount": 21.83,
+                    "currency": "USD"
+                  },
+                  "converted": true,
+                  "fxInfo": {
+                    "rate": 1.16860517,
+                    "source": "nuitee",
+                    "timestamp": "2026-03-19T13:53:04.287Z"
+                  }
+                },
+                "metadata": {
+                  "seat": {
+                    "available": true,
+                    "position": "middle",
+                    "seatColumn": "B",
+                    "seatNumber": "7B",
+                    "seatRow": 7,
+                    "seatType": "standard"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "available": true,
+            "category": "baggage",
+            "label": "Extra Baggage",
+            "services": [
+              {
+                "serviceId": "g6Rwc2lk2SQwMTlkMDY3NC1iYWcxLTczMjktODhiNy04OTdlNTc5YWJmZjWhcMtANdR64UeuFKFjo1VTRA==",
+                "name": "Standard Check In Baggage 10kg",
+                "category": "baggage",
+                "passengerType": "ALL",
+                "segmentKey": "35125125",
+                "pricing": {
+                  "display": {
+                    "amount": 13.62,
+                    "currency": "USD"
+                  },
+                  "converted": true,
+                  "fxInfo": {
+                    "rate": 1.16860517,
+                    "source": "nuitee",
+                    "timestamp": "2026-03-19T13:53:04.287Z"
+                  }
+                },
+                "metadata": {
+                  "baggage": {
+                    "bagType": "checked",
+                    "pieces": 1,
+                    "weightKg": 10
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
