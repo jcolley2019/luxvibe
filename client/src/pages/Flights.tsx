@@ -556,8 +556,9 @@ function FlightCheckoutSheet({
   journey: FlightJourney; offer: FlightOffer; adults: number; children: number; infants: number;
   currency: string; open: boolean; onClose: () => void;
 }) {
-  type CheckoutStep = "form" | "payment";
-  const [step, setStep] = useState<CheckoutStep>("form");
+  type CheckoutStep = "verifying" | "form" | "payment";
+  const [step, setStep] = useState<CheckoutStep>("verifying");
+  const [verifyData, setVerifyData] = useState<any>(null);
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [sdkInit, setSdkInit] = useState(false);
@@ -569,15 +570,41 @@ function FlightCheckoutSheet({
   ];
 
   const [passengers, setPassengers] = useState(() =>
-    passengerTypes.map(p => ({ type: p.type, firstName: "", lastName: "", dateOfBirth: "", nationality: "", gender: "M" as "M" | "F" }))
+    passengerTypes.map(p => ({
+      type: p.type, firstName: "", lastName: "", birthday: "",
+      nationality: "", gender: "M" as "M" | "F",
+      documentType: "passport", documentNumber: "", documentIssueCountry: "", documentExpiry: "",
+    }))
   );
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
+  const [contact, setContact] = useState({ firstName: "", email: "" });
   const [formErrors, setFormErrors] = useState<string[]>([]);
+
+  const verify = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/flights/verify", { offerId: offer.offerId });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      const journey = data.data?.[0]?.journey || data.data?.journey || data.journey;
+      setVerifyData(journey);
+      setStep("form");
+    },
+    onError: () => setStep("form"),
+  });
 
   const prebook = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/flights/prebook", { offerId: offer.offerId });
+      const res = await apiRequest("POST", "/api/flights/prebook", {
+        offerId: offer.offerId,
+        passengers: passengers.map(p => ({
+          type: p.type, firstName: p.firstName, lastName: p.lastName,
+          birthday: p.birthday, gender: p.gender, nationality: p.nationality,
+          documentType: p.documentType, documentNumber: p.documentNumber,
+          documentIssueCountry: p.documentIssueCountry || p.nationality,
+          documentExpiry: p.documentExpiry,
+        })),
+        contact,
+      });
       const data = await res.json();
       if (data.error || data.message) throw new Error(data.message || data.error?.message || "Prebook failed");
       return data;
@@ -585,7 +612,7 @@ function FlightCheckoutSheet({
     onSuccess: (data) => {
       setPrebookData(data);
       sessionStorage.setItem("flightPassengers", JSON.stringify(passengers));
-      sessionStorage.setItem("flightContact", JSON.stringify({ email: contactEmail, phone: contactPhone }));
+      sessionStorage.setItem("flightContact", JSON.stringify(contact));
       sessionStorage.setItem("flightData", JSON.stringify({
         origin: journey.segments[0]?.originCode,
         destination: journey.segments[journey.segments.length - 1]?.destinationCode,
@@ -624,22 +651,27 @@ function FlightCheckoutSheet({
   }, [sdkLoaded, prebookData, sdkInit]);
 
   useEffect(() => {
-    if (!open) {
-      setStep("form"); setPrebookData(null); setSdkLoaded(false); setSdkInit(false);
-      setFormErrors([]); prebook.reset();
+    if (open) { verify.mutate(); }
+    else {
+      setStep("verifying"); setVerifyData(null); setPrebookData(null);
+      setSdkLoaded(false); setSdkInit(false); setFormErrors([]);
+      prebook.reset(); verify.reset();
     }
   }, [open]);
 
   function validate() {
     const errs: string[] = [];
     passengers.forEach((p, i) => {
-      if (!p.firstName.trim()) errs.push(`Passenger ${i + 1}: first name required`);
-      if (!p.lastName.trim()) errs.push(`Passenger ${i + 1}: last name required`);
-      if (!p.dateOfBirth) errs.push(`Passenger ${i + 1}: date of birth required`);
-      if (!p.nationality.trim() || p.nationality.length !== 2) errs.push(`Passenger ${i + 1}: 2-letter nationality code required (e.g. US)`);
+      const n = i + 1;
+      if (!p.firstName.trim()) errs.push(`Passenger ${n}: first name required`);
+      if (!p.lastName.trim()) errs.push(`Passenger ${n}: last name required`);
+      if (!p.birthday) errs.push(`Passenger ${n}: date of birth required`);
+      if (!p.nationality.trim() || p.nationality.length !== 2) errs.push(`Passenger ${n}: 2-letter nationality required (e.g. US)`);
+      if (!p.documentNumber.trim()) errs.push(`Passenger ${n}: passport number required`);
+      if (!p.documentExpiry) errs.push(`Passenger ${n}: passport expiry required`);
     });
-    if (!contactEmail.includes("@")) errs.push("Valid contact email required");
-    if (!contactPhone.trim()) errs.push("Contact phone number required");
+    if (!contact.firstName.trim()) errs.push("Contact first name required");
+    if (!contact.email.includes("@")) errs.push("Valid contact email required");
     return errs;
   }
 
@@ -707,8 +739,26 @@ function FlightCheckoutSheet({
             )}
           </div>
 
+          {step === "verifying" && (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <Loader2 className="w-7 h-7 text-primary animate-spin" />
+              <p className="text-sm font-medium text-foreground">Verifying latest price…</p>
+              <p className="text-xs text-muted-foreground">Confirming availability with the airline</p>
+            </div>
+          )}
+
           {step === "form" && (
             <div className="px-6 py-5 space-y-6">
+              {verifyData?.pricing && (
+                <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    Price confirmed: <span className="font-bold">{formatPrice(verifyData.pricing.display.total)}</span>
+                    {verifyData.terms?.summary?.[0] && <span className="ml-2 opacity-70">· {verifyData.terms.summary[0].message}</span>}
+                  </p>
+                </div>
+              )}
+
               {passengerTypes.map((pt, i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -731,10 +781,10 @@ function FlightCheckoutSheet({
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-1">
+                    <div>
                       <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date of Birth *</label>
-                      <Input type="date" value={passengers[i].dateOfBirth}
-                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, dateOfBirth: e.target.value } : p))}
+                      <Input type="date" value={passengers[i].birthday}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, birthday: e.target.value } : p))}
                         className="mt-1 rounded-xl" data-testid={`input-pax-${i}-dob`} />
                     </div>
                     <div>
@@ -758,6 +808,26 @@ function FlightCheckoutSheet({
                       </div>
                     </div>
                   </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Passport No. *</label>
+                      <Input value={passengers[i].documentNumber}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, documentNumber: e.target.value.toUpperCase() } : p))}
+                        placeholder="AB1234567" className="mt-1 rounded-xl font-mono uppercase" data-testid={`input-pax-${i}-docnum`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expiry *</label>
+                      <Input type="date" value={passengers[i].documentExpiry}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, documentExpiry: e.target.value } : p))}
+                        className="mt-1 rounded-xl" data-testid={`input-pax-${i}-docexp`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Issue Country</label>
+                      <Input value={passengers[i].documentIssueCountry} maxLength={2}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, documentIssueCountry: e.target.value.toUpperCase().slice(0, 2) } : p))}
+                        placeholder={passengers[i].nationality || "US"} className="mt-1 rounded-xl font-mono uppercase tracking-widest" data-testid={`input-pax-${i}-issuecc`} />
+                    </div>
+                  </div>
                 </div>
               ))}
 
@@ -766,17 +836,17 @@ function FlightCheckoutSheet({
                   <ShieldCheck className="w-4 h-4 text-muted-foreground" />
                   <h3 className="text-sm font-semibold text-foreground">Contact Details</h3>
                 </div>
-                <p className="text-xs text-muted-foreground">Your e-ticket and booking confirmation will be sent here.</p>
+                <p className="text-xs text-muted-foreground">E-ticket and booking confirmation will be sent to this email.</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email *</label>
-                    <Input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)}
-                      placeholder="you@example.com" className="mt-1 rounded-xl" data-testid="input-contact-email" />
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name *</label>
+                    <Input value={contact.firstName} onChange={e => setContact(c => ({ ...c, firstName: e.target.value }))}
+                      placeholder="John" className="mt-1 rounded-xl" data-testid="input-contact-name" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone *</label>
-                    <Input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)}
-                      placeholder="+1 555 000 0000" className="mt-1 rounded-xl" data-testid="input-contact-phone" />
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email *</label>
+                    <Input type="email" value={contact.email} onChange={e => setContact(c => ({ ...c, email: e.target.value }))}
+                      placeholder="you@example.com" className="mt-1 rounded-xl" data-testid="input-contact-email" />
                   </div>
                 </div>
               </div>
@@ -798,7 +868,7 @@ function FlightCheckoutSheet({
                   data-testid="button-proceed-payment">
                   {prebook.isPending
                     ? <><Loader2 className="w-5 h-5 animate-spin" /> Reserving flight…</>
-                    : <><CreditCard className="w-5 h-5" /> Proceed to Payment — {formatPrice(offer.pricing.display.total)}</>
+                    : <><CreditCard className="w-5 h-5" /> Proceed to Payment — {formatPrice(verifyData?.pricing?.display?.total ?? offer.pricing.display.total)}</>
                   }
                 </Button>
                 <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">

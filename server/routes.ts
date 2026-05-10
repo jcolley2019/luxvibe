@@ -3201,23 +3201,45 @@ ${allUrls.map(u => `  <url>
     }
   });
 
-  // POST /api/flights/prebook — create checkout session (prebook) via LiteAPI Flights
-  app.post("/api/flights/prebook", async (req, res) => {
+  // POST /api/flights/verify — verify offer pricing before prebook
+  app.post("/api/flights/verify", async (req, res) => {
     try {
       const { offerId } = req.body;
       if (!offerId) return res.status(400).json({ message: "offerId is required" });
+      const result = await fetch(`${LITEAPI_BASE}/flights/verify`, {
+        method: "POST",
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        body: JSON.stringify({ offerId }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const data = await result.json() as any;
+      res.status(result.ok ? 200 : result.status).json(data);
+    } catch (err: any) {
+      console.error("[flights/verify]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to verify flight offer" });
+    }
+  });
+
+  // POST /api/flights/prebook — create checkout session (prebook) via LiteAPI Flights
+  app.post("/api/flights/prebook", async (req, res) => {
+    try {
+      const { offerId, passengers, contact } = req.body;
+      if (!offerId) return res.status(400).json({ message: "offerId is required" });
       const clientRef = `flt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const prebookBody: any = { offerId, usePaymentSdk: true, clientReference: clientRef };
+      if (passengers?.length) prebookBody.passengers = passengers;
+      if (contact) prebookBody.contact = contact;
       const result = await fetch(`${LITEAPI_BASE}/flights/prebooks`, {
         method: "POST",
         headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
-        body: JSON.stringify({ offerId, usePaymentSdk: true, clientReference: clientRef }),
+        body: JSON.stringify(prebookBody),
         signal: AbortSignal.timeout(30000),
       });
       const data = await result.json() as any;
       if (data?.error) return res.status(400).json({ message: data.error?.message || JSON.stringify(data.error) });
       const apiKey = LITEAPI_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
-      const inner = data.data || data;
+      const inner = data.data?.[0] ?? data.data ?? data;
       if (inner.prebookId) flightPrebookRefs.set(inner.prebookId, clientRef);
       console.log("[flights/prebook] prebookId:", inner.prebookId, "clientRef:", clientRef);
       res.json({ ...inner, paymentEnv, publicKey: apiKey, clientReference: clientRef });

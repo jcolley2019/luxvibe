@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import {
-  Plane, CheckCircle2, XCircle, Loader2, Calendar, Mail, Phone,
+  Plane, CheckCircle2, XCircle, Loader2, Calendar, Mail,
   ArrowRight, Download, Home, Users,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -25,7 +25,7 @@ export default function FlightConfirmation() {
   const transactionId = params.get("transactionId");
 
   const [passengers, setPassengers] = useState<any[]>([]);
-  const [contact, setContact] = useState<{ email: string; phone: string }>({ email: "", phone: "" });
+  const [contact, setContact] = useState<{ firstName: string; email: string }>({ firstName: "", email: "" });
   const [flightData, setFlightData] = useState<any>(null);
 
   useEffect(() => {
@@ -45,9 +45,6 @@ export default function FlightConfirmation() {
       const res = await apiRequest("POST", "/api/flights/book", {
         prebookId,
         transactionId,
-        passengers,
-        contactEmail: contact.email,
-        contactPhone: contact.phone,
       });
       return res.json();
     },
@@ -198,19 +195,10 @@ export default function FlightConfirmation() {
                 </div>
               )}
 
-              {(contact.email || contact.phone) && (
+              {contact.email && (
                 <div className="px-5 py-4">
-                  <div className="space-y-1.5">
-                    {contact.email && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="w-4 h-4" /> {contact.email}
-                      </div>
-                    )}
-                    {contact.phone && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="w-4 h-4" /> {contact.phone}
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="w-4 h-4" /> {contact.email}
                   </div>
                 </div>
               )}
