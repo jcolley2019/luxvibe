@@ -3301,6 +3301,27 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/flights/bookings — list all flight bookings (optional ?airlinePnr=&lastName=)
+  app.get("/api/flights/bookings", async (req, res) => {
+    try {
+      const params = new URLSearchParams();
+      if (req.query.airlinePnr) params.set("airlinePnr", String(req.query.airlinePnr));
+      if (req.query.lastName) params.set("lastName", String(req.query.lastName));
+      const url = `${LITEAPI_BASE}/flights/bookings${params.toString() ? `?${params}` : ""}`;
+      const result = await fetch(url, {
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY },
+        signal: AbortSignal.timeout(15000),
+      });
+      const data = await result.json() as any;
+      // Response shape: data[0].bookings[]
+      const bookings = data?.data?.[0]?.bookings || [];
+      res.status(result.ok ? 200 : result.status).json({ bookings });
+    } catch (err: any) {
+      console.error("[flights/bookings/list]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to list flight bookings" });
+    }
+  });
+
   // GET /api/flights/bookings/:bookingId — get booking details
   app.get("/api/flights/bookings/:bookingId", async (req, res) => {
     try {
