@@ -42,9 +42,9 @@ export function useFeaturedHotels() {
   const { currency, language } = usePreferences();
   const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.featured.path, currency, guestNationality],
+    queryKey: [api.hotels.featured.path, currency, guestNationality, language],
     queryFn: async () => {
-      const res = await fetch(`${api.hotels.featured.path}?currency=${currency}&guestNationality=${guestNationality}`);
+      const res = await fetch(`${api.hotels.featured.path}?currency=${currency}&guestNationality=${guestNationality}&language=${language}`);
       if (!res.ok) throw new Error("Failed to fetch featured hotels");
       return api.hotels.featured.responses[200].parse(await res.json());
     },
@@ -75,6 +75,7 @@ export function useSearchHotels(params: {
       if (params.guests) queryParams.set("guests", params.guests);
       queryParams.set("currency", currency);
       queryParams.set("guestNationality", guestNationality);
+      queryParams.set("language", language);
 
       const res = await fetch(`${url}?${queryParams.toString()}`);
       if (!res.ok) {
@@ -91,10 +92,10 @@ export function useNearbyHotels(coords: { lat: number; lng: number } | null) {
   const { currency, language } = usePreferences();
   const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery<NearbyHotel[]>({
-    queryKey: [api.hotels.nearby.path, coords, currency, guestNationality],
+    queryKey: [api.hotels.nearby.path, coords, currency, guestNationality, language],
     queryFn: async () => {
       const res = await fetch(
-        `${api.hotels.nearby.path}?lat=${coords!.lat}&lng=${coords!.lng}&currency=${currency}&guestNationality=${guestNationality}`
+        `${api.hotels.nearby.path}?lat=${coords!.lat}&lng=${coords!.lng}&currency=${currency}&guestNationality=${guestNationality}&language=${language}`
       );
       if (!res.ok) throw new Error("Failed to fetch nearby hotels");
       return res.json();
@@ -108,9 +109,9 @@ export function useLasVegasHotels() {
   const { currency, language } = usePreferences();
   const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery<{ strip: NearbyHotel[]; downtown: NearbyHotel[] }>({
-    queryKey: ["/api/hotels/las-vegas", currency, guestNationality],
+    queryKey: ["/api/hotels/las-vegas", currency, guestNationality, language],
     queryFn: async () => {
-      const res = await fetch(`/api/hotels/las-vegas?currency=${currency}&guestNationality=${guestNationality}`);
+      const res = await fetch(`/api/hotels/las-vegas?currency=${currency}&guestNationality=${guestNationality}&language=${language}`);
       if (!res.ok) throw new Error("Failed to fetch Las Vegas hotels");
       return res.json();
     },
@@ -122,7 +123,7 @@ export function useSimilarHotels(id: string, params?: { checkIn?: string; checkO
   const { currency, language } = usePreferences();
   const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.similar.path, id, params?.checkIn, params?.checkOut, params?.guests, currency, guestNationality],
+    queryKey: [api.hotels.similar.path, id, params?.checkIn, params?.checkOut, params?.guests, currency, guestNationality, language],
     queryFn: async () => {
       let url = buildUrl(api.hotels.similar.path, { id });
       const qs = new URLSearchParams();
@@ -131,6 +132,7 @@ export function useSimilarHotels(id: string, params?: { checkIn?: string; checkO
       if (params?.guests) qs.set("guests", params.guests);
       qs.set("currency", currency);
       qs.set("guestNationality", guestNationality);
+      qs.set("language", language);
       url += `?${qs.toString()}`;
       const res = await fetch(url);
       if (!res.ok) return [];
@@ -177,7 +179,7 @@ export function useHotel(id: string, params?: { checkIn?: string; checkOut?: str
   const { currency, language } = usePreferences();
   const guestNationality = LANG_TO_NATIONALITY[language] || "US";
   return useQuery({
-    queryKey: [api.hotels.get.path, id, params, currency, guestNationality],
+    queryKey: [api.hotels.get.path, id, params, currency, guestNationality, language],
     queryFn: async () => {
       let url = buildUrl(api.hotels.get.path, { id });
       const queryParams = new URLSearchParams();
@@ -186,6 +188,7 @@ export function useHotel(id: string, params?: { checkIn?: string; checkOut?: str
       if (params?.guests) queryParams.set("guests", params.guests);
       queryParams.set("currency", currency);
       queryParams.set("guestNationality", guestNationality);
+      queryParams.set("language", language);
       url += `?${queryParams.toString()}`;
       const res = await fetch(url);
       if (res.status === 404) return null;

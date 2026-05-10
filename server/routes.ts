@@ -172,6 +172,19 @@ async function geocodeHotel(name: string, city: string, countryCode: string): Pr
 
 const LITEAPI_KEY = process.env.LITEAPI_KEY_PRODUCTION || process.env.LITEAPI_KEY!;
 
+// LiteAPI supports these language codes for hotel content (names, descriptions, amenities).
+// English is the default — we only pass the param when the user has selected a non-English language.
+const LITEAPI_CONTENT_LANG_MAP: Record<string, string> = {
+  FR: "fr", ES: "es", DE: "de", IT: "it", PT: "pt", NL: "nl",
+  TR: "tr", RU: "ru", JA: "ja", ZH: "zh", AR: "ar", EL: "el", RO: "ro",
+  // BG, CA, CS, DA, ET, FI, HR, HU, LT, LV, NB, PL, SK, SL, SV, UK
+  // are supported by LiteAPI but not currently in the app's UI language list
+};
+function toLiteApiLang(appLang?: string): string | undefined {
+  if (!appLang) return undefined;
+  return LITEAPI_CONTENT_LANG_MAP[appLang.toUpperCase()];
+}
+
 async function liteApiGet(path: string, params?: Record<string, string>, ttlMs?: number) {
   const url = new URL(`${LITEAPI_BASE}${path}`);
   if (params) {
@@ -569,8 +582,9 @@ export async function registerRoutes(
 
   app.get(api.hotels.featured.path, async (req, res) => {
     try {
-      const { currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
-      const cacheKey = `featured_${currency}_${guestNationality}`;
+      const { currency = "USD", guestNationality = "US", language } = req.query as Record<string, string>;
+      const contentLang = toLiteApiLang(language);
+      const cacheKey = `featured_${currency}_${guestNationality}_${contentLang || "en"}`;
       const cached = apiCache.get(cacheKey);
       if (cached) return res.json(cached);
 
@@ -591,6 +605,7 @@ export async function registerRoutes(
               countryCode,
               limit: String(limit),
               offset: "0",
+              ...(contentLang ? { language: contentLang } : {}),
             });
             const hotels = data?.data || [];
             const scored = hotels
@@ -679,7 +694,8 @@ export async function registerRoutes(
 
   app.get("/api/hotels/las-vegas", async (req, res) => {
     try {
-      const { currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
+      const { currency = "USD", guestNationality = "US", language } = req.query as Record<string, string>;
+      const contentLang = toLiteApiLang(language);
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dayAfter = new Date();
@@ -709,6 +725,7 @@ export async function registerRoutes(
         countryCode: "US",
         limit: "100",
         offset: "0",
+        ...(contentLang ? { language: contentLang } : {}),
       });
 
       const raw: any[] = data?.data || [];
@@ -777,7 +794,8 @@ export async function registerRoutes(
   app.get(api.hotels.nearby.path, async (req, res) => {
     try {
       res.set("Cache-Control", "no-store");
-      const { lat, lng, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
+      const { lat, lng, currency = "USD", guestNationality = "US", language } = req.query as Record<string, string>;
+      const contentLang = toLiteApiLang(language);
       if (!lat || !lng) {
         return res.status(400).json({ message: "lat and lng are required" });
       }
@@ -884,6 +902,7 @@ export async function registerRoutes(
           countryCode: country,
           limit: "50",
           offset: "0",
+          ...(contentLang ? { language: contentLang } : {}),
         });
         return ((data?.data || []) as any[]).map((h: any) => {
           const facilityIds: number[] = h.facilityIds || [];
@@ -1114,9 +1133,10 @@ export async function registerRoutes(
 
   app.get(api.hotels.search.path, async (req, res) => {
     try {
-      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
+      const { destination, placeId, aiSearch, checkIn, checkOut, guests, children, roomConfig, currency = "USD", guestNationality = "US", language } = req.query as Record<string, string>;
+      const contentLang = toLiteApiLang(language);
 
-      const cacheKey = `search_${destination || placeId || aiSearch}_${checkIn}_${checkOut}_${currency}_${guestNationality}`;
+      const cacheKey = `search_${destination || placeId || aiSearch}_${checkIn}_${checkOut}_${currency}_${guestNationality}_${contentLang || "en"}`;
       const cached = apiCache.get(cacheKey);
       if (cached) return res.json(cached);
 
@@ -1497,9 +1517,10 @@ export async function registerRoutes(
   app.get(api.hotels.get.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
-      const { checkIn, checkOut, guests, currency = "USD", guestNationality = "US" } = req.query as Record<string, string>;
+      const { checkIn, checkOut, guests, currency = "USD", guestNationality = "US", language } = req.query as Record<string, string>;
+      const contentLang = toLiteApiLang(language);
 
-      const hotelsData = await liteApiGet("/data/hotel", { hotelId });
+      const hotelsData = await liteApiGet("/data/hotel", { hotelId, ...(contentLang ? { language: contentLang } : {}) });
       const hotelRaw = hotelsData?.data?.[0] ?? hotelsData?.data;
       if (!hotelRaw) {
         return res.status(404).json({ message: "Hotel not found" });
