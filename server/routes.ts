@@ -130,6 +130,8 @@ const geocodeCache = new ApiCache();
 // In-memory map: prebookId → unique clientReference generated at prebook time
 // Ensures each booking attempt has a distinct clientReference, preventing 4005 duplicates
 const prebookClientRefs = new Map<string, string>();
+// Flight prebook refs: prebookId → clientReference
+const flightPrebookRefs = new Map<string, string>();
 
 // Persist a bookingId → guestEmail association in the DB so My Bookings survives restarts
 async function recordBookingRef(userId: string | null, bookingId: string, guestEmail: string, clientReference: string) {
@@ -3196,6 +3198,59 @@ ${allUrls.map(u => `  <url>
       res.type("application/xml").send(xml);
     } catch (err: any) {
       res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // POST /api/flights/prebook — create checkout session (prebook) via LiteAPI Flights
+  app.post("/api/flights/prebook", async (req, res) => {
+    try {
+      const { offerId } = req.body;
+      if (!offerId) return res.status(400).json({ message: "offerId is required" });
+      const clientRef = `flt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const result = await fetch(`${LITEAPI_BASE}/flights/prebooks`, {
+        method: "POST",
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        body: JSON.stringify({ offerId, usePaymentSdk: true, clientReference: clientRef }),
+        signal: AbortSignal.timeout(30000),
+      });
+      const data = await result.json() as any;
+      if (data?.error) return res.status(400).json({ message: data.error?.message || JSON.stringify(data.error) });
+      const apiKey = LITEAPI_KEY || "";
+      const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
+      const inner = data.data || data;
+      if (inner.prebookId) flightPrebookRefs.set(inner.prebookId, clientRef);
+      console.log("[flights/prebook] prebookId:", inner.prebookId, "clientRef:", clientRef);
+      res.json({ ...inner, paymentEnv, publicKey: apiKey, clientReference: clientRef });
+    } catch (err: any) {
+      console.error("[flights/prebook]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to prebook flight" });
+    }
+  });
+
+  // POST /api/flights/book — complete a flight booking after payment
+  app.post("/api/flights/book", async (req, res) => {
+    try {
+      const { prebookId, transactionId, clientReference, passengers, contactEmail, contactPhone } = req.body;
+      if (!prebookId || !transactionId) return res.status(400).json({ message: "prebookId and transactionId are required" });
+      const clientRef = flightPrebookRefs.get(prebookId) || clientReference;
+      const bookBody: any = { prebookId, transactionId };
+      if (clientRef) bookBody.clientReference = clientRef;
+      if (passengers?.length) bookBody.passengers = passengers;
+      if (contactEmail) bookBody.contactEmail = contactEmail;
+      if (contactPhone) bookBody.contactPhone = contactPhone;
+      console.log("[flights/book] prebookId:", prebookId, "transactionId:", transactionId);
+      const result = await fetch(`${LITEAPI_BASE}/flights/bookings`, {
+        method: "POST",
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        body: JSON.stringify(bookBody),
+        signal: AbortSignal.timeout(30000),
+      });
+      const data = await result.json() as any;
+      console.log("[flights/book] HTTP status:", result.status);
+      res.status(result.ok ? 200 : result.status).json(data);
+    } catch (err: any) {
+      console.error("[flights/book]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to complete flight booking" });
     }
   });
 

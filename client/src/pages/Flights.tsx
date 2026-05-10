@@ -3,6 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +13,7 @@ import {
   Plane, ArrowLeftRight, ChevronDown, ChevronUp, Users, Search,
   Loader2, AlertCircle, Luggage, X, SlidersHorizontal, Clock,
   Check, RefreshCw, Wifi, Tv, Zap, Coffee, Armchair, Info,
+  CreditCard, ShieldCheck,
 } from "lucide-react";
 import { usePreferences } from "@/context/preferences";
 
@@ -297,7 +300,7 @@ function PassengerSelector({
   );
 }
 
-function FlightCard({ journey, currency, adults }: { journey: FlightJourney; currency: string; adults: number; }) {
+function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJourney; currency: string; adults: number; onSelect: () => void; }) {
   const [expanded, setExpanded] = useState(false);
   const offer = journey.offers[0];
   if (!offer) return null;
@@ -446,6 +449,7 @@ function FlightCard({ journey, currency, adults }: { journey: FlightJourney; cur
           </div>
           <Button
             size="sm"
+            onClick={onSelect}
             className="rounded-full px-5 font-semibold"
             data-testid={`button-select-flight-${journey.journeyKey}`}
           >
@@ -546,6 +550,280 @@ function FlightCard({ journey, currency, adults }: { journey: FlightJourney; cur
   );
 }
 
+function FlightCheckoutSheet({
+  journey, offer, adults, children, infants, currency, open, onClose,
+}: {
+  journey: FlightJourney; offer: FlightOffer; adults: number; children: number; infants: number;
+  currency: string; open: boolean; onClose: () => void;
+}) {
+  type CheckoutStep = "form" | "payment";
+  const [step, setStep] = useState<CheckoutStep>("form");
+  const [prebookData, setPrebookData] = useState<any>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkInit, setSdkInit] = useState(false);
+
+  const passengerTypes = [
+    ...Array(adults).fill(null).map((_, i) => ({ type: "ADT" as const, label: `Adult ${adults > 1 ? i + 1 : ""}`.trim() })),
+    ...Array(children).fill(null).map((_, i) => ({ type: "CHD" as const, label: `Child ${children > 1 ? i + 1 : ""}`.trim() })),
+    ...Array(infants).fill(null).map((_, i) => ({ type: "INF" as const, label: `Infant ${infants > 1 ? i + 1 : ""}`.trim() })),
+  ];
+
+  const [passengers, setPassengers] = useState(() =>
+    passengerTypes.map(p => ({ type: p.type, firstName: "", lastName: "", dateOfBirth: "", nationality: "", gender: "M" as "M" | "F" }))
+  );
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+
+  const prebook = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/flights/prebook", { offerId: offer.offerId });
+      const data = await res.json();
+      if (data.error || data.message) throw new Error(data.message || data.error?.message || "Prebook failed");
+      return data;
+    },
+    onSuccess: (data) => {
+      setPrebookData(data);
+      sessionStorage.setItem("flightPassengers", JSON.stringify(passengers));
+      sessionStorage.setItem("flightContact", JSON.stringify({ email: contactEmail, phone: contactPhone }));
+      sessionStorage.setItem("flightData", JSON.stringify({
+        origin: journey.segments[0]?.originCode,
+        destination: journey.segments[journey.segments.length - 1]?.destinationCode,
+        departTime: journey.segments[0]?.departureTime,
+        price: offer.pricing.display.total,
+        currency: offer.pricing.display.currency || currency,
+      }));
+      if (!document.querySelector('script[src*="liteAPIPayment"]')) {
+        const s = document.createElement("script");
+        s.src = "https://payment-wrapper.liteapi.travel/dist/liteAPIPayment.js?v=a1";
+        s.async = true;
+        s.onload = () => setSdkLoaded(true);
+        document.body.appendChild(s);
+      } else if ((window as any).LiteAPIPayment) {
+        setSdkLoaded(true);
+      }
+      setStep("payment");
+    },
+  });
+
+  useEffect(() => {
+    if (sdkLoaded && prebookData && !sdkInit) {
+      setSdkInit(true);
+      try {
+        const payment = new (window as any).LiteAPIPayment({
+          publicKey: prebookData.paymentEnv === "live" ? "live" : "sandbox",
+          secretKey: prebookData.secretKey,
+          returnUrl: `${window.location.origin}/flight-confirmation?prebookId=${prebookData.prebookId}`,
+          targetElement: "#flight-payment-sdk",
+          appearance: { theme: "flat", variables: { colorPrimary: "#1d4ed8" } },
+          options: { business: { name: "Luxvibe" } },
+        });
+        payment.handlePayment();
+      } catch (err) { console.error("Flight SDK error:", err); }
+    }
+  }, [sdkLoaded, prebookData, sdkInit]);
+
+  useEffect(() => {
+    if (!open) {
+      setStep("form"); setPrebookData(null); setSdkLoaded(false); setSdkInit(false);
+      setFormErrors([]); prebook.reset();
+    }
+  }, [open]);
+
+  function validate() {
+    const errs: string[] = [];
+    passengers.forEach((p, i) => {
+      if (!p.firstName.trim()) errs.push(`Passenger ${i + 1}: first name required`);
+      if (!p.lastName.trim()) errs.push(`Passenger ${i + 1}: last name required`);
+      if (!p.dateOfBirth) errs.push(`Passenger ${i + 1}: date of birth required`);
+      if (!p.nationality.trim() || p.nationality.length !== 2) errs.push(`Passenger ${i + 1}: 2-letter nationality code required (e.g. US)`);
+    });
+    if (!contactEmail.includes("@")) errs.push("Valid contact email required");
+    if (!contactPhone.trim()) errs.push("Contact phone number required");
+    return errs;
+  }
+
+  function handleProceed() {
+    const errs = validate();
+    if (errs.length) { setFormErrors(errs); return; }
+    setFormErrors([]);
+    prebook.mutate();
+  }
+
+  const cur = offer.pricing.display.currency || currency;
+  const formatPrice = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(n);
+  const outSegs = journey.segments.filter(s => s.direction === "OUTBOUND" || journey.segments.every(x => !x.direction));
+  const inSegs = journey.segments.filter(s => s.direction === "INBOUND");
+  const outFirst = outSegs[0]; const outLast = outSegs[outSegs.length - 1];
+  const inFirst = inSegs[0]; const inLast = inSegs[inSegs.length - 1];
+  const carrier = outFirst?.carrier;
+
+  return (
+    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+      <SheetContent side="right" className="w-full sm:!max-w-2xl p-0 overflow-hidden flex flex-col [&>button]:top-4 [&>button]:right-4">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border shrink-0">
+          <SheetTitle className="text-base font-bold flex-1">Complete your booking</SheetTitle>
+          <p className="text-xs text-muted-foreground hidden sm:block">Secure payment via LiteAPI</p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-6 py-4 bg-muted/30 border-b border-border">
+            <div className="flex items-center gap-3 mb-3">
+              {carrier && (
+                <img src={carrier.marketingLogo} alt={carrier.marketingName}
+                  className="w-8 h-8 rounded-lg object-contain bg-white border border-border p-0.5"
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-foreground text-sm truncate">{carrier?.marketingName}</p>
+                <p className="text-xs text-muted-foreground">{outSegs.length - 1 === 0 ? "Nonstop" : `${outSegs.length - 1} stop${outSegs.length > 2 ? "s" : ""}`}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="font-bold text-lg text-foreground">{formatPrice(offer.pricing.display.total)}</p>
+                <p className="text-xs text-muted-foreground">{adults + children + infants} passenger{adults + children + infants !== 1 ? "s" : ""}</p>
+              </div>
+            </div>
+            {outFirst && outLast && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-bold font-mono">{outFirst.originCode}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(outFirst.departureTime)}</span>
+                <div className="flex-1 border-t border-dashed border-border mx-1" />
+                <span className="text-xs text-muted-foreground">{formatDuration(journey.legDurations.find(l => l.direction === "OUTBOUND")?.duration.minutes || journey.totalDuration.minutes)}</span>
+                <div className="flex-1 border-t border-dashed border-border mx-1" />
+                <span className="text-muted-foreground text-xs">{formatTime(outLast.arrivalTime)}</span>
+                <span className="font-bold font-mono">{outLast.destinationCode}</span>
+              </div>
+            )}
+            {inFirst && inLast && (
+              <div className="flex items-center gap-2 text-sm mt-2">
+                <span className="font-bold font-mono">{inFirst.originCode}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(inFirst.departureTime)}</span>
+                <div className="flex-1 border-t border-dashed border-border mx-1" />
+                <span className="text-xs text-muted-foreground">{formatDuration(journey.legDurations.find(l => l.direction === "INBOUND")?.duration.minutes || 0)}</span>
+                <div className="flex-1 border-t border-dashed border-border mx-1" />
+                <span className="text-muted-foreground text-xs">{formatTime(inLast.arrivalTime)}</span>
+                <span className="font-bold font-mono">{inLast.destinationCode}</span>
+              </div>
+            )}
+          </div>
+
+          {step === "form" && (
+            <div className="px-6 py-5 space-y-6">
+              {passengerTypes.map((pt, i) => (
+                <div key={i} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <h3 className="text-sm font-semibold text-foreground">{pt.label || (pt.type === "ADT" ? "Adult" : pt.type === "CHD" ? "Child" : "Infant")}</h3>
+                    <Badge variant="outline" className="text-xs py-0 ml-auto">{pt.type === "ADT" ? "Adult" : pt.type === "CHD" ? "Child" : "Infant"}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name *</label>
+                      <Input value={passengers[i].firstName}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, firstName: e.target.value } : p))}
+                        placeholder="As on passport" className="mt-1 rounded-xl" data-testid={`input-pax-${i}-fn`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name *</label>
+                      <Input value={passengers[i].lastName}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, lastName: e.target.value } : p))}
+                        placeholder="As on passport" className="mt-1 rounded-xl" data-testid={`input-pax-${i}-ln`} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date of Birth *</label>
+                      <Input type="date" value={passengers[i].dateOfBirth}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, dateOfBirth: e.target.value } : p))}
+                        className="mt-1 rounded-xl" data-testid={`input-pax-${i}-dob`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nationality *</label>
+                      <Input value={passengers[i].nationality} maxLength={2}
+                        onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, nationality: e.target.value.toUpperCase().slice(0, 2) } : p))}
+                        placeholder="US" className="mt-1 rounded-xl font-mono uppercase tracking-widest" data-testid={`input-pax-${i}-nat`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Gender *</label>
+                      <div className="flex gap-1.5 mt-1">
+                        {(["M", "F"] as const).map(g => (
+                          <button key={g} type="button"
+                            onClick={() => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, gender: g } : p))}
+                            className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-all ${passengers[i].gender === g ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                            data-testid={`btn-gender-${i}-${g}`}
+                          >
+                            {g === "M" ? "M" : "F"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="space-y-3 border-t border-border pt-5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold text-foreground">Contact Details</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Your e-ticket and booking confirmation will be sent here.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email *</label>
+                    <Input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)}
+                      placeholder="you@example.com" className="mt-1 rounded-xl" data-testid="input-contact-email" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone *</label>
+                    <Input type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)}
+                      placeholder="+1 555 000 0000" className="mt-1 rounded-xl" data-testid="input-contact-phone" />
+                  </div>
+                </div>
+              </div>
+
+              {formErrors.length > 0 && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl space-y-1">
+                  {formErrors.map((e, i) => <p key={i} className="text-xs text-destructive">{e}</p>)}
+                </div>
+              )}
+
+              {prebook.isError && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+                  <p className="text-xs text-destructive">{(prebook.error as Error)?.message || "Failed to reserve this flight. Please try again."}</p>
+                </div>
+              )}
+
+              <div className="pb-8">
+                <Button onClick={handleProceed} disabled={prebook.isPending} className="w-full h-12 rounded-xl text-base font-semibold gap-2"
+                  data-testid="button-proceed-payment">
+                  {prebook.isPending
+                    ? <><Loader2 className="w-5 h-5 animate-spin" /> Reserving flight…</>
+                    : <><CreditCard className="w-5 h-5" /> Proceed to Payment — {formatPrice(offer.pricing.display.total)}</>
+                  }
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Secure checkout. Card charged only after booking confirms.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === "payment" && (
+            <div className="px-6 py-5">
+              {!sdkLoaded && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin" /> Loading payment form…
+                </div>
+              )}
+              <div id="flight-payment-sdk" className="min-h-[300px]" />
+            </div>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 export default function Flights() {
   const { currency } = usePreferences();
   const today = new Date();
@@ -572,6 +850,7 @@ export default function Flights() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [results, setResults] = useState<FlightSearchResponse | null>(null);
+  const [selectedFlight, setSelectedFlight] = useState<{ journey: FlightJourney; offer: FlightOffer } | null>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -938,7 +1217,8 @@ export default function Flights() {
 
                   <div className="space-y-3">
                     {sorted.map(journey => (
-                      <FlightCard key={journey.journeyKey} journey={journey} currency={currency || "USD"} adults={adults} />
+                      <FlightCard key={journey.journeyKey} journey={journey} currency={currency || "USD"} adults={adults}
+                        onSelect={() => { const offer = journey.offers[0]; if (offer) setSelectedFlight({ journey, offer }); }} />
                     ))}
                     {sorted.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-16 gap-3">
@@ -958,6 +1238,17 @@ export default function Flights() {
               </div>
             )}
           </>
+        )}
+
+        {selectedFlight && (
+          <FlightCheckoutSheet
+            journey={selectedFlight.journey}
+            offer={selectedFlight.offer}
+            adults={adults} children={children} infants={infants}
+            currency={currency || "USD"}
+            open={!!selectedFlight}
+            onClose={() => setSelectedFlight(null)}
+          />
         )}
 
         {!results && !mutation.isPending && !mutation.isError && (
