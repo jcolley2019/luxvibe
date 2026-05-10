@@ -1,0 +1,269 @@
+{
+  "data": [
+    {
+      "journey": {
+        "journeyKey": "26b2fa3085dc22b2",
+        "expiration": "2026-03-19T13:15:09.485Z",
+        "timestamp": "2026-03-19T12:45:07.715Z",
+        "provider": {
+          "code": "SABRE",
+          "logo": "https://production.nuitee.flights/static/providers/sabre.svg"
+        },
+        "pricing": {
+          "display": {
+            "total": 1423.42,
+            "currency": "USD",
+            "base": 1127.92,
+            "fees": 0,
+            "taxes": 295.5,
+            "perPassenger": {
+              "adult": {
+                "base": 1127.92,
+                "currency": "USD",
+                "fees": 0,
+                "taxes": 295.5,
+                "total": 1423.42
+              },
+              "child": {
+                "base": 0,
+                "currency": "USD",
+                "fees": 0,
+                "taxes": 0,
+                "total": 0
+              },
+              "infant": {
+                "base": 0,
+                "currency": "USD",
+                "fees": 0,
+                "taxes": 0,
+                "total": 0
+              }
+            }
+          },
+          "converted": true,
+          "fxInfo": {
+            "rate": 1.35241967,
+            "source": "nuitee",
+            "timestamp": "2026-03-19T12:45:20.772Z"
+          }
+        },
+        "baggage": {
+          "hasCarryOnBag": true,
+          "hasCheckedBag": true,
+          "included": [
+            {
+              "bagType": "checked",
+              "description": "",
+              "passengerType": "ADT",
+              "pieces": 1,
+              "pricing": {
+                "display": {
+                  "amount": 0,
+                  "currency": "EUR"
+                },
+                "converted": false
+              },
+              "weightKg": 23
+            },
+            {
+              "bagType": "cabin",
+              "description": "Cabin bag",
+              "passengerType": "ADT",
+              "pieces": 1,
+              "pricing": {
+                "display": {
+                  "amount": 0,
+                  "currency": "EUR"
+                },
+                "converted": false
+              },
+              "unit": "kg",
+              "weightKg": 8
+            }
+          ]
+        },
+        "fare": {
+          "family": "Economy",
+          "mixedCabin": false,
+          "seatsRemaining": 9
+        },
+        "passengers": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "segments": [
+          {
+            "segmentKey": "096fada4",
+            "originCode": "JFK",
+            "originName": "John F. Kennedy International Airport",
+            "destinationCode": "FRA",
+            "destinationName": "Frankfurt Main Airport",
+            "departureTime": "2026-07-01T16:25:00",
+            "arrivalTime": "2026-07-02T06:10:00",
+            "direction": "OUTBOUND",
+            "duration": {
+              "iso8601": "PT7H45M",
+              "minutes": 465
+            },
+            "flight": {
+              "marketingNumber": "2017",
+              "operatingNumber": "2017"
+            },
+            "carrier": {
+              "marketingCode": "DE",
+              "marketingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "marketingName": "Condor Flugdienst",
+              "operatingCode": "DE",
+              "operatingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "operatingName": "Condor Flugdienst"
+            }
+          },
+          {
+            "segmentKey": "8528a309",
+            "originCode": "FRA",
+            "originName": "Frankfurt Main Airport",
+            "destinationCode": "CDG",
+            "destinationName": "Charles de Gaulle International Airport",
+            "departureTime": "2026-07-02T08:55:00",
+            "arrivalTime": "2026-07-02T10:15:00",
+            "direction": "OUTBOUND",
+            "duration": {
+              "iso8601": "PT1H20M",
+              "minutes": 80
+            },
+            "flight": {
+              "marketingNumber": "4265",
+              "operatingNumber": "4265"
+            },
+            "carrier": {
+              "marketingCode": "DE",
+              "marketingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "marketingName": "Condor Flugdienst",
+              "operatingCode": "DE",
+              "operatingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "operatingName": "Condor Flugdienst"
+            }
+          },
+          {
+            "segmentKey": "f15d5c4e",
+            "originCode": "CDG",
+            "originName": "Charles de Gaulle International Airport",
+            "destinationCode": "FRA",
+            "destinationName": "Frankfurt Main Airport",
+            "departureTime": "2026-08-02T08:25:00",
+            "arrivalTime": "2026-08-02T09:55:00",
+            "direction": "INBOUND",
+            "duration": {
+              "iso8601": "PT1H30M",
+              "minutes": 90
+            },
+            "flight": {
+              "marketingNumber": "4292",
+              "operatingNumber": "4292"
+            },
+            "carrier": {
+              "marketingCode": "DE",
+              "marketingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "marketingName": "Condor Flugdienst",
+              "operatingCode": "DE",
+              "operatingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "operatingName": "Condor Flugdienst"
+            }
+          },
+          {
+            "segmentKey": "af5b7649",
+            "originCode": "FRA",
+            "originName": "Frankfurt Main Airport",
+            "destinationCode": "JFK",
+            "destinationName": "John F. Kennedy International Airport",
+            "departureTime": "2026-08-02T11:40:00",
+            "arrivalTime": "2026-08-02T14:25:00",
+            "direction": "INBOUND",
+            "duration": {
+              "iso8601": "PT8H45M",
+              "minutes": 525
+            },
+            "flight": {
+              "marketingNumber": "2016",
+              "operatingNumber": "2016"
+            },
+            "carrier": {
+              "marketingCode": "DE",
+              "marketingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "marketingName": "Condor Flugdienst",
+              "operatingCode": "DE",
+              "operatingLogo": "https://production.nuitee.flights/static/images/airlines/DE.png",
+              "operatingName": "Condor Flugdienst"
+            }
+          }
+        ],
+        "segmentFares": [
+          {
+            "segmentKey": "096fada4",
+            "bookingCode": "U",
+            "cabin": "Economy",
+            "fareBasisCode": "URA1",
+            "fareFamily": "Economy",
+            "seatsRemaining": 9
+          },
+          {
+            "segmentKey": "8528a309",
+            "bookingCode": "W",
+            "cabin": "Economy",
+            "fareBasisCode": "URA1",
+            "fareFamily": "Economy",
+            "seatsRemaining": 9
+          },
+          {
+            "segmentKey": "f15d5c4e",
+            "bookingCode": "W",
+            "cabin": "Economy",
+            "fareBasisCode": "KRA1",
+            "fareFamily": "Economy",
+            "seatsRemaining": 9
+          },
+          {
+            "segmentKey": "af5b7649",
+            "bookingCode": "K",
+            "cabin": "Economy",
+            "fareBasisCode": "KRA1",
+            "fareFamily": "Economy",
+            "seatsRemaining": 9
+          }
+        ],
+        "terms": {
+          "changeable": false,
+          "refundable": false,
+          "summary": [
+            {
+              "level": "danger",
+              "message": "Non-refundable"
+            },
+            {
+              "level": "danger",
+              "message": "Changes not allowed"
+            },
+            {
+              "level": "info",
+              "message": "Book by: 2026-03-22 12:44"
+            }
+          ],
+          "changeFee": null,
+          "refundFee": {
+            "pricing": {
+              "display": {
+                "amount": 200,
+                "currency": "USD"
+              },
+              "converted": false
+            },
+            "percent": 100,
+            "applicability": "noShow",
+            "label": "No-show fee"
+          }
+        }
+      }
+    }
+  ]
+}
