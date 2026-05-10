@@ -3360,6 +3360,68 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/data/currencies — supported currencies from LiteAPI
+  app.get("/api/data/currencies", async (_req, res) => {
+    try {
+      const data = await liteApiGet("/data/currencies", undefined, 86400000);
+      res.json(data?.data || []);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // GET /api/data/facilities — hotel facility types from LiteAPI
+  app.get("/api/data/facilities", async (_req, res) => {
+    try {
+      const data = await liteApiGet("/data/facilities", undefined, 86400000);
+      res.json(data?.data || []);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // GET /api/data/room-views — room view types (static reference data)
+  app.get("/api/data/room-views", (_req, res) => {
+    const views = [
+      { id: 1, name: "Sea view" }, { id: 2, name: "Ocean view" }, { id: 3, name: "Beach view" },
+      { id: 4, name: "Pool view" }, { id: 5, name: "Garden view" }, { id: 6, name: "Mountain view" },
+      { id: 7, name: "City view" }, { id: 8, name: "Skyline view" }, { id: 9, name: "River view" },
+      { id: 10, name: "Lake view" }, { id: 11, name: "Park view" }, { id: 12, name: "Golf view" },
+      { id: 13, name: "Forest view" }, { id: 14, name: "Courtyard view" }, { id: 15, name: "Street view" },
+      { id: 16, name: "Desert view" }, { id: 17, name: "Harbor view" }, { id: 18, name: "Bay view" },
+      { id: 19, name: "Panoramic view" }, { id: 20, name: "Valley view" }, { id: 21, name: "Vineyard view" },
+      { id: 22, name: "Lagoon view" }, { id: 23, name: "Landmark view" }, { id: 24, name: "Atrium view" },
+      { id: 25, name: "Interior view" }, { id: 26, name: "Terrace view" }, { id: 27, name: "Countryside view" },
+      { id: 28, name: "Partial sea view" }, { id: 29, name: "Side sea view" }, { id: 30, name: "Lake view (partial)" },
+    ];
+    res.json(views);
+  });
+
+  // GET /api/data/room-amenities — room amenity types (reference data)
+  app.get("/api/data/room-amenities", async (_req, res) => {
+    try {
+      // Try LiteAPI first
+      const data = await liteApiGet("/data/room-amenities", undefined, 86400000);
+      if (Array.isArray(data?.data) && data.data.length > 0) return res.json(data.data);
+    } catch { /* fall through to static */ }
+    // Static reference list used throughout the app
+    const amenities = [
+      { id: 1, name: "Private bathroom" }, { id: 2, name: "Hair dryer" }, { id: 3, name: "Flat-screen TV" },
+      { id: 4, name: "Air conditioning" }, { id: 5, name: "Desk" }, { id: 6, name: "Heating" },
+      { id: 7, name: "Refrigerator" }, { id: 8, name: "Coffee/tea maker" }, { id: 9, name: "Shower" },
+      { id: 10, name: "Bathtub" }, { id: 11, name: "Mini bar" }, { id: 12, name: "In-room safe" },
+      { id: 13, name: "Balcony" }, { id: 14, name: "Kitchen" }, { id: 15, name: "Washing machine" },
+      { id: 16, name: "Iron" }, { id: 17, name: "Telephone" }, { id: 18, name: "Bathrobe" },
+      { id: 19, name: "Slippers" }, { id: 20, name: "Microwave" }, { id: 21, name: "Dishwasher" },
+      { id: 22, name: "Oven" }, { id: 23, name: "Free WiFi" }, { id: 24, name: "Sofa" },
+      { id: 25, name: "Wardrobe" }, { id: 26, name: "Blackout curtains" }, { id: 27, name: "Electric kettle" },
+      { id: 28, name: "Toaster" }, { id: 29, name: "Dining area" }, { id: 30, name: "Seating area" },
+      { id: 31, name: "Terrace" }, { id: 32, name: "Patio" }, { id: 33, name: "Soundproofing" },
+      { id: 34, name: "Hypoallergenic" }, { id: 35, name: "Interconnecting rooms" }, { id: 36, name: "Bidet" },
+    ];
+    res.json(amenities);
+  });
+
   // GET /api/flights/airlines — list/search airlines via LiteAPI
   app.get("/api/flights/airlines", async (req, res) => {
     try {

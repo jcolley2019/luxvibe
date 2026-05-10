@@ -1,0 +1,258 @@
+{
+  "data": [
+    {
+      "code": "AED",
+      "currency": "UAE Dirham",
+      "countries": [
+        "United Arab Emirates (The)"
+      ]
+    },
+    {
+      "code": "AUD",
+      "currency": "Australian Dollar",
+      "countries": [
+        "Australia",
+        "Christmas Island",
+        "Cocos (Keeling) Islands (The)",
+        "Heard Island and Mcdonald Islands",
+        "Kiribati",
+        "Nauru",
+        "Norfolk Island",
+        "Tuvalu"
+      ]
+    },
+    {
+      "code": "BRL",
+      "currency": "Brazilian Real",
+      "countries": [
+        "Brazil"
+      ]
+    },
+    {
+      "code": "CAD",
+      "currency": "Canadian Dollar",
+      "countries": [
+        "Canada"
+      ]
+    },
+    {
+      "code": "CNY",
+      "currency": "Yuan Renminbi",
+      "countries": [
+        "China"
+      ]
+    },
+    {
+      "code": "EUR",
+      "currency": "Euro",
+      "countries": [
+        "Åland Islands",
+        "Andorra",
+        "Austria",
+        "Belgium",
+        "Cyprus",
+        "Estonia",
+        "European Union",
+        "Finland",
+        "France",
+        "French Guiana",
+        "French Southern Territories (The)",
+        "Germany",
+        "Greece",
+        "Guadeloupe",
+        "Holy See (The)",
+        "Ireland",
+        "Italy",
+        "Latvia",
+        "Lithuania",
+        "Luxembourg",
+        "Malta",
+        "Martinique",
+        "Mayotte",
+        "Monaco",
+        "Montenegro",
+        "Netherlands (The)",
+        "Portugal",
+        "Réunion",
+        "Saint Barthélemy",
+        "Saint Martin (French Part)",
+        "Saint Pierre and Miquelon",
+        "San Marino",
+        "Slovakia",
+        "Slovenia",
+        "Spain"
+      ]
+    },
+    {
+      "code": "FJD",
+      "currency": "Fiji Dollar",
+      "countries": [
+        "Fiji"
+      ]
+    },
+    {
+      "code": "GBP",
+      "currency": "Pound Sterling",
+      "countries": [
+        "Guernsey",
+        "Isle of Man",
+        "Jersey",
+        "United Kingdom of Great Britain and Northern Ireland (The)"
+      ]
+    },
+    {
+      "code": "HKD",
+      "currency": "Hong Kong Dollar",
+      "countries": [
+        "Hong Kong"
+      ]
+    },
+    {
+      "code": "IDR",
+      "currency": "Rupiah",
+      "countries": [
+        "Indonesia"
+      ]
+    },
+    {
+      "code": "INR",
+      "currency": "Indian Rupee",
+      "countries": [
+        "Bhutan",
+        "India"
+      ]
+    },
+    {
+      "code": "JPY",
+      "currency": "Yen",
+      "countries": [
+        "Japan"
+      ]
+    },
+    {
+      "code": "LKR",
+      "currency": "Sri Lanka Rupee",
+      "countries": [
+        "Sri Lanka"
+      ]
+    },
+    {
+      "code": "MAD",
+      "currency": "Moroccan Dirham",
+      "countries": [
+        "Morocco"
+      ]
+    },
+    {
+      "code": "MNT",
+      "currency": "Tugrik",
+      "countries": [
+        "Mongolia"
+      ]
+    },
+    {
+      "code": "MUR",
+      "currency": "Mauritius Rupee",
+      "countries": [
+        "Mauritius"
+      ]
+    },
+    {
+      "code": "MXN",
+      "currency": "Mexican Peso",
+      "countries": [
+        "Mexico"
+      ]
+    },
+    {
+      "code": "MYR",
+      "currency": "Malaysian Ringgit",
+      "countries": [
+        "Malaysia"
+      ]
+    },
+    {
+      "code": "OMR",
+      "currency": "Rial Omani",
+      "countries": [
+        "Oman"
+      ]
+    },
+    {
+      "code": "PHP",
+      "currency": "Philippine Peso",
+      "countries": [
+        "Philippines (The)"
+      ]
+    },
+    {
+      "code": "RUB",
+      "currency": "Russian Ruble",
+      "countries": [
+        "Russian Federation (The)"
+      ]
+    },
+    {
+      "code": "SAR",
+      "currency": "Saudi Riyal",
+      "countries": [
+        "Saudi Arabia"
+      ]
+    },
+    {
+      "code": "SGD",
+      "currency": "Singapore Dollar",
+      "countries": [
+        "Singapore"
+      ]
+    },
+    {
+      "code": "THB",
+      "currency": "Baht",
+      "countries": [
+        "Thailand"
+      ]
+    },
+    {
+      "code": "TWD",
+      "currency": "New Taiwan Dollar",
+      "countries": [
+        "Taiwan (Province of China)"
+      ]
+    },
+    {
+      "code": "USD",
+      "currency": "US Dollar",
+      "countries": [
+        "American Samoa",
+        "Bonaire, Sint Eustatius and Saba",
+        "British Indian Ocean Territory (The)",
+        "Ecuador",
+        "El Salvador",
+        "Guam",
+        "Haiti",
+        "Marshall Islands (The)",
+        "Micronesia (Federated States Of)",
+        "Northern Mariana Islands (The)",
+        "Palau",
+        "Panama",
+        "Puerto Rico",
+        "Timor-Leste",
+        "Turks and Caicos Islands (The)",
+        "United States Minor Outlying Islands (The)",
+        "United States of America (The)",
+        "Virgin Islands (British)",
+        "Virgin Islands (U.S.)"
+      ]
+    },
+    {
+      "code": "ZAR",
+      "currency": "Rand",
+      "countries": [
+        "Lesotho",
+        "Namibia",
+        "South Africa"
+      ]
+    }
+  ]
+}
