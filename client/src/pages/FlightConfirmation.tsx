@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import {
-  Plane, CheckCircle2, XCircle, Loader2, Calendar, Mail,
-  ArrowRight, Download, Home, Users,
+  Plane, CheckCircle2, XCircle, Loader2, Mail, Home, Users,
+  ArrowRight, AlertCircle, Calendar,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -14,8 +14,49 @@ import { motion } from "framer-motion";
 function formatTime(iso: string) {
   try { return iso.split("T")[1]?.slice(0, 5) || iso; } catch { return iso; }
 }
-function formatDateLong(iso: string) {
-  try { return format(new Date(iso.split("T")[0]), "MMM d, yyyy"); } catch { return iso; }
+function formatDateShort(iso: string) {
+  try { return format(new Date(iso.split("T")[0]), "EEE, MMM d"); } catch { return iso; }
+}
+
+function SegmentRow({ segs, label }: { segs: any[]; label: string }) {
+  if (!segs.length) return null;
+  const first = segs[0];
+  const last = segs[segs.length - 1];
+  const carrier = first?.carrier;
+  const stops = segs.length - 1;
+  return (
+    <div className="py-4">
+      <div className="flex items-center gap-2 mb-3">
+        {carrier?.marketingLogo && (
+          <img src={carrier.marketingLogo} alt={carrier.marketingName}
+            className="w-6 h-6 rounded object-contain bg-white border border-border p-0.5"
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        )}
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
+        {stops > 0 && <span className="text-xs text-muted-foreground ml-auto">{stops} stop{stops > 1 ? "s" : ""}</span>}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="text-center min-w-[56px]">
+          <p className="text-xl font-bold font-mono text-foreground">{first.originCode}</p>
+          <p className="text-sm text-muted-foreground">{formatTime(first.departureTime)}</p>
+          <p className="text-xs text-muted-foreground">{formatDateShort(first.departureTime)}</p>
+        </div>
+        <div className="flex-1 flex flex-col items-center gap-1">
+          <div className="w-full border-t border-dashed border-border relative">
+            <Plane className="w-3.5 h-3.5 text-muted-foreground absolute -top-1.5 left-1/2 -translate-x-1/2 bg-card" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {carrier?.marketingName} · {segs.map(s => s.flight?.marketingNumber ? `${carrier?.marketingCode}${s.flight.marketingNumber}` : "").filter(Boolean).join(", ")}
+          </p>
+        </div>
+        <div className="text-center min-w-[56px]">
+          <p className="text-xl font-bold font-mono text-foreground">{last.destinationCode}</p>
+          <p className="text-sm text-muted-foreground">{formatTime(last.arrivalTime)}</p>
+          <p className="text-xs text-muted-foreground">{formatDateShort(last.arrivalTime)}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function FlightConfirmation() {
@@ -24,28 +65,25 @@ export default function FlightConfirmation() {
   const prebookId = params.get("prebookId");
   const transactionId = params.get("transactionId");
 
-  const [passengers, setPassengers] = useState<any[]>([]);
-  const [contact, setContact] = useState<{ firstName: string; email: string }>({ firstName: "", email: "" });
-  const [flightData, setFlightData] = useState<any>(null);
+  const [ssPassengers, setSsPassengers] = useState<any[]>([]);
+  const [ssContact, setSsContact] = useState<{ firstName: string; email: string }>({ firstName: "", email: "" });
+  const [ssFlightData, setSsFlightData] = useState<any>(null);
 
   useEffect(() => {
     document.title = "Flight Confirmation — Luxvibe";
     try {
       const p = sessionStorage.getItem("flightPassengers");
-      if (p) setPassengers(JSON.parse(p));
+      if (p) setSsPassengers(JSON.parse(p));
       const c = sessionStorage.getItem("flightContact");
-      if (c) setContact(JSON.parse(c));
+      if (c) setSsContact(JSON.parse(c));
       const f = sessionStorage.getItem("flightData");
-      if (f) setFlightData(JSON.parse(f));
+      if (f) setSsFlightData(JSON.parse(f));
     } catch { /* ignore */ }
   }, []);
 
   const bookMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/flights/book", {
-        prebookId,
-        transactionId,
-      });
+      const res = await apiRequest("POST", "/api/flights/book", { prebookId, transactionId });
       return res.json();
     },
   });
@@ -71,10 +109,22 @@ export default function FlightConfirmation() {
     );
   }
 
-  // Backend normalises to { booking, message } at top level
   const bookingData = bookMutation.data?.booking;
   const isSuccess = bookMutation.isSuccess && !!bookingData?.bookingId;
   const errorMsg = bookMutation.data?.message || bookMutation.data?.error?.message || (bookMutation.error as Error)?.message;
+
+  const segments: any[] = bookingData?.journey?.segments || [];
+  const outSegs = segments.filter((s: any) => s.direction === "OUTBOUND" || segments.every((x: any) => !x.direction));
+  const inSegs = segments.filter((s: any) => s.direction === "INBOUND");
+
+  const price = bookingData?.journey?.price?.total ?? bookingData?.journey?.pricing?.display?.total ?? ssFlightData?.price;
+  const currency = bookingData?.journey?.price?.currency ?? bookingData?.journey?.pricing?.display?.currency ?? ssFlightData?.currency ?? "USD";
+  const displayPassengers: any[] = bookingData?.passengers?.length ? bookingData.passengers : ssPassengers;
+  const displayContact = bookingData?.contact || ssContact;
+
+  const airlineBookings: any[] = bookingData?.order?.reference?.airlineBookings || [];
+  const bookingRef = bookingData?.bookingId || bookingData?.bookingRef || bookingData?.order?.reference?.orderId;
+  const terms = bookingData?.journey?.terms;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -91,7 +141,7 @@ export default function FlightConfirmation() {
           </div>
         )}
 
-        {(bookMutation.isError || (bookMutation.isSuccess && bookMutation.data?.error)) && (
+        {(bookMutation.isError || (bookMutation.isSuccess && !isSuccess)) && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center text-center py-16 gap-4">
             <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -101,13 +151,11 @@ export default function FlightConfirmation() {
               <h1 className="text-2xl font-bold text-foreground mb-2">Booking could not be completed</h1>
               <p className="text-muted-foreground max-w-md">{errorMsg || "An unexpected error occurred. Your payment may not have been captured."}</p>
             </div>
-            <div className="flex gap-3 mt-2">
-              <Button variant="outline" onClick={() => navigate("/flights")}>
-                <Plane className="w-4 h-4 mr-2" /> Search Again
-              </Button>
-            </div>
-            <div className="mt-4 p-4 bg-muted rounded-xl text-left max-w-md w-full">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
+            <Button variant="outline" onClick={() => navigate("/flights")}>
+              <Plane className="w-4 h-4 mr-2" /> Search Again
+            </Button>
+            <div className="mt-2 p-4 bg-muted rounded-xl text-left max-w-md w-full">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Prebook Reference</p>
               <p className="text-sm font-mono text-foreground break-all">{prebookId}</p>
               <p className="text-xs text-muted-foreground mt-1">Save this reference when contacting support.</p>
             </div>
@@ -115,8 +163,8 @@ export default function FlightConfirmation() {
         )}
 
         {isSuccess && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="text-center py-8">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+            <div className="text-center py-6">
               <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
@@ -124,93 +172,128 @@ export default function FlightConfirmation() {
                 You're all set!
               </h1>
               <p className="text-muted-foreground">Your flight has been booked successfully.</p>
-              {contact.email && (
+              {displayContact.email && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Confirmation sent to <span className="font-medium text-foreground">{contact.email}</span>
+                  Confirmation sent to <span className="font-medium text-foreground">{displayContact.email}</span>
                 </p>
               )}
             </div>
 
+            {/* Booking reference card */}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-border bg-muted/30">
-                <div className="flex items-center justify-between">
+              <div className="px-5 py-4 bg-muted/30 border-b border-border">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Booking Reference</p>
-                    <p className="font-mono font-bold text-lg text-foreground">
-                      {bookingData?.bookingId || bookingData?.bookingRef || bookingData?.order?.reference?.orderId || prebookId?.slice(0, 12).toUpperCase()}
-                    </p>
-                    {bookingData?.order?.reference?.airlineBookings?.[0]?.airlinePnr && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        PNR: <span className="font-mono font-semibold">{bookingData.order.reference.airlineBookings[0].airlinePnr}</span>
-                        {bookingData.order.reference.airlineBookings[0].airlineName && (
-                          <span className="ml-1">· {bookingData.order.reference.airlineBookings[0].airlineName}</span>
-                        )}
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Booking Reference</p>
+                    <p className="font-mono font-bold text-xl text-foreground">{bookingRef}</p>
+                    {airlineBookings.map((ab, i) => ab.airlinePnr || ab.pnr ? (
+                      <p key={i} className="text-xs text-muted-foreground mt-0.5">
+                        Airline PNR: <span className="font-mono font-semibold text-foreground">{ab.airlinePnr || ab.pnr}</span>
+                        {(ab.airlineName || ab.airlineCode) && <span className="ml-1 opacity-70">· {ab.airlineName || ab.airlineCode}</span>}
                       </p>
-                    )}
+                    ) : null)}
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    <span className="text-xs font-semibold text-green-700 dark:text-green-300">Confirmed</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-full shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                    <span className="text-xs font-semibold text-green-700 dark:text-green-300">
+                      {bookingData?.status || "Confirmed"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {flightData && (
+              {/* Itinerary from real booking data */}
+              {segments.length > 0 ? (
+                <div className="px-5 divide-y divide-border">
+                  <SegmentRow segs={outSegs} label="Outbound" />
+                  {inSegs.length > 0 && <SegmentRow segs={inSegs} label="Return" />}
+                </div>
+              ) : ssFlightData && (
                 <div className="px-5 py-4 border-b border-border">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
                     <Plane className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">Flight Details</span>
+                    <span className="text-sm font-semibold text-foreground">Flight</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-foreground font-mono">{flightData.origin}</div>
-                      {flightData.departTime && (
-                        <div className="text-sm text-muted-foreground">{formatTime(flightData.departTime)}</div>
-                      )}
+                      <p className="text-xl font-bold font-mono">{ssFlightData.origin}</p>
+                      {ssFlightData.departTime && <p className="text-sm text-muted-foreground">{formatTime(ssFlightData.departTime)}</p>}
                     </div>
-                    <div className="flex-1 flex flex-col items-center gap-1">
-                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                      {flightData.departTime && (
-                        <div className="text-xs text-muted-foreground">{formatDateLong(flightData.departTime)}</div>
-                      )}
-                    </div>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground flex-1" />
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-foreground font-mono">{flightData.destination}</div>
+                      <p className="text-xl font-bold font-mono">{ssFlightData.destination}</p>
                     </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-border flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total paid</span>
-                    <span className="font-bold text-foreground">
-                      {new Intl.NumberFormat("en-US", { style: "currency", currency: flightData.currency || "USD", maximumFractionDigits: 0 }).format(flightData.price)}
-                    </span>
                   </div>
                 </div>
               )}
 
-              {passengers.length > 0 && (
-                <div className="px-5 py-4 border-b border-border">
+              {/* Fare rules */}
+              {terms?.summary?.length > 0 && (
+                <div className="px-5 py-3 border-t border-border flex flex-wrap gap-2">
+                  {terms.summary.map((t: any, i: number) => (
+                    <span key={i} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                      t.level === "danger" ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400" :
+                      t.level === "warning" ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400" :
+                      "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400"
+                    }`}>
+                      <AlertCircle className="w-3 h-3" /> {t.message}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Pricing */}
+              {price != null && (
+                <div className="px-5 py-3 border-t border-border flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total paid</span>
+                  <span className="font-bold text-foreground">
+                    {new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(price)}
+                  </span>
+                </div>
+              )}
+
+              {/* Passengers */}
+              {displayPassengers.length > 0 && (
+                <div className="px-5 py-4 border-t border-border">
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-semibold text-foreground">Passengers</span>
                   </div>
                   <div className="space-y-1.5">
-                    {passengers.map((p, i) => (
+                    {displayPassengers.map((p: any, i: number) => (
                       <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">{p.firstName} {p.lastName}</span>
-                        <span className="text-xs text-muted-foreground">{p.type === "ADT" ? "Adult" : p.type === "CHD" ? "Child" : "Infant"}</span>
+                        <span className="text-foreground font-medium">{p.firstName} {p.lastName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {p.type === "ADT" || p.type === "" ? "Adult" : p.type === "CHD" ? "Child" : p.type === "INF" ? "Infant" : p.type}
+                          {p.documentNumber && <span className="ml-1 font-mono opacity-60">· {p.documentNumber}</span>}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {contact.email && (
-                <div className="px-5 py-4">
+              {/* Contact */}
+              {displayContact.email && (
+                <div className="px-5 py-3 border-t border-border">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-4 h-4" /> {contact.email}
+                    <Mail className="w-4 h-4" /> {displayContact.email}
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* What happens next */}
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1">What's next</p>
+                  <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
+                    Check your email for your e-ticket. Use your airline PNR to check in online 24–48 hours before departure. Carry a valid passport matching the name on your booking.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3">

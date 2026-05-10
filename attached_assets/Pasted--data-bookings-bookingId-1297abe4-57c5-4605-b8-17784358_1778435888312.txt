@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "bookings": [
+        {
+          "bookingId": "1297abe4-57c5-4605-b8e7-5caad983c4a7",
+          "status": "CONFIRMED",
+          "timestamp": "2026-02-09T14:20:32.416Z",
+          "journey": {
+            "journeyKey": "a3bbe883fe3a4f6b",
+            "segments": [
+              {
+                "arrivalTime": "2026-04-10T18:40:00",
+                "carrier": {
+                  "marketingCode": "B6",
+                  "marketingLogo": "/static/images/airlines/B6.png",
+                  "marketingName": "JetBlue Airways",
+                  "operatingCode": "B6",
+                  "operatingLogo": "/static/images/airlines/B6.png",
+                  "operatingName": "JetBlue Airways"
+                },
+                "departureTime": "2026-04-10T15:30:00",
+                "direction": "OUTBOUND",
+                "duration": {
+                  "iso8601": "PT6H10M",
+                  "minutes": 370
+                },
+                "flight": {
+                  "marketingNumber": "723",
+                  "operatingNumber": "723"
+                },
+                "segmentKey": "c52f4148",
+                "originCode": "JFK",
+                "destinationCode": "LAX"
+              }
+            ],
+            "price": {
+              "base": 238.32,
+              "currency": "USD",
+              "fees": 0,
+              "taxes": 48.7,
+              "total": 287.02
+            },
+            "terms": {
+              "changeable": true,
+              "refundable": false,
+              "summary": [
+                {
+                  "level": "warning",
+                  "message": "Change fee applies"
+                },
+                {
+                  "level": "danger",
+                  "message": "Non-refundable"
+                }
+              ],
+              "changeFee": {
+                "pricing": {
+                  "display": {
+                    "amount": 75,
+                    "currency": "USD"
+                  },
+                  "converted": false
+                },
+                "percent": null,
+                "applicability": "beforeDeparture",
+                "label": "Change fee (before departure)"
+              },
+              "refundFee": null
+            }
+          },
+          "passengers": [
+            {
+              "type": "",
+              "title": "",
+              "firstName": "TEST",
+              "lastName": "SMITH",
+              "gender": "M"
+            }
+          ],
+          "order": {
+            "reference": {
+              "orderId": "019c42c6-69b4-779b-a627-d8914743d509",
+              "airlineBookings": [
+                {
+                  "airlineCode": "1G",
+                  "pnr": "ABC123"
+                }
+              ]
+            }
+          },
+          "contact": {
+            "firstName": "TEST",
+            "email": "test.json@example.com"
+          }
+        }
+      ]
+    }
+  ]
+}

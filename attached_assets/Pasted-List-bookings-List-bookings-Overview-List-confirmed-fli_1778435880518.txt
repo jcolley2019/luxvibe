@@ -1,0 +1,1348 @@
+List bookings
+
+# List bookings
+
+## Overview
+
+List confirmed flight bookings owned by the authenticated user. Supports an optional PNR + last-name lookup for retrieving a single booking.
+
+## When to Use
+
+- **"My bookings" page** - Display the authenticated user's confirmed flight bookings
+- **PNR lookup** - Retrieve a single booking by `airlinePnr` and a passenger's `lastName`
+- **Booking management** - Build dashboards or list views of past and upcoming reservations
+
+## What You Get
+
+- **Confirmed bookings only** - Returns records persisted from the booking flow;
+- **Full booking objects** with status, journey, passengers, order reference, and pricing
+- **Sandbox isolation** - Sandbox and live bookings are scoped by the API key used
+
+## Key Features
+
+- **Owner-scoped**: Only returns bookings belonging to the authenticated user
+- **PNR + last-name lookup**: When both `airlinePnr` and `lastName` are supplied, returns a single matching booking; both are required together
+- **Stable response shape**: `data` is always an array containing exactly one element with a `bookings` array
+
+## Quick Start
+
+Call with no query parameters to list all bookings for the authenticated user. To look up a specific booking, pass both `airlinePnr` and `lastName`.
+
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API: Flights",
+    "version": "3.0.0",
+    "description": "The Flights API provides endpoints for searching flights, managing bookings, and accessing static flight data including airlines and airports."
+  },
+  "servers": [
+    {
+      "url": "https://api.liteapi.travel/v3.0"
+    }
+  ],
+  "security": [
+    {
+      "apikeyAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "apikeyAuth": {
+        "name": "X-API-Key",
+        "type": "apiKey",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "FlightSegment": {
+        "type": "object",
+        "properties": {
+          "arrivalTime": {
+            "type": "string",
+            "description": "Arrival time (ISO 8601)"
+          },
+          "carrier": {
+            "type": "object",
+            "properties": {
+              "marketingCode": {
+                "type": "string",
+                "description": "Marketing carrier IATA code"
+              },
+              "marketingLogo": {
+                "type": "string",
+                "description": "Marketing carrier logo path/URL"
+              },
+              "marketingName": {
+                "type": "string",
+                "description": "Marketing carrier name"
+              },
+              "operatingCode": {
+                "type": "string",
+                "description": "Operating carrier IATA code"
+              },
+              "operatingLogo": {
+                "type": "string",
+                "description": "Operating carrier logo path/URL"
+              },
+              "operatingName": {
+                "type": "string",
+                "description": "Operating carrier name"
+              }
+            },
+            "description": "Marketing and operating carrier details for this segment"
+          },
+          "departureTime": {
+            "type": "string",
+            "description": "Departure time (ISO 8601)"
+          },
+          "destinationCode": {
+            "type": "string",
+            "description": "Destination IATA code"
+          },
+          "direction": {
+            "type": "string",
+            "description": "OUTBOUND or INBOUND"
+          },
+          "duration": {
+            "type": "object",
+            "properties": {
+              "iso8601": {
+                "type": "string",
+                "description": "Duration in ISO 8601 format (e.g. PT7H45M)"
+              },
+              "minutes": {
+                "type": "integer",
+                "description": "Duration in minutes"
+              }
+            },
+            "description": "Flight duration in ISO 8601 and minutes"
+          },
+          "flight": {
+            "type": "object",
+            "properties": {
+              "marketingNumber": {
+                "type": "string",
+                "description": "Flight number as marketed to passengers"
+              },
+              "operatingNumber": {
+                "type": "string",
+                "description": "Flight number as operated by the carrier"
+              }
+            },
+            "description": "Marketing and operating flight numbers"
+          },
+          "originCode": {
+            "type": "string",
+            "description": "Origin IATA code"
+          },
+          "originName": {
+            "type": "string",
+            "description": "Full name of the origin airport"
+          },
+          "destinationName": {
+            "type": "string",
+            "description": "Full name of the destination airport"
+          },
+          "segmentKey": {
+            "type": "string",
+            "description": "Unique identifier for this segment, used to link with offers, fares, and amenities"
+          }
+        },
+        "description": "A single flight segment (one takeoff and landing) within a journey"
+      },
+      "FlightPrice": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "type": "number",
+            "description": "Base fare amount (before taxes and fees)"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code"
+          },
+          "fees": {
+            "type": "number",
+            "description": "Service fees and surcharges"
+          },
+          "taxes": {
+            "type": "number",
+            "description": "Total taxes applied to the fare"
+          },
+          "total": {
+            "type": "number",
+            "description": "Total price (base + taxes + fees)"
+          },
+          "perPassenger": {
+            "type": "object",
+            "properties": {
+              "adult": {
+                "type": "object",
+                "properties": {
+                  "base": {
+                    "type": "number",
+                    "description": "Base fare for this passenger type"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "description": "ISO 4217 currency code"
+                  },
+                  "fees": {
+                    "type": "number",
+                    "description": "Fees for this passenger type"
+                  },
+                  "taxes": {
+                    "type": "number",
+                    "description": "Taxes for this passenger type"
+                  },
+                  "total": {
+                    "type": "number",
+                    "description": "Total price for this passenger type"
+                  }
+                },
+                "description": "Price breakdown for each adult passenger"
+              },
+              "child": {
+                "type": "object",
+                "properties": {
+                  "base": {
+                    "type": "number",
+                    "description": "Base fare for this passenger type"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "description": "ISO 4217 currency code"
+                  },
+                  "fees": {
+                    "type": "number",
+                    "description": "Fees for this passenger type"
+                  },
+                  "taxes": {
+                    "type": "number",
+                    "description": "Taxes for this passenger type"
+                  },
+                  "total": {
+                    "type": "number",
+                    "description": "Total price for this passenger type"
+                  }
+                },
+                "description": "Price breakdown for each child passenger"
+              },
+              "infant": {
+                "type": "object",
+                "properties": {
+                  "base": {
+                    "type": "number",
+                    "description": "Base fare for this passenger type"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "description": "ISO 4217 currency code"
+                  },
+                  "fees": {
+                    "type": "number",
+                    "description": "Fees for this passenger type"
+                  },
+                  "taxes": {
+                    "type": "number",
+                    "description": "Taxes for this passenger type"
+                  },
+                  "total": {
+                    "type": "number",
+                    "description": "Total price for this passenger type"
+                  }
+                },
+                "description": "Price breakdown for each infant passenger"
+              }
+            },
+            "description": "Price breakdown per passenger type"
+          }
+        },
+        "description": "Full price breakdown including base fare, taxes, fees, and per-passenger amounts"
+      },
+      "FlightMoneyAmount": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Monetary amount"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code"
+          }
+        },
+        "description": "A monetary amount with currency"
+      },
+      "FlightFxInfo": {
+        "type": "object",
+        "properties": {
+          "rate": {
+            "type": "number",
+            "description": "Effective conversion rate applied (may include markup or spread)"
+          },
+          "source": {
+            "type": "string",
+            "description": "Rate source identifier (e.g. nuitee)"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "UTC timestamp when the exchange rate was fetched"
+          }
+        },
+        "description": "Foreign exchange rate details used for currency conversion"
+      },
+      "FlightItemPricing": {
+        "type": "object",
+        "properties": {
+          "display": {
+            "$ref": "#/components/schemas/FlightMoneyAmount",
+            "description": "Customer-facing amount (converted to search currency if applicable)"
+          },
+          "converted": {
+            "type": "boolean",
+            "description": "True if FX currency conversion was applied"
+          },
+          "fxInfo": {
+            "$ref": "#/components/schemas/FlightFxInfo",
+            "nullable": true,
+            "description": "Exchange rate details; present only when converted is true"
+          }
+        },
+        "description": "Pricing for an ancillary item (e.g. baggage) with optional FX conversion details"
+      },
+      "FlightFee": {
+        "type": "object",
+        "nullable": true,
+        "description": "Change or refund fee published by the provider. Null when the provider does not publish a fee.",
+        "properties": {
+          "pricing": {
+            "type": "object",
+            "nullable": true,
+            "description": "Fee pricing; null when only a percentage is available",
+            "properties": {
+              "display": {
+                "$ref": "#/components/schemas/FlightMoneyAmount",
+                "description": "Customer-facing fee amount after FX conversion and margin"
+              },
+              "converted": {
+                "type": "boolean",
+                "description": "True when FX conversion was applied"
+              }
+            }
+          },
+          "percent": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fee as a percentage of the base fare (e.g. 100 = full penalty). May appear without pricing."
+          },
+          "applicability": {
+            "type": "string",
+            "enum": [
+              "anytime",
+              "noShow",
+              "beforeDeparture",
+              "afterDeparture"
+            ],
+            "description": "When the fee applies"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable fee description (e.g. 'Change fee (before departure)')"
+          }
+        }
+      },
+      "FlightBookedService": {
+        "type": "object",
+        "description": "Ancillary service (seat, baggage, etc.) that has been attached to a booking and confirmed by the provider. Returned under booking.bookedServices after /services or /bookings.",
+        "required": [
+          "serviceId",
+          "pricing"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "description": "Encoded service identifier (carries provider serviceId, post-margin price, currency, category)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable service name (e.g. 'Seat 1A')"
+          },
+          "category": {
+            "type": "string",
+            "description": "Service category (e.g. 'seat', 'baggage')"
+          },
+          "passengerType": {
+            "type": "string",
+            "description": "Applicable passenger type (ALL, ADT, CHD, INF)"
+          },
+          "passengerIndex": {
+            "type": "integer",
+            "description": "Index of the passenger this service applies to (0-based; matches the passengers[] array)"
+          },
+          "segmentKey": {
+            "type": "string",
+            "description": "The flight segment this service applies to (matches journey.segments[].segmentKey)"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Number of units booked"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp when the provider attached the service"
+          },
+          "phase": {
+            "type": "string",
+            "description": "Provider phase, e.g. 'post_booking'"
+          },
+          "status": {
+            "type": "string",
+            "description": "Provider status of this service, e.g. 'pending', 'confirmed'"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/FlightItemPricing",
+            "description": "Customer-facing price for this service (post-margin)"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Category-specific metadata. Contains exactly one of `seat` (when category is 'seat') or `baggage` (when category is 'baggage').",
+            "properties": {
+              "seat": {
+                "type": "object",
+                "description": "Seat details — present only when category is 'seat'",
+                "properties": {
+                  "available": {
+                    "type": "boolean",
+                    "description": "Whether this seat is currently available"
+                  },
+                  "position": {
+                    "type": "string",
+                    "description": "Physical position (window, middle, aisle)"
+                  },
+                  "seatColumn": {
+                    "type": "string",
+                    "description": "Column letter (e.g. A, B, C)"
+                  },
+                  "seatNumber": {
+                    "type": "string",
+                    "description": "Full seat label (e.g. 1A)"
+                  },
+                  "seatRow": {
+                    "type": "integer",
+                    "description": "Row number"
+                  },
+                  "seatType": {
+                    "type": "string",
+                    "description": "Seat class/type (standard, extra_legroom, exit_row, ...)"
+                  }
+                }
+              },
+              "baggage": {
+                "type": "object",
+                "description": "Baggage details — present only when category is 'baggage'",
+                "properties": {
+                  "bagType": {
+                    "type": "string",
+                    "description": "Type of bag (e.g. checked, cabin)"
+                  },
+                  "pieces": {
+                    "type": "integer",
+                    "description": "Number of bag pieces booked"
+                  },
+                  "weightKg": {
+                    "type": "number",
+                    "description": "Weight allowance in kilograms"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FlightOfferPricing": {
+        "type": "object",
+        "properties": {
+          "display": {
+            "$ref": "#/components/schemas/FlightPrice",
+            "description": "Customer-facing price breakdown (converted to search currency if applicable)"
+          },
+          "converted": {
+            "type": "boolean",
+            "description": "True if FX currency conversion was applied"
+          },
+          "fxInfo": {
+            "$ref": "#/components/schemas/FlightFxInfo",
+            "nullable": true,
+            "description": "Exchange rate details; present only when converted is true"
+          }
+        },
+        "description": "Full offer pricing with per-passenger breakdown and optional FX conversion details"
+      },
+      "FlightBooking": {
+        "type": "object",
+        "description": "Flight booking details (maps to provider BookingData)",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "description": "Unique booking identifier"
+          },
+          "bookingRef": {
+            "type": "string",
+            "description": "FlightHub booking reference (FH-YYM-XXXXXXXX)"
+          },
+          "status": {
+            "type": "string",
+            "description": "Booking status: PENDING_CONFIRMATION, CONFIRMED, CANCELLED, PENDING, TICKETED"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Booking creation time (UTC)"
+          },
+          "offerId": {
+            "type": "string",
+            "description": "Offer ID from verify stage"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "description": "Payment status: pending, completed, failed, not_required"
+          },
+          "providerEnvironment": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "production"
+            ],
+            "description": "Provider environment used for this booking (sandbox or production)"
+          },
+          "ticketLimitTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Deadline for ticket issuance (UTC)"
+          },
+          "lastRefreshedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp of the last successful provider API status refresh"
+          },
+          "journey": {
+            "type": "object",
+            "properties": {
+              "journeyKey": {
+                "type": "string",
+                "description": "Unique journey identifier"
+              },
+              "segments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FlightSegment"
+                },
+                "description": "Flight segments in this booking"
+              },
+              "price": {
+                "$ref": "#/components/schemas/FlightPrice",
+                "description": "Journey price at time of booking"
+              },
+              "pricing": {
+                "$ref": "#/components/schemas/FlightOfferPricing",
+                "description": "Journey pricing (provider FlattenedJourney.pricing)"
+              },
+              "baggage": {
+                "type": "object",
+                "description": "Fare baggage allowance on the booked journey (included and paid options; aligns with provider FlattenedJourney.baggage)",
+                "properties": {
+                  "hasCarryOnBag": {
+                    "type": "boolean",
+                    "description": "Whether carry-on bag is included"
+                  },
+                  "hasCheckedBag": {
+                    "type": "boolean",
+                    "description": "Whether checked bag is included"
+                  },
+                  "included": {
+                    "type": "array",
+                    "description": "Baggage included in the fare",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "bagType": {
+                          "type": "string",
+                          "enum": [
+                            "cabin",
+                            "checked",
+                            "personal"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "passengerType": {
+                          "type": "string",
+                          "enum": [
+                            "ADT",
+                            "CHD",
+                            "INF",
+                            "ALL"
+                          ]
+                        },
+                        "pieces": {
+                          "type": "integer"
+                        },
+                        "pricing": {
+                          "$ref": "#/components/schemas/FlightItemPricing"
+                        },
+                        "size": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "weightKg": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  },
+                  "paid": {
+                    "type": "array",
+                    "description": "Available paid baggage options",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "bagType": {
+                          "type": "string",
+                          "enum": [
+                            "cabin",
+                            "checked",
+                            "personal"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "passengerType": {
+                          "type": "string",
+                          "enum": [
+                            "ADT",
+                            "CHD",
+                            "INF",
+                            "ALL"
+                          ]
+                        },
+                        "pieces": {
+                          "type": "integer"
+                        },
+                        "pricing": {
+                          "$ref": "#/components/schemas/FlightItemPricing"
+                        },
+                        "size": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "weightKg": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "terms": {
+                "type": "object",
+                "nullable": true,
+                "description": "Booking terms from the provider",
+                "properties": {
+                  "changeable": {
+                    "type": "boolean"
+                  },
+                  "refundable": {
+                    "type": "boolean"
+                  },
+                  "summary": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "level": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "changeFee": {
+                    "$ref": "#/components/schemas/FlightFee",
+                    "description": "Change fee details; null when the provider does not publish a fee"
+                  },
+                  "refundFee": {
+                    "$ref": "#/components/schemas/FlightFee",
+                    "description": "Refund/cancellation fee details; null when the provider does not publish a fee"
+                  }
+                }
+              }
+            },
+            "description": "Journey details as confirmed by the provider at booking time"
+          },
+          "passengers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Passenger type code (ADT, CHD, INF)"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Passenger title (Mr, Mrs, Ms, etc.)"
+                },
+                "firstName": {
+                  "type": "string",
+                  "description": "Passenger first name as on travel document"
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "Passenger last name as on travel document"
+                },
+                "middleName": {
+                  "type": "string",
+                  "description": "Passenger middle name"
+                },
+                "dateOfBirth": {
+                  "type": "string",
+                  "description": "Date of birth (YYYY-MM-DD)"
+                },
+                "birthday": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "Date of birth (YYYY-MM-DD)"
+                },
+                "gender": {
+                  "type": "string",
+                  "description": "Passenger gender: M or F"
+                },
+                "nationality": {
+                  "type": "string",
+                  "description": "Passenger nationality as ISO country code"
+                },
+                "passengerType": {
+                  "type": "integer",
+                  "description": "0=Adult, 1=Child, 2=Infant"
+                },
+                "documentType": {
+                  "type": "string",
+                  "description": "Type of travel document (e.g. passport, id_card)"
+                },
+                "documentNumber": {
+                  "type": "string",
+                  "description": "Travel document number"
+                },
+                "documentIssueCountry": {
+                  "type": "string",
+                  "description": "ISO country code of the document issuing country"
+                },
+                "documentExpiry": {
+                  "type": "string",
+                  "description": "Travel document expiry date (YYYY-MM-DD)"
+                }
+              }
+            },
+            "description": "Passenger details as submitted and confirmed by the provider"
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": "string",
+                "description": "Contact first name"
+              },
+              "lastName": {
+                "type": "string",
+                "description": "Contact last name"
+              },
+              "middleName": {
+                "type": "string",
+                "description": "Contact middle name"
+              },
+              "email": {
+                "type": "string",
+                "description": "Contact email address for booking confirmation"
+              },
+              "phoneCountryCode": {
+                "type": "string",
+                "description": "Phone country code without + (e.g. 1 for US, 33 for France)"
+              },
+              "phoneNumber": {
+                "type": "string",
+                "description": "Phone number without country code"
+              }
+            },
+            "description": "Primary contact person for the booking"
+          },
+          "order": {
+            "type": "object",
+            "properties": {
+              "reference": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "description": "Provider order or PNR reference ID"
+                  },
+                  "provider": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "Provider code (e.g. SABRE, TRAVELPORT)"
+                      },
+                      "pnr": {
+                        "type": "string",
+                        "description": "Provider PNR (Passenger Name Record) locator code"
+                      }
+                    },
+                    "description": "Provider-level booking reference (code + PNR)"
+                  },
+                  "airlineBookings": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "airlineCode": {
+                          "type": "string",
+                          "description": "Airline IATA code"
+                        },
+                        "airlineName": {
+                          "type": "string",
+                          "description": "Airline name"
+                        },
+                        "airlinePnr": {
+                          "type": "string",
+                          "description": "Airline-specific PNR/locator code"
+                        },
+                        "pnr": {
+                          "type": "string",
+                          "description": "PNR locator code for this airline"
+                        }
+                      }
+                    },
+                    "description": "Per-airline booking references and PNR codes"
+                  }
+                },
+                "description": "Provider and airline reference identifiers"
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217 currency code for this order"
+              },
+              "status": {
+                "type": "string",
+                "description": "Order status from the provider (e.g. ticketed, created)"
+              },
+              "price": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "description": "ISO 4217 currency code"
+                  },
+                  "total": {
+                    "type": "number",
+                    "description": "Total order price"
+                  }
+                },
+                "description": "Order price as confirmed by the provider"
+              },
+              "ticketLimitTime": {
+                "type": "string",
+                "description": "Deadline for ticket issuance (UTC)"
+              },
+              "timestamp": {
+                "type": "string",
+                "description": "UTC timestamp when the order was created"
+              }
+            },
+            "description": "Order and provider confirmation details"
+          },
+          "airlineLocators": {
+            "type": "array",
+            "description": "Airline-specific PNR/locator codes",
+            "items": {
+              "type": "object",
+              "properties": {
+                "airlineCode": {
+                  "type": "string",
+                  "description": "Airline IATA code"
+                },
+                "airlinePnr": {
+                  "type": "string",
+                  "description": "Airline-specific PNR/locator code"
+                }
+              }
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "properties": {
+              "subtotal": {
+                "type": "number",
+                "description": "Subtotal before ancillary services"
+              },
+              "servicesAmount": {
+                "type": "number",
+                "description": "Total cost of attached ancillary services (seats, baggage, etc.)"
+              },
+              "seatsAmount": {
+                "type": "number",
+                "description": "Total cost of seat selections"
+              },
+              "baggageAmount": {
+                "type": "number",
+                "description": "Total cost of additional baggage"
+              },
+              "totalAmount": {
+                "type": "number",
+                "description": "Grand total charged to the customer"
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217 currency code"
+              }
+            },
+            "description": "Billing breakdown for this booking including base fare and any ancillary services"
+          },
+          "payment": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "Amount captured for payment"
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217 currency code of the payment"
+              }
+            },
+            "description": "Payment amounts captured for this booking"
+          },
+          "remarks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Remark name or category"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Remark content"
+                }
+              }
+            },
+            "description": "Reservation remarks or comments from the provider"
+          },
+          "selectedServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectedService"
+            },
+            "description": "Ancillary services attached to this booking (seats, baggage, etc.)"
+          },
+          "bookedServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FlightBookedService"
+            },
+            "description": "Detailed view of the ancillary services confirmed by the provider for this booking, including pricing and per-passenger / per-segment metadata. Present once /services has been called."
+          },
+          "ticketData": {
+            "type": "object",
+            "properties": {
+              "confirmationId": {
+                "type": "string",
+                "description": "Ticket confirmation identifier"
+              },
+              "ticketedAt": {
+                "type": "string",
+                "description": "UTC timestamp when the ticket was issued"
+              },
+              "provider": {
+                "type": "string",
+                "description": "Provider that issued the ticket"
+              },
+              "source": {
+                "type": "string",
+                "description": "Source system that generated the ticket"
+              }
+            },
+            "description": "Ticket issuance details from the provider"
+          },
+          "timings": {
+            "type": "object",
+            "properties": {
+              "startedAt": {
+                "type": "string",
+                "description": "When the booking flow was initiated"
+              },
+              "persistedAt": {
+                "type": "string",
+                "description": "When the booking record was saved to the database"
+              },
+              "orderSentAt": {
+                "type": "string",
+                "description": "When the order request was sent to the provider"
+              },
+              "pnrReceivedAt": {
+                "type": "string",
+                "description": "When the PNR confirmation was received from the provider"
+              },
+              "paymentStartedAt": {
+                "type": "string",
+                "description": "When payment capture was initiated"
+              },
+              "paymentCompletedAt": {
+                "type": "string",
+                "description": "When payment capture was completed"
+              },
+              "completedAt": {
+                "type": "string",
+                "description": "When the full booking flow was completed"
+              }
+            },
+            "description": "Step-by-step UTC timestamps for booking flow observability"
+          },
+          "settings": {
+            "type": "object",
+            "description": "Booking settings"
+          },
+          "paymentInput": {
+            "type": "object",
+            "description": "Echo of payment submitted when creating the booking; may include additional provider-specific fields",
+            "additionalProperties": true,
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": [
+                  "TRANSACTION_ID",
+                  "CREDIT"
+                ],
+                "description": "How the booking was paid: Stripe (`TRANSACTION_ID`) or credit line (`CREDIT`)"
+              },
+              "transactionId": {
+                "type": "string",
+                "description": "Stripe transaction id when `method` is `TRANSACTION_ID`"
+              }
+            }
+          }
+        }
+      },
+      "SelectedService": {
+        "type": "object",
+        "properties": {
+          "passengerIndex": {
+            "type": "integer",
+            "description": "Zero-based index of the passenger this service is for (matches position in passengers array)",
+            "example": 0
+          },
+          "serviceId": {
+            "type": "string",
+            "description": "Service identifier from servicesAttachable.groups[].services[].serviceId",
+            "example": "g6Rwc2lk2SQwMTlkMDY3NC1hMzQzLTc0OGEtYmYyYS1jMDk4ZmNjMTk2ZGGhcMtAfB6PXCj1w6Fjo1VTRA=="
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Number of units of this service to attach",
+            "example": 1
+          }
+        },
+        "description": "An ancillary service selected by a passenger (seat, baggage, etc.)"
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "description": "Numeric error code"
+              },
+              "message": {
+                "type": "string",
+                "description": "Short error message"
+              },
+              "description": {
+                "type": "string",
+                "description": "Detailed error description"
+              }
+            },
+            "description": "Error details"
+          }
+        },
+        "description": "Standard error response envelope"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Flight Bookings",
+      "description": "Checkout flow: **1.** Create a checkout session (PREBOOK) → **1.2** Attach services to prebook (optional) → **2.** Complete a booking. Also includes retrieving a booking by ID."
+    }
+  ],
+  "paths": {
+    "/flights/bookings": {
+      "get": {
+        "tags": [
+          "Flight Bookings"
+        ],
+        "summary": "List bookings",
+        "description": "## Overview\n\nList confirmed flight bookings owned by the authenticated user. Supports an optional PNR + last-name lookup for retrieving a single booking.\n\n## When to Use\n\n- **\"My bookings\" page** - Display the authenticated user's confirmed flight bookings\n- **PNR lookup** - Retrieve a single booking by `airlinePnr` and a passenger's `lastName`\n- **Booking management** - Build dashboards or list views of past and upcoming reservations\n\n## What You Get\n\n- **Confirmed bookings only** - Returns records persisted from the booking flow;\n- **Full booking objects** with status, journey, passengers, order reference, and pricing\n- **Sandbox isolation** - Sandbox and live bookings are scoped by the API key used\n\n## Key Features\n\n- **Owner-scoped**: Only returns bookings belonging to the authenticated user\n- **PNR + last-name lookup**: When both `airlinePnr` and `lastName` are supplied, returns a single matching booking; both are required together\n- **Stable response shape**: `data` is always an array containing exactly one element with a `bookings` array\n\n## Quick Start\n\nCall with no query parameters to list all bookings for the authenticated user. To look up a specific booking, pass both `airlinePnr` and `lastName`.",
+        "parameters": [
+          {
+            "name": "airlinePnr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Airline PNR (record locator) for single-booking lookup. Required together with `lastName`.",
+            "example": "ABC123"
+          },
+          {
+            "name": "lastName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Passenger last name for single-booking lookup. Required together with `airlinePnr`.",
+            "example": "SMITH"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "bookings": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FlightBooking"
+                            },
+                            "description": "Confirmed bookings owned by the authenticated user. Empty array when the user has no bookings."
+                          }
+                        }
+                      },
+                      "description": "List of booking result sets (always exactly one element)"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "bookings": [
+                        {
+                          "bookingId": "1297abe4-57c5-4605-b8e7-5caad983c4a7",
+                          "status": "CONFIRMED",
+                          "timestamp": "2026-02-09T14:20:32.416Z",
+                          "journey": {
+                            "journeyKey": "a3bbe883fe3a4f6b",
+                            "segments": [
+                              {
+                                "arrivalTime": "2026-04-10T18:40:00",
+                                "carrier": {
+                                  "marketingCode": "B6",
+                                  "marketingLogo": "/static/images/airlines/B6.png",
+                                  "marketingName": "JetBlue Airways",
+                                  "operatingCode": "B6",
+                                  "operatingLogo": "/static/images/airlines/B6.png",
+                                  "operatingName": "JetBlue Airways"
+                                },
+                                "departureTime": "2026-04-10T15:30:00",
+                                "direction": "OUTBOUND",
+                                "duration": {
+                                  "iso8601": "PT6H10M",
+                                  "minutes": 370
+                                },
+                                "flight": {
+                                  "marketingNumber": "723",
+                                  "operatingNumber": "723"
+                                },
+                                "segmentKey": "c52f4148",
+                                "originCode": "JFK",
+                                "destinationCode": "LAX"
+                              }
+                            ],
+                            "price": {
+                              "base": 238.32,
+                              "currency": "USD",
+                              "fees": 0,
+                              "taxes": 48.7,
+                              "total": 287.02
+                            },
+                            "terms": {
+                              "changeable": true,
+                              "refundable": false,
+                              "summary": [
+                                {
+                                  "level": "warning",
+                                  "message": "Change fee applies"
+                                },
+                                {
+                                  "level": "danger",
+                                  "message": "Non-refundable"
+                                }
+                              ],
+                              "changeFee": {
+                                "pricing": {
+                                  "display": {
+                                    "amount": 75,
+                                    "currency": "USD"
+                                  },
+                                  "converted": false
+                                },
+                                "percent": null,
+                                "applicability": "beforeDeparture",
+                                "label": "Change fee (before departure)"
+                              },
+                              "refundFee": null
+                            }
+                          },
+                          "passengers": [
+                            {
+                              "type": "",
+                              "title": "",
+                              "firstName": "TEST",
+                              "lastName": "SMITH",
+                              "gender": "M"
+                            }
+                          ],
+                          "order": {
+                            "reference": {
+                              "orderId": "019c42c6-69b4-779b-a627-d8914743d509",
+                              "airlineBookings": [
+                                {
+                                  "airlineCode": "1G",
+                                  "pnr": "ABC123"
+                                }
+                              ]
+                            }
+                          },
+                          "contact": {
+                            "firstName": "TEST",
+                            "email": "test.json@example.com"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid PNR lookup parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "missingAirlinePnr": {
+                    "summary": "Missing airlinePnr",
+                    "value": {
+                      "error": {
+                        "code": 47007,
+                        "description": "A required query parameter is missing: airlinePnr",
+                        "message": "missing required field: airlinePnr"
+                      }
+                    }
+                  },
+                  "missingLastName": {
+                    "summary": "Missing lastName",
+                    "value": {
+                      "error": {
+                        "code": 47008,
+                        "description": "A required query parameter is missing: lastName",
+                        "message": "missing required field: lastName"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": 401,
+                    "description": "Authentication failed",
+                    "message": "unauthorized"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Booking not found (PNR lookup only)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": 47002,
+                    "description": "The booking was not found",
+                    "message": "booking not found"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": 57099,
+                    "description": "Failed to retrieve booking",
+                    "message": "unable to process get booking request"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

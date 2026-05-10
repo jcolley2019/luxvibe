@@ -3301,6 +3301,23 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/flights/bookings/:bookingId — get booking details
+  app.get("/api/flights/bookings/:bookingId", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const result = await fetch(`${LITEAPI_BASE}/flights/bookings/${bookingId}`, {
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY },
+        signal: AbortSignal.timeout(15000),
+      });
+      const data = await result.json() as any;
+      const inner = data?.data?.[0] ?? data;
+      res.status(result.ok ? 200 : result.status).json(inner);
+    } catch (err: any) {
+      console.error("[flights/bookings/get]", err?.message);
+      res.status(500).json({ message: err?.message || "Failed to get booking" });
+    }
+  });
+
   // GET /api/flights/airports — airport search via LiteAPI Flights airports API
   app.get("/api/flights/airports", async (req, res) => {
     try {
