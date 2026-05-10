@@ -1,0 +1,345 @@
+{
+  "data": [
+    {
+      "booking": {
+        "bookingId": "string",
+        "bookingRef": "string",
+        "status": "string",
+        "timestamp": "string",
+        "offerId": "string",
+        "paymentStatus": "string",
+        "providerEnvironment": "sandbox",
+        "ticketLimitTime": "2026-05-09T19:47:46.734Z",
+        "lastRefreshedAt": "2026-05-09T19:47:46.734Z",
+        "journey": {
+          "journeyKey": "string",
+          "segments": [
+            {
+              "arrivalTime": "string",
+              "carrier": {
+                "marketingCode": "string",
+                "marketingLogo": "string",
+                "marketingName": "string",
+                "operatingCode": "string",
+                "operatingLogo": "string",
+                "operatingName": "string"
+              },
+              "departureTime": "string",
+              "destinationCode": "string",
+              "direction": "string",
+              "duration": {
+                "iso8601": "string",
+                "minutes": 0
+              },
+              "flight": {
+                "marketingNumber": "string",
+                "operatingNumber": "string"
+              },
+              "originCode": "string",
+              "originName": "string",
+              "destinationName": "string",
+              "segmentKey": "string"
+            }
+          ],
+          "price": {
+            "base": 0,
+            "currency": "string",
+            "fees": 0,
+            "taxes": 0,
+            "total": 0,
+            "perPassenger": {
+              "adult": {
+                "base": 0,
+                "currency": "string",
+                "fees": 0,
+                "taxes": 0,
+                "total": 0
+              },
+              "child": {
+                "base": 0,
+                "currency": "string",
+                "fees": 0,
+                "taxes": 0,
+                "total": 0
+              },
+              "infant": {
+                "base": 0,
+                "currency": "string",
+                "fees": 0,
+                "taxes": 0,
+                "total": 0
+              }
+            }
+          },
+          "pricing": {
+            "display": {
+              "base": 0,
+              "currency": "string",
+              "fees": 0,
+              "taxes": 0,
+              "total": 0,
+              "perPassenger": {
+                "adult": {
+                  "base": 0,
+                  "currency": "string",
+                  "fees": 0,
+                  "taxes": 0,
+                  "total": 0
+                },
+                "child": {
+                  "base": 0,
+                  "currency": "string",
+                  "fees": 0,
+                  "taxes": 0,
+                  "total": 0
+                },
+                "infant": {
+                  "base": 0,
+                  "currency": "string",
+                  "fees": 0,
+                  "taxes": 0,
+                  "total": 0
+                }
+              }
+            },
+            "converted": true,
+            "fxInfo": {
+              "rate": 0,
+              "source": "string",
+              "timestamp": "string"
+            }
+          },
+          "baggage": {
+            "hasCarryOnBag": true,
+            "hasCheckedBag": true,
+            "included": [
+              {
+                "bagType": "cabin",
+                "description": "string",
+                "passengerType": "ADT",
+                "pieces": 0,
+                "pricing": {
+                  "display": {
+                    "amount": 0,
+                    "currency": "string"
+                  },
+                  "converted": true,
+                  "fxInfo": {
+                    "rate": 0,
+                    "source": "string",
+                    "timestamp": "string"
+                  }
+                },
+                "size": "string",
+                "unit": "string",
+                "weightKg": 0
+              }
+            ],
+            "paid": [
+              {
+                "bagType": "cabin",
+                "description": "string",
+                "passengerType": "ADT",
+                "pieces": 0,
+                "pricing": {
+                  "display": {
+                    "amount": 0,
+                    "currency": "string"
+                  },
+                  "converted": true,
+                  "fxInfo": {
+                    "rate": 0,
+                    "source": "string",
+                    "timestamp": "string"
+                  }
+                },
+                "size": "string",
+                "unit": "string",
+                "weightKg": 0
+              }
+            ]
+          },
+          "terms": {
+            "changeable": true,
+            "refundable": true,
+            "summary": [
+              {
+                "level": "string",
+                "message": "string"
+              }
+            ],
+            "changeFee": {
+              "pricing": {
+                "display": {
+                  "amount": 0,
+                  "currency": "string"
+                },
+                "converted": true
+              },
+              "percent": 0,
+              "applicability": "anytime",
+              "label": "string"
+            },
+            "refundFee": {
+              "pricing": {
+                "display": {
+                  "amount": 0,
+                  "currency": "string"
+                },
+                "converted": true
+              },
+              "percent": 0,
+              "applicability": "anytime",
+              "label": "string"
+            }
+          }
+        },
+        "passengers": [
+          {
+            "type": "string",
+            "title": "string",
+            "firstName": "string",
+            "lastName": "string",
+            "middleName": "string",
+            "dateOfBirth": "string",
+            "birthday": "2026-05-09",
+            "gender": "string",
+            "nationality": "string",
+            "passengerType": 0,
+            "documentType": "string",
+            "documentNumber": "string",
+            "documentIssueCountry": "string",
+            "documentExpiry": "string"
+          }
+        ],
+        "contact": {
+          "firstName": "string",
+          "lastName": "string",
+          "middleName": "string",
+          "email": "string",
+          "phoneCountryCode": "string",
+          "phoneNumber": "string"
+        },
+        "order": {
+          "reference": {
+            "orderId": "string",
+            "provider": {
+              "code": "string",
+              "pnr": "string"
+            },
+            "airlineBookings": [
+              {
+                "airlineCode": "string",
+                "airlineName": "string",
+                "airlinePnr": "string",
+                "pnr": "string"
+              }
+            ]
+          },
+          "currency": "string",
+          "status": "string",
+          "price": {
+            "currency": "string",
+            "total": 0
+          },
+          "ticketLimitTime": "string",
+          "timestamp": "string"
+        },
+        "airlineLocators": [
+          {
+            "airlineCode": "string",
+            "airlinePnr": "string"
+          }
+        ],
+        "pricing": {
+          "subtotal": 0,
+          "servicesAmount": 0,
+          "seatsAmount": 0,
+          "baggageAmount": 0,
+          "totalAmount": 0,
+          "currency": "string"
+        },
+        "payment": {
+          "amount": 0,
+          "currency": "string"
+        },
+        "remarks": [
+          {
+            "name": "string",
+            "value": "string"
+          }
+        ],
+        "selectedServices": [
+          {
+            "passengerIndex": 0,
+            "serviceId": "g6Rwc2lk2SQwMTlkMDY3NC1hMzQzLTc0OGEtYmYyYS1jMDk4ZmNjMTk2ZGGhcMtAfB6PXCj1w6Fjo1VTRA==",
+            "quantity": 1
+          }
+        ],
+        "bookedServices": [
+          {
+            "serviceId": "string",
+            "name": "string",
+            "category": "string",
+            "passengerType": "string",
+            "passengerIndex": 0,
+            "segmentKey": "string",
+            "quantity": 0,
+            "createdAt": "2026-05-09T19:47:46.734Z",
+            "phase": "string",
+            "status": "string",
+            "pricing": {
+              "display": {
+                "amount": 0,
+                "currency": "string"
+              },
+              "converted": true,
+              "fxInfo": {
+                "rate": 0,
+                "source": "string",
+                "timestamp": "string"
+              }
+            },
+            "metadata": {
+              "seat": {
+                "available": true,
+                "position": "string",
+                "seatColumn": "string",
+                "seatNumber": "string",
+                "seatRow": 0,
+                "seatType": "string"
+              },
+              "baggage": {
+                "bagType": "string",
+                "pieces": 0,
+                "weightKg": 0
+              }
+            }
+          }
+        ],
+        "ticketData": {
+          "confirmationId": "string",
+          "ticketedAt": "string",
+          "provider": "string",
+          "source": "string"
+        },
+        "timings": {
+          "startedAt": "string",
+          "persistedAt": "string",
+          "orderSentAt": "string",
+          "pnrReceivedAt": "string",
+          "paymentStartedAt": "string",
+          "paymentCompletedAt": "string",
+          "completedAt": "string"
+        },
+        "settings": {},
+        "paymentInput": {
+          "method": "TRANSACTION_ID",
+          "transactionId": "string",
+          "additionalProp": {}
+        }
+      },
+      "message": "string"
+    }
+  ]
+}

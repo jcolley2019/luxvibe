@@ -71,9 +71,10 @@ export default function FlightConfirmation() {
     );
   }
 
-  const bookingData = bookMutation.data?.data || bookMutation.data;
-  const isSuccess = bookMutation.isSuccess && !bookMutation.data?.error;
-  const errorMsg = bookMutation.data?.error?.message || bookMutation.data?.message || (bookMutation.error as Error)?.message;
+  // Backend normalises to { booking, message } at top level
+  const bookingData = bookMutation.data?.booking;
+  const isSuccess = bookMutation.isSuccess && !!bookingData?.bookingId;
+  const errorMsg = bookMutation.data?.message || bookMutation.data?.error?.message || (bookMutation.error as Error)?.message;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -136,8 +137,16 @@ export default function FlightConfirmation() {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Booking Reference</p>
                     <p className="font-mono font-bold text-lg text-foreground">
-                      {bookingData?.bookingId || bookingData?.booking?.bookingId || prebookId?.slice(0, 12).toUpperCase()}
+                      {bookingData?.bookingId || bookingData?.bookingRef || bookingData?.order?.reference?.orderId || prebookId?.slice(0, 12).toUpperCase()}
                     </p>
+                    {bookingData?.order?.reference?.airlineBookings?.[0]?.airlinePnr && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        PNR: <span className="font-mono font-semibold">{bookingData.order.reference.airlineBookings[0].airlinePnr}</span>
+                        {bookingData.order.reference.airlineBookings[0].airlineName && (
+                          <span className="ml-1">· {bookingData.order.reference.airlineBookings[0].airlineName}</span>
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />

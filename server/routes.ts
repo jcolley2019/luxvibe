@@ -3278,18 +3278,23 @@ ${allUrls.map(u => `  <url>
       const { prebookId, transactionId, clientReference } = req.body;
       if (!prebookId || !transactionId) return res.status(400).json({ message: "prebookId and transactionId are required" });
       const clientRef = flightPrebookRefs.get(prebookId) || clientReference;
-      const bookBody: any = { prebookId, transactionId };
+      const bookBody: any = {
+        prebookId,
+        payment: { method: "TRANSACTION_ID", transactionId },
+      };
       if (clientRef) bookBody.clientReference = clientRef;
       console.log("[flights/book] prebookId:", prebookId, "transactionId:", transactionId);
       const result = await fetch(`${LITEAPI_BASE}/flights/bookings`, {
         method: "POST",
         headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
         body: JSON.stringify(bookBody),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(45000),
       });
       const data = await result.json() as any;
-      console.log("[flights/book] HTTP status:", result.status);
-      res.status(result.ok ? 200 : result.status).json(data);
+      console.log("[flights/book] HTTP status:", result.status, "bookingId:", data?.data?.[0]?.booking?.bookingId);
+      // Normalise: always return { booking, message } at the top level
+      const inner = data?.data?.[0] ?? data;
+      res.status(result.ok ? 200 : result.status).json(inner);
     } catch (err: any) {
       console.error("[flights/book]", err?.message);
       res.status(500).json({ message: err?.message || "Failed to complete flight booking" });
