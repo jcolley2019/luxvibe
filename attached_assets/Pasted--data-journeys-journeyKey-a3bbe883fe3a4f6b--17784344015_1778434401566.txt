@@ -1,0 +1,210 @@
+{
+  "data": [
+    {
+      "journeys": [
+        {
+          "journeyKey": "a3bbe883fe3a4f6b",
+          "isCheapest": true,
+          "timestamp": "2026-03-19T12:52:59.494Z",
+          "totalDuration": {
+            "iso8601": "PT7H45M",
+            "minutes": 465
+          },
+          "legDurations": [
+            {
+              "direction": "OUTBOUND",
+              "duration": {
+                "iso8601": "PT7H45M",
+                "minutes": 465
+              },
+              "dayChange": 1,
+              "overnightFlight": false
+            }
+          ],
+          "parameters": {
+            "adults": 1,
+            "children": 0,
+            "infants": 0
+          },
+          "segments": [
+            {
+              "segmentKey": "d0a8a7dd",
+              "originCode": "JFK",
+              "originName": "John F. Kennedy International Airport",
+              "destinationCode": "CDG",
+              "destinationName": "Charles de Gaulle Airport",
+              "departureTime": "2026-07-01T16:10:00",
+              "arrivalTime": "2026-07-02T05:55:00",
+              "direction": "OUTBOUND",
+              "duration": {
+                "iso8601": "PT7H45M",
+                "minutes": 465
+              },
+              "flight": {
+                "marketingNumber": "2017",
+                "operatingNumber": "2017"
+              },
+              "carrier": {
+                "marketingCode": "DE",
+                "marketingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "marketingName": "Condor Flugdienst",
+                "operatingCode": "DE",
+                "operatingLogo": "https://sandbox.nuitee.flights/static/images/airlines/DE.png",
+                "operatingName": "Condor Flugdienst"
+              }
+            }
+          ],
+          "offers": [
+            {
+              "offerId": "h6NwaWTZJDAxOWQwNjFlLWRlMjYtNzI1NC1hZDNmLTA0ZDkwZmMxMDNhZaJ0cMtAh471wo9cKaJtdctAJAAAAAAAAKNjdXKjVVNEo3VpZM0CeaJkZKoyMDI2LTA3LTAxonJkqjIwMjYtMDgtMDI=",
+              "expiration": "2026-03-19T12:52:59.494Z",
+              "pricing": {
+                "display": {
+                  "total": 753.87,
+                  "currency": "USD",
+                  "base": 403.63,
+                  "fees": 0,
+                  "taxes": 350.24,
+                  "perPassenger": {
+                    "adult": {
+                      "base": 403.63,
+                      "currency": "USD",
+                      "fees": 0,
+                      "taxes": 350.24,
+                      "total": 753.87
+                    },
+                    "child": {
+                      "base": 0,
+                      "currency": "USD",
+                      "fees": 0,
+                      "taxes": 0,
+                      "total": 0
+                    },
+                    "infant": {
+                      "base": 0,
+                      "currency": "USD",
+                      "fees": 0,
+                      "taxes": 0,
+                      "total": 0
+                    }
+                  }
+                },
+                "converted": false,
+                "fxInfo": null
+              },
+              "provider": {
+                "code": "SABRE",
+                "logo": "https://sandbox.nuitee.flights/static/providers/sabre.svg"
+              },
+              "fare": {
+                "family": "Economy",
+                "mixedCabin": false,
+                "seatsRemaining": 7
+              },
+              "baggage": {
+                "hasCarryOnBag": true,
+                "hasCheckedBag": false,
+                "included": [
+                  {
+                    "bagType": "cabin",
+                    "description": "1 carry-on bag up to 8 kg",
+                    "passengerType": "ADT",
+                    "pieces": 1,
+                    "pricing": {
+                      "display": {
+                        "amount": 0,
+                        "currency": "USD"
+                      },
+                      "converted": false
+                    },
+                    "unit": "kg",
+                    "weightKg": 8
+                  }
+                ]
+              },
+              "terms": {
+                "changeable": true,
+                "refundable": false,
+                "summary": [
+                  {
+                    "level": "warning",
+                    "message": "Change fee applies"
+                  },
+                  {
+                    "level": "danger",
+                    "message": "Non-refundable"
+                  }
+                ],
+                "changeFee": {
+                  "pricing": {
+                    "display": {
+                      "amount": 75,
+                      "currency": "USD"
+                    },
+                    "converted": false
+                  },
+                  "percent": null,
+                  "applicability": "beforeDeparture",
+                  "label": "Change fee (before departure)"
+                },
+                "refundFee": null
+              },
+              "segmentFares": [
+                {
+                  "segmentKey": "d0a8a7dd",
+                  "bookingCode": "W",
+                  "cabin": "Economy",
+                  "fareBasisCode": "WRAQ1",
+                  "fareFamily": "Economy",
+                  "seatsRemaining": 7
+                }
+              ],
+              "segmentAmenities": [
+                {
+                  "segmentKey": "d0a8a7dd",
+                  "aircraftType": "339",
+                  "amenities": [
+                    {
+                      "available": true,
+                      "category": "wifi",
+                      "chargeable": true,
+                      "name": "Wi-Fi",
+                      "details": "Available for purchase"
+                    },
+                    {
+                      "available": true,
+                      "category": "entertainment",
+                      "chargeable": false,
+                      "name": "In-seat entertainment",
+                      "details": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "sortMetadata": {
+        "best": {
+          "journeyKey": "a3bbe883fe3a4f6b",
+          "offerId": "h6NwaWTZJDAxOWQwNjFlLWRlMjYtNzI1NC1hZDNmLTA0ZDkwZmMxMDNhZaJ0cMtAh471wo9cKaJtdctAJAAAAAAAAKNjdXKjVVNEo3VpZM0CeaJkZKoyMDI2LTA3LTAxonJkqjIwMjYtMDgtMDI=",
+          "price": 753.87,
+          "currency": "USD"
+        },
+        "price": {
+          "journeyKey": "a3bbe883fe3a4f6b",
+          "offerId": "h6NwaWTZJDAxOWQwNjFlLWRlMjYtNzI1NC1hZDNmLTA0ZDkwZmMxMDNhZaJ0cMtAh471wo9cKaJtdctAJAAAAAAAAKNjdXKjVVNEo3VpZM0CeaJkZKoyMDI2LTA3LTAxonJkqjIwMjYtMDgtMDI=",
+          "price": 753.87,
+          "currency": "USD"
+        },
+        "duration": {
+          "journeyKey": "a3bbe883fe3a4f6b"
+        },
+        "stops": {
+          "journeyKey": "a3bbe883fe3a4f6b"
+        }
+      }
+    }
+  ]
+}
