@@ -25,6 +25,7 @@ import LogoAssets from "@/pages/LogoAssets";
 import About from "@/pages/About";
 import Flights from "@/pages/Flights";
 import FlightConfirmation from "@/pages/FlightConfirmation";
+import Stays from "@/pages/Stays";
 import Currencies from "@/pages/Currencies";
 import HotelFacilities from "@/pages/HotelFacilities";
 import RoomViews from "@/pages/RoomViews";
@@ -76,6 +77,7 @@ function Router() {
       <Route path="/logo-assets" component={LogoAssets} />
       <Route path="/about" component={About} />
       <Route path="/flights" component={Flights} />
+      <Route path="/stays" component={Stays} />
       <Route path="/flight-confirmation" component={FlightConfirmation} />
       <Route path="/currencies" component={Currencies} />
       <Route path="/hotel-facilities" component={HotelFacilities} />

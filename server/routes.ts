@@ -3519,6 +3519,44 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/stays/category — fetch curated stays for a category via semantic search
+  app.get("/api/stays/category", async (req, res) => {
+    try {
+      const { id, query, limit = "4" } = req.query as Record<string, string>;
+      if (!query) return res.json({ properties: [] });
+      const cacheKey = `stays_cat_${id}_${limit}`;
+      const cached = cache.get(cacheKey);
+      if (cached) return res.json(cached);
+
+      const data = await liteApiGet("/data/hotels/semantic-search", {
+        query,
+        limit: String(Math.min(Number(limit), 12)),
+      }, 30 * 60 * 1000) as any;
+
+      const hotels = (data?.data || []).slice(0, Number(limit));
+      const properties = hotels.map((h: any) => ({
+        id: h.id,
+        name: h.name,
+        imageUrl: h.main_photo || h.thumbnail || null,
+        address: [h.city, h.country].filter(Boolean).join(", ") || h.address || null,
+        rating: h.rating ?? null,
+        stars: h.stars ?? null,
+        story: h.story ?? null,
+        style: h.style ?? null,
+        persona: h.persona ?? null,
+        semanticTags: h.semanticTags ?? [],
+        hotelTypeId: h.hotelTypeId ?? null,
+      }));
+
+      const result = { properties };
+      cache.set(cacheKey, result);
+      res.json(result);
+    } catch (err: any) {
+      console.error("[stays/category]", err?.message);
+      res.json({ properties: [] });
+    }
+  });
+
   // GET /api/loyalty/points — fetch loyalty points for the currently-authenticated user
   app.get("/api/loyalty/points", async (req, res) => {
     try {

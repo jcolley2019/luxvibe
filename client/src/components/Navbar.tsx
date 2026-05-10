@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home, Users, BookOpen, Plane, ChevronDown, DollarSign, Building2, Eye, Sparkles } from "lucide-react";
+import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Home as HomeIcon, Users, BookOpen, Plane, ChevronDown, DollarSign, Building2, Eye, Sparkles } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
 
@@ -302,6 +302,16 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 )}
               </div>
 
+              {/* Stays Link */}
+              <Link
+                href="/stays"
+                className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
+                data-testid="nav-link-stays"
+              >
+                <HomeIcon className="w-4 h-4 md:hidden" />
+                <span className="hidden md:inline">Stays</span>
+              </Link>
+
               {/* MISC Dropdown — desktop only */}
               <div className="hidden md:block">
                 <DropdownMenu>
@@ -486,6 +496,20 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                       <Link href="/blog" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Lightbulb className="w-4 h-4 text-muted-foreground" />
                         Journal
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/flights" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <Plane className="w-4 h-4 text-muted-foreground" />
+                        Flights
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/stays" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-stays">
+                        <HomeIcon className="w-4 h-4 text-muted-foreground" />
+                        Stays
                       </Link>
                     </DropdownMenuItem>
 
