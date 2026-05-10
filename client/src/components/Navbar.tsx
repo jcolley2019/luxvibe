@@ -303,27 +303,39 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               </div>
 
               {/* MISC Dropdown — desktop only */}
-              <div className="hidden md:block relative group">
-                <button
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  data-testid="nav-misc-trigger"
-                >
-                  More <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-xl shadow-lg py-1.5 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-50">
-                  <Link href="/currencies" className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors" data-testid="nav-misc-currencies">
-                    <DollarSign className="w-4 h-4 text-muted-foreground" /> Currencies
-                  </Link>
-                  <Link href="/hotel-facilities" className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors" data-testid="nav-misc-facilities">
-                    <Building2 className="w-4 h-4 text-muted-foreground" /> Hotel Facilities
-                  </Link>
-                  <Link href="/room-views" className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors" data-testid="nav-misc-room-views">
-                    <Eye className="w-4 h-4 text-muted-foreground" /> Room Views
-                  </Link>
-                  <Link href="/room-amenities" className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors" data-testid="nav-misc-room-amenities">
-                    <Sparkles className="w-4 h-4 text-muted-foreground" /> Room Amenities
-                  </Link>
-                </div>
+              <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 outline-none"
+                      data-testid="nav-misc-trigger"
+                    >
+                      More <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-52 rounded-xl z-50">
+                    <DropdownMenuItem asChild>
+                      <Link href="/currencies" className="flex items-center gap-2.5 cursor-pointer" data-testid="nav-misc-currencies">
+                        <DollarSign className="w-4 h-4 text-muted-foreground" /> Currencies
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/hotel-facilities" className="flex items-center gap-2.5 cursor-pointer" data-testid="nav-misc-facilities">
+                        <Building2 className="w-4 h-4 text-muted-foreground" /> Hotel Facilities
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/room-views" className="flex items-center gap-2.5 cursor-pointer" data-testid="nav-misc-room-views">
+                        <Eye className="w-4 h-4 text-muted-foreground" /> Room Views
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/room-amenities" className="flex items-center gap-2.5 cursor-pointer" data-testid="nav-misc-room-amenities">
+                        <Sparkles className="w-4 h-4 text-muted-foreground" /> Room Amenities
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </nav>
           </div>

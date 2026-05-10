@@ -32,6 +32,9 @@ import {
   CreditCard,
   ShieldCheck,
   User,
+  Tag,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -68,6 +71,9 @@ export default function Checkout() {
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const sdkInitialized = useRef(false);
+  const [voucherOpen, setVoucherOpen] = useState(false);
+  const [voucherInput, setVoucherInput] = useState("");
+  const [voucherApplied, setVoucherApplied] = useState<string | null>(null);
 
   useEffect(() => {
     if (!offerId) {
@@ -298,6 +304,57 @@ export default function Checkout() {
                         </FormItem>
                       )}
                     />
+
+                    {/* Promo Code */}
+                    {!prebookData && (
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setVoucherOpen(v => !v)}
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          data-testid="button-toggle-promo"
+                        >
+                          <Tag className="w-3.5 h-3.5" />
+                          Have a promo code?
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${voucherOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        {voucherOpen && (
+                          <div className="mt-3 flex gap-2">
+                            <Input
+                              placeholder="Enter promo code"
+                              className="rounded-xl h-10 uppercase tracking-widest text-sm"
+                              value={voucherInput}
+                              onChange={e => setVoucherInput(e.target.value.toUpperCase())}
+                              disabled={!!voucherApplied}
+                              data-testid="input-voucher-code"
+                            />
+                            {voucherApplied ? (
+                              <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-sm font-medium shrink-0">
+                                <Check className="w-3.5 h-3.5" /> Applied
+                              </div>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="rounded-xl h-10 shrink-0"
+                                disabled={!voucherInput.trim()}
+                                onClick={() => {
+                                  if (voucherInput.trim()) setVoucherApplied(voucherInput.trim());
+                                }}
+                                data-testid="button-apply-voucher"
+                              >
+                                Apply
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                        {voucherApplied && (
+                          <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Code <span className="font-mono font-bold">{voucherApplied}</span> applied to your booking
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {!prebookData && (
                       <Button

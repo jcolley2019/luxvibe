@@ -23,6 +23,7 @@ import { format, differenceInDays, parseISO, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { HotelMap } from "@/components/HotelMap";
+import { WeatherWidget } from "@/components/WeatherWidget";
 
 const GALLERY_FALLBACKS = [
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
@@ -95,6 +96,24 @@ function getRoomAmenityIcon(name: string): any {
     if (lower.includes(key)) return icon;
   }
   return Check;
+}
+
+const STAR_BENCHMARKS: Record<number, { low: number; mid: number; high: number }> = {
+  1: { low: 30, mid: 50, high: 80 },
+  2: { low: 60, mid: 90, high: 130 },
+  3: { low: 100, mid: 155, high: 230 },
+  4: { low: 190, mid: 280, high: 400 },
+  5: { low: 320, mid: 520, high: 950 },
+};
+
+function getPriceInsight(pricePerNight: number, stars: number | null) {
+  const s = Math.max(1, Math.min(5, Math.round(stars ?? 3)));
+  const b = STAR_BENCHMARKS[s];
+  if (pricePerNight < b.low * 0.75) return { label: "Exceptional value", bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", dot: "bg-emerald-500", desc: "Well below typical rates for this category" };
+  if (pricePerNight < b.mid) return { label: "Great value", bg: "bg-green-50 dark:bg-green-950/30", border: "border-green-200 dark:border-green-800", text: "text-green-700 dark:text-green-300", dot: "bg-green-500", desc: "Below average for this star rating" };
+  if (pricePerNight < b.high) return { label: "Fair price", bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800", text: "text-blue-700 dark:text-blue-300", dot: "bg-blue-500", desc: "Typical rate for this category" };
+  if (pricePerNight < b.high * 1.5) return { label: "Premium pricing", bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-300", dot: "bg-amber-500", desc: "Above average for this star rating" };
+  return { label: "Luxury pricing", bg: "bg-rose-50 dark:bg-rose-950/30", border: "border-rose-200 dark:border-rose-800", text: "text-rose-700 dark:text-rose-300", dot: "bg-rose-500", desc: "Top-tier rate for exclusive experiences" };
 }
 
 type TabId = "overview" | "facilities" | "rooms" | "reviews" | "description";
@@ -672,6 +691,15 @@ export default function HotelDetails() {
           </div>
         </div>
 
+        {/* ─── Weather Widget ─── */}
+        <WeatherWidget
+          lat={hotel.lat ?? null}
+          lng={hotel.lng ?? null}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          hotelName={hotel.name}
+        />
+
         {/* ─── Facilities Section ─── */}
         <div ref={sectionRefs.facilities} className="pb-10">
           <div className="flex items-center justify-between mb-4">
@@ -825,6 +853,25 @@ export default function HotelDetails() {
               );
             })()}
           </div>
+
+          {/* Price Insight */}
+          {(() => {
+            const cheapest = hotel.roomTypes?.reduce((min: number | null, rt: any) => {
+              const ppn = rt.pricePerNight ?? rt.price ?? null;
+              if (ppn == null) return min;
+              return min == null ? ppn : Math.min(min, ppn);
+            }, null as number | null);
+            if (cheapest == null) return null;
+            const insight = getPriceInsight(cheapest, hotel.stars ?? null);
+            return (
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium mb-4 ${insight.bg} ${insight.border} ${insight.text}`} data-testid="price-insight-badge">
+                <span className={`w-2 h-2 rounded-full ${insight.dot} shrink-0`} />
+                <span>{insight.label}</span>
+                <span className="opacity-60">·</span>
+                <span className="font-normal opacity-80">{insight.desc}</span>
+              </div>
+            );
+          })()}
 
           {/* Trust signals */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-5 text-xs text-muted-foreground" data-testid="trust-signals">
