@@ -917,6 +917,7 @@ export default function Flights() {
   const [filterRefundable, setFilterRefundable] = useState(false);
   const [filterCheckedBag, setFilterCheckedBag] = useState(false);
   const [filterMaxPrice, setFilterMaxPrice] = useState<number>(10000);
+  const [filterAirlines, setFilterAirlines] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
 
   const [results, setResults] = useState<FlightSearchResponse | null>(null);
@@ -978,6 +979,20 @@ export default function Flights() {
 
   const sortedMeta = results?.data?.[0]?.sortMetadata;
 
+  const uniqueAirlines: { iataCode: string; name: string; logo: string }[] = [];
+  {
+    const seen = new Set<string>();
+    for (const j of allJourneys) {
+      const outFirst = j.segments.find(s => s.direction === "OUTBOUND" || j.segments.every(x => !x.direction));
+      const c = outFirst?.carrier;
+      if (c && c.marketingCode && !seen.has(c.marketingCode)) {
+        seen.add(c.marketingCode);
+        uniqueAirlines.push({ iataCode: c.marketingCode, name: c.marketingName, logo: c.marketingLogo });
+      }
+    }
+    uniqueAirlines.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   const filtered = allJourneys.filter(j => {
     const offer = j.offers[0];
     if (!offer) return false;
@@ -988,6 +1003,10 @@ export default function Flights() {
       if (outStops > filterMaxStops) return false;
     }
     if (offer.pricing.display.total > filterMaxPrice) return false;
+    if (filterAirlines.size > 0) {
+      const outFirst = j.segments.find(s => s.direction === "OUTBOUND" || j.segments.every(x => !x.direction));
+      if (!outFirst || !filterAirlines.has(outFirst.carrier.marketingCode)) return false;
+    }
     return true;
   });
 
@@ -1249,10 +1268,38 @@ export default function Flights() {
                       </label>
                     </div>
 
-                    {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag) && (
+                    {uniqueAirlines.length > 1 && (
+                      <div className="border-t border-border pt-4 space-y-2">
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Airlines</div>
+                        {uniqueAirlines.map(airline => {
+                          const checked = filterAirlines.has(airline.iataCode);
+                          return (
+                            <label key={airline.iataCode} className="flex items-center gap-2 cursor-pointer group" data-testid={`check-airline-${airline.iataCode}`}>
+                              <div
+                                onClick={() => setFilterAirlines(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(airline.iataCode)) next.delete(airline.iataCode);
+                                  else next.add(airline.iataCode);
+                                  return next;
+                                })}
+                                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${checked ? "border-primary bg-primary" : "border-border group-hover:border-primary/50"}`}
+                              >
+                                {checked && <Check className="w-2.5 h-2.5 text-white" />}
+                              </div>
+                              {airline.logo && (
+                                <img src={airline.logo} alt={airline.name} className="w-5 h-5 object-contain shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                              )}
+                              <span className="text-sm text-foreground truncate">{airline.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterAirlines.size > 0) && (
                       <button
                         type="button"
-                        onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); }}
+                        onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); setFilterAirlines(new Set()); }}
                         className="w-full text-xs text-primary hover:underline text-left"
                         data-testid="button-clear-filters"
                       >

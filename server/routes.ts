@@ -3360,6 +3360,46 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/flights/airlines — list/search airlines via LiteAPI
+  app.get("/api/flights/airlines", async (req, res) => {
+    try {
+      const search = ((req.query.search as string) || "").trim();
+      const params = search ? { search } : {};
+      const data = await liteApiGet("/data/flights/airlines", params, 86400000);
+      const airlines = (data?.data || []).map((a: any) => ({
+        iataCode: a.iata || a.iataCode,
+        name: a.name,
+        logo: a.logo || a.logoUrl || null,
+      }));
+      res.json(airlines);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // GET /api/flights/airlines/iatas — list all airline IATA codes
+  app.get("/api/flights/airlines/iatas", async (req, res) => {
+    try {
+      const data = await liteApiGet("/data/flights/airlines/iatas", undefined, 86400000);
+      res.json(data?.data || []);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // GET /api/flights/airlines/:iataCode — get specific airline by IATA code
+  app.get("/api/flights/airlines/:iataCode", async (req, res) => {
+    try {
+      const { iataCode } = req.params;
+      const data = await liteApiGet(`/data/flights/airlines/iatas/${iataCode.toUpperCase()}`, undefined, 86400000);
+      if (!data?.data) return res.status(404).json({ message: "Airline not found" });
+      const a = data.data;
+      res.json({ iataCode: a.iata || iataCode, name: a.name, logo: a.logo || a.logoUrl || null });
+    } catch {
+      res.status(404).json({ message: "Airline not found" });
+    }
+  });
+
   // GET /api/flights/airports — airport search via LiteAPI Flights airports API
   app.get("/api/flights/airports", async (req, res) => {
     try {
