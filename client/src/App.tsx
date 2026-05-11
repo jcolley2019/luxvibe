@@ -30,6 +30,8 @@ import Currencies from "@/pages/Currencies";
 import HotelFacilities from "@/pages/HotelFacilities";
 import RoomViews from "@/pages/RoomViews";
 import RoomAmenities from "@/pages/RoomAmenities";
+import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { RecentlyViewedDrawer } from "@/components/RecentlyViewedDrawer";
@@ -127,6 +129,8 @@ function Router() {
       <Route path="/hotel-facilities" component={HotelFacilities} />
       <Route path="/room-views" component={RoomViews} />
       <Route path="/room-amenities" component={RoomAmenities} />
+      <Route path="/events" component={Events} />
+      <Route path="/events/:id" component={EventDetail} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -3610,6 +3610,132 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // ─── Events: Ticketmaster Discovery API ───────────────────────────────────
+
+  // GET /api/events — search events
+  app.get("/api/events", async (req, res) => {
+    try {
+      const TM_KEY = process.env.TICKETMASTER_API_KEY;
+      if (!TM_KEY) {
+        return res.status(503).json({ message: "Events feature coming soon — Ticketmaster API key not configured." });
+      }
+      const { keyword, city, category, startDate, endDate, page = "0" } = req.query as Record<string, string>;
+      const params = new URLSearchParams({
+        apikey: TM_KEY,
+        size: "20",
+        sort: "date,asc",
+        countryCode: "US",
+        page,
+      });
+      if (keyword) params.set("keyword", keyword);
+      if (city) params.set("city", city);
+      if (category && category !== "all") params.set("classificationName", category);
+      if (startDate) params.set("startDateTime", `${startDate}T00:00:00Z`);
+      if (endDate) params.set("endDateTime", `${endDate}T23:59:59Z`);
+
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?${params}`;
+      const tmRes = await fetch(url);
+      if (!tmRes.ok) throw new Error(`Ticketmaster returned ${tmRes.status}`);
+      const data = await tmRes.json();
+
+      const events: any[] = data._embedded?.events || [];
+      const mapped = events.map((e: any) => {
+        const venue = e._embedded?.venues?.[0];
+        const attraction = e._embedded?.attractions?.[0];
+        const image = e.images?.find((i: any) => i.ratio === "16_9" && i.width >= 1024) ||
+          e.images?.find((i: any) => i.ratio === "16_9") || e.images?.[0];
+        const price = e.priceRanges?.[0];
+        const segment = e.classifications?.[0]?.segment?.name || "Event";
+        const genre = e.classifications?.[0]?.genre?.name;
+        return {
+          id: e.id,
+          name: e.name,
+          url: e.url,
+          imageUrl: image?.url || null,
+          date: e.dates?.start?.localDate || null,
+          time: e.dates?.start?.localTime || null,
+          status: e.dates?.status?.code || "onsale",
+          artist: attraction?.name || null,
+          category: segment,
+          genre: genre || null,
+          venue: venue?.name || null,
+          city: venue?.city?.name || null,
+          state: venue?.state?.stateCode || null,
+          country: venue?.country?.countryCode || "US",
+          address: venue?.address?.line1 || null,
+          lat: venue?.location?.latitude ? parseFloat(venue.location.latitude) : null,
+          lng: venue?.location?.longitude ? parseFloat(venue.location.longitude) : null,
+          priceMin: price?.min || null,
+          priceMax: price?.max || null,
+          currency: price?.currency || "USD",
+        };
+      });
+
+      res.json({
+        events: mapped,
+        total: data.page?.totalElements || 0,
+        page: data.page?.number || 0,
+        totalPages: data.page?.totalPages || 0,
+      });
+    } catch (err: any) {
+      console.error("[events]", err.message);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
+  // GET /api/events/:id — get single event detail
+  app.get("/api/events/:eventId", async (req, res) => {
+    try {
+      const TM_KEY = process.env.TICKETMASTER_API_KEY;
+      if (!TM_KEY) {
+        return res.status(503).json({ message: "Events feature coming soon." });
+      }
+      const { eventId } = req.params;
+      const url = `https://app.ticketmaster.com/discovery/v2/events/${encodeURIComponent(eventId)}.json?apikey=${TM_KEY}`;
+      const tmRes = await fetch(url);
+      if (!tmRes.ok) throw new Error(`Ticketmaster returned ${tmRes.status}`);
+      const e = await tmRes.json();
+
+      const venue = e._embedded?.venues?.[0];
+      const attraction = e._embedded?.attractions?.[0];
+      const images = (e.images || [])
+        .sort((a: any, b: any) => b.width - a.width)
+        .map((i: any) => i.url);
+      const price = e.priceRanges?.[0];
+      const segment = e.classifications?.[0]?.segment?.name || "Event";
+      const genre = e.classifications?.[0]?.genre?.name;
+
+      res.json({
+        id: e.id,
+        name: e.name,
+        url: e.url,
+        images,
+        date: e.dates?.start?.localDate || null,
+        time: e.dates?.start?.localTime || null,
+        status: e.dates?.status?.code || "onsale",
+        artist: attraction?.name || null,
+        artistImage: attraction?.images?.[0]?.url || null,
+        category: segment,
+        genre: genre || null,
+        description: e.info || e.pleaseNote || null,
+        venue: venue?.name || null,
+        city: venue?.city?.name || null,
+        state: venue?.state?.stateCode || null,
+        country: venue?.country?.countryCode || "US",
+        address: venue?.address?.line1 || null,
+        lat: venue?.location?.latitude ? parseFloat(venue.location.latitude) : null,
+        lng: venue?.location?.longitude ? parseFloat(venue.location.longitude) : null,
+        priceMin: price?.min || null,
+        priceMax: price?.max || null,
+        currency: price?.currency || "USD",
+        ticketUrl: e.url,
+      });
+    } catch (err: any) {
+      console.error("[events/:id]", err.message);
+      res.status(500).json({ message: "Failed to fetch event details" });
+    }
+  });
+
   // POST /api/referrals/track — record a referral link click (no auth needed)
   app.post("/api/referrals/track", async (req, res) => {
     try {
