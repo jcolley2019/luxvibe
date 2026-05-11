@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Yqp4i0ZO4mrVJggKfKgjU"
+uri = "file://SEO_STRATEGY.md"
+type = "text"
+title = "Luxvibe SEO & LLM SEO Strategy"
