@@ -198,7 +198,8 @@ export function HotelCard({ hotel, checkIn, checkOut, guests, variant = "search"
           />
           <button
             onClick={toggleWishlist}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow hover:bg-white transition-colors"
+            aria-label={wishlisted ? "Remove from favorites" : "Add to favorites"}
+            className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow hover:bg-white transition-colors"
             data-testid={`button-wishlist-${hotel.id}`}
           >
             <Heart

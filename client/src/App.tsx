@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, Component, type ReactNode } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,6 +33,49 @@ import RoomAmenities from "@/pages/RoomAmenities";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: { componentStack: string }) {
+    console.error("[ErrorBoundary] Uncaught error:", error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+          <h1 className="text-2xl font-bold">Something went wrong</h1>
+          <p className="text-muted-foreground max-w-md">
+            We hit an unexpected error. Please refresh the page or go back to continue.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Refresh page
+            </button>
+            <a
+              href="/"
+              className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+            >
+              Go home
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -90,26 +133,30 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <PreferencesProvider>
-        <FavoritesProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <ScrollToTop />
-              <ReferralCapture />
-              <div className="flex flex-col min-h-screen">
-                <ReferralBanner />
-                <Router />
-                <Footer />
-              </div>
-              <AiAssistant />
-              <CookieConsent />
-              <Toaster />
-            </TooltipProvider>
-          </AuthProvider>
-        </FavoritesProvider>
-      </PreferencesProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <PreferencesProvider>
+          <FavoritesProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <ScrollToTop />
+                <ReferralCapture />
+                <div className="flex flex-col min-h-screen">
+                  <ReferralBanner />
+                  <ErrorBoundary>
+                    <Router />
+                  </ErrorBoundary>
+                  <Footer />
+                </div>
+                <AiAssistant />
+                <CookieConsent />
+                <Toaster />
+              </TooltipProvider>
+            </AuthProvider>
+          </FavoritesProvider>
+        </PreferencesProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

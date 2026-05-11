@@ -3149,31 +3149,40 @@ Rules:
 
   // GET /sitemap.xml — dynamic sitemap including blog posts
   app.get("/sitemap.xml", async (_req, res) => {
+    const staticUrls = [
+      { loc: "https://luxvibe.io/", changefreq: "daily", priority: "1.0" },
+      { loc: "https://luxvibe.io/blog", changefreq: "weekly", priority: "0.9" },
+      ...[
+        "Las+Vegas","New+York","Miami","Los+Angeles","Paris","London","Dubai",
+        "Barcelona","Tokyo","Bali","Rome","Bangkok","Amsterdam","Sydney",
+        "Chicago","San+Francisco","Lisbon","Orlando","Cancun",
+      ].map(d => ({ loc: `https://luxvibe.io/?destination=${d}`, changefreq: "daily", priority: "0.7" })),
+    ] as Array<{ loc: string; changefreq: string; priority: string; lastmod?: string }>;
+
+    let blogUrls: typeof staticUrls = [];
     try {
-      const { data: posts = [] } = await supabaseAdmin
+      const { data: posts, error: postsError } = await supabaseAdmin
         .from("blog_posts")
-        .select("slug, updatedAt")
+        .select("*")
         .eq("status", "published")
         .order("published_at", { ascending: false });
-      const staticUrls = [
-        { loc: "https://luxvibe.io/", changefreq: "daily", priority: "1.0" },
-        { loc: "https://luxvibe.io/blog", changefreq: "weekly", priority: "0.9" },
-        ...[
-          "Las+Vegas","New+York","Miami","Los+Angeles","Paris","London","Dubai",
-          "Barcelona","Tokyo","Bali","Rome","Bangkok","Amsterdam","Sydney",
-          "Chicago","San+Francisco","Lisbon","Orlando","Cancun",
-        ].map(d => ({ loc: `https://luxvibe.io/?destination=${d}`, changefreq: "daily", priority: "0.7" })),
-      ];
+      if (!postsError && Array.isArray(posts)) {
+        blogUrls = posts.map((p: any) => {
+          const lastmod = p.updatedAt || p.updated_at || p.published_at;
+          return {
+            loc: `https://luxvibe.io/blog/${p.slug}`,
+            changefreq: "monthly",
+            priority: "0.8",
+            lastmod: lastmod ? String(lastmod).split("T")[0] : undefined,
+          };
+        });
+      }
+    } catch (err) {
+      console.error("[sitemap] blog posts fetch failed:", err);
+    }
 
-      const blogUrls = posts.map(p => ({
-        loc: `https://luxvibe.io/blog/${p.slug}`,
-        changefreq: "monthly",
-        priority: "0.8",
-        lastmod: (p as any).updatedAt ? (p as any).updatedAt.split("T")[0] : undefined,
-      }));
-
-      const allUrls = [...staticUrls, ...blogUrls];
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const allUrls = [...staticUrls, ...blogUrls];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allUrls.map(u => `  <url>
     <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}
@@ -3181,10 +3190,7 @@ ${allUrls.map(u => `  <url>
     <priority>${u.priority}</priority>
   </url>`).join("\n")}
 </urlset>`;
-      res.type("application/xml").send(xml);
-    } catch (err: any) {
-      res.status(500).send("Error generating sitemap");
-    }
+    res.type("application/xml").send(xml);
   });
 
   // POST /api/flights/verify — verify offer pricing before prebook

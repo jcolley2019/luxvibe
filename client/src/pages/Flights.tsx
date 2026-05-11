@@ -255,11 +255,11 @@ function PassengerSelector({
         <div className="text-xs text-muted-foreground">{sub}</div>
       </div>
       <div className="flex items-center gap-3">
-        <button type="button" onClick={onDec} disabled={value <= min}
-          className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg leading-none">−</button>
+        <button type="button" onClick={onDec} disabled={value <= min} aria-label={`Decrease ${label}`}
+          className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg leading-none">−</button>
         <span className="w-4 text-center font-semibold text-sm">{value}</span>
-        <button type="button" onClick={onInc} disabled={total >= 9}
-          className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg leading-none">+</button>
+        <button type="button" onClick={onInc} disabled={total >= 9} aria-label={`Increase ${label}`}
+          className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg leading-none">+</button>
       </div>
     </div>
   );

@@ -2659,7 +2659,8 @@ export default function Home() {
                 <h2 className="text-lg font-bold">Filters</h2>
                 <button
                   onClick={() => setShowMobileFilters(false)}
-                  className="p-1 rounded-full hover:bg-muted transition-colors"
+                  aria-label="Close filters"
+                  className="p-2 rounded-full hover:bg-muted transition-colors"
                   data-testid="button-close-mobile-filters"
                 >
                   <X className="w-5 h-5" />

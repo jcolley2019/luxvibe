@@ -1073,7 +1073,7 @@ export default function SearchHero({
             src={heroImage}
             alt="Luxury Hotel"
             className="w-full h-full object-cover object-center"
-            fetchPriority="high"
+            fetchpriority="high"
             decoding="async"
             onError={(e) => { (e.target as HTMLImageElement).src = santoriniWater; }}
           />
@@ -1735,7 +1735,7 @@ export default function SearchHero({
             src={heroImage}
             alt="Luxury Hotel"
             className="w-full h-full object-cover"
-            fetchPriority="high"
+            fetchpriority="high"
             decoding="async"
             onError={(e) => { (e.target as HTMLImageElement).src = santoriniWater; }}
           />
