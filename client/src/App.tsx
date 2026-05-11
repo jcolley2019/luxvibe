@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { useEffect, Component, type ReactNode } from "react";
+import { useEffect, Component, lazy, Suspense, type ReactNode } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,15 +30,19 @@ import Currencies from "@/pages/Currencies";
 import HotelFacilities from "@/pages/HotelFacilities";
 import RoomViews from "@/pages/RoomViews";
 import RoomAmenities from "@/pages/RoomAmenities";
-import Events from "@/pages/Events";
-import EventDetail from "@/pages/EventDetail";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
 import { RecentlyViewedDrawer } from "@/components/RecentlyViewedDrawer";
 import { CookieConsent } from "@/components/CookieConsent";
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
-  constructor(props: { children: ReactNode }) {
+const Events = lazy(() => import("@/pages/Events"));
+const EventDetail = lazy(() => import("@/pages/EventDetail"));
+
+class ErrorBoundary extends Component<
+  { children: ReactNode; silent?: boolean },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode; silent?: boolean }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -53,6 +57,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 
   render() {
     if (this.state.hasError) {
+      if (this.props.silent) return null;
+      const msg = this.state.error?.message || "Unknown error";
+      const stack = this.state.error?.stack || "";
       return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
           <h1 className="text-2xl font-bold">Something went wrong</h1>
@@ -73,6 +80,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
               Go home
             </a>
           </div>
+          <details className="mt-4 max-w-2xl w-full text-left">
+            <summary className="text-xs text-muted-foreground cursor-pointer">Error details</summary>
+            <pre className="mt-2 text-xs bg-muted p-3 rounded overflow-auto max-h-64 whitespace-pre-wrap break-all">{msg}{"\n\n"}{stack}</pre>
+          </details>
         </div>
       );
     }
@@ -93,13 +104,9 @@ function ReferralCapture() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
-      localStorage.setItem("pendingReferralCode", ref);
-      localStorage.removeItem("referralBannerDismissed");
-      fetch("/api/referrals/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ref }),
-      }).catch(() => {});
+      try {
+        localStorage.setItem("lv_referral_code", ref);
+      } catch {}
     }
   }, []);
   return null;
@@ -114,7 +121,7 @@ function Router() {
       <Route path="/favorites" component={Favorites} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
-      <Route path="/manage-booking" component={ManageBooking} />
+      <Route path="/manage-booking/:id" component={ManageBooking} />
       <Route path="/invite" component={Invite} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/privacy" component={PrivacyPage} />
@@ -123,14 +130,26 @@ function Router() {
       <Route path="/logo-assets" component={LogoAssets} />
       <Route path="/about" component={About} />
       <Route path="/flights" component={Flights} />
-      <Route path="/stays" component={Stays} />
       <Route path="/flight-confirmation" component={FlightConfirmation} />
+      <Route path="/stays" component={Stays} />
       <Route path="/currencies" component={Currencies} />
       <Route path="/hotel-facilities" component={HotelFacilities} />
       <Route path="/room-views" component={RoomViews} />
       <Route path="/room-amenities" component={RoomAmenities} />
-      <Route path="/events" component={Events} />
-      <Route path="/events/:id" component={EventDetail} />
+      <Route path="/events">
+        {() => (
+          <Suspense fallback={null}>
+            <Events />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/events/:id">
+        {(params) => (
+          <Suspense fallback={null}>
+            <EventDetail />
+          </Suspense>
+        )}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -153,8 +172,12 @@ function App() {
                   </ErrorBoundary>
                   <Footer />
                 </div>
-                <RecentlyViewedDrawer />
-                <AiAssistant />
+                <ErrorBoundary silent>
+                  <RecentlyViewedDrawer />
+                </ErrorBoundary>
+                <ErrorBoundary silent>
+                  <AiAssistant />
+                </ErrorBoundary>
                 <CookieConsent />
                 <Toaster />
               </TooltipProvider>
