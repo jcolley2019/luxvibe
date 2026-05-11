@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles } from "lucide-react";
+import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles, Home } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
 
