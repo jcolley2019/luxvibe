@@ -56,6 +56,27 @@ export function Footer() {
               >
                 Privacy Policy
               </Link>
+              <Link
+                href="/hotel-facilities"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="footer-link-hotel-facilities"
+              >
+                Hotel Facilities
+              </Link>
+              <Link
+                href="/room-views"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="footer-link-room-views"
+              >
+                Room Views
+              </Link>
+              <Link
+                href="/room-amenities"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="footer-link-room-amenities"
+              >
+                Room Amenities
+              </Link>
               <button
                 onClick={() => { localStorage.removeItem("lv_cookie_consent"); window.location.reload(); }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer"

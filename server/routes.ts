@@ -3522,16 +3522,71 @@ ${allUrls.map(u => `  <url>
   // GET /api/stays/category — fetch curated stays for a category via semantic search
   app.get("/api/stays/category", async (req, res) => {
     try {
-      const { id, query, limit = "8" } = req.query as Record<string, string>;
-      if (!query) return res.json({ properties: [] });
+      const { id, limit = "12" } = req.query as Record<string, string>;
+      if (!id) return res.json({ properties: [] });
 
-      // liteApiGet has built-in TTL caching keyed on URL+params — use it directly
-      const data = await liteApiGet("/data/hotels/semantic-search", {
-        query,
-        limit: String(Math.min(Number(limit), 12)),
-      }, 30 * 60 * 1000) as any;
+      // Multiple geographically-diverse queries per category for richer coverage
+      const CATEGORY_QUERIES: Record<string, string[]> = {
+        apartments: [
+          "luxury apartment Paris London New York entire private flat kitchen",
+          "serviced apartment Tokyo Singapore Dubai penthouse city view",
+          "designer apartment Rome Barcelona Milan historic centre",
+        ],
+        villas: [
+          "private luxury villa swimming pool Bali Tuscany Santorini",
+          "exclusive beach villa Caribbean Maldives private resort",
+          "luxury villa estate Provence Amalfi Coast French Riviera",
+        ],
+        chalets: [
+          "alpine ski chalet Switzerland Chamonix Verbier wood fireplace",
+          "mountain chalet Aspen Colorado Whistler log cabin snow",
+          "luxury chalet Dolomites Austria Zermatt winter mountain retreat",
+        ],
+        beachhouses: [
+          "beachfront house private ocean view Hawaii Malibu direct beach",
+          "luxury beach villa Caribbean coast private pool sea",
+          "seaside villa Mediterranean beach house private",
+        ],
+        cottages: [
+          "country cottage Cotswolds England rural garden peaceful retreat",
+          "stone cottage Ireland Scotland Tuscany vineyard countryside",
+          "cozy cottage Provence wine country rural farmhouse",
+        ],
+        unique: [
+          "treehouse jungle Bali Costa Rica rainforest canopy",
+          "castle hotel Scotland Ireland medieval luxury historic",
+          "houseboat Amsterdam Paris floating boat boutique accommodation",
+        ],
+      };
 
-      const hotels = (data?.data || []).slice(0, Number(limit));
+      const queries = CATEGORY_QUERIES[id] || [`luxury ${id} exclusive private boutique`];
+      const lim = Math.min(Number(limit), 12);
+
+      // Run all queries in parallel, each cached independently
+      const batches = await Promise.all(
+        queries.map(q =>
+          liteApiGet("/data/hotels/semantic-search", { query: q, limit: "20" }, 30 * 60 * 1000)
+            .then((data: any) => data?.data || [])
+            .catch(() => [])
+        )
+      );
+
+      // Merge and deduplicate by id for geographic diversity
+      const seen = new Set<string>();
+      const merged: any[] = [];
+      for (const batch of batches) {
+        for (const h of batch) {
+          if (!seen.has(h.id)) {
+            seen.add(h.id);
+            merged.push(h);
+          }
+        }
+      }
+
+      // Slight shuffle to vary results across sessions, then take limit
+      const shuffled = merged.sort(() => Math.random() - 0.3);
+      const hotels = shuffled.slice(0, lim);
+
       const properties = hotels.map((h: any) => ({
         id: h.id,
         name: h.name,

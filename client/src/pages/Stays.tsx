@@ -13,8 +13,6 @@ import {
 } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 
-const STAY_TYPE_IDS = [201, 207, 213, 219, 220, 222, 223, 228, 229, 230, 243, 250, 257, 265, 268, 271, 276, 278, 227, 208];
-
 const PROPERTY_CATEGORIES = [
   {
     id: "apartments",
@@ -23,7 +21,7 @@ const PROPERTY_CATEGORIES = [
     description: "Private flats in the heart of the city",
     image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80",
     color: "from-blue-500/20 to-blue-600/10",
-    query: "modern city apartment private kitchen living room entire place",
+    searchQuery: "luxury city apartment private kitchen entire flat",
   },
   {
     id: "villas",
@@ -32,7 +30,7 @@ const PROPERTY_CATEGORIES = [
     description: "Exclusive private homes with pools",
     image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=600&q=80",
     color: "from-emerald-500/20 to-emerald-600/10",
-    query: "private luxury villa pool garden exclusive retreat",
+    searchQuery: "private luxury villa pool garden exclusive retreat",
   },
   {
     id: "chalets",
@@ -41,7 +39,7 @@ const PROPERTY_CATEGORIES = [
     description: "Cozy mountain retreats with fireplaces",
     image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80",
     color: "from-amber-500/20 to-amber-600/10",
-    query: "mountain chalet cozy fireplace ski winter retreat wooden",
+    searchQuery: "mountain chalet cozy fireplace ski winter retreat",
   },
   {
     id: "beachhouses",
@@ -50,7 +48,7 @@ const PROPERTY_CATEGORIES = [
     description: "Steps from the shore",
     image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=600&q=80",
     color: "from-cyan-500/20 to-cyan-600/10",
-    query: "beachfront house ocean view private home seaside",
+    searchQuery: "beachfront house ocean view private home seaside",
   },
   {
     id: "cottages",
@@ -59,7 +57,7 @@ const PROPERTY_CATEGORIES = [
     description: "Peaceful countryside escapes",
     image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=600&q=80",
     color: "from-green-500/20 to-green-600/10",
-    query: "country cottage garden rural peaceful nature retreat",
+    searchQuery: "country cottage garden rural peaceful nature retreat",
   },
   {
     id: "unique",
@@ -68,7 +66,7 @@ const PROPERTY_CATEGORIES = [
     description: "Castles, boats & treehouses",
     image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&q=80",
     color: "from-purple-500/20 to-purple-600/10",
-    query: "unique unusual treehouse houseboat castle boat extraordinary accommodation",
+    searchQuery: "unique treehouse houseboat castle boat extraordinary accommodation",
   },
 ];
 
@@ -162,10 +160,10 @@ function CategorySection({ category, checkIn, checkOut }: {
   const { data, isLoading } = useQuery<{ properties: StayProperty[] }>({
     queryKey: ["/api/stays/category", category.id],
     queryFn: async () => {
-      const res = await fetch(`/api/stays/category?id=${category.id}&query=${encodeURIComponent(category.query)}&limit=8`);
+      const res = await fetch(`/api/stays/category?id=${category.id}&limit=12`);
       return res.json();
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
   });
 
   const properties = data?.properties || [];
@@ -182,7 +180,7 @@ function CategorySection({ category, checkIn, checkOut }: {
             <p className="text-sm text-muted-foreground">{category.description}</p>
           </div>
         </div>
-        <Link href={`/?aiSearch=${encodeURIComponent(category.query)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2&allStars=1`}>
+        <Link href={`/?aiSearch=${encodeURIComponent(category.searchQuery)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2&allStars=1`}>
           <Button variant="ghost" size="sm" className="gap-1 text-primary hidden sm:flex">
             See all <ChevronRight className="w-3.5 h-3.5" />
           </Button>
@@ -292,7 +290,7 @@ export default function Stays() {
           <h2 className="text-2xl font-bold text-foreground mb-6">Browse by type</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {PROPERTY_CATEGORIES.map((cat) => (
-              <Link key={cat.id} href={`/?aiSearch=${encodeURIComponent(cat.query)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2&allStars=1`}>
+              <Link key={cat.id} href={`/?aiSearch=${encodeURIComponent(cat.searchQuery)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2&allStars=1`}>
                 <div className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer" data-testid={`category-${cat.id}`}>
                   <img
                     src={cat.image}
