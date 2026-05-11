@@ -253,7 +253,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <Link href="/" aria-label="Luxvibe – home" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <span
                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 className="text-2xl xs:text-2xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
@@ -268,12 +268,13 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               <div className="relative">
                 <Link
                   href="/blog"
+                  aria-label="Journal – travel blog"
                   onMouseEnter={() => setJournalTooltip(true)}
                   onMouseLeave={() => setJournalTooltip(false)}
                   className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
                   data-testid="nav-link-journal"
                 >
-                  <BookOpen className="w-4 h-4 md:hidden" />
+                  <BookOpen className="w-4 h-4 md:hidden" aria-hidden="true" />
                   <span className="hidden md:inline">Journal</span>
                 </Link>
                 {journalTooltip && (
@@ -287,12 +288,13 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               <div className="relative">
                 <Link
                   href="/flights"
+                  aria-label="Flights – search and book flights"
                   onMouseEnter={() => setFlightsTooltip(true)}
                   onMouseLeave={() => setFlightsTooltip(false)}
                   className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
                   data-testid="nav-link-flights"
                 >
-                  <Plane className="w-4 h-4 md:hidden" />
+                  <Plane className="w-4 h-4 md:hidden" aria-hidden="true" />
                   <span className="hidden md:inline">Flights</span>
                 </Link>
                 {flightsTooltip && (
@@ -320,10 +322,11 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 onClick={() => setLangOpen(true)}
                 onMouseEnter={() => setLangTooltip(true)}
                 onMouseLeave={() => setLangTooltip(false)}
+                aria-label="Language and currency settings"
                 className="h-9 px-2 rounded-full border border-border flex items-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
                 data-testid="button-language"
               >
-                <Globe className="w-4 h-4 shrink-0" />
+                <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
               </button>
               {langTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
@@ -338,10 +341,12 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 onClick={() => setTipsOpen(o => !o)}
                 onMouseEnter={() => setGuideTooltip(true)}
                 onMouseLeave={() => setGuideTooltip(false)}
+                aria-label="Luxvibe site guide"
+                aria-expanded={tipsOpen}
                 className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${tipsOpen ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"}`}
                 data-testid="button-site-guide"
               >
-                <Lightbulb className="w-4 h-4" />
+                <Lightbulb className="w-4 h-4" aria-hidden="true" />
               </button>
               {guideTooltip && !tipsOpen && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
@@ -387,15 +392,15 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
             {/* Manage Bookings */}
             <div className="relative">
-              <Link href="/manage-booking">
-                <button
-                  onMouseEnter={() => setKeysTooltip(true)}
-                  onMouseLeave={() => setKeysTooltip(false)}
-                  className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-                  data-testid="button-manage-bookings"
-                >
-                  <KeyRound className="w-4 h-4" />
-                </button>
+              <Link
+                href="/manage-booking"
+                aria-label="Manage your bookings"
+                onMouseEnter={() => setKeysTooltip(true)}
+                onMouseLeave={() => setKeysTooltip(false)}
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                data-testid="button-manage-bookings"
+              >
+                <KeyRound className="w-4 h-4" aria-hidden="true" />
               </Link>
               {keysTooltip && (
                 <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
