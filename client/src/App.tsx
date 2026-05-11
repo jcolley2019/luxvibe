@@ -32,6 +32,7 @@ import RoomViews from "@/pages/RoomViews";
 import RoomAmenities from "@/pages/RoomAmenities";
 import NotFound from "@/pages/not-found";
 import { AiAssistant } from "@/components/AiAssistant";
+import { RecentlyViewedDrawer } from "@/components/RecentlyViewedDrawer";
 import { CookieConsent } from "@/components/CookieConsent";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -148,6 +149,7 @@ function App() {
                   </ErrorBoundary>
                   <Footer />
                 </div>
+                <RecentlyViewedDrawer />
                 <AiAssistant />
                 <CookieConsent />
                 <Toaster />

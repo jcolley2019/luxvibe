@@ -390,7 +390,27 @@ export default function HotelDetails() {
       const existing = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
       const filtered = existing.filter((h: typeof entry) => h.id !== hotel.id);
       localStorage.setItem("recentlyViewedHotels", JSON.stringify([entry, ...filtered].slice(0, 10)));
+      window.dispatchEvent(new Event("recently-viewed-updated"));
     } catch {}
+  }, [hotel?.id]);
+
+  useEffect(() => {
+    if (!hotel) return;
+    window.dispatchEvent(
+      new CustomEvent("luxe-hotel-context", {
+        detail: {
+          id: hotel.id,
+          name: hotel.name,
+          city: hotel.city || undefined,
+          stars: hotel.stars ?? undefined,
+          rating: hotel.rating ?? undefined,
+          amenities: hotel.amenities?.slice(0, 6),
+        },
+      })
+    );
+    return () => {
+      window.dispatchEvent(new Event("luxe-clear-context"));
+    };
   }, [hotel?.id]);
 
   useEffect(() => {

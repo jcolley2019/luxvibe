@@ -2505,9 +2505,10 @@ Guest question: ${question}`;
 
   app.post("/api/ai-concierge", async (req, res) => {
     try {
-      const { message, history = [] } = req.body as {
+      const { message, history = [], hotelContext } = req.body as {
         message: string;
         history: { role: "user" | "assistant"; content: string }[];
+        hotelContext?: { name: string; city?: string; stars?: number; rating?: number; amenities?: string[] };
       };
 
       if (!message?.trim()) {
@@ -2540,6 +2541,10 @@ Guest question: ${question}`;
         },
       ];
 
+      const hotelCtxSection = hotelContext
+        ? `\n\nCURRENT HOTEL CONTEXT: The user is viewing "${hotelContext.name}"${hotelContext.city ? ` in ${hotelContext.city}` : ""}. Stars: ${hotelContext.stars ?? "N/A"}, Rating: ${hotelContext.rating ?? "N/A"}/10${hotelContext.amenities?.length ? `. Key amenities: ${hotelContext.amenities.slice(0, 6).join(", ")}` : ""}. When the user says "this hotel", "here", or "it" they mean this specific property — answer using the context above. If they want alternatives or comparisons, use search_hotels.`
+        : "";
+
       const systemPrompt = `You are Luxe, the elite AI travel concierge for Luxvibe — a premium hotel booking platform. You help users discover perfect hotels worldwide.
 
 Personality: warm, sophisticated, well-traveled, and genuinely excited about great hotels. You speak with the confidence of someone who has personally stayed at thousands of properties.
@@ -2551,7 +2556,7 @@ Rules:
 - For travel advice (best time to visit, visas, packing) — answer directly with enthusiasm and insider knowledge.
 - For Luxvibe questions — explain that Luxvibe is a premium platform with 2M+ hotels in 190+ countries, real-time pricing, and AI-powered search.
 - Never fabricate hotel names, prices, or availability. Only reference what search_hotels returns.
-- Keep all responses under 3 sentences. Be warm, never robotic.`;
+- Keep all responses under 3 sentences. Be warm, never robotic.${hotelCtxSection}`;
 
       // First Claude call — it may decide to use a tool
       let response = await anthropic.messages.create({

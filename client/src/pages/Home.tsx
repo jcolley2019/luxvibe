@@ -2247,25 +2247,42 @@ export default function Home() {
                         : "Try different dates, a nearby city, or explore these popular destinations:"}
                   </p>
                   {activeFilterCount > 0 ? (
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm font-medium text-primary hover:underline"
-                      data-testid="button-clear-filters"
-                    >
-                      Clear all filters
-                    </button>
+                    <div className="flex flex-col items-center gap-3">
+                      <button
+                        onClick={clearFilters}
+                        className="text-sm font-medium text-primary hover:underline"
+                        data-testid="button-clear-filters"
+                      >
+                        Clear all filters
+                      </button>
+                    </div>
                   ) : (
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {["Paris", "New York", "Tokyo", "Dubai", "Bali", "London", "Barcelona", "Santorini"].map((city) => (
-                        <a
-                          key={city}
-                          href={`/?destination=${encodeURIComponent(city)}&checkIn=${checkIn || ""}&checkOut=${checkOut || ""}&guests=${guests || "2"}`}
-                          className="px-3.5 py-1.5 rounded-full border border-border bg-background hover:border-primary/50 hover:bg-primary/5 text-sm font-medium text-foreground transition-colors"
-                          data-testid={`link-suggest-${city.toLowerCase()}`}
-                        >
-                          {city}
-                        </a>
-                      ))}
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {["Paris", "New York", "Tokyo", "Dubai", "Bali", "London", "Barcelona", "Santorini"].map((city) => (
+                          <a
+                            key={city}
+                            href={`/?destination=${encodeURIComponent(city)}&checkIn=${checkIn || ""}&checkOut=${checkOut || ""}&guests=${guests || "2"}`}
+                            className="px-3.5 py-1.5 rounded-full border border-border bg-background hover:border-primary/50 hover:bg-primary/5 text-sm font-medium text-foreground transition-colors"
+                            data-testid={`link-suggest-${city.toLowerCase()}`}
+                          >
+                            {city}
+                          </a>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3 justify-center">
+                        <div className="h-px w-12 bg-border" />
+                        <span className="text-xs text-muted-foreground">or</span>
+                        <div className="h-px w-12 bg-border" />
+                      </div>
+                      <button
+                        onClick={() => window.dispatchEvent(new Event("open-luxe"))}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/15 transition-colors"
+                        data-testid="button-ask-luxe-empty-state"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Ask Luxe to find something perfect
+                      </button>
                     </div>
                   )}
                 </div>
