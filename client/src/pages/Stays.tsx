@@ -182,7 +182,7 @@ function CategorySection({ category, checkIn, checkOut }: {
             <p className="text-sm text-muted-foreground">{category.description}</p>
           </div>
         </div>
-        <Link href={`/?aiSearch=${encodeURIComponent(category.query)}`}>
+        <Link href={`/?aiSearch=${encodeURIComponent(category.query)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2`}>
           <Button variant="ghost" size="sm" className="gap-1 text-primary hidden sm:flex">
             See all <ChevronRight className="w-3.5 h-3.5" />
           </Button>
@@ -226,7 +226,7 @@ export default function Stays() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      setLocation(`/?destination=${encodeURIComponent(searchValue)}&stayTypes=true`);
+      setLocation(`/?destination=${encodeURIComponent(searchValue)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2`);
     }
   };
 
@@ -292,7 +292,7 @@ export default function Stays() {
           <h2 className="text-2xl font-bold text-foreground mb-6">Browse by type</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {PROPERTY_CATEGORIES.map((cat) => (
-              <Link key={cat.id} href={`/?aiSearch=${encodeURIComponent(cat.query)}`}>
+              <Link key={cat.id} href={`/?aiSearch=${encodeURIComponent(cat.query)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2`}>
                 <div className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer" data-testid={`category-${cat.id}`}>
                   <img
                     src={cat.image}
@@ -331,7 +331,7 @@ export default function Stays() {
             {FEATURED_DESTINATIONS.map((dest) => (
               <Link
                 key={dest.city}
-                href={`/?destination=${encodeURIComponent(dest.city + ', ' + dest.country)}`}
+                href={`/?destination=${encodeURIComponent(dest.city + ', ' + dest.country)}&checkIn=${checkIn}&checkOut=${checkOut}&guests=2`}
                 data-testid={`destination-${dest.city.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 <div className="group relative rounded-2xl overflow-hidden aspect-square cursor-pointer">
