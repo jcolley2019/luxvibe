@@ -346,6 +346,40 @@ export default function BlogPost() {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute("href", `https://luxvibe.io/blog/${post.slug}`);
+
+    // BlogPosting structured data
+    let articleSchema = document.getElementById("article-ld-json") as HTMLScriptElement | null;
+    if (!articleSchema) {
+      articleSchema = document.createElement("script");
+      articleSchema.type = "application/ld+json";
+      articleSchema.id = "article-ld-json";
+      document.head.appendChild(articleSchema);
+    }
+    articleSchema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": (post as any).seoTitle || post.title,
+      "description": (post as any).seoDescription || post.excerpt,
+      "image": (post as any).ogImageUrl || post.heroImageUrl,
+      "datePublished": (post as any).publishedAt || (post as any).published_at,
+      "dateModified": (post as any).updatedAt || (post as any).updated_at || (post as any).publishedAt || (post as any).published_at,
+      "url": `https://luxvibe.io/blog/${post.slug}`,
+      "mainEntityOfPage": { "@type": "WebPage", "@id": `https://luxvibe.io/blog/${post.slug}` },
+      "author": { "@type": "Organization", "name": "Luxvibe", "url": "https://luxvibe.io" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Luxvibe",
+        "logo": { "@type": "ImageObject", "url": "https://luxvibe.io/favicon-180.png" },
+      },
+      "keywords": post.destination ? `${post.destination} hotels, luxury travel, ${post.destination} accommodation` : "luxury hotels, travel guide",
+    });
+
+    return () => {
+      document.getElementById("article-ld-json")?.remove();
+      const canonical2 = document.querySelector('link[rel="canonical"]');
+      if (canonical2) canonical2.setAttribute("href", "https://luxvibe.io/");
+      document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide";
+    };
   }, [post]);
 
   // Auto-advance gallery — must be before early returns (Rules of Hooks)

@@ -397,13 +397,61 @@ export default function HotelDetails() {
     if (hotel?.name) {
       const city = hotel.city ? `, ${hotel.city}` : "";
       document.title = `${hotel.name}${city} – Luxury Hotel | Luxvibe`;
+
+      // Dynamic canonical for this hotel page
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute("href", `https://luxvibe.io/hotel/${hotel.id}`);
+
+      // LodgingBusiness structured data
+      let schemaEl = document.getElementById("hotel-ld-json") as HTMLScriptElement | null;
+      if (!schemaEl) {
+        schemaEl = document.createElement("script");
+        schemaEl.type = "application/ld+json";
+        schemaEl.id = "hotel-ld-json";
+        document.head.appendChild(schemaEl);
+      }
+      const schema: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "LodgingBusiness",
+        "name": hotel.name,
+        "url": `https://luxvibe.io/hotel/${hotel.id}`,
+        "address": {
+          "@type": "PostalAddress",
+          ...(hotel.address ? { "streetAddress": hotel.address } : {}),
+          ...(hotel.city ? { "addressLocality": hotel.city } : {}),
+        },
+      };
+      if (hotel.imageUrl) schema["image"] = hotel.imageUrl;
+      if (hotel.description) schema["description"] = hotel.description;
+      if (hotel.stars) {
+        schema["starRating"] = { "@type": "Rating", "ratingValue": String(Math.round(hotel.stars)) };
+      }
+      if (hotel.rating && hotel.reviewCount) {
+        schema["aggregateRating"] = {
+          "@type": "AggregateRating",
+          "ratingValue": hotel.rating.toFixed(1),
+          "bestRating": "10",
+          "worstRating": "1",
+          "ratingCount": hotel.reviewCount,
+        };
+      }
+      if (hotel.price) schema["priceRange"] = `From $${Math.round(hotel.price)}/night`;
+      schemaEl.textContent = JSON.stringify(schema);
     } else {
       document.title = "Hotel Details – Luxvibe";
     }
     return () => {
       document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide";
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", "https://luxvibe.io/");
+      document.getElementById("hotel-ld-json")?.remove();
     };
-  }, [hotel?.name, hotel?.city]);
+  }, [hotel?.name, hotel?.city, hotel?.id, hotel?.stars, hotel?.rating, hotel?.reviewCount, hotel?.price, hotel?.address, hotel?.imageUrl, hotel?.description]);
 
   useEffect(() => {
     const onScroll = () => {
