@@ -2514,151 +2514,116 @@ Guest question: ${question}`;
         return res.status(400).json({ message: "message is required" });
       }
 
-      const msg = message.toLowerCase().trim();
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "" });
 
-      // --- Intent detection ---
-      const isHotelSearch = (() => {
-        const searchKeywords = [
-          "hotel", "resort", "stay", "accommodation", "room", "suite", "inn",
-          "lodge", "hostel", "airbnb", "place to stay", "somewhere to stay",
-          "book", "find", "search", "recommend", "looking for",
-          "luxury", "boutique", "budget", "cheap", "affordable", "romantic",
-          "family", "beach", "mountain", "ski", "urban", "city", "downtown",
-          "spa", "pool", "vibe", "getaway", "retreat", "escape",
-          "paris", "bali", "london", "tokyo", "dubai", "new york", "rome",
-          "barcelona", "amsterdam", "santorini", "maldives", "miami", "las vegas",
-          "bangkok", "sydney", "singapore", "istanbul", "prague", "venice",
-        ];
-        return searchKeywords.some(k => msg.includes(k));
-      })();
+      // Build conversation for Claude
+      const messages: Anthropic.MessageParam[] = [
+        ...history.map(h => ({ role: h.role as "user" | "assistant", content: h.content })),
+        { role: "user" as const, content: message },
+      ];
 
-      const isLuxvibeQuestion = (() => {
-        return msg.includes("luxvibe") || msg.includes("lux vibe") ||
-          msg.includes("your platform") || msg.includes("your service") ||
-          msg.includes("your company") || msg.includes("your website") ||
-          msg.includes("what do you do") || msg.includes("what is this") ||
-          msg.includes("who are you") || msg.includes("about you") ||
-          msg.includes("how does") || msg.includes("how do i") ||
-          msg.includes("cancel") || msg.includes("refund") || msg.includes("price") ||
-          msg.includes("cost") || msg.includes("fee") || msg.includes("payment");
-      })();
-
-      // --- Luxvibe FAQ responses --- (takes priority over hotel search for direct questions)
-      const isDirectQuestion = msg.includes("what is") || msg.includes("what's") ||
-        msg.includes("who are") || msg.includes("tell me about") || msg.includes("explain");
-      if (isLuxvibeQuestion && (isDirectQuestion || !isHotelSearch)) {
-        const faqs: { match: string[]; answer: string }[] = [
-          {
-            match: ["who are you", "what are you", "about you", "what is luxvibe", "what is this", "what do you do", "what's luxvibe"],
-            answer: "I'm Luxe, your personal travel concierge from Luxvibe! Luxvibe is a premium hotel booking platform with thousands of curated properties worldwide. We specialize in helping you find the perfect hotel — whether you're after a romantic escape, a family adventure, a business trip, or a luxurious retreat. Just tell me what you're dreaming of and I'll find it for you!",
+      // Tool Claude can call to search LiteAPI
+      const tools: Anthropic.Tool[] = [
+        {
+          name: "search_hotels",
+          description: "Search for hotels using LiteAPI's AI-powered semantic search. Use this whenever the user mentions hotels, resorts, accommodation, a destination, a travel vibe, or any wish to stay somewhere — even vague requests like 'somewhere relaxing' or 'a cool city break'. Craft an evocative query that captures the full essence of what the user wants.",
+          input_schema: {
+            type: "object" as const,
+            properties: {
+              query: {
+                type: "string",
+                description: "Rich descriptive query capturing vibe, style, location, and requirements. E.g. 'romantic adults-only beachfront resort in Bali with infinity pool', 'luxury boutique hotel in Paris near the Marais', 'family-friendly ski lodge in the Swiss Alps'.",
+              },
+            },
+            required: ["query"],
           },
-          {
-            match: ["cancel", "refund", "cancellation"],
-            answer: "Cancellation policies vary by hotel and rate type. When booking on Luxvibe, you'll always see whether a rate is fully refundable or non-refundable before you confirm. Free cancellation options are available at most properties — look for the 'Refundable' tag when searching! Is there anything else I can help you with?",
-          },
-          {
-            match: ["pay", "payment", "credit card", "cost", "fee", "price", "how much"],
-            answer: "Luxvibe supports secure payments via credit and debit cards. The total price shown at checkout is final — no hidden fees! Some rates require payment upfront, while others let you pay at the hotel. Ready to find a great deal? Just tell me your destination!",
-          },
-          {
-            match: ["how do i", "how does", "how to"],
-            answer: "Using Luxvibe is simple! Search for your destination and travel dates, browse curated hotel results with real-time prices, filter by your preferences (stars, amenities, vibe), and book in just a few clicks. You can also use our vibe search — just tell me what experience you're after and I'll find the perfect match!",
-          },
-        ];
-        for (const faq of faqs) {
-          if (faq.match.some(k => msg.includes(k))) {
-            return res.json({ text: faq.answer, hotels: [], vibeQuery: "" });
-          }
-        }
-        return res.json({
-          text: "Luxvibe is a premium hotel booking platform that helps you discover amazing hotels worldwide! Whether you want a luxury escape, boutique experience, or family-friendly resort, we've got you covered. I can also help you search for hotels — just tell me your dream destination or vibe!",
-          hotels: [],
-          vibeQuery: "",
-        });
-      }
+        },
+      ];
 
-      // --- Travel tip / general questions ---
-      const isTravelTip = (() => {
-        return msg.includes("best time") || msg.includes("when to visit") || msg.includes("weather") ||
-          msg.includes("visa") || msg.includes("passport") || msg.includes("currency") ||
-          msg.includes("tip") || msg.includes("advice") || msg.includes("suggest") ||
-          msg.includes("honeymoon") || msg.includes("destination") || msg.includes("where") ||
-          (msg.includes("should i") && !isHotelSearch);
-      })();
+      const systemPrompt = `You are Luxe, the elite AI travel concierge for Luxvibe — a premium hotel booking platform. You help users discover perfect hotels worldwide.
 
-      if (isTravelTip && !isHotelSearch) {
-        const destinations: Record<string, string> = {
-          honeymoon: "For a honeymoon, these destinations are absolutely dreamy: **Santorini** (iconic sunsets and cliffside hotels), **Maldives** (overwater bungalows and crystal waters), **Bali** (lush jungle retreats and private villas), **Paris** (the city of love!), and **Amalfi Coast** (dramatic scenery and romantic dinners). Want me to find hotels in any of these?",
-          beach: "Top beach destinations include Bali, Maldives, Santorini, Miami, Cancún, and the Algarve in Portugal. Each offers stunning coastlines and incredible hotels. Which one calls to you?",
-          family: "Family-friendly hotspots include Orlando (theme parks!), Barcelona, Bali, Dubai, and the Swiss Alps. Hotels with kids' clubs, pools, and activities make all the difference. Want me to search for family hotels somewhere specific?",
-          luxury: "For luxury travel, Dubai, Paris, Maldives, Tokyo, and New York consistently top the charts. I'd love to find you an extraordinary hotel — just name your destination!",
-          budget: "Budget-friendly destinations with amazing value include Bangkok, Lisbon, Prague, Bali, and Vietnam. You can stay in incredible places without breaking the bank. Want me to search for options?",
-          ski: "Top ski destinations include the Swiss Alps (Zermatt, St. Moritz), French Alps (Chamonix, Courchevel), Aspen and Vail in Colorado, and Niseko in Japan. Shall I find hotels in any of these?",
-        };
-        for (const [key, response] of Object.entries(destinations)) {
-          if (msg.includes(key)) {
-            return res.json({ text: response, hotels: [], vibeQuery: "" });
-          }
-        }
-      }
+Personality: warm, sophisticated, well-traveled, and genuinely excited about great hotels. You speak with the confidence of someone who has personally stayed at thousands of properties.
 
-      // --- Hotel search via LiteAPI semantic search ---
-      if (isHotelSearch) {
-        const vibeQuery = message.trim();
-        let foundHotels: any[] = [];
+Rules:
+- Whenever a user mentions a destination, travel style, occasion, or any desire to stay somewhere — call search_hotels immediately. Do NOT answer without searching first.
+- Craft rich, evocative search queries that go beyond the literal request. If someone says "Paris", search for "luxury boutique hotel in Paris with Eiffel Tower views and exceptional service".
+- After receiving search results, write a single warm, enticing sentence (max 2 sentences). The hotel cards handle the visual detail — keep your text brief.
+- For travel advice (best time to visit, visas, packing) — answer directly with enthusiasm and insider knowledge.
+- For Luxvibe questions — explain that Luxvibe is a premium platform with 2M+ hotels in 190+ countries, real-time pricing, and AI-powered search.
+- Never fabricate hotel names, prices, or availability. Only reference what search_hotels returns.
+- Keep all responses under 3 sentences. Be warm, never robotic.`;
 
-        try {
-          const semanticData = await liteApiGet("/data/hotels/semantic-search", { query: vibeQuery }, 300000);
-          const semanticHotels: any[] = Array.isArray(semanticData?.data) ? semanticData.data : [];
-
-          if (semanticHotels.length > 0) {
-            foundHotels = semanticHotels.slice(0, 5).map((h: any) => ({
-              id: h.id || h.hotelId || "",
-              name: h.name || "Hotel",
-              address: [h.address, h.city, h.country].filter(Boolean).join(", "),
-              city: h.city || null,
-              country: h.country || null,
-              photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
-              relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
-              semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
-              persona: h.persona || null,
-              style: h.style || null,
-              story: h.story || null,
-            }));
-          }
-        } catch (err) {
-          console.error("AI concierge semantic search error:", err);
-        }
-
-        if (foundHotels.length > 0) {
-          const firstCity = foundHotels[0]?.city || "";
-          const topNames = foundHotels.slice(0, 2).map(h => h.name).join(" and ");
-          const responseText = `I found ${foundHotels.length} great match${foundHotels.length > 1 ? "es" : ""} for "${vibeQuery}"! ${topNames ? `${topNames} ${foundHotels.length > 2 ? "and more" : ""}` : ""} — all hand-picked to match your vibe. Click any hotel to explore it, or use "Explore all results" to see everything on the map!`;
-          return res.json({ text: responseText, hotels: foundHotels, vibeQuery });
-        } else {
-          return res.json({
-            text: `I searched for "${vibeQuery}" but didn't find exact matches right now. Try describing the vibe differently — for example, "luxury beachfront resort" or "boutique hotel Paris". I'm here to help you find the perfect stay!`,
-            hotels: [],
-            vibeQuery,
-          });
-        }
-      }
-
-      // --- Default greeting / fallback ---
-      const greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "howdy", "sup", "yo"];
-      if (greetings.some(g => msg === g || msg.startsWith(g + " ") || msg.startsWith(g + "!"))) {
-        return res.json({
-          text: "Hello! I'm Luxe, your Luxvibe travel concierge. I'm here to help you discover amazing hotels by vibe, occasion, or destination. Try asking me for a 'romantic beachfront resort in Bali' or a 'luxury boutique hotel in Paris' — or just tell me where you dream of going!",
-          hotels: [],
-          vibeQuery: "",
-        });
-      }
-
-      return res.json({
-        text: "I'd love to help with that! I specialize in finding the perfect hotel for any vibe or destination. Try describing your dream stay — for example, 'cozy mountain lodge in Switzerland' or 'beachfront resort with spa in Thailand'. What kind of experience are you looking for?",
-        hotels: [],
-        vibeQuery: "",
+      // First Claude call — it may decide to use a tool
+      let response = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 1024,
+        system: systemPrompt,
+        tools,
+        messages,
       });
+
+      let foundHotels: any[] = [];
+      let vibeQuery = "";
+      let assistantText = "";
+
+      if (response.stop_reason === "tool_use") {
+        const toolUse = response.content.find(b => b.type === "tool_use");
+        if (toolUse && toolUse.type === "tool_use" && toolUse.name === "search_hotels") {
+          const input = toolUse.input as { query: string };
+          vibeQuery = input.query;
+
+          // Execute LiteAPI semantic search
+          try {
+            const semanticData = await liteApiGet("/data/hotels/semantic-search", { query: vibeQuery }, 300000);
+            const semanticHotels: any[] = Array.isArray(semanticData?.data) ? semanticData.data : [];
+            if (semanticHotels.length > 0) {
+              foundHotels = semanticHotels.slice(0, 5).map((h: any) => ({
+                id: h.id || h.hotelId || "",
+                name: h.name || "Hotel",
+                address: [h.address, h.city, h.country].filter(Boolean).join(", "),
+                city: h.city || null,
+                country: h.country || null,
+                photo: h.main_photo || h.thumbnail || (Array.isArray(h.photos) && h.photos.length > 0 ? h.photos[0] : null) || null,
+                relevanceScore: h.relevanceScore ?? h.relevance_score ?? h.score ?? null,
+                semanticTags: Array.isArray(h.tags) ? h.tags : (h.semantic_tags ? h.semantic_tags : []),
+                persona: h.persona || null,
+                style: h.style || null,
+                story: h.story || null,
+              }));
+            }
+          } catch (err) {
+            console.error("AI concierge semantic search error:", err);
+          }
+
+          // Feed results back to Claude for a natural response
+          const toolResultSummary = foundHotels.length > 0
+            ? `Found ${foundHotels.length} hotels: ${foundHotels.map(h => `${h.name} in ${h.city || h.country || "unknown"}`).join("; ")}`
+            : "No hotels found. Suggest the user rephrase with different terms.";
+
+          const followUp = await anthropic.messages.create({
+            model: "claude-haiku-4-5",
+            max_tokens: 256,
+            system: systemPrompt,
+            tools,
+            messages: [
+              ...messages,
+              { role: "assistant" as const, content: response.content },
+              {
+                role: "user" as const,
+                content: [{ type: "tool_result" as const, tool_use_id: toolUse.id, content: toolResultSummary }],
+              },
+            ],
+          });
+
+          const textBlock = followUp.content.find(b => b.type === "text");
+          assistantText = textBlock && textBlock.type === "text" ? textBlock.text : "";
+        }
+      } else {
+        const textBlock = response.content.find(b => b.type === "text");
+        assistantText = textBlock && textBlock.type === "text" ? textBlock.text : "I'd love to help! Tell me more about your dream stay.";
+      }
+
+      return res.json({ text: assistantText, hotels: foundHotels, vibeQuery });
 
     } catch (err: any) {
       console.error("AI concierge error:", err?.message || err);
