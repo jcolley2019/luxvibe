@@ -351,7 +351,7 @@ export default function BlogPost() {
   // Auto-advance gallery — must be before early returns (Rules of Hooks)
   useEffect(() => {
     if (!hasGallery || isPaused) return;
-    const t = setInterval(() => setGalleryIdx(i => (i + 1) % galleryImages.length), 5000);
+    const t = setInterval(() => setGalleryIdx(i => (i + 1) % galleryImages.length), 9000);
     return () => clearInterval(t);
   }, [hasGallery, isPaused, galleryImages.length]);
 
