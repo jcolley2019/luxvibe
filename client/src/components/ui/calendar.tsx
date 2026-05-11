@@ -34,13 +34,31 @@ function Calendar({
         head_cell:
           "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-primary/10 [&:has([aria-selected])]:bg-primary/15 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 [&:has([aria-selected].day-range-start)]:rounded-l-full [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-range-start)]:before:rounded-l-full [&:has([aria-selected].day-range-end)]:after:rounded-r-full",
+        cell: cn(
+          "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+          // Middle days — full-width highlight
+          "[&:has([aria-selected].day-range-middle)]:bg-primary/15",
+          // Outside days in range
+          "[&:has([aria-selected].day-outside)]:bg-primary/10",
+          // Start day — right half only (transparent left → primary/15 right, hard stop at 50%)
+          "[&:has(.day-range-start:not(.day-range-end))]:bg-gradient-to-r",
+          "[&:has(.day-range-start:not(.day-range-end))]:from-transparent",
+          "[&:has(.day-range-start:not(.day-range-end))]:from-50%",
+          "[&:has(.day-range-start:not(.day-range-end))]:to-primary/15",
+          "[&:has(.day-range-start:not(.day-range-end))]:to-50%",
+          // End day — left half only (primary/15 left → transparent right, hard stop at 50%)
+          "[&:has(.day-range-end:not(.day-range-start))]:bg-gradient-to-r",
+          "[&:has(.day-range-end:not(.day-range-start))]:from-primary/15",
+          "[&:has(.day-range-end:not(.day-range-start))]:from-50%",
+          "[&:has(.day-range-end:not(.day-range-start))]:to-transparent",
+          "[&:has(.day-range-end:not(.day-range-start))]:to-50%",
+        ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-full"
         ),
-        day_range_start: "day-range-start rounded-l-full",
-        day_range_end: "day-range-end rounded-r-full",
+        day_range_start: "day-range-start",
+        day_range_end: "day-range-end",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full",
         day_today: "ring-1 ring-inset ring-primary font-semibold rounded-full",
