@@ -405,7 +405,10 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("luxury");
   const [nameFilter, setNameFilter] = useState("");
   const [priceMax, setPriceMax] = useState<number>(2000);
-  const [starFilter, setStarFilter] = useState<number[]>([4, 5]);
+  const [starFilter, setStarFilter] = useState<number[]>(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get("allStars") === "1" ? [1, 2, 3, 4, 5] : [4, 5];
+  });
   const isDefaultStarFilter =
     starFilter.length === 2 && starFilter.includes(4) && starFilter.includes(5);
   const [includeUnrated, setIncludeUnrated] = useState(false);

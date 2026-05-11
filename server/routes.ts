@@ -3522,12 +3522,10 @@ ${allUrls.map(u => `  <url>
   // GET /api/stays/category — fetch curated stays for a category via semantic search
   app.get("/api/stays/category", async (req, res) => {
     try {
-      const { id, query, limit = "4" } = req.query as Record<string, string>;
+      const { id, query, limit = "8" } = req.query as Record<string, string>;
       if (!query) return res.json({ properties: [] });
-      const cacheKey = `stays_cat_${id}_${limit}`;
-      const cached = cache.get(cacheKey);
-      if (cached) return res.json(cached);
 
+      // liteApiGet has built-in TTL caching keyed on URL+params — use it directly
       const data = await liteApiGet("/data/hotels/semantic-search", {
         query,
         limit: String(Math.min(Number(limit), 12)),
@@ -3548,9 +3546,7 @@ ${allUrls.map(u => `  <url>
         hotelTypeId: h.hotelTypeId ?? null,
       }));
 
-      const result = { properties };
-      cache.set(cacheKey, result);
-      res.json(result);
+      res.json({ properties });
     } catch (err: any) {
       console.error("[stays/category]", err?.message);
       res.json({ properties: [] });
