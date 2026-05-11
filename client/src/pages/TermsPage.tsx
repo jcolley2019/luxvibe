@@ -1,8 +1,16 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Printer, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 export default function TermsPage() {
+  useEffect(() => {
+    document.title = "Terms & Conditions — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "Read Luxvibe's Terms and Conditions for hotel booking services. Understand your rights, our cancellation policies, and what to expect when you book with us.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />

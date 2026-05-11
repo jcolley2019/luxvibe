@@ -36,6 +36,13 @@ export default function BookingConfirmation() {
   const [error, setError] = useState<string | null>(null);
   const [checkoutData, setCheckoutData] = useState<any>(null);
 
+  useEffect(() => {
+    document.title = "Booking Confirmed — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "Your luxury hotel booking is confirmed. View your reservation details, check-in information, and manage your stay on Luxvibe.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
   const bookMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/hotels/book", data);

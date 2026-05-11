@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,14 @@ export default function Invite() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    document.title = "Invite Friends & Earn Rewards — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "Invite friends to Luxvibe and earn travel rewards. Share your referral link and get exclusive vouchers for every friend who books a luxury hotel.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
   const [copied, setCopied] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [sending, setSending] = useState(false);

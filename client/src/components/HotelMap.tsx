@@ -29,7 +29,7 @@ function createPriceMarker(price: string | null, isMain: boolean, imageUrl?: str
       className: "custom-marker",
       html: `<div style="display:flex;flex-direction:column;align-items:center;">
         <div style="width:56px;height:56px;border-radius:12px;border:3px solid #7c3aed;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-          <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;" />
+          <img src="${imageUrl}" alt="Hotel" style="width:100%;height:100%;object-fit:cover;" />
         </div>
         ${price ? `<div style="margin-top:2px;background:#7c3aed;color:white;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.2);">${price}</div>` : ""}
       </div>`,

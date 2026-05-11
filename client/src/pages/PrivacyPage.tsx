@@ -1,8 +1,16 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 export default function PrivacyPage() {
+  useEffect(() => {
+    document.title = "Privacy Policy — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "Read Luxvibe's Privacy Policy. Learn how we collect, use, and protect your personal data when you use our luxury hotel booking platform.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />

@@ -15,6 +15,13 @@ export default function Favorites() {
   const [compareOpen, setCompareOpen] = useState(false);
 
   useEffect(() => {
+    document.title = "My Favorites — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "View and manage your saved luxury hotels on Luxvibe. Revisit your favorite properties and book your next dream stay.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
+  useEffect(() => {
     const loadFavorites = () => {
       try {
         const recentlyViewed = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");

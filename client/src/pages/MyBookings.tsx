@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
@@ -222,6 +222,14 @@ export default function MyBookings() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { data: bookings, isLoading: isBookingsLoading } = useBookings();
   const { toast } = useToast();
+
+  useEffect(() => {
+    document.title = "My Bookings — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "View and manage all your hotel reservations on Luxvibe. Check booking status, upcoming stays, and past trips in one place.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
   const [activeTab, setActiveTab] = useState<Tab>("hotels");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");

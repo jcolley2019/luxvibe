@@ -77,6 +77,13 @@ export default function Checkout() {
   const [voucherApplied, setVoucherApplied] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "Complete Your Booking — Luxvibe";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", "Securely complete your hotel booking on Luxvibe. Enter guest details and pay safely with our encrypted checkout powered by LiteAPI.");
+    return () => { document.title = "Luxvibe – Luxury Hotel Deals & Boutique Stays Worldwide"; };
+  }, []);
+
+  useEffect(() => {
     if (!offerId) {
       setLocation("/");
     }
