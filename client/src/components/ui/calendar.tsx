@@ -31,28 +31,10 @@ function Calendar({
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell:
-          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: cn(
-          "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-          // Middle days — full-width highlight
-          "[&:has([aria-selected].day-range-middle)]:bg-primary/15",
-          // Outside days in range
-          "[&:has([aria-selected].day-outside)]:bg-primary/10",
-          // Start day — right half only (transparent left → primary/15 right, hard stop at 50%)
-          "[&:has(.day-range-start:not(.day-range-end))]:bg-gradient-to-r",
-          "[&:has(.day-range-start:not(.day-range-end))]:from-transparent",
-          "[&:has(.day-range-start:not(.day-range-end))]:from-50%",
-          "[&:has(.day-range-start:not(.day-range-end))]:to-primary/15",
-          "[&:has(.day-range-start:not(.day-range-end))]:to-50%",
-          // End day — left half only (primary/15 left → transparent right, hard stop at 50%)
-          "[&:has(.day-range-end:not(.day-range-start))]:bg-gradient-to-r",
-          "[&:has(.day-range-end:not(.day-range-start))]:from-primary/15",
-          "[&:has(.day-range-end:not(.day-range-start))]:from-50%",
-          "[&:has(.day-range-end:not(.day-range-start))]:to-transparent",
-          "[&:has(.day-range-end:not(.day-range-start))]:to-50%",
-        ),
+        // Cell background is handled by CSS in index.css (.rdp td:has(...))
+        cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-full"
@@ -65,8 +47,8 @@ function Calendar({
         day_outside:
           "day-outside text-muted-foreground aria-selected:bg-primary/10 aria-selected:text-muted-foreground",
         day_disabled: "text-muted-foreground opacity-50",
-        day_range_middle:
-          "aria-selected:bg-primary/15 aria-selected:text-primary !rounded-none",
+        // bg is provided by .rdp td:has(button.day-range-middle) in CSS
+        day_range_middle: "aria-selected:text-primary !rounded-none",
         day_hidden: "invisible",
         ...classNames,
       }}

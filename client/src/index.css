@@ -152,62 +152,81 @@ img {
   min-width: 0;
 }
 
-/* ── Range band: fill selected cells with primary/20 (light) or primary/40 (dark) ── */
-.luxvibe-calendar tbody td:has(button[aria-selected]) {
-  background-color: rgba(37, 99, 235, 0.15); /* ~primary/15, visible on white */
-  position: relative;
+/* ── Range band — gradient hard-stop at 50% aligns with circle centre ── */
+
+/* ALL DayPicker instances (covers hotel details page etc.) */
+.rdp td:has(button.day-range-middle) {
+  background-color: hsl(var(--primary) / 0.15);
 }
-/* Start/end cells get full blue circle — clear left/right caps on the band */
-.luxvibe-calendar tbody td:has(button.day-range-start),
-.luxvibe-calendar tbody td:has(button.day-range-end) {
-  background-color: rgba(37, 99, 235, 0.15);
+/* Start cell: transparent left half, blue right half */
+.rdp td:has(button.day-range-start:not(.day-range-end)) {
+  background: linear-gradient(to right, transparent 50%, hsl(var(--primary) / 0.15) 50%);
 }
-/* Numbers in the middle of the range — dark blue for readability */
+/* End cell: blue left half, transparent right half */
+.rdp td:has(button.day-range-end:not(.day-range-start)) {
+  background: linear-gradient(to right, hsl(var(--primary) / 0.15) 50%, transparent 50%);
+}
+/* Single-day selection: no range background */
+.rdp td:has(button.day-range-start.day-range-end) {
+  background: transparent;
+}
+/* Dark mode */
+.dark .rdp td:has(button.day-range-middle) {
+  background-color: hsl(var(--primary) / 0.3);
+}
+.dark .rdp td:has(button.day-range-start:not(.day-range-end)) {
+  background: linear-gradient(to right, transparent 50%, hsl(var(--primary) / 0.3) 50%);
+}
+.dark .rdp td:has(button.day-range-end:not(.day-range-start)) {
+  background: linear-gradient(to right, hsl(var(--primary) / 0.3) 50%, transparent 50%);
+}
+
+/* luxvibe-calendar overrides (same gradients, higher specificity) */
+.luxvibe-calendar tbody td:has(button.day-range-middle) {
+  background-color: hsl(var(--primary) / 0.15);
+}
+.luxvibe-calendar tbody td:has(button.day-range-start:not(.day-range-end)) {
+  background: linear-gradient(to right, transparent 50%, hsl(var(--primary) / 0.15) 50%);
+  border-radius: 0;
+}
+.luxvibe-calendar tbody td:has(button.day-range-end:not(.day-range-start)) {
+  background: linear-gradient(to right, hsl(var(--primary) / 0.15) 50%, transparent 50%);
+  border-radius: 0;
+}
+.luxvibe-calendar tbody td:has(button.day-range-start.day-range-end) {
+  background: transparent;
+  border-radius: 0;
+}
+
+/* Middle text: dark blue for readability */
 .luxvibe-calendar tbody td:has(button.day-range-middle) button {
-  color: #1e3a8a !important; /* blue-900 */
+  color: #1e3a8a !important;
   position: relative;
   z-index: 10;
 }
-/* Start/end circles are white text on blue — ensure they sit above the band */
+/* Start/end circles: white text, sit above the band */
 .luxvibe-calendar tbody td:has(button.day-range-start) button,
 .luxvibe-calendar tbody td:has(button.day-range-end) button {
   position: relative;
   z-index: 10;
   color: white !important;
 }
-/* Dark mode — use primary/40 for stronger visibility */
-.dark .luxvibe-calendar tbody td:has(button[aria-selected]) {
-  background-color: rgba(37, 99, 235, 0.35); /* primary/35 */
+
+/* Dark mode overrides */
+.dark .luxvibe-calendar tbody td:has(button.day-range-middle) {
+  background-color: hsl(var(--primary) / 0.3);
+}
+.dark .luxvibe-calendar tbody td:has(button.day-range-start:not(.day-range-end)) {
+  background: linear-gradient(to right, transparent 50%, hsl(var(--primary) / 0.3) 50%);
+}
+.dark .luxvibe-calendar tbody td:has(button.day-range-end:not(.day-range-start)) {
+  background: linear-gradient(to right, hsl(var(--primary) / 0.3) 50%, transparent 50%);
 }
 .dark .luxvibe-calendar tbody td:has(button.day-range-middle) button {
-  color: #bfdbfe !important; /* blue-200 for contrast on dark */
+  color: #bfdbfe !important;
 }
 .dark .luxvibe-calendar tbody td:has(button.day-range-start) button,
 .dark .luxvibe-calendar tbody td:has(button.day-range-end) button {
   color: white !important;
-}
-.luxvibe-calendar tbody td:first-child:has(button[aria-selected]) {
-  border-radius: 9999px 0 0 9999px;
-}
-/* Row-boundary: round right edge of last selected cell on a row */
-.luxvibe-calendar tbody td:last-child:has(button[aria-selected]) {
-  border-radius: 0 9999px 9999px 0;
-}
-/* Range-start cell: round left side (right side connects to band) */
-.luxvibe-calendar tbody td:has(button.day-range-start) {
-  border-radius: 9999px 0 0 9999px;
-}
-/* Range-end cell: round right side (left side connects to band) */
-.luxvibe-calendar tbody td:has(button.day-range-end) {
-  border-radius: 0 9999px 9999px 0;
-}
-/* Single day selected (start == end): full pill */
-.luxvibe-calendar tbody td:has(button.day-range-start):has(button.day-range-end) {
-  border-radius: 9999px;
-}
-/* Remove blue bg when no range (just a single selected day, no middle) */
-/* Dark mode */
-.dark .luxvibe-calendar tbody td:has(button[aria-selected]) {
-  background-color: rgba(37, 99, 235, 0.3); /* blue-600/30 */
 }
 
