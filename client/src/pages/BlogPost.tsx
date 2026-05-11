@@ -64,6 +64,17 @@ function fallbackFor(destination: string) {
   return DESTINATION_FALLBACKS[destination] ?? GENERIC_FALLBACK;
 }
 
+const GALLERY_IMAGES: Record<string, string[]> = {
+  "best-luxury-hotels-boise-2026": [
+    "https://cdn.5280.com/2019/10/Boise_Visitors-bureau-960x720.jpg",
+    "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/10/2e/09/boise.jpg?w=1400&h=-1&s=1",
+    "https://cdn.5280.com/2019/07/Boise-River-Rafters-Greenbelt_Convention-Visitors_bureau.jpg",
+    "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/20/1a/49/23/caption.jpg?w=1400&h=-1&s=1",
+    "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/08/fc/7c/1a/idaho-state-capitol-building.jpg?w=1200&h=-1&s=1",
+    "https://cdn.5280.com/2019/07/Bogus-Basin-Boarder_Convention-Visitors-Bureau.jpg",
+  ],
+};
+
 function StarRow({ count }: { count: number }) {
   return (
     <span className="flex items-center gap-0.5">
@@ -283,6 +294,8 @@ export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [galleryIdx, setGalleryIdx] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const { data: post, isLoading, isError } = useQuery<BlogPost>({
     queryKey: ["/api/blog/posts", slug],
@@ -297,6 +310,10 @@ export default function BlogPost() {
   });
 
   const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 2);
+
+  // Derive gallery data (safe to use before early returns since it's just a lookup)
+  const galleryImages = GALLERY_IMAGES[slug ?? ""] ?? [];
+  const hasGallery = galleryImages.length > 1;
 
   useEffect(() => {
     if (!post) return;
@@ -331,6 +348,13 @@ export default function BlogPost() {
     canonical.setAttribute("href", `https://luxvibe.io/blog/${post.slug}`);
   }, [post]);
 
+  // Auto-advance gallery — must be before early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!hasGallery || isPaused) return;
+    const t = setInterval(() => setGalleryIdx(i => (i + 1) % galleryImages.length), 5000);
+    return () => clearInterval(t);
+  }, [hasGallery, isPaused, galleryImages.length]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -364,23 +388,85 @@ export default function BlogPost() {
 
   const postUrl = `https://luxvibe.io/blog/${post.slug}`;
   const mins = readingTime(post.contentHtml);
+  const heroSrc = hasGallery ? galleryImages[galleryIdx] : (imageSrc ?? fallbackFor(post.destination));
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero image */}
-      <div className="w-full h-[250px] md:h-[55vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]">
-        <img
-          src={imageSrc ?? fallbackFor(post.destination)}
-          alt={post.title}
-          loading="eager"
-          fetchpriority="high"
-          onLoad={() => setImageLoaded(true)}
-          onError={() => { setImageSrc(fallbackFor(post.destination)); setImageLoaded(true); }}
-          className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      {/* Hero image / gallery carousel */}
+      <div
+        className="w-full h-[280px] md:h-[60vh] relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] to-[#2463eb]"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        {/* Slide images */}
+        {hasGallery ? (
+          galleryImages.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt={`${post.destination} — photo ${i + 1}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === galleryIdx ? "opacity-100" : "opacity-0"}`}
+            />
+          ))
+        ) : (
+          <img
+            src={heroSrc}
+            alt={post.title}
+            loading="eager"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => { setImageSrc(fallbackFor(post.destination)); setImageLoaded(true); }}
+            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          />
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+
+        {/* Prev / Next arrows */}
+        {hasGallery && (
+          <>
+            <button
+              onClick={() => { setGalleryIdx(i => (i - 1 + galleryImages.length) % galleryImages.length); setIsPaused(true); }}
+              className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white rounded-full p-2 md:p-2.5 backdrop-blur-sm transition-all z-10"
+              data-testid="btn-gallery-prev"
+              aria-label="Previous photo"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+            <button
+              onClick={() => { setGalleryIdx(i => (i + 1) % galleryImages.length); setIsPaused(true); }}
+              className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white rounded-full p-2 md:p-2.5 backdrop-blur-sm transition-all z-10"
+              data-testid="btn-gallery-next"
+              aria-label="Next photo"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {hasGallery && (
+          <div className="absolute bottom-16 md:bottom-24 left-0 right-0 flex justify-center gap-1.5 z-10">
+            {galleryImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { setGalleryIdx(i); setIsPaused(true); }}
+                className={`rounded-full transition-all duration-300 ${i === galleryIdx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/50 hover:bg-white/75"}`}
+                data-testid={`btn-gallery-dot-${i}`}
+                aria-label={`Go to photo ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Photo count badge */}
+        {hasGallery && (
+          <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full z-10">
+            {galleryIdx + 1} / {galleryImages.length}
+          </div>
+        )}
+
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-12 max-w-4xl mx-auto">
           <div className="flex flex-wrap items-center gap-2 md:gap-3 text-white/80 text-xs md:text-sm mb-2 md:mb-3">
             <span className="flex items-center gap-1.5">
