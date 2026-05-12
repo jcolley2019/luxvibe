@@ -235,7 +235,7 @@ export default function EventTravel() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden min-h-[600px] md:min-h-[680px] flex flex-col justify-center px-4 pt-24 pb-20">
+      <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4">
         {/* Crossfading background images */}
         {EVENT_HERO_IMAGES.map((src, i) => (
           <div
