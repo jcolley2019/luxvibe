@@ -156,7 +156,7 @@ function TripPlanner({ event }: { event: EventDetail }) {
       </div>
 
       {event.ticketUrl && (
-        <div className="pt-1">
+        <div className="pt-1 space-y-2">
           <a
             href={event.ticketUrl}
             target="_blank"
@@ -165,9 +165,12 @@ function TripPlanner({ event }: { event: EventDetail }) {
             data-testid="link-buy-tickets"
           >
             <Ticket className="w-4 h-4" />
-            Buy Tickets on Ticketmaster
+            Buy Official Tickets on Ticketmaster
             <ExternalLink className="w-3.5 h-3.5 opacity-60" />
           </a>
+          <p className="text-[11px] text-muted-foreground text-center leading-relaxed px-2">
+            Tickets sold and fulfilled by Ticketmaster. LuxVibe does not sell or guarantee tickets. LuxVibe may earn a commission on eligible purchases.
+          </p>
         </div>
       )}
     </div>

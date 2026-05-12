@@ -1,0 +1,58 @@
+The phrase “package style travel deal that includes event tickets” is likely hurting you. For the affiliate program, frame LuxVibe as:
+
+A luxury hotel booking / event-travel discovery site that recommends official Ticketmaster events and sends users to Ticketmaster to complete ticket purchases.
+
+Do not frame it as:
+
+A bundled travel package that includes tickets in LuxVibe checkout.
+
+Ticketmaster’s FAQ says selling tickets in your own shopping cart is generally not available except for select partners, so a true “hotel + ticket package in one checkout” may need a different partnership path later.
+
+What I’d do before appealing
+
+Create a dedicated page on LuxVibe
+
+Something like:
+luxvibe.io/event-travel
+
+Page positioning:
+
+Plan luxury hotel stays around concerts, sports, theater, festivals, and destination events. Event tickets are purchased directly through Ticketmaster.
+
+Add a clear ticket disclaimer
+
+Put this near every event/ticket CTA:
+
+Event tickets are sold and fulfilled by Ticketmaster. LuxVibe does not sell, resell, hold, transfer, or guarantee tickets. Hotel bookings and event ticket purchases are completed separately.
+
+Remove risky wording
+
+Avoid:
+
+cheap tickets, discounted tickets, ticket deals, resale, presale codes, package includes tickets, bundle price, lowest ticket price
+
+Use:
+
+official tickets, event discovery, trip planning, hotel + event itinerary, buy tickets on Ticketmaster
+
+Make the user flow obvious
+
+Show this on the page or in a short Loom/video:
+
+Search destination → discover event → choose nearby luxury hotel → click “Buy tickets on Ticketmaster” → complete ticket purchase on Ticketmaster.
+
+Add affiliate disclosure
+
+Example:
+
+LuxVibe may earn a commission when users purchase tickets through eligible Ticketmaster links.
+
+Use the reconsideration form, not a duplicate application
+
+In the form, directly rebut every category they listed: not a voucher site, not cashback, not a subnetwork, not a browser extension, not social-only, not resale, not presale-code promotion, and users complete ticket purchases on Ticketmaster.
+
+Show audience/brand proof
+
+Include whatever you have:
+
+Search Console screenshots, uptime proof, active hotel booking flow screenshots, example hotel booking confirmations with personal info redacted, traffic numbers, email list size, social accounts, and screenshots of LuxVibe pages.

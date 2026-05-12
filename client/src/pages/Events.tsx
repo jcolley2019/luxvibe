@@ -208,7 +208,7 @@ export default function Events() {
             Plan Around What Matters
           </h1>
           <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto">
-            Concerts, sports, comedy, festivals — find an event and we'll handle flights, hotels, and tickets.
+            Concerts, sports, theater, and festivals — discover events and find luxury hotels nearby. Official tickets purchased on Ticketmaster.
           </p>
 
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
@@ -256,6 +256,13 @@ export default function Events() {
               {label}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-start gap-2 mb-6 px-4 py-3 rounded-xl bg-muted/40 border border-border text-xs text-muted-foreground">
+          <Ticket className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground/60" />
+          <span>
+            Event tickets are sold and fulfilled by Ticketmaster. LuxVibe does not sell, resell, hold, or guarantee tickets — hotel bookings and ticket purchases are completed separately. LuxVibe may earn a commission on eligible Ticketmaster purchases.
+          </span>
         </div>
 
         {isSetupNeeded ? (
