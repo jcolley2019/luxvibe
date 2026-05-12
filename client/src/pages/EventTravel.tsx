@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
   Hotel,
-  Plane,
   Ticket,
   MapPin,
   Music,
@@ -15,32 +14,36 @@ import {
   Users,
   PartyPopper,
   ArrowRight,
-  ExternalLink,
   Search,
   CheckCircle2,
   Info,
+  ShieldCheck,
 } from "lucide-react";
 
 const STEP_FLOW = [
   {
     icon: Search,
-    title: "Search a destination or event",
-    description: "Browse concerts, sports, theater, and festivals happening across the US.",
+    title: "Search a destination or travel date",
+    description:
+      "Enter a city, venue, or date to discover events and luxury hotels in that area.",
   },
   {
     icon: Hotel,
-    title: "Choose a nearby luxury hotel",
-    description: "We surface the best-rated hotels close to the venue so you can lock in your stay.",
+    title: "Discover luxury hotels and relevant nearby events",
+    description:
+      "We surface premium hotel options close to your venue alongside contextual event discovery for that destination.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Book your hotel on LuxVibe",
+    description:
+      "Complete your hotel reservation securely through LuxVibe's booking flow — no account required.",
   },
   {
     icon: Ticket,
-    title: "Buy official tickets on Ticketmaster",
-    description: "Click through to Ticketmaster to purchase your event tickets directly and securely.",
-  },
-  {
-    icon: Plane,
-    title: "Add flights if you need them",
-    description: "Search flights from your home city to complete your trip itinerary.",
+    title: "Click through to Ticketmaster to complete ticket purchases directly",
+    description:
+      "Ticket CTAs send you to Ticketmaster's official site. All ticket sales, fulfillment, and customer service are handled entirely by Ticketmaster.",
   },
 ];
 
@@ -65,10 +68,10 @@ export default function EventTravel() {
             Event Travel Planning
           </Badge>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 font-serif leading-tight">
-            Plan Luxury Hotel Stays Around the Events You Love
+            Luxury Hotel Stays for Event-Driven Travel
           </h1>
           <p className="text-white/75 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover concerts, sports, theater, and festivals — then find the perfect luxury hotel nearby. Official event tickets are purchased directly through Ticketmaster.
+            Discover premium hotels near concerts, sports, theater, festivals, and destination events. Event tickets are purchased directly through official ticketing partners such as Ticketmaster.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/events">
@@ -96,7 +99,19 @@ export default function EventTravel() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 py-16">
+      <section className="max-w-3xl mx-auto px-4 pt-12 pb-2">
+        <div className="flex items-start gap-3 p-5 rounded-2xl border-2 border-primary/20 bg-primary/5">
+          <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-foreground mb-1">Our commitment to you</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets. Hotel bookings and event ticket purchases are completed separately. When available, ticket purchases are completed directly on Ticketmaster.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-5xl mx-auto px-4 py-14">
         <div className="text-center mb-12">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">How it works</p>
           <h2 className="text-3xl font-bold text-foreground font-serif">Your complete event trip, in four steps</h2>
@@ -186,27 +201,27 @@ export default function EventTravel() {
           <div className="flex items-start gap-3 p-5 rounded-2xl border border-border bg-card">
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-foreground mb-1">Official event tickets via Ticketmaster</p>
+              <p className="font-semibold text-foreground mb-1">Contextual event discovery</p>
               <p className="text-sm text-muted-foreground">
-                LuxVibe surfaces event listings and links to Ticketmaster's official purchase pages. All ticket sales, fulfillment, and customer service are handled entirely by Ticketmaster.
+                LuxVibe surfaces event listings as a contextual discovery layer for travelers planning luxury hotel stays. We are an event-travel planning platform, not a ticket seller.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-5 rounded-2xl border border-border bg-card">
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-foreground mb-1">Hotel bookings powered by LiteAPI</p>
+              <p className="font-semibold text-foreground mb-1">Official ticket purchase on Ticketmaster</p>
               <p className="text-sm text-muted-foreground">
-                Hotel reservations are booked and confirmed through LuxVibe's secure booking flow, connecting you to 2M+ hotels worldwide at competitive rates.
+                All ticket CTAs link to Ticketmaster's official purchase pages. Ticketmaster handles all sales, pricing, fulfillment, and customer service. LuxVibe has no involvement in the ticket transaction.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-5 rounded-2xl border border-border bg-card">
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-foreground mb-1">Completely separate purchases</p>
+              <p className="font-semibold text-foreground mb-1">Luxury hotel stays near events</p>
               <p className="text-sm text-muted-foreground">
-                Hotel stays and event tickets are purchased separately. LuxVibe does not bundle, resell, or guarantee event tickets. Ticket purchases happen directly on Ticketmaster's website.
+                Hotel reservations are booked through LuxVibe's secure booking flow, connecting you to 2M+ hotels worldwide. Hotel bookings and ticket purchases are always completed separately.
               </p>
             </div>
           </div>
@@ -217,7 +232,7 @@ export default function EventTravel() {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-background border border-primary/20">
           <div className="text-center sm:text-left">
             <h3 className="text-xl font-bold text-foreground font-serif mb-1">Ready to plan your trip?</h3>
-            <p className="text-sm text-muted-foreground">Browse events near you and find the perfect hotel to match.</p>
+            <p className="text-sm text-muted-foreground">Browse events near you and find the perfect luxury hotel stays nearby.</p>
           </div>
           <Link href="/events">
             <Button size="lg" className="shrink-0" data-testid="button-cta-browse-events">
@@ -233,17 +248,19 @@ export default function EventTravel() {
           <div className="flex items-start gap-2">
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground/60" />
             <p>
-              <strong className="text-foreground">Ticket disclaimer:</strong> Event tickets are sold and fulfilled by Ticketmaster. LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets. Hotel bookings and event ticket purchases are completed separately on their respective platforms.
+              <strong className="text-foreground">Ticket disclaimer:</strong> Event tickets are sold and fulfilled by Ticketmaster. LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets. Hotel bookings and event ticket purchases are completed separately on their respective platforms. When available, ticket purchases are completed directly on Ticketmaster.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground/60" />
             <p>
-              <strong className="text-foreground">Affiliate disclosure:</strong> LuxVibe may earn a commission when users purchase tickets through eligible Ticketmaster links. This does not affect the price you pay or the availability of tickets.
+              <strong className="text-foreground">Affiliate disclosure:</strong> LuxVibe may earn a commission when users purchase tickets through eligible Ticketmaster affiliate links. This does not affect the price you pay or the availability of tickets.
             </p>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

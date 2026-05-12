@@ -1,0 +1,72 @@
+Good — use that page as the primary proof URL in the reconsideration form.
+
+One concern: I can open the page, but the readable page content did not come through clearly from the fetch. That may just be because the site is client-rendered, but for an affiliate review, make sure the page visibly and textually states the Ticketmaster-safe model. Ticketmaster describes affiliate partners as using Discovery API/event data to power event discovery experiences, and its channel partner language specifically includes travel booking platforms reaching incremental audiences.
+
+Before submitting, make sure the page has these exact signals:
+
+Add or verify these sections on the page
+
+Hero headline
+
+Luxury Hotel Stays for Event-Driven Travel
+
+Hero subcopy
+
+Discover premium hotels near concerts, sports, theater, festivals, and destination events. Event tickets are purchased directly through official ticketing partners such as Ticketmaster.
+
+Very important disclosure
+
+LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets. Hotel bookings and event ticket purchases are completed separately. When available, ticket purchases are completed directly on Ticketmaster.
+
+User journey section
+
+Search a destination or travel date.
+Discover luxury hotels and relevant nearby events.
+Book your hotel on LuxVibe.
+Click through to Ticketmaster to complete ticket purchases directly.
+
+Avoid using this wording anywhere
+
+package deal
+bundled tickets
+ticket deals
+discounted tickets
+resale
+presale codes
+cheapest tickets
+included tickets
+hotel + ticket checkout
+
+Replace that language with:
+
+event-travel planning
+contextual event discovery
+official ticket purchase
+luxury hotel stays near events
+complete ticket purchase on Ticketmaster
+
+What to submit in the Ticketmaster form
+
+For the Website / App Store URL, use the event-travel page.
+
+For Any other relevant information, paste this:
+
+Please review our event-travel page, which explains LuxVibe’s intended Ticketmaster use case. LuxVibe is a luxury hotel booking and event-travel discovery platform. We do not sell, resell, bundle, hold, transfer, or guarantee event tickets. Our intended Ticketmaster integration is to show relevant events to travelers and send users to Ticketmaster to complete ticket purchases directly through approved affiliate links.
+
+Also include the main LuxVibe homepage in the body of the form, but put the event-travel page in the URL field because it is more specific to the reconsideration.
+
+Extra move that will help
+
+Record a 60–90 second Loom showing:
+
+LuxVibe homepage is live.
+Event-travel page is live.
+Hotel search works.
+Ticket CTAs would send users to Ticketmaster, not LuxVibe checkout.
+Your page disclosure says LuxVibe does not sell or resell tickets.
+
+Then include:
+
+I can provide a short walkthrough video showing the live site, hotel search flow, and intended Ticketmaster click-out journey if helpful.
+
+This should make the reviewer’s decision easier: LuxVibe is not a coupon/deal/resale partner; it is a travel discovery publisher driving incremental ticket demand.
