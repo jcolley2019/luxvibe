@@ -45,8 +45,6 @@ const HERO_CATEGORY_IMAGES: { category: string; url: string }[] = [
   { category: "nba", url: "https://images.unsplash.com/photo-1572454181157-0b40dd7667fe?w=1920&q=80" }, // arena crowd
   // Soccer
   { category: "soccer",   url: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80" },
-  // Athletics
-  { category: "athletics", url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80" },
   // Concerts — 4 shots
   { category: "concert", url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80" },
   { category: "concert", url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80" },
@@ -228,7 +226,7 @@ export default function EventTravel() {
         heroSeqIdxRef.current = nextIdx;
       }
       setHeroUrl(heroSeqRef.current[heroSeqIdxRef.current]);
-    }, 5000);
+    }, 15000);
     return () => clearInterval(timer);
   }, []);
 
