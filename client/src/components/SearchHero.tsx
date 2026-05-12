@@ -20,6 +20,7 @@ import {
   Gem,
   ChevronLeft,
   Clock,
+  Ticket,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
@@ -1417,6 +1418,14 @@ export default function SearchHero({
             );
           })}
           <button
+            onClick={() => setLocation("/events")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-gray-200 dark:border-border"
+            data-testid="chip-events-mobile"
+          >
+            <Ticket className="w-3 h-3" />
+            Events
+          </button>
+          <button
             onClick={() => window.dispatchEvent(new CustomEvent("open-luxe"))}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
             data-testid="chip-ask-luxe-mobile"
@@ -1947,6 +1956,14 @@ export default function SearchHero({
                 </button>
               );
             })}
+            <button
+              onClick={() => setLocation("/events")}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20 hover:border-white/40 transition-all"
+              data-testid="chip-events-desktop"
+            >
+              <Ticket className="w-3.5 h-3.5" />
+              Events
+            </button>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("open-luxe"))}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold bg-primary hover:bg-primary/90 text-white transition-all shadow-md border border-primary/40"

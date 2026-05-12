@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles, Home } from "lucide-react";
+import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles, Home, Ticket } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
 
@@ -228,6 +228,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const [loginTooltip, setLoginTooltip] = useState(false);
   const [journalTooltip, setJournalTooltip] = useState(false);
   const [flightsTooltip, setFlightsTooltip] = useState(false);
+  const [eventsTooltip, setEventsTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
@@ -300,6 +301,26 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                 {flightsTooltip && (
                   <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
                     Flights
+                  </div>
+                )}
+              </div>
+
+              {/* Events Link */}
+              <div className="relative">
+                <Link
+                  href="/events"
+                  aria-label="Events – discover concerts, sports and more"
+                  onMouseEnter={() => setEventsTooltip(true)}
+                  onMouseLeave={() => setEventsTooltip(false)}
+                  className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
+                  data-testid="nav-link-events"
+                >
+                  <Ticket className="w-4 h-4 md:hidden" aria-hidden="true" />
+                  <span className="hidden md:inline">Events</span>
+                </Link>
+                {eventsTooltip && (
+                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
+                    Events
                   </div>
                 )}
               </div>
@@ -463,6 +484,13 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                       <Link href="/flights" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Plane className="w-4 h-4 text-muted-foreground" />
                         Flights
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/events" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-events">
+                        <Ticket className="w-4 h-4 text-muted-foreground" />
+                        Events
                       </Link>
                     </DropdownMenuItem>
 
