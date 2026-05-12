@@ -26,10 +26,12 @@ import {
 
 const EVENT_HERO_IMAGES = [
   // Stadium sports — crowd + arena shots
-  "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80",
-  "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80",
-  "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920&q=80",
-  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80",
+  "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80",  // athletics stadium
+  "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80",  // baseball
+  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80",  // soccer — field view (keeper)
+  "https://images.unsplash.com/photo-1567962314286-fd47d8b08e4f?w=1920&q=80",  // NFL football field
+  "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80",  // NHL hockey arena (indoor rink)
+  "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80",  // NBA basketball arena
   // Concerts — stage lights + crowds
   "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80",
   "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
