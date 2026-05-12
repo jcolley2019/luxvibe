@@ -240,7 +240,7 @@ export default function EventTravel() {
         heroSeqIdxRef.current = nextIdx;
       }
       setHeroUrl(heroSeqRef.current[heroSeqIdxRef.current]);
-    }, 15000);
+    }, 20000);
     return () => clearInterval(timer);
   }, []);
 
