@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -23,7 +23,26 @@ import {
   ChevronUp,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+
+const EVENT_HERO_IMAGES = [
+  // Stadium sports — crowd + arena shots
+  "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80",
+  "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80",
+  "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920&q=80",
+  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80",
+  // Concerts — stage lights + crowds
+  "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80",
+  "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
+  "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80",
+  "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80",
+  // Outdoor amphitheaters + festivals
+  "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920&q=80",
+  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1920&q=80",
+  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&q=80",
+  // Performing arts — theater stages
+  "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80",
+  "https://images.unsplash.com/photo-1545224144-b38cd309ef69?w=1920&q=80",
+];
 
 const STEP_FLOW = [
   {
@@ -126,6 +145,16 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function EventTravel() {
   const [, navigate] = useLocation();
   const howItWorksRef = useRef<HTMLElement>(null);
+  const [heroIdx, setHeroIdx] = useState(
+    () => Math.floor(Math.random() * EVENT_HERO_IMAGES.length)
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIdx((i) => (i + 1) % EVENT_HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     document.title = "Event Travel & Luxury Hotel Stays Near Concerts, Sports & Festivals | LuxVibe";
@@ -206,9 +235,26 @@ export default function EventTravel() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-primary/80 to-slate-900 pt-28 pb-20 px-4">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-3xl mx-auto relative z-10 text-center">
+      <section className="relative overflow-hidden min-h-[600px] md:min-h-[680px] flex flex-col justify-center px-4 pt-24 pb-20">
+        {/* Crossfading background images */}
+        {EVENT_HERO_IMAGES.map((src, i) => (
+          <div
+            key={src}
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out pointer-events-none"
+            style={{ opacity: i === heroIdx ? 1 : 0 }}
+            aria-hidden="true"
+          >
+            <img
+              src={src}
+              alt=""
+              className="w-full h-full object-cover object-center"
+              loading={i === heroIdx ? "eager" : "lazy"}
+            />
+          </div>
+        ))}
+        {/* Dark overlay — same weight as main hero */}
+        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+        <div className="max-w-3xl mx-auto relative z-10 text-center w-full">
           <Badge variant="secondary" className="mb-5 bg-white/10 text-white border-white/20 backdrop-blur-sm text-sm px-4 py-1">
             <Ticket className="w-3.5 h-3.5 mr-1.5" />
             Event Travel Planning
