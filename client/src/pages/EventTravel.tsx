@@ -22,6 +22,11 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
+  Zap,
+  Mic2,
+  Smile,
+  Star,
+  Radio,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,12 +63,67 @@ const STEP_FLOW = [
   },
 ];
 
-const CATEGORIES = [
-  { icon: Music, label: "Concerts & Tours", description: "Major artists, intimate venues, festival headliners" },
-  { icon: Trophy, label: "Sports & Live Games", description: "NFL, NBA, MLB, NHL, MLS, college sports" },
-  { icon: Drama, label: "Comedy & Theater", description: "Broadway tours, stand-up, performing arts" },
-  { icon: Users, label: "Family Events", description: "Shows and experiences the whole family enjoys" },
-  { icon: PartyPopper, label: "Festivals", description: "Food, music, culture, and destination festivals" },
+const EVENT_CARDS = [
+  {
+    label: "NFL Football",
+    subtitle: "Regular season, playoffs & Super Bowl",
+    icon: Trophy,
+    gradient: "from-green-600 to-emerald-700",
+  },
+  {
+    label: "NBA Basketball",
+    subtitle: "Regular season, playoffs & Finals",
+    icon: Zap,
+    gradient: "from-orange-500 to-red-600",
+  },
+  {
+    label: "NHL Hockey",
+    subtitle: "Regular season & Stanley Cup Playoffs",
+    icon: Star,
+    gradient: "from-blue-600 to-indigo-700",
+  },
+  {
+    label: "MLB Baseball",
+    subtitle: "Regular season, playoffs & World Series",
+    icon: Radio,
+    gradient: "from-red-500 to-rose-600",
+  },
+  {
+    label: "NCAA College Sports",
+    subtitle: "College football, March Madness & more",
+    icon: Users,
+    gradient: "from-amber-500 to-yellow-600",
+  },
+  {
+    label: "Arena Concerts",
+    subtitle: "Stadium tours and arena headline shows",
+    icon: Music,
+    gradient: "from-violet-500 to-purple-600",
+  },
+  {
+    label: "Intimate Venue Shows",
+    subtitle: "Club shows, theater concerts, smaller stages",
+    icon: Mic2,
+    gradient: "from-pink-500 to-rose-600",
+  },
+  {
+    label: "Music Festivals",
+    subtitle: "Multi-day outdoor and destination festivals",
+    icon: PartyPopper,
+    gradient: "from-fuchsia-500 to-pink-600",
+  },
+  {
+    label: "Comedy Shows",
+    subtitle: "Stand-up tours, comedy clubs & specials",
+    icon: Smile,
+    gradient: "from-yellow-400 to-amber-500",
+  },
+  {
+    label: "Theater & Performing Arts",
+    subtitle: "Broadway tours, ballet, opera & stage plays",
+    icon: Drama,
+    gradient: "from-teal-500 to-cyan-600",
+  },
 ];
 
 const FAQS = [
@@ -299,53 +359,55 @@ export default function EventTravel() {
         </div>
       </section>
 
-      {/* ── Event Categories ── */}
+      {/* ── Event Experience Cards ── */}
       <section className="bg-muted/30 border-y border-border px-4 py-14">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Event categories</p>
-            <h2 className="text-3xl font-bold text-foreground font-serif">Every type of live event, one platform</h2>
-            <p className="text-muted-foreground mt-3 text-sm">Contextual event discovery for travelers planning luxury hotel stays.</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Explore by event type</p>
+            <h2 className="text-3xl font-bold text-foreground font-serif">Every live experience, one platform</h2>
+            <p className="text-muted-foreground mt-3 text-sm max-w-xl mx-auto">
+              Discover luxury hotels near the events that matter to you. Official tickets purchased directly on Ticketmaster.
+            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {CATEGORIES.map((cat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {EVENT_CARDS.map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <motion.div
+                  key={card.label}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Link href="/events">
+                    <div
+                      className={`relative overflow-hidden rounded-xl p-5 text-left text-white bg-gradient-to-br ${card.gradient} hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group cursor-pointer h-full`}
+                      data-testid={`card-event-${card.label.toLowerCase().replace(/\s+/g, "-")}`}
+                    >
+                      <Icon className="w-7 h-7 mb-3 opacity-90 group-hover:scale-110 transition-transform duration-300" />
+                      <div className="text-sm font-bold leading-tight mb-1">{card.label}</div>
+                      <div className="text-[11px] leading-snug opacity-75">{card.subtitle}</div>
+                      <div className="absolute top-2 right-2 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                        <Icon className="w-14 h-14" />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+          <div className="flex justify-center mt-6">
+            <Link href="/events">
+              <button
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm font-semibold text-foreground transition-colors"
+                data-testid="button-browse-all-events"
               >
-                <Link href="/events">
-                  <div
-                    className="group flex items-start gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
-                    data-testid={`card-category-${cat.label.toLowerCase().replace(/\s+/g, "-")}`}
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                      <cat.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{cat.label}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{cat.description}</p>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: CATEGORIES.length * 0.08 }}
-            >
-              <Link href="/events">
-                <div className="group flex items-center justify-center gap-3 p-5 rounded-2xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer h-full min-h-[88px]">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span className="font-semibold text-primary group-hover:underline">Browse all events</span>
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                </div>
-              </Link>
-            </motion.div>
+                <MapPin className="w-4 h-4 text-primary" />
+                Browse all events
+                <ArrowRight className="w-4 h-4 text-primary" />
+              </button>
+            </Link>
           </div>
         </div>
       </section>
