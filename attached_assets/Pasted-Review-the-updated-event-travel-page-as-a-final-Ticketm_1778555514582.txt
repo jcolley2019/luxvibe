@@ -1,0 +1,46 @@
+Review the updated /event-travel page as a final Ticketmaster affiliate/distribution reconsideration QA pass.
+
+Do not redesign the page unless necessary. Only fix gaps, wording risks, readability issues, or missing metadata.
+
+Check and confirm/fix the following:
+
+1. The page avoids risky wording:
+   - package deal
+   - bundled tickets
+   - included tickets
+   - cheap tickets
+   - discounted tickets
+   - ticket deals
+   - resale promotion
+   - presale codes
+   - guaranteed tickets
+   - lowest ticket price
+
+2. Public-facing wording should not imply LuxVibe is already an approved Ticketmaster partner. Use safer language like:
+   - official ticketing partners
+   - when available and approved
+   - approved affiliate tracking links
+   - ticket purchases are completed directly with the official ticketing partner
+
+3. Keep this Ticketing Model disclosure visible near the top:
+   “LuxVibe does not sell, resell, bundle, hold, transfer, guarantee, or collect payment for event tickets. Hotel bookings and event ticket purchases are completed separately. When available and approved, users are directed to Ticketmaster or another official ticketing partner to complete ticket purchases directly.”
+
+4. Ensure the “Not a Resale or Discount Platform” section clearly states:
+   “LuxVibe is not a voucher site, coupon site, cashback platform, loyalty or rewards partner, browser extension, subnetwork, price-comparison site, social-only presence, marketing agency, conversion tool, or demand-insight platform. LuxVibe does not promote resale inventory, presale codes, ticket discounts, or guaranteed ticket access.”
+
+5. Ensure the Partnership Use Case section describes the intended integration as approved event data, event dates, venue/location data, categories, and approved affiliate tracking links.
+
+6. Ensure the main H1, hero copy, ticketing disclosure, FAQ content, and partnership-use-case copy are crawlable in rendered HTML.
+
+7. Verify SEO metadata:
+   - Title: “Event Travel & Luxury Hotel Stays Near Concerts, Sports & Festivals | LuxVibe”
+   - Meta description: “Discover luxury hotel stays near concerts, sports, festivals, comedy, theater, and destination events. Ticket purchases are completed separately.”
+   - Canonical URL: https://luxvibe.io/event-travel
+   - Open Graph metadata
+   - Twitter card metadata
+   - FAQPage JSON-LD
+   - WebPage JSON-LD
+
+8. Ensure there are no official team names, league logos, artist names, venue trademarks, Ticketmaster logos, or unauthorized third-party brand marks.
+
+Return a concise summary of what you changed and what was already compliant.

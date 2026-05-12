@@ -21,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
+  Globe,
 } from "lucide-react";
 
 // Images grouped by category so the carousel never shows two of the same type back-to-back
@@ -112,42 +113,37 @@ _preload.src = _INITIAL_SEQ[0];
 const STEP_FLOW = [
   {
     icon: Search,
-    title: "Search a destination or date",
+    title: "Search a destination",
     description:
-      "Enter a city, region, or travel date to start discovering luxury hotels and nearby events.",
-  },
-  {
-    icon: Hotel,
-    title: "Discover luxury hotels near live events",
-    description:
-      "Browse premium hotel options close to venues, with contextual event discovery for that destination.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Book your hotel on LuxVibe",
-    description:
-      "Complete your hotel reservation securely through LuxVibe's booking flow. No bundled ticket checkout.",
+      "Enter a city, region, or travel date to start discovering luxury hotels and events happening nearby.",
   },
   {
     icon: MapPin,
-    title: "See relevant events nearby",
+    title: "Discover nearby events",
     description:
-      "View concerts, sports, theater, and festivals happening near your hotel during your stay.",
+      "Browse concerts, sports, theater, festivals, and destination events happening near your chosen hotel during your stay.",
+  },
+  {
+    icon: Hotel,
+    title: "Book your luxury stay",
+    description:
+      "Reserve your hotel securely through LuxVibe's booking flow. Hotel purchases are always separate from ticket purchases.",
   },
   {
     icon: Ticket,
-    title: "Buy tickets directly on Ticketmaster",
+    title: "Buy tickets through official ticketing partners",
     description:
-      "Ticket CTAs send you to Ticketmaster's official site. All purchases, fulfillment, and service are handled entirely by Ticketmaster.",
+      "When available and approved, ticket links direct you to official ticketing partners to complete your purchase directly on their platform.",
   },
 ];
 
 const CATEGORIES = [
-  { icon: Music, label: "Concerts & Tours", description: "Major artists, intimate venues, festival headliners" },
-  { icon: Trophy, label: "Sports & Live Games", description: "NFL, NBA, MLB, NHL, MLS, college sports" },
-  { icon: Drama, label: "Comedy & Theater", description: "Broadway tours, stand-up, performing arts" },
-  { icon: Users, label: "Family Events", description: "Shows and experiences the whole family enjoys" },
-  { icon: PartyPopper, label: "Festivals", description: "Food, music, culture, and destination festivals" },
+  { icon: Music,       label: "Concerts & Tours",      description: "Live music ranging from arena tours to intimate venue performances." },
+  { icon: Trophy,      label: "Sports & Live Games",   description: "Professional and college sports across football, basketball, baseball, hockey, soccer, and more." },
+  { icon: PartyPopper, label: "Festivals",             description: "Music, food, culture, and arts festivals in destinations around the world." },
+  { icon: Drama,       label: "Theater & Comedy",      description: "Broadway tours, performing arts, stand-up comedy, and live stage productions." },
+  { icon: Users,       label: "Family Events",         description: "Family-friendly shows, exhibitions, and live experiences for all ages." },
+  { icon: Globe,       label: "Destination Events",    description: "Signature events tied to a city or region — from annual celebrations to one-time experiences." },
 ];
 
 const FAQS = [
@@ -200,7 +196,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       </button>
       {open && (
         <div className="px-5 pb-4 pt-1 bg-card border-t border-border">
-          <p className="text-sm text-muted-foreground leading-relaxed">{a}</p>
+          <p className="text-base text-muted-foreground leading-relaxed">{a}</p>
         </div>
       )}
     </div>
@@ -397,24 +393,24 @@ export default function EventTravel() {
           <ShieldCheck className="w-6 h-6 text-primary shrink-0 mt-0.5" />
           <div>
             <p className="font-bold text-foreground text-base mb-2">Our Ticketing Model</p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              LuxVibe helps travelers discover events near luxury hotel stays. Event tickets are not sold, resold, bundled, held, transferred, or guaranteed by LuxVibe. When available, users are sent to Ticketmaster to complete official ticket purchases directly. Hotel bookings and event ticket purchases are always completed separately on their respective platforms.
+            <p className="text-base text-muted-foreground leading-relaxed">
+              LuxVibe does not sell, resell, bundle, hold, transfer, guarantee, or collect payment for event tickets. When available and approved, users are directed to official ticketing partners to complete ticket purchases independently on their platforms. Hotel bookings and event ticket purchases are always completed separately.
             </p>
           </div>
         </div>
       </section>
 
       {/* ── How It Works ── */}
-      <section ref={howItWorksRef} className="max-w-5xl mx-auto px-4 py-14" id="how-it-works">
-        <div className="text-center mb-12">
+      <section ref={howItWorksRef} className="max-w-5xl mx-auto px-4 py-10" id="how-it-works">
+        <div className="text-center mb-8">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">How it works</p>
           <h2 className="text-3xl font-bold text-foreground font-serif">Your complete event trip, step by step</h2>
-          <p className="text-muted-foreground mt-3 text-sm max-w-xl mx-auto">
-            Search a destination or date → discover luxury hotels → see relevant nearby events → book your hotel on LuxVibe → buy event tickets directly on Ticketmaster.
+          <p className="text-muted-foreground mt-3 text-base max-w-xl mx-auto">
+            Search a destination → discover nearby events → book your luxury hotel → buy tickets through official ticketing partners when available and approved.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {STEP_FLOW.map((step, i) => (
             <motion.div
               key={i}
@@ -424,15 +420,15 @@ export default function EventTravel() {
               transition={{ delay: i * 0.08 }}
               className="relative"
             >
-              <div className="flex flex-col items-start p-5 rounded-2xl border border-border bg-card h-full">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-3 shrink-0">
-                  <step.icon className="w-4.5 h-4.5 text-primary" style={{ width: 18, height: 18 }} />
+              <div className="flex flex-col items-start p-6 rounded-2xl border border-border bg-card h-full">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4 shrink-0">
+                  <step.icon className="text-primary" style={{ width: 20, height: 20 }} />
                 </div>
-                <div className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center shadow-sm">
+                <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-sm">
                   {i + 1}
                 </div>
-                <p className="font-semibold text-foreground text-sm mb-1.5 leading-snug">{step.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                <p className="font-semibold text-foreground text-base mb-2 leading-snug">{step.title}</p>
+                <p className="text-base text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
               {i < STEP_FLOW.length - 1 && (
                 <div className="hidden lg:block absolute top-1/2 -right-2.5 -translate-y-1/2 z-10">
@@ -445,12 +441,12 @@ export default function EventTravel() {
       </section>
 
       {/* ── Event Categories ── */}
-      <section className="bg-muted/30 border-y border-border px-4 py-14">
+      <section className="bg-muted/30 border-y border-border px-4 py-10">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Event categories</p>
             <h2 className="text-3xl font-bold text-foreground font-serif">Every type of live event, one platform</h2>
-            <p className="text-muted-foreground mt-3 text-sm">Contextual event discovery for travelers planning luxury hotel stays.</p>
+            <p className="text-muted-foreground mt-3 text-base">Contextual event discovery for travelers planning luxury hotel stays.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {CATEGORIES.map((cat, i) => (
@@ -463,41 +459,27 @@ export default function EventTravel() {
               >
                 <Link href="/events">
                   <div
-                    className="group flex items-start gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
+                    className="group flex items-start gap-4 p-6 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
                     data-testid={`card-category-${cat.label.toLowerCase().replace(/\s+/g, "-")}`}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
                       <cat.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{cat.label}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{cat.description}</p>
+                      <p className="font-semibold text-foreground text-base group-hover:text-primary transition-colors">{cat.label}</p>
+                      <p className="text-base text-muted-foreground mt-1 leading-relaxed">{cat.description}</p>
                     </div>
                   </div>
                 </Link>
               </motion.div>
             ))}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: CATEGORIES.length * 0.08 }}
-            >
-              <Link href="/events">
-                <div className="group flex items-center justify-center gap-3 p-5 rounded-2xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer h-full min-h-[88px]">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span className="font-semibold text-primary group-hover:underline">Browse all events</span>
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                </div>
-              </Link>
-            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ── Why LuxVibe Fits Event Travel ── */}
-      <section className="max-w-3xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
+      <section className="max-w-3xl mx-auto px-4 py-10">
+        <div className="text-center mb-8">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Why LuxVibe</p>
           <h2 className="text-3xl font-bold text-foreground font-serif">Built for event-driven travel</h2>
         </div>
@@ -506,7 +488,7 @@ export default function EventTravel() {
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-foreground mb-1">Contextual event discovery</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 LuxVibe surfaces events as a contextual layer for travelers already planning luxury hotel stays — not as a ticket marketplace. Event listings help travelers choose when and where to stay.
               </p>
             </div>
@@ -514,9 +496,9 @@ export default function EventTravel() {
           <div className="flex items-start gap-3 p-5 rounded-2xl border border-border bg-card">
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-foreground mb-1">Official ticket purchase on Ticketmaster</p>
-              <p className="text-sm text-muted-foreground">
-                All ticket CTAs link directly to Ticketmaster's official purchase pages. Ticketmaster handles all pricing, sales, fulfillment, and customer service. LuxVibe has no involvement in the ticket transaction.
+              <p className="font-semibold text-foreground mb-1">Tickets through official ticketing partners</p>
+              <p className="text-base text-muted-foreground">
+                When available and approved, ticket links direct users to official ticketing partners to complete purchases on their platform. The official ticketing partner handles all pricing, sales, fulfillment, and customer service. LuxVibe has no involvement in the ticket transaction.
               </p>
             </div>
           </div>
@@ -524,8 +506,8 @@ export default function EventTravel() {
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-foreground mb-1">Luxury hotel stays near live events</p>
-              <p className="text-sm text-muted-foreground">
-                Hotel reservations are booked through LuxVibe's own secure booking flow, connecting travelers to 2M+ hotels worldwide. Hotel and ticket purchases are always separate transactions.
+              <p className="text-base text-muted-foreground">
+                Hotel reservations are booked through LuxVibe's own secure booking flow, connecting travelers to 2M+ hotels worldwide. Hotel and ticket purchases are always separate transactions on their respective platforms.
               </p>
             </div>
           </div>
@@ -533,7 +515,7 @@ export default function EventTravel() {
             <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-foreground mb-1">Incremental audience for live events</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 LuxVibe reaches a premium travel audience that books hotels before discovering local events — not deal-seekers or ticket-comparison shoppers. This drives incremental ticket demand for live event organizers.
               </p>
             </div>
@@ -542,13 +524,13 @@ export default function EventTravel() {
       </section>
 
       {/* ── Not a Resale or Discount Platform ── */}
-      <section className="bg-muted/30 border-y border-border px-4 py-12">
+      <section className="bg-muted/30 border-y border-border px-4 py-10">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-start gap-3 p-6 rounded-2xl border border-border bg-card">
             <XCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-foreground mb-2">Not a Resale or Discount Platform</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-base text-muted-foreground leading-relaxed">
                 LuxVibe is not a voucher site, coupon site, cashback platform, loyalty or rewards partner, browser extension, subnetwork, price-comparison site, social-only presence, marketing agency, conversion tool, or demand-insight platform. LuxVibe does not promote resale inventory, presale codes, ticket discounts, or guaranteed ticket access of any kind.
               </p>
             </div>
@@ -557,17 +539,17 @@ export default function EventTravel() {
       </section>
 
       {/* ── Partnership Use Case ── */}
-      <section className="max-w-3xl mx-auto px-4 py-14">
+      <section className="max-w-3xl mx-auto px-4 py-10">
         <div className="text-center mb-8">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Partnership use case</p>
           <h2 className="text-3xl font-bold text-foreground font-serif">How LuxVibe integrates event data</h2>
         </div>
-        <div className="p-6 rounded-2xl border border-border bg-card space-y-3 text-sm text-muted-foreground leading-relaxed">
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-4 text-base text-muted-foreground leading-relaxed">
           <p>
-            LuxVibe's intended integration is to use approved event data — including venue names, event dates, locations, and affiliate links — to recommend relevant concerts, sports, theater, festivals, and live events to travelers who are planning luxury hotel stays in those destinations.
+            LuxVibe's intended integration is to use approved event data — including venue names, event dates, locations, and approved affiliate tracking links — to surface relevant concerts, sports, theater, festivals, and live events to travelers who are planning luxury hotel stays in those destinations.
           </p>
           <p>
-            Event data is used purely for contextual discovery. When a traveler clicks a ticket link, they are sent to Ticketmaster's official website to complete the purchase. LuxVibe does not intermediate, collect payment, or interact with ticket inventory in any way.
+            Event data is used purely for contextual discovery. When a traveler clicks a ticket link, they are directed to an official ticketing partner's website to complete the purchase independently. LuxVibe does not intermediate, collect payment, or interact with ticket inventory in any way.
           </p>
           <p>
             LuxVibe targets a premium-travel audience that books ahead and discovers local events as part of their trip planning — an incremental audience segment not typically reached by dedicated ticket-search or resale platforms.
@@ -576,9 +558,9 @@ export default function EventTravel() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="bg-muted/20 border-t border-border px-4 py-14">
+      <section className="bg-muted/20 border-t border-border px-4 py-10">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">FAQ</p>
             <h2 className="text-3xl font-bold text-foreground font-serif">Common questions</h2>
           </div>
@@ -591,7 +573,7 @@ export default function EventTravel() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="max-w-3xl mx-auto px-4 py-14">
+      <section className="max-w-3xl mx-auto px-4 py-10">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-background border border-primary/20">
           <div className="text-center sm:text-left">
             <h3 className="text-xl font-bold text-foreground font-serif mb-1">Ready to plan your trip?</h3>
