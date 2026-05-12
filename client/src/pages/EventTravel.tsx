@@ -25,22 +25,42 @@ import {
 
 // Images grouped by category so the carousel never shows two of the same type back-to-back
 const HERO_CATEGORY_IMAGES: { category: string; url: string }[] = [
-  { category: "nfl",      url: "https://images.unsplash.com/photo-1557174949-3b1f5b2e8fac?w=1920&q=80" },
+  // NFL — 3 stadiums
+  { category: "nfl", url: "https://images.unsplash.com/photo-1557174949-3b1f5b2e8fac?w=1920&q=80" },  // aerial field
+  { category: "nfl", url: "https://images.unsplash.com/photo-1560354765-02010876efff?w=1920&q=80" },  // Chargers stadium sunset crowd
+  { category: "nfl", url: "https://images.unsplash.com/photo-1566349872260-a1d88307b698?w=1920&q=80" }, // FedEx Field panoramic
+  // NHL — 3 arenas
+  { category: "nhl", url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80" }, // existing
+  { category: "nhl", url: "https://images.unsplash.com/photo-1701361172842-b132f9b09948?w=1920&q=80" }, // empty NHL ice rink
+  { category: "nhl", url: "https://images.unsplash.com/photo-1742637747283-5d50e82f7b50?w=1920&q=80" }, // hockey game packed arena
+  // MLB — 4 ballparks
+  { category: "mlb", url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80" }, // existing
+  { category: "mlb", url: "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?w=1920&q=80" }, // aerial baseball stadium
+  { category: "mlb", url: "https://images.unsplash.com/photo-1464701116432-f476204d6c45?w=1920&q=80" }, // green ballpark skyline
+  { category: "mlb", url: "https://images.unsplash.com/photo-1623947454404-c5efce008360?w=1920&q=80" }, // fans watching daytime game
+  // NBA — 4 arenas
+  { category: "nba", url: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80" }, // existing
+  { category: "nba", url: "https://images.unsplash.com/photo-1533923156502-be31530547c4?w=1920&q=80" }, // basketball court
+  { category: "nba", url: "https://images.unsplash.com/photo-1563506644863-444710df1e03?w=1920&q=80" }, // players on court
+  { category: "nba", url: "https://images.unsplash.com/photo-1572454181157-0b40dd7667fe?w=1920&q=80" }, // arena crowd
+  // Soccer
   { category: "soccer",   url: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80" },
-  { category: "nhl",      url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80" },
-  { category: "nba",      url: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80" },
-  { category: "baseball", url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80" },
-  { category: "athletics",url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80" },
-  { category: "concert",  url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80" },
-  { category: "concert",  url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80" },
-  { category: "concert",  url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80" },
-  { category: "concert",  url: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80" },
+  // Athletics
+  { category: "athletics", url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80" },
+  // Concerts — 4 shots
+  { category: "concert", url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80" },
+  { category: "concert", url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80" },
+  { category: "concert", url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80" },
+  { category: "concert", url: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80" },
+  // Festivals — 3 shots
   { category: "festival", url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920&q=80" },
-  { category: "festival", url: "https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?w=1920&q=80" },
+  { category: "festival", url: "https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?w=1920&q=80" }, // Red Rocks
   { category: "festival", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&q=80" },
-  { category: "theater",  url: "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80" },
-  { category: "theater",  url: "https://images.unsplash.com/photo-1545224144-b38cd309ef69?w=1920&q=80" },
-  { category: "comedy",   url: "https://images.unsplash.com/photo-1611956425642-d5a8169abd63?w=1920&q=80" },
+  // Theater — 2 shots
+  { category: "theater", url: "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80" },
+  { category: "theater", url: "https://images.unsplash.com/photo-1545224144-b38cd309ef69?w=1920&q=80" },
+  // Comedy
+  { category: "comedy",  url: "https://images.unsplash.com/photo-1611956425642-d5a8169abd63?w=1920&q=80" },
 ];
 
 // Build a shuffled sequence picking one image per category, ensuring no two
