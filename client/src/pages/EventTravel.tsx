@@ -24,27 +24,67 @@ import {
   XCircle,
 } from "lucide-react";
 
-const EVENT_HERO_IMAGES = [
-  // Stadium sports — crowd + arena shots
-  "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80",  // athletics stadium
-  "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80",  // baseball
-  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80",  // soccer — field view (keeper)
-  "https://images.unsplash.com/photo-1567962314286-fd47d8b08e4f?w=1920&q=80",  // NFL football field
-  "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80",  // NHL hockey arena (indoor rink)
-  "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80",  // NBA basketball arena
-  // Concerts — stage lights + crowds
-  "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80",
-  "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
-  "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80",
-  "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80",
-  // Outdoor amphitheaters + festivals
-  "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920&q=80",
-  "https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?w=1920&q=80",  // Red Rocks Amphitheatre daytime
-  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&q=80",
-  // Performing arts — theater stages
-  "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80",
-  "https://images.unsplash.com/photo-1545224144-b38cd309ef69?w=1920&q=80",
+// Images grouped by category so the carousel never shows two of the same type back-to-back
+const HERO_CATEGORY_IMAGES: { category: string; url: string }[] = [
+  { category: "nfl",      url: "https://images.unsplash.com/photo-1567962314286-fd47d8b08e4f?w=1920&q=80" },
+  { category: "soccer",   url: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80" },
+  { category: "nhl",      url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80" },
+  { category: "nba",      url: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80" },
+  { category: "baseball", url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80" },
+  { category: "athletics",url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80" },
+  { category: "concert",  url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1920&q=80" },
+  { category: "concert",  url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80" },
+  { category: "concert",  url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=80" },
+  { category: "concert",  url: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80" },
+  { category: "festival", url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920&q=80" },
+  { category: "festival", url: "https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?w=1920&q=80" },
+  { category: "festival", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&q=80" },
+  { category: "theater",  url: "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80" },
+  { category: "theater",  url: "https://images.unsplash.com/photo-1545224144-b38cd309ef69?w=1920&q=80" },
+  { category: "comedy",   url: "https://images.unsplash.com/photo-1611956425642-d5a8169abd63?w=1920&q=80" },
 ];
+
+// Build a shuffled sequence picking one image per category, ensuring no two
+// consecutive items share a category. Pass `lastCategory` to also prevent a
+// match at the seam between two rounds.
+function buildHeroSequence(lastCategory?: string): string[] {
+  // Collect one random pick per category
+  const groups = new Map<string, string[]>();
+  for (const item of HERO_CATEGORY_IMAGES) {
+    if (!groups.has(item.category)) groups.set(item.category, []);
+    groups.get(item.category)!.push(item.url);
+  }
+  let picks = Array.from(groups.entries()).map(([cat, urls]) => ({
+    category: cat,
+    url: urls[Math.floor(Math.random() * urls.length)],
+  }));
+
+  // Fisher-Yates shuffle
+  for (let i = picks.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [picks[i], picks[j]] = [picks[j], picks[i]];
+  }
+
+  // Fix seam: first item must differ from the last category of the previous round
+  if (lastCategory && picks[0].category === lastCategory) {
+    const swap = picks.findIndex((p, idx) => idx > 0 && p.category !== lastCategory);
+    if (swap !== -1) [picks[0], picks[swap]] = [picks[swap], picks[0]];
+  }
+
+  // Fix any consecutive same-category pairs within the sequence
+  for (let i = 0; i < picks.length - 1; i++) {
+    if (picks[i].category === picks[i + 1].category) {
+      for (let j = i + 2; j < picks.length; j++) {
+        if (picks[j].category !== picks[i].category) {
+          [picks[i + 1], picks[j]] = [picks[j], picks[i + 1]];
+          break;
+        }
+      }
+    }
+  }
+
+  return picks.map((p) => p.url);
+}
 
 const STEP_FLOW = [
   {
@@ -147,13 +187,28 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function EventTravel() {
   const [, navigate] = useLocation();
   const howItWorksRef = useRef<HTMLElement>(null);
-  const [heroIdx, setHeroIdx] = useState(
-    () => Math.floor(Math.random() * EVENT_HERO_IMAGES.length)
-  );
+
+  // Category-aware carousel — built once, regenerated seamlessly each round
+  const heroSeqRef = useRef<string[]>(buildHeroSequence());
+  const heroSeqIdxRef = useRef(0);
+  const [heroUrl, setHeroUrl] = useState(() => heroSeqRef.current[0]);
+  const [prevHeroUrl, setPrevHeroUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setHeroIdx((i) => (i + 1) % EVENT_HERO_IMAGES.length);
+      const seq = heroSeqRef.current;
+      const nextIdx = heroSeqIdxRef.current + 1;
+      setPrevHeroUrl(seq[heroSeqIdxRef.current]);
+      if (nextIdx >= seq.length) {
+        const lastCat = HERO_CATEGORY_IMAGES.find(
+          (h) => h.url === seq[seq.length - 1]
+        )?.category;
+        heroSeqRef.current = buildHeroSequence(lastCat);
+        heroSeqIdxRef.current = 0;
+      } else {
+        heroSeqIdxRef.current = nextIdx;
+      }
+      setHeroUrl(heroSeqRef.current[heroSeqIdxRef.current]);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
@@ -238,22 +293,25 @@ export default function EventTravel() {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4">
-        {/* Crossfading background images */}
-        {EVENT_HERO_IMAGES.map((src, i) => (
+        {/* Crossfading background images — prev fades out, current fades in */}
+        {prevHeroUrl && (
           <div
-            key={src}
+            key={prevHeroUrl + "-prev"}
             className="absolute inset-0 transition-opacity duration-1000 ease-in-out pointer-events-none"
-            style={{ opacity: i === heroIdx ? 1 : 0 }}
+            style={{ opacity: 0 }}
             aria-hidden="true"
           >
-            <img
-              src={src}
-              alt=""
-              className="w-full h-full object-cover object-center"
-              loading={i === heroIdx ? "eager" : "lazy"}
-            />
+            <img src={prevHeroUrl} alt="" className="w-full h-full object-cover object-center" />
           </div>
-        ))}
+        )}
+        <div
+          key={heroUrl}
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out pointer-events-none"
+          style={{ opacity: 1 }}
+          aria-hidden="true"
+        >
+          <img src={heroUrl} alt="" className="w-full h-full object-cover object-center" loading="eager" />
+        </div>
         {/* Dark overlay — same weight as main hero */}
         <div className="absolute inset-0 bg-black/50 pointer-events-none" />
         <div className="max-w-3xl mx-auto relative z-10 text-center w-full">
