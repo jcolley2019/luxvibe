@@ -103,6 +103,12 @@ function buildHeroSequence(lastCategory?: string): string[] {
   return picks.map((p) => p.url);
 }
 
+// Build the initial sequence at module load time and preload the first image
+// immediately — the browser starts fetching before React even mounts the component.
+const _INITIAL_SEQ = buildHeroSequence();
+const _preload = new window.Image();
+_preload.src = _INITIAL_SEQ[0];
+
 const STEP_FLOW = [
   {
     icon: Search,
@@ -206,10 +212,18 @@ export default function EventTravel() {
   const howItWorksRef = useRef<HTMLElement>(null);
 
   // Category-aware carousel — built once, regenerated seamlessly each round
-  const heroSeqRef = useRef<string[]>(buildHeroSequence());
+  const heroSeqRef = useRef<string[]>(_INITIAL_SEQ);
   const heroSeqIdxRef = useRef(0);
-  const [heroUrl, setHeroUrl] = useState(() => heroSeqRef.current[0]);
+  const [heroUrl, setHeroUrl] = useState<string>(_INITIAL_SEQ[0]);
   const [prevHeroUrl, setPrevHeroUrl] = useState<string | null>(null);
+
+  // Preload the next image in the sequence so every crossfade is instant
+  useEffect(() => {
+    const seq = heroSeqRef.current;
+    const nextIdx = (heroSeqIdxRef.current + 1) % seq.length;
+    const img = new window.Image();
+    img.src = seq[nextIdx];
+  }, [heroUrl]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -317,7 +331,7 @@ export default function EventTravel() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4">
+      <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4 bg-black">
         {/* Crossfading background images — prev fades out, current fades in */}
         {prevHeroUrl && (
           <div
