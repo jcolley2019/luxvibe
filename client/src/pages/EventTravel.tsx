@@ -187,7 +187,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         data-testid={`faq-toggle-${q.substring(0, 20).toLowerCase().replace(/\s+/g, "-")}`}
         aria-expanded={open}
       >
-        <span className="font-semibold text-foreground text-sm leading-snug">{q}</span>
+        <span className="font-semibold text-foreground text-base leading-snug">{q}</span>
         {open ? (
           <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
         ) : (
@@ -254,7 +254,7 @@ export default function EventTravel() {
       el.setAttribute("content", content);
     };
 
-    setMeta("description", "Discover luxury hotels near concerts, sports, theater, and festivals. LuxVibe is an event-travel planning platform — official tickets purchased on Ticketmaster.");
+    setMeta("description", "Discover luxury hotel stays near concerts, sports, festivals, comedy, theater, and destination events. Ticket purchases are completed separately.");
     setMeta("robots", "index, follow");
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -269,7 +269,7 @@ export default function EventTravel() {
 
     setMeta("og:type", "website", true);
     setMeta("og:title", "Event Travel & Luxury Hotel Stays | LuxVibe", true);
-    setMeta("og:description", "Plan premium trips around live events. LuxVibe finds luxury hotels near venues — official ticket purchases completed on Ticketmaster.", true);
+    setMeta("og:description", "Plan premium trips around live events. LuxVibe finds luxury hotels near venues — ticket purchases completed directly with official ticketing partners when available and approved.", true);
     setMeta("og:url", "https://luxvibe.io/event-travel", true);
     setMeta("og:site_name", "LuxVibe", true);
     setMeta("og:image", OG_IMAGE, true);
@@ -279,7 +279,7 @@ export default function EventTravel() {
 
     setMeta("twitter:card", "summary_large_image");
     setMeta("twitter:title", "Event Travel & Luxury Hotel Stays | LuxVibe");
-    setMeta("twitter:description", "Discover luxury hotels near concerts, sports, theater, and festivals. Official tickets on Ticketmaster.");
+    setMeta("twitter:description", "Discover luxury hotel stays near concerts, sports, festivals, comedy, and theater events. Ticket purchases completed separately with official ticketing partners.");
     setMeta("twitter:image", OG_IMAGE);
     setMeta("twitter:image:alt", "Red Rocks Amphitheatre — event travel planning with LuxVibe");
 
@@ -296,7 +296,7 @@ export default function EventTravel() {
       "@context": "https://schema.org",
       "@type": "WebPage",
       name: "Event Travel & Luxury Hotel Stays Near Concerts, Sports & Festivals | LuxVibe",
-      description: "LuxVibe is a luxury hotel booking and event-travel discovery platform. Official event tickets are purchased directly through Ticketmaster.",
+      description: "LuxVibe is a luxury hotel booking and event-travel discovery platform. When available and approved, users are directed to official ticketing partners to complete ticket purchases directly.",
       url: "https://luxvibe.io/event-travel",
       publisher: { "@type": "Organization", name: "LuxVibe", url: "https://luxvibe.io" },
     };
@@ -358,7 +358,7 @@ export default function EventTravel() {
             Luxury Hotel Stays for Event-Driven Travel
           </h1>
           <p className="text-white/75 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-            Plan premium trips around concerts, sports, theater, festivals, and destination events. LuxVibe helps travelers discover luxury hotels near live experiences, then directs users to official ticketing partners such as Ticketmaster to complete event ticket purchases directly.
+            Plan premium trips around concerts, sports, theater, festivals, and destination events. LuxVibe helps travelers discover luxury hotels near live experiences, then — when available and approved — directs users to official ticketing partners to complete event ticket purchases directly.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-5">
             <Link href="/events">
@@ -394,7 +394,7 @@ export default function EventTravel() {
           <div>
             <p className="font-bold text-foreground text-base mb-2">Our Ticketing Model</p>
             <p className="text-base text-muted-foreground leading-relaxed">
-              LuxVibe does not sell, resell, bundle, hold, transfer, guarantee, or collect payment for event tickets. When available and approved, users are directed to official ticketing partners to complete ticket purchases independently on their platforms. Hotel bookings and event ticket purchases are always completed separately.
+              LuxVibe does not sell, resell, bundle, hold, transfer, guarantee, or collect payment for event tickets. Hotel bookings and event ticket purchases are completed separately. When available and approved, users are directed to Ticketmaster or another official ticketing partner to complete ticket purchases directly.
             </p>
           </div>
         </div>
@@ -546,7 +546,7 @@ export default function EventTravel() {
         </div>
         <div className="p-6 rounded-2xl border border-border bg-card space-y-4 text-base text-muted-foreground leading-relaxed">
           <p>
-            LuxVibe's intended integration is to use approved event data — including venue names, event dates, locations, and approved affiliate tracking links — to surface relevant concerts, sports, theater, festivals, and live events to travelers who are planning luxury hotel stays in those destinations.
+            LuxVibe's intended integration is to use approved event data — including event names, event dates, venue names, locations, event categories, and approved affiliate tracking links — to surface relevant concerts, sports, theater, festivals, and live events to travelers who are planning luxury hotel stays in those destinations.
           </p>
           <p>
             Event data is used purely for contextual discovery. When a traveler clicks a ticket link, they are directed to an official ticketing partner's website to complete the purchase independently. LuxVibe does not intermediate, collect payment, or interact with ticket inventory in any way.
