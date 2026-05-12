@@ -1,0 +1,161 @@
+Yes. I would optimize this page for two audiences at once:
+
+Ticketmaster’s partnership reviewer, who wants to know you are not resale, discount, cashback, coupon, or subnetwork traffic.
+A future traveler, who needs to understand the value proposition quickly.
+
+One technical note: I was able to reach the page, but the fetchable page content came through mostly as the site title, not readable page copy. That may mean the page is heavily client-rendered. For partner review and SEO, make sure the important copy exists in crawlable HTML or is at least reliably visible without weird loading states. Ticketmaster’s Distribution/Affiliate materials emphasize event discovery, Discovery API/event data, and click-through purchasing, while the Partner API is the restricted path for transactional purchase/reserve flows. So your page should clearly present LuxVibe as event discovery + hotel booking + Ticketmaster click-out, not a bundled ticket checkout.
+
+Highest-impact page improvements
+
+Add a reviewer-facing trust block near the top:
+
+Our Ticketing Model
+LuxVibe helps travelers discover events near luxury hotel stays. Event tickets are not sold, resold, bundled, held, transferred, or guaranteed by LuxVibe. When available, users are sent to Ticketmaster to complete official ticket purchases directly.
+
+Add a “How It Works” section:
+
+Search a destination or date → discover luxury hotels → see relevant nearby events → book your hotel on LuxVibe → buy event tickets directly on Ticketmaster.
+
+Add a “Not a Resale or Discount Platform” section:
+
+LuxVibe is not a voucher site, coupon site, cashback platform, loyalty/rewards partner, browser extension, subnetwork, price-comparison site, social-only page, marketing agency, conversion tool, or demand-insight tool. LuxVibe does not promote resale inventory or presale codes.
+
+Add a “Partnership Use Case” section written for Ticketmaster:
+
+LuxVibe’s intended integration is to use approved Ticketmaster event data, venue data, dates, locations, and affiliate links to recommend relevant concerts, sports, theater, festivals, and live events to travelers planning trips.
+
+Avoid all of these terms on the page:
+
+package deal, ticket package, includes tickets, bundled ticket, cheap tickets, discounted tickets, ticket deals, resale, presale codes, lowest ticket price, guaranteed tickets
+
+Use these instead:
+
+event-travel planning, luxury stays near live events, contextual event discovery, official ticket purchase, buy tickets on Ticketmaster, separate hotel and ticket transactions
+
+Stronger hero copy
+
+Use this:
+
+Luxury Hotel Stays for Event-Driven Travel
+Plan premium trips around concerts, sports, theater, festivals, and destination events. LuxVibe helps travelers discover luxury hotels near live experiences, then directs users to official ticketing partners such as Ticketmaster to complete event ticket purchases directly.
+
+Primary CTA:
+
+Explore Event Travel
+
+Secondary CTA:
+
+Learn How Ticketing Works
+
+Disclosure under CTA:
+
+Hotel bookings and event ticket purchases are completed separately. LuxVibe does not sell or resell event tickets.
+
+Replit prompt to improve the page
+
+Paste this into Replit Agent:
+
+Audit and improve the /event-travel page for LuxVibe so it is optimized for Ticketmaster Distribution / Affiliate Program reconsideration.
+
+Goals:
+1. Position LuxVibe as a luxury hotel booking and event-travel discovery platform.
+2. Make it clear that LuxVibe does not sell, resell, bundle, hold, transfer, guarantee, or collect payment for event tickets.
+3. Make it clear that users click through to Ticketmaster or approved official ticketing partners to complete ticket purchases directly.
+4. Avoid risky language such as “package deal,” “ticket deal,” “discount tickets,” “cheap tickets,” “bundled tickets,” “resale,” “presale codes,” or “included tickets.”
+5. Add clear sections for:
+   - Hero
+   - How It Works
+   - Our Ticketing Model
+   - Why LuxVibe Fits Event Travel
+   - Not a Resale or Discount Platform
+   - Partnership Use Case
+   - FAQ
+6. Add SEO metadata for event travel, luxury hotel stays near events, concerts, sports, theater, festivals, and destination trips.
+7. Add Open Graph and Twitter card metadata.
+8. Add JSON-LD schema where appropriate for a WebPage and FAQPage.
+9. Ensure the page is crawlable and that important copy is visible in the initial HTML or reliably rendered for crawlers.
+10. Make the page mobile responsive, premium/luxury in tone, and consistent with the LuxVibe visual brand.
+
+Important copy to include:
+“LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets. Hotel bookings and event ticket purchases are completed separately. When available, ticket purchases are completed directly through Ticketmaster or another official ticketing partner.”
+
+Also add a reviewer-friendly block:
+“LuxVibe is not a voucher site, coupon site, cashback platform, loyalty or rewards partner, browser extension, subnetwork, price-comparison site, social-only presence, marketing agency, conversion tool, or demand-insight platform. LuxVibe does not promote resale inventory or presale codes.”
+
+Return the updated code and explain the changes.
+Replit prompt for a compliance scrub
+Scan the LuxVibe codebase and page content for risky Ticketmaster affiliate review language.
+
+Flag and replace any wording that implies:
+- LuxVibe sells tickets directly
+- LuxVibe bundles tickets into hotel checkout
+- LuxVibe offers discounted tickets
+- LuxVibe promotes resale tickets
+- LuxVibe provides presale codes
+- LuxVibe guarantees ticket access
+- LuxVibe is a coupon, cashback, loyalty, rewards, subnetwork, browser extension, or price-comparison model
+
+Replace with safer language:
+- event-travel discovery
+- luxury hotel stays near live events
+- contextual event recommendations
+- official ticket purchase
+- click through to Ticketmaster
+- hotel and ticket purchases are completed separately
+
+Produce a summary of every changed phrase.
+Replit prompt for SEO and metadata
+Improve SEO for /event-travel.
+
+Add:
+- title tag: “Event Travel & Luxury Hotel Stays Near Concerts, Sports & Festivals | LuxVibe”
+- meta description under 160 characters explaining luxury hotel stays near events and official ticket click-through
+- canonical URL for https://luxvibe.io/event-travel
+- Open Graph title, description, image, and URL
+- Twitter card metadata
+- FAQPage JSON-LD
+- WebPage JSON-LD
+- accessible H1/H2 structure
+- descriptive alt text for all images
+
+Make sure the page avoids claims that LuxVibe sells, bundles, discounts, guarantees, or resells tickets.
+Replit prompt for the FAQ section
+Add an FAQ section to /event-travel with concise, review-safe answers.
+
+Questions:
+1. Does LuxVibe sell event tickets?
+2. Are hotel bookings and ticket purchases bundled together?
+3. Where do users buy tickets?
+4. Does LuxVibe resell tickets?
+5. Does LuxVibe offer presale codes or ticket discounts?
+6. How does LuxVibe use event discovery?
+7. Why is LuxVibe relevant for live event travelers?
+
+Use the following policy:
+LuxVibe does not sell, resell, hold, transfer, guarantee, or collect payment for event tickets. Hotel bookings and ticket purchases are completed separately. When available, users are directed to Ticketmaster or another official ticketing partner to complete ticket purchases directly.
+FAQ copy you can use
+
+Does LuxVibe sell event tickets?
+No. LuxVibe does not sell, resell, hold, transfer, or guarantee event tickets.
+
+Are hotel and ticket purchases bundled together?
+No. Hotel bookings and event ticket purchases are completed separately.
+
+Where do users buy tickets?
+When event ticket links are available, users are directed to Ticketmaster or another official ticketing partner to complete the purchase directly.
+
+Does LuxVibe promote resale tickets or presale codes?
+No. LuxVibe does not promote resale inventory, ticket resale, or presale codes.
+
+What is LuxVibe’s role in event travel?
+LuxVibe helps travelers discover luxury hotel stays near concerts, sports, theater, festivals, and destination events.
+
+One extra move
+
+Create a small page footer link called:
+
+Ticketing Disclosure
+
+Link it to either /event-travel#ticketing-disclosure or /ticketing-disclosure.
+
+That gives the reviewer a quick compliance signal and makes LuxVibe look more mature.
