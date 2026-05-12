@@ -308,7 +308,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               {/* Events Link */}
               <div className="relative">
                 <Link
-                  href="/events"
+                  href="/event-travel"
                   aria-label="Events – discover concerts, sports and more"
                   onMouseEnter={() => setEventsTooltip(true)}
                   onMouseLeave={() => setEventsTooltip(false)}
@@ -488,7 +488,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
-                      <Link href="/events" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-events">
+                      <Link href="/event-travel" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-events">
                         <Ticket className="w-4 h-4 text-muted-foreground" />
                         Events
                       </Link>
