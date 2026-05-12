@@ -257,15 +257,23 @@ export default function EventTravel() {
     }
     canonical.setAttribute("href", "https://luxvibe.io/event-travel");
 
+    const OG_IMAGE = "https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?w=1200&q=80";
+
     setMeta("og:type", "website", true);
     setMeta("og:title", "Event Travel & Luxury Hotel Stays | LuxVibe", true);
     setMeta("og:description", "Plan premium trips around live events. LuxVibe finds luxury hotels near venues — official ticket purchases completed on Ticketmaster.", true);
     setMeta("og:url", "https://luxvibe.io/event-travel", true);
     setMeta("og:site_name", "LuxVibe", true);
+    setMeta("og:image", OG_IMAGE, true);
+    setMeta("og:image:width", "1200", true);
+    setMeta("og:image:height", "800", true);
+    setMeta("og:image:alt", "Red Rocks Amphitheatre — event travel planning with LuxVibe", true);
 
     setMeta("twitter:card", "summary_large_image");
     setMeta("twitter:title", "Event Travel & Luxury Hotel Stays | LuxVibe");
     setMeta("twitter:description", "Discover luxury hotels near concerts, sports, theater, and festivals. Official tickets on Ticketmaster.");
+    setMeta("twitter:image", OG_IMAGE);
+    setMeta("twitter:image:alt", "Red Rocks Amphitheatre — event travel planning with LuxVibe");
 
     const faqJsonLd = {
       "@context": "https://schema.org",
