@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
@@ -11,29 +11,6 @@ import {
   MapPin, Calendar, Ticket, ChevronRight, Sparkles, Users, Drama,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
-
-const HERO_IMAGES = [
-  {
-    url: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80&auto=format&fit=crop",
-    label: "Live concert",
-  },
-  {
-    url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1600&q=80&auto=format&fit=crop",
-    label: "Concert stage",
-  },
-  {
-    url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1600&q=80&auto=format&fit=crop",
-    label: "Sports stadium",
-  },
-  {
-    url: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1600&q=80&auto=format&fit=crop",
-    label: "Music festival",
-  },
-  {
-    url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=80&auto=format&fit=crop",
-    label: "Arena show",
-  },
-];
 
 export type LuxEvent = {
   id: string;
@@ -180,15 +157,9 @@ function EventCardSkeleton() {
 }
 
 export default function Events() {
-  const [heroIdx, setHeroIdx] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("all");
-
-  useEffect(() => {
-    const t = setInterval(() => setHeroIdx((i) => (i + 1) % HERO_IMAGES.length), 5000);
-    return () => clearInterval(t);
-  }, []);
   const [search, setSearch] = useState({ keyword: "", city: "", category: "all" });
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -227,32 +198,16 @@ export default function Events() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="relative overflow-hidden pt-24 pb-16 px-4 min-h-[340px] flex items-center">
-        {/* Rotating background images */}
-        {HERO_IMAGES.map((img, i) => (
-          <div
-            key={img.url}
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
-            style={{
-              backgroundImage: `url(${img.url})`,
-              opacity: i === heroIdx ? 1 : 0,
-            }}
-            aria-hidden="true"
-          />
-        ))}
-        {/* Dark overlay so text stays readable */}
-        <div className="absolute inset-0 bg-black/60" />
-        {/* Subtle gradient at bottom to blend into page */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent" />
-
-        <div className="max-w-4xl mx-auto relative z-10 text-center w-full">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-primary/80 to-slate-900 pt-24 pb-16 px-4">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent pointer-events-none" />
+        <div className="max-w-4xl mx-auto relative z-10 text-center">
           <Badge variant="secondary" className="mb-4 bg-white/10 text-white border-white/20 backdrop-blur-sm">
             <Ticket className="w-3 h-3 mr-1" /> Live Events Travel Planner
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 font-serif drop-shadow-md">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 font-serif">
             Plan Around What Matters
           </h1>
-          <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto drop-shadow">
+          <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto">
             Concerts, sports, theater, and festivals — discover events and find luxury hotels nearby. Official tickets purchased on Ticketmaster.
           </p>
 
@@ -281,18 +236,6 @@ export default function Events() {
               Search
             </Button>
           </form>
-
-          {/* Image indicator dots */}
-          <div className="flex justify-center gap-1.5 mt-6">
-            {HERO_IMAGES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setHeroIdx(i)}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${i === heroIdx ? "bg-white w-4" : "bg-white/40"}`}
-                aria-label={`View ${HERO_IMAGES[i].label}`}
-              />
-            ))}
-          </div>
         </div>
       </div>
 
