@@ -39,7 +39,7 @@ const EVENT_HERO_IMAGES = [
   "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80",
   // Outdoor amphitheaters + festivals
   "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920&q=80",
-  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1920&q=80",
+  "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1920&q=80",  // daytime outdoor festival
   "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&q=80",
   // Performing arts — theater stages
   "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1920&q=80",
