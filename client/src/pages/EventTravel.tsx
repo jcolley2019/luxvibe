@@ -25,7 +25,7 @@ import {
 
 // Images grouped by category so the carousel never shows two of the same type back-to-back
 const HERO_CATEGORY_IMAGES: { category: string; url: string }[] = [
-  { category: "nfl",      url: "https://images.unsplash.com/photo-1567962314286-fd47d8b08e4f?w=1920&q=80" },
+  { category: "nfl",      url: "https://images.unsplash.com/photo-1557174949-3b1f5b2e8fac?w=1920&q=80" },
   { category: "soccer",   url: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80" },
   { category: "nhl",      url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1920&q=80" },
   { category: "nba",      url: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=1920&q=80" },
