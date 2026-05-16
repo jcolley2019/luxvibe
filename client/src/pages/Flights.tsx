@@ -1040,18 +1040,22 @@ export default function Flights() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-10 px-4">
-        <div className="container mx-auto max-w-5xl">
-          <div className="mb-6 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Plane className="w-5 h-5 text-white/80" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Find Your Flight
-              </h1>
-            </div>
-            <p className="text-slate-400 text-sm">Real-time prices from multiple airlines</p>
+      {/* Hero banner — matches home page height */}
+      <div className="relative h-[320px] md:h-[638px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Plane className="w-5 h-5 text-white/80" />
+            <h1 className="text-2xl sm:text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Find Your Flight
+            </h1>
           </div>
+          <p className="text-slate-400 text-sm">Real-time prices from multiple airlines</p>
+        </div>
+      </div>
 
+      {/* Search card overlaps hero bottom */}
+      <div className="relative -mt-12 sm:-mt-16 z-10 px-4 pb-8">
+        <div className="container mx-auto max-w-5xl">
           <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-4 sm:p-6">
             <div className="flex items-center gap-1 mb-5 p-1 bg-muted rounded-xl w-fit">
               {(["oneway", "roundtrip"] as TripType[]).map(t => (
