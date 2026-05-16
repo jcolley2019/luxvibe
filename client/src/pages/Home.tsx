@@ -371,6 +371,86 @@ function DiscoverByVibe() {
   );
 }
 
+const POPULAR_DEST_FALLBACK = [
+  { city: "Paris",     country: "France",    photo: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&auto=format", minPrice: null },
+  { city: "Bali",      country: "Indonesia", photo: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&auto=format", minPrice: null },
+  { city: "Dubai",     country: "UAE",       photo: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&auto=format", minPrice: null },
+  { city: "Barcelona", country: "Spain",     photo: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600&auto=format", minPrice: null },
+  { city: "Tokyo",     country: "Japan",     photo: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format", minPrice: null },
+  { city: "Maldives",  country: "Maldives",  photo: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&auto=format", minPrice: null },
+  { city: "New York",  country: "USA",       photo: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=600&auto=format", minPrice: null },
+  { city: "London",    country: "UK",        photo: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&auto=format", minPrice: null },
+];
+
+function PopularDestinations() {
+  const [, navigate] = useLocation();
+
+  const { data, isLoading } = useQuery<typeof POPULAR_DEST_FALLBACK>({
+    queryKey: ["/api/popular-destinations"],
+    queryFn: async () => {
+      const res = await fetch("/api/popular-destinations");
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    staleTime: 3 * 60 * 60 * 1000,
+  });
+
+  const cards = data ?? POPULAR_DEST_FALLBACK;
+
+  function handleClick(city: string) {
+    const checkIn = new Date(); checkIn.setDate(checkIn.getDate() + 30);
+    const checkOut = new Date(checkIn); checkOut.setDate(checkOut.getDate() + 3);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    navigate(`/?destination=${encodeURIComponent(city)}&checkIn=${fmt(checkIn)}&checkOut=${fmt(checkOut)}&guests=2`);
+  }
+
+  return (
+    <section className="pb-12 container mx-auto px-4" data-testid="section-popular-destinations">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold font-heading">Explore popular destinations</h2>
+      </div>
+      <div
+        className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scroll-smooth carousel-scroll"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {cards.map((dest, i) => (
+          <motion.button
+            key={dest.city}
+            onClick={() => handleClick(dest.city)}
+            data-testid={`card-destination-${dest.city.toLowerCase().replace(/\s+/g, "-")}`}
+            className="flex-none w-44 sm:w-52 group cursor-pointer text-left"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05, duration: 0.3 }}
+          >
+            <div className="relative h-64 rounded-2xl overflow-hidden">
+              <img
+                src={dest.photo}
+                alt={dest.city}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="text-white font-bold text-lg leading-tight">{dest.city}</p>
+                <p className="text-white/75 text-xs mt-0.5">{dest.country}</p>
+              </div>
+              {isLoading ? (
+                <div className="absolute top-3 right-3 h-6 w-20 rounded-full bg-white/20 animate-pulse" />
+              ) : dest.minPrice ? (
+                <div className="absolute top-3 right-3 bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
+                  <span className="text-xs font-bold text-foreground">From ${Math.round(dest.minPrice as number)}</span>
+                  <span className="text-[10px] text-muted-foreground">/night</span>
+                </div>
+              ) : null}
+            </div>
+          </motion.button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const TRAVEL_STYLES = [
   { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",   bg: "bg-cyan-50 dark:bg-cyan-950/40",   activeBg: "bg-cyan-600 text-white" },
   { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/40", activeBg: "bg-violet-600 text-white" },
@@ -2511,6 +2591,9 @@ export default function Home() {
               </div>
             )}
           </section>
+
+          {/* Popular Destinations */}
+          <PopularDestinations />
 
           {/* Discover by Vibe */}
           <DiscoverByVibe />

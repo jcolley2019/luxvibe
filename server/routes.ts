@@ -1516,6 +1516,65 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/popular-destinations", async (req, res) => {
+    const POPULAR_CITIES = [
+      { city: "Paris",     country: "France",    countryCode: "FR", photo: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&auto=format" },
+      { city: "Bali",      country: "Indonesia", countryCode: "ID", photo: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&auto=format" },
+      { city: "Dubai",     country: "UAE",       countryCode: "AE", photo: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&auto=format" },
+      { city: "Barcelona", country: "Spain",     countryCode: "ES", photo: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600&auto=format" },
+      { city: "Tokyo",     country: "Japan",     countryCode: "JP", photo: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format" },
+      { city: "Maldives",  country: "Maldives",  countryCode: "MV", photo: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&auto=format" },
+      { city: "New York",  country: "USA",       countryCode: "US", photo: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=600&auto=format" },
+      { city: "London",    country: "UK",        countryCode: "GB", photo: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&auto=format" },
+    ];
+    try {
+      const checkIn = new Date(); checkIn.setDate(checkIn.getDate() + 30);
+      const checkOut = new Date(checkIn); checkOut.setDate(checkOut.getDate() + 3);
+      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+      const results = await Promise.allSettled(
+        POPULAR_CITIES.map(async (dest) => {
+          const hotelsData = await liteApiGet("/data/hotels", {
+            countryCode: dest.countryCode,
+            cityName: dest.city,
+            limit: "10",
+          }, 6 * 3600 * 1000);
+          const hotels = Array.isArray(hotelsData?.data) ? hotelsData.data : [];
+          const hotelIds = hotels.slice(0, 10).map((h: any) => h.id || h.hotelId).filter(Boolean);
+          if (!hotelIds.length) return { ...dest, minPrice: null };
+
+          const ratesData = await liteApiPost("/hotels/rates", {
+            hotelIds,
+            checkin: fmt(checkIn),
+            checkout: fmt(checkOut),
+            currency: "USD",
+            guestNationality: "US",
+            occupancies: [{ rooms: 1, adults: 2, children: [] }],
+          }, LITEAPI_BASE, 3 * 3600 * 1000);
+
+          let minPrice: number | null = null;
+          if (ratesData?.data) {
+            for (const hotel of ratesData.data) {
+              for (const rt of hotel.roomTypes || []) {
+                const amt = Number(rt.offerRetailRate?.amount);
+                if (amt > 0 && (minPrice === null || amt < minPrice)) minPrice = amt;
+              }
+            }
+          }
+          return { ...dest, minPrice };
+        })
+      );
+
+      const destinations = results.map((r, i) =>
+        r.status === "fulfilled" ? r.value : { ...POPULAR_CITIES[i], minPrice: null }
+      );
+      res.json(destinations);
+    } catch (err: any) {
+      console.error("Popular destinations error:", err?.message);
+      res.json(POPULAR_CITIES.map(c => ({ ...c, minPrice: null })));
+    }
+  });
+
   app.get(api.hotels.get.path, async (req, res) => {
     try {
       const hotelId = req.params.id;
