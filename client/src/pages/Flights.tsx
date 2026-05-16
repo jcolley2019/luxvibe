@@ -1040,18 +1040,18 @@ export default function Flights() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Hero banner — matches home page height */}
-      <div className="relative h-[320px] md:h-[638px] overflow-hidden flex flex-col items-center justify-center px-4">
+      {/* Hero — title + search card both inside the image */}
+      <div className="relative overflow-hidden flex flex-col">
         <img
           src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
           alt="Airplane above clouds"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
-        <div className="relative text-center px-4">
-          <h1
-            className="text-[42px] md:text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight"
-          >
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-slate-900/35 to-slate-900/75" />
+
+        {/* Title — upper portion */}
+        <div className="relative text-center px-4 pt-16 pb-10 md:pt-24 md:pb-14">
+          <h1 className="text-[42px] md:text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
             Fly Further.<br className="hidden sm:block" /> Spend Smarter.
           </h1>
           <p className="text-white/90 text-base md:text-lg font-medium tracking-wide mb-5 drop-shadow-md">
@@ -1074,12 +1074,11 @@ export default function Flights() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Search card overlaps hero bottom */}
-      <div className="relative -mt-12 sm:-mt-16 z-10 px-4 pb-8">
-        <div className="container mx-auto max-w-5xl">
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-4 sm:p-6">
+        {/* Search card — lower portion, inside the hero */}
+        <div className="relative z-10 px-4 pb-10 md:pb-14">
+          <div className="container mx-auto max-w-5xl">
+            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-4 sm:p-6">
             <div className="flex items-center gap-1 mb-5 p-1 bg-muted rounded-xl w-fit">
               {(["oneway", "roundtrip"] as TripType[]).map(t => (
                 <button
@@ -1188,6 +1187,7 @@ export default function Flights() {
               </Button>
             </form>
           </div>
+        </div>
         </div>
       </div>
 
