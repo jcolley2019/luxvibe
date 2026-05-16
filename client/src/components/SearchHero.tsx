@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { TravelModeTabs } from "@/components/TravelModeTabs";
+import { FlightSearchPanel } from "@/components/FlightSearchPanel";
 import {
   Search,
   MapPin,
@@ -218,8 +219,14 @@ export default function SearchHero({
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [searchMode, setSearchMode] = useState<"hotels" | "flights">("hotels");
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
+
+  function handleTabChange(key: "hotels" | "flights" | "events") {
+    if (key === "events") { setLocation("/events"); return; }
+    setSearchMode(key as "hotels" | "flights");
+  }
 
   const selectedHeroImage = useMemo(
     () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)],
@@ -1305,7 +1312,9 @@ export default function SearchHero({
                 })()}
               </div>
             )}
-            <TravelModeTabs active="hotels" variant="card" />
+            <TravelModeTabs active={searchMode} variant="card" onTabChange={handleTabChange} />
+            {searchMode === "flights" && <FlightSearchPanel variant="mobile" />}
+            <div className={searchMode === "flights" ? "hidden" : ""}>
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
@@ -1371,6 +1380,7 @@ export default function SearchHero({
                 <Search className="w-5 h-5" />
                 {t("search.search")}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -1779,9 +1789,11 @@ export default function SearchHero({
             </div>
           </div>
 
-          <TravelModeTabs active="hotels" variant="hero" />
+          <TravelModeTabs active={searchMode} variant="hero" onTabChange={handleTabChange} />
 
-          {/* Desktop search bar + calendar anchored together */}
+          {searchMode === "flights" ? (
+            <FlightSearchPanel variant="hero" />
+          ) : (
           <div className="w-full max-w-4xl relative" ref={desktopSearchBarRef}>
             {/* Hidden Popover trigger pinned to the left edge for calendar alignment */}
             <Popover
@@ -1917,6 +1929,7 @@ export default function SearchHero({
               </div>
             </div>
           </div>
+          )}
 
           {/* ── Desktop temptation chips ── */}
           <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">

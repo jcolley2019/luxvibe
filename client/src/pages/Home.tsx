@@ -384,6 +384,7 @@ const POPULAR_DEST_FALLBACK = [
 
 function PopularDestinations() {
   const [, navigate] = useLocation();
+  const destCarouselRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useQuery<typeof POPULAR_DEST_FALLBACK>({
     queryKey: ["/api/popular-destinations"],
@@ -404,14 +405,30 @@ function PopularDestinations() {
     navigate(`/?destination=${encodeURIComponent(city)}&checkIn=${fmt(checkIn)}&checkOut=${fmt(checkOut)}&guests=2`);
   }
 
+  function scrollDest(dir: "left" | "right") {
+    if (!destCarouselRef.current) return;
+    destCarouselRef.current.scrollBy({ left: dir === "right" ? 216 * 3 : -216 * 3, behavior: "smooth" });
+  }
+
   return (
     <section className="pb-12 container mx-auto px-4" data-testid="section-popular-destinations">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl sm:text-2xl font-bold font-heading">Explore popular destinations</h2>
+        <div className="hidden sm:flex items-center gap-2">
+          <button onClick={() => scrollDest("left")} aria-label="Previous" data-testid="button-dest-prev"
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={() => scrollDest("right")} aria-label="Next" data-testid="button-dest-next"
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div
-        className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scroll-smooth carousel-scroll"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        ref={destCarouselRef}
+        className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scroll-smooth scroll-px-4 carousel-scroll"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
       >
         {cards.map((dest, i) => (
           <motion.button
@@ -543,10 +560,10 @@ function StaysForYourStyle() {
               key={hotel.id}
               href={`/hotel/${hotel.id}`}
               data-testid={`card-style-hotel-${hotel.id}`}
-              className="group block rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+              className="group block bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
             >
               {/* Image */}
-              <div className="relative h-44 w-full overflow-hidden rounded-2xl bg-muted">
+              <div className="relative h-44 w-full overflow-hidden bg-muted">
                 {hotel.photo ? (
                   <img
                     src={hotel.photo}
@@ -565,7 +582,7 @@ function StaysForYourStyle() {
                 )}
               </div>
               {/* Info */}
-              <div className="pt-3 pb-1">
+              <div className="p-3">
                 <p className="font-semibold text-sm text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {hotel.name}
                 </p>
