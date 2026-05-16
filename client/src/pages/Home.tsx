@@ -431,37 +431,41 @@ function PopularDestinations() {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
       >
         {cards.map((dest, i) => (
-          <motion.button
+          <motion.div
             key={dest.city}
-            onClick={() => handleClick(dest.city)}
-            data-testid={`card-destination-${dest.city.toLowerCase().replace(/\s+/g, "-")}`}
-            className="flex-none w-[calc(25%-15px)] min-w-[200px] group cursor-pointer text-left"
+            className="flex-none w-[calc(25%-15px)] min-w-[240px]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.3 }}
           >
-            <div className="relative h-64 rounded-2xl overflow-hidden">
-              <img
-                src={dest.photo}
-                alt={dest.city}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-white font-bold text-lg leading-tight">{dest.city}</p>
-                <p className="text-white/75 text-xs mt-0.5">{dest.country}</p>
+            <button
+              onClick={() => handleClick(dest.city)}
+              data-testid={`card-destination-${dest.city.toLowerCase().replace(/\s+/g, "-")}`}
+              className="group w-full text-left bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+            >
+              <div className="relative h-48 overflow-hidden bg-muted">
+                <img
+                  src={dest.photo}
+                  alt={dest.city}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
               </div>
-              {isLoading ? (
-                <div className="absolute top-3 right-3 h-6 w-20 rounded-full bg-white/20 animate-pulse" />
-              ) : dest.minPrice ? (
-                <div className="absolute top-3 right-3 bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
-                  <span className="text-xs font-bold text-foreground">From ${Math.round(dest.minPrice as number)}</span>
-                  <span className="text-[10px] text-muted-foreground">/night</span>
-                </div>
-              ) : null}
-            </div>
-          </motion.button>
+              <div className="p-3">
+                <p className="font-semibold text-sm text-foreground leading-snug group-hover:text-primary transition-colors">
+                  {dest.city}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{dest.country}</p>
+                {isLoading ? (
+                  <div className="mt-1.5 h-4 w-24 rounded-full bg-muted animate-pulse" />
+                ) : dest.minPrice ? (
+                  <p className="text-xs font-semibold text-primary mt-1">
+                    From ${Math.round(dest.minPrice as number)}<span className="font-normal text-muted-foreground">/night</span>
+                  </p>
+                ) : null}
+              </div>
+            </button>
+          </motion.div>
         ))}
       </div>
     </section>
