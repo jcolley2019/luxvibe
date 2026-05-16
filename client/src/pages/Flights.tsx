@@ -1049,18 +1049,30 @@ export default function Flights() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
         <div className="relative text-center px-4">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Plane className="w-6 h-6 text-white/90" />
-            <h1
-              className="text-3xl sm:text-5xl font-bold text-white drop-shadow-lg"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              Find Your Flight
-            </h1>
-          </div>
-          <p className="text-white/75 text-sm sm:text-base tracking-wide">
-            Real-time prices from multiple airlines worldwide
+          <h1
+            className="text-[42px] md:text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight"
+          >
+            Fly Further.<br className="hidden sm:block" /> Spend Smarter.
+          </h1>
+          <p className="text-white/90 text-base md:text-lg font-medium tracking-wide mb-5 drop-shadow-md">
+            Real-time fares from 500+ airlines — book your perfect journey in seconds
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white text-sm font-medium drop-shadow-md">
+            <div className="flex items-center gap-2">
+              <Plane className="w-4 h-4 opacity-90" />
+              <span>500+ Airlines</span>
+            </div>
+            <div className="w-px h-4 bg-white/30 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 opacity-90" />
+              <span>190+ Countries</span>
+            </div>
+            <div className="w-px h-4 bg-white/30 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 opacity-90" />
+              <span>Best Price Guarantee</span>
+            </div>
+          </div>
         </div>
       </div>
 
