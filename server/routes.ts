@@ -3400,12 +3400,22 @@ ${allUrls.map(u => `  <url>
     res.json(amenities);
   });
 
+  // Helper: fetch flight data endpoints using sandbox key (flights are sandbox-only)
+  async function flightDataGet(path: string, params?: Record<string, string>): Promise<any> {
+    const url = new URL(`${LITEAPI_BASE}${path}`);
+    if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url.toString(), {
+      headers: { "accept": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
+      signal: AbortSignal.timeout(10000),
+    });
+    return res.json();
+  }
+
   // GET /api/flights/airlines — list/search airlines via LiteAPI
   app.get("/api/flights/airlines", async (req, res) => {
     try {
       const search = ((req.query.search as string) || "").trim();
-      const params = search ? { search } : {};
-      const data = await liteApiGet("/data/flights/airlines", params, 86400000);
+      const data = await flightDataGet("/data/flights/airlines", search ? { search } : undefined);
       const airlines = (data?.data || []).map((a: any) => ({
         iataCode: a.iata || a.iataCode,
         name: a.name,
@@ -3420,7 +3430,7 @@ ${allUrls.map(u => `  <url>
   // GET /api/flights/airlines/iatas — list all airline IATA codes
   app.get("/api/flights/airlines/iatas", async (req, res) => {
     try {
-      const data = await liteApiGet("/data/flights/airlines/iatas", undefined, 86400000);
+      const data = await flightDataGet("/data/flights/airlines/iatas");
       res.json(data?.data || []);
     } catch {
       res.json([]);
@@ -3431,7 +3441,7 @@ ${allUrls.map(u => `  <url>
   app.get("/api/flights/airlines/:iataCode", async (req, res) => {
     try {
       const { iataCode } = req.params;
-      const data = await liteApiGet(`/data/flights/airlines/iatas/${iataCode.toUpperCase()}`, undefined, 86400000);
+      const data = await flightDataGet(`/data/flights/airlines/iatas/${iataCode.toUpperCase()}`);
       if (!data?.data) return res.status(404).json({ message: "Airline not found" });
       const a = data.data;
       res.json({ iataCode: a.iata || iataCode, name: a.name, logo: a.logo || a.logoUrl || null });
@@ -3448,28 +3458,35 @@ ${allUrls.map(u => `  <url>
       // Try exact IATA lookup first (3-letter code)
       if (q.length === 3) {
         try {
-          const exact = await liteApiGet(`/data/flights/airports/iatas/${q}`, undefined, 86400000);
+          const exact = await flightDataGet(`/data/flights/airports/iatas/${q}`);
           if (exact?.data) {
-            const d = exact.data;
-            return res.json([{
-              iataCode: d.iata || q,
-              name: d.name,
-              cityName: d.city,
-              countryCode: d.country,
-              state: d.state,
-            }]);
+            // API returns data as an array of {airport:{...}} objects
+            const arr = Array.isArray(exact.data) ? exact.data : [exact.data];
+            const raw = arr[0]?.airport ?? arr[0];
+            if (raw?.iata || raw?.name) {
+              return res.json([{
+                iataCode: raw.iata || q,
+                name: raw.name,
+                cityName: raw.city,
+                countryCode: raw.country,
+                state: raw.state,
+              }]);
+            }
           }
         } catch { /* fall through to search */ }
       }
-      // Search airports endpoint
-      const results = await liteApiGet("/data/flights/airports", { search: q }, 86400000);
-      const airports = (results?.data || []).slice(0, 8).map((d: any) => ({
-        iataCode: d.iata || d.iataCode,
-        name: d.name,
-        cityName: d.city || d.cityName,
-        countryCode: d.country || d.countryCode,
-        state: d.state,
-      }));
+      // Search airports endpoint — LiteAPI uses 'q' param, trailing slash avoids redirect
+      const results = await flightDataGet("/data/flights/airports/", { q });
+      const airports = (results?.data || []).slice(0, 8).map((d: any) => {
+        const a = d.airport ?? d;
+        return {
+          iataCode: a.iata || a.iataCode,
+          name: a.name,
+          cityName: a.city || a.cityName,
+          countryCode: a.country || a.countryCode,
+          state: a.state,
+        };
+      }).filter((a: any) => a.iataCode);
       res.json(airports);
     } catch {
       res.json([]);
