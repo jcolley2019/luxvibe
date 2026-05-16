@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
 import {
-  Plane, ArrowLeftRight, ChevronDown, ChevronUp, Users, Search,
+  Plane, ArrowLeftRight, ArrowRight, ChevronDown, ChevronUp, Users, Search,
   Loader2, AlertCircle, Luggage, X, SlidersHorizontal, Clock,
   Check, RefreshCw, Wifi, Tv, Zap, Coffee, Armchair, Info,
   CreditCard, ShieldCheck,
@@ -1062,7 +1062,11 @@ export default function Flights() {
                   className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tripType === t ? "bg-white dark:bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   data-testid={`tab-trip-${t}`}
                 >
-                  {t === "oneway" ? "One way" : "Round trip"}
+                  <span className="flex items-center gap-1.5">
+                    {t === "oneway"
+                      ? <><ArrowRight className="w-3.5 h-3.5" />One way</>
+                      : <><RefreshCw className="w-3.5 h-3.5" />Round trip</>}
+                  </span>
                 </button>
               ))}
             </div>
