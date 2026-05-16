@@ -435,7 +435,7 @@ function PopularDestinations() {
             key={dest.city}
             onClick={() => handleClick(dest.city)}
             data-testid={`card-destination-${dest.city.toLowerCase().replace(/\s+/g, "-")}`}
-            className="flex-none w-44 sm:w-52 group cursor-pointer text-left"
+            className="flex-none w-[calc(25%-15px)] min-w-[200px] group cursor-pointer text-left"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.3 }}
@@ -480,6 +480,7 @@ const TRAVEL_STYLES = [
 function StaysForYourStyle() {
   const [activeKey, setActiveKey] = useState("beach");
   const [, navigate] = useLocation();
+  const staysCarouselRef = useRef<HTMLDivElement>(null);
   const activeStyle = TRAVEL_STYLES.find((s) => s.key === activeKey)!;
 
   const { data: hotels, isLoading } = useQuery<any[]>({
@@ -492,7 +493,7 @@ function StaysForYourStyle() {
     staleTime: 10 * 60 * 1000,
   });
 
-  const displayed = (hotels || []).slice(0, 6);
+  const displayed = (hotels || []).slice(0, 8);
 
   function handleViewAll() {
     const checkIn = new Date(); checkIn.setDate(checkIn.getDate() + 14);
@@ -506,13 +507,29 @@ function StaysForYourStyle() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl sm:text-2xl font-bold font-heading">Stays for your travel style</h2>
-        <button
-          onClick={handleViewAll}
-          className="text-sm font-medium text-primary flex items-center gap-1 hover:underline"
-          data-testid="button-style-view-all"
-        >
-          View all <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleViewAll}
+            className="text-sm font-medium text-primary flex items-center gap-1 hover:underline"
+            data-testid="button-style-view-all"
+          >
+            View all <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => staysCarouselRef.current?.scrollBy({ left: -780, behavior: "smooth" })}
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+            data-testid="button-stays-prev"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => staysCarouselRef.current?.scrollBy({ left: 780, behavior: "smooth" })}
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+            data-testid="button-stays-next"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Style tabs */}
@@ -536,11 +553,11 @@ function StaysForYourStyle() {
 
       {/* Cards */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl overflow-hidden animate-pulse">
-              <div className="bg-muted h-44 w-full" />
-              <div className="pt-3 space-y-2">
+        <div className="flex gap-5 overflow-x-hidden pb-2 px-4 -mx-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex-none w-[calc(25%-15px)] min-w-[240px] rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
+              <div className="bg-muted h-48 w-full" />
+              <div className="p-3 space-y-2">
                 <div className="bg-muted h-3.5 rounded w-3/4" />
                 <div className="bg-muted h-3 rounded w-1/2" />
               </div>
@@ -550,52 +567,61 @@ function StaysForYourStyle() {
       ) : (
         <motion.div
           key={activeKey}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+          ref={staysCarouselRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
         >
-          {displayed.map((hotel) => (
-            <Link
+          {displayed.map((hotel, i) => (
+            <motion.div
               key={hotel.id}
-              href={`/hotel/${hotel.id}`}
-              data-testid={`card-style-hotel-${hotel.id}`}
-              className="group block bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+              className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.35 }}
             >
-              {/* Image */}
-              <div className="relative h-44 w-full overflow-hidden bg-muted">
-                {hotel.photo ? (
-                  <img
-                    src={hotel.photo}
-                    alt={hotel.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/10">
-                    <activeStyle.icon className="w-10 h-10 text-muted-foreground/30" />
-                  </div>
-                )}
-                {hotel.style && (
-                  <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                    {hotel.style}
-                  </span>
-                )}
-              </div>
-              {/* Info */}
-              <div className="p-3">
-                <p className="font-semibold text-sm text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
-                  {hotel.name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                  {[hotel.city, hotel.country].filter(Boolean).join(", ")}
-                </p>
-                {hotel.semanticTags?.length > 0 && (
-                  <p className="text-[10px] text-muted-foreground/70 mt-1 line-clamp-1">
-                    {hotel.semanticTags.slice(0, 2).join(" · ")}
+              <Link
+                href={`/hotel/${hotel.id}`}
+                data-testid={`card-style-hotel-${hotel.id}`}
+                className="group block bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                {/* Image */}
+                <div className="relative h-48 w-full overflow-hidden bg-muted">
+                  {hotel.photo ? (
+                    <img
+                      src={hotel.photo}
+                      alt={hotel.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/10">
+                      <activeStyle.icon className="w-10 h-10 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  {hotel.style && (
+                    <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                      {hotel.style}
+                    </span>
+                  )}
+                </div>
+                {/* Info */}
+                <div className="p-3">
+                  <p className="font-semibold text-sm text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                    {hotel.name}
                   </p>
-                )}
-              </div>
-            </Link>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                    {[hotel.city, hotel.country].filter(Boolean).join(", ")}
+                  </p>
+                  {hotel.semanticTags?.length > 0 && (
+                    <p className="text-[10px] text-muted-foreground/70 mt-1 line-clamp-1">
+                      {hotel.semanticTags.slice(0, 2).join(" · ")}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </motion.div>
       )}
