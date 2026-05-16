@@ -1041,15 +1041,26 @@ export default function Flights() {
       <Navbar />
 
       {/* Hero banner — matches home page height */}
-      <div className="relative h-[320px] md:h-[638px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center px-4">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Plane className="w-5 h-5 text-white/80" />
-            <h1 className="text-2xl sm:text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+      <div className="relative h-[320px] md:h-[638px] overflow-hidden flex flex-col items-center justify-center px-4">
+        <img
+          src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
+          alt="Airplane above clouds"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
+        <div className="relative text-center px-4">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <Plane className="w-6 h-6 text-white/90" />
+            <h1
+              className="text-3xl sm:text-5xl font-bold text-white drop-shadow-lg"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
               Find Your Flight
             </h1>
           </div>
-          <p className="text-slate-400 text-sm">Real-time prices from multiple airlines</p>
+          <p className="text-white/75 text-sm sm:text-base tracking-wide">
+            Real-time prices from multiple airlines worldwide
+          </p>
         </div>
       </div>
 
