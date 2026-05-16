@@ -183,17 +183,15 @@ function AirportInput({
           onFocus={() => value.length >= 2 && suggestions.length > 0 && setOpen(true)}
           placeholder={placeholder}
           maxLength={3}
-          className="w-full pl-9 pr-3 pt-3 pb-1.5 border border-border rounded-xl bg-background text-foreground font-mono font-semibold text-lg tracking-widest uppercase placeholder:font-sans placeholder:font-normal placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground font-mono font-semibold text-lg tracking-widest uppercase placeholder:font-sans placeholder:font-normal placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           data-testid={testId}
           autoComplete="off"
         />
         {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
-        {subtitle && (
-          <div className="absolute left-9 bottom-1.5 text-[10px] text-muted-foreground truncate max-w-[calc(100%-3rem)] pointer-events-none">
-            {subtitle}
-          </div>
-        )}
       </div>
+      {subtitle && (
+        <p className="mt-1 pl-1 text-xs text-muted-foreground truncate">{subtitle}</p>
+      )}
       <AnimatePresence>
         {open && suggestions.length > 0 && (
           <motion.div
