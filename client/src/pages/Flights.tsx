@@ -16,6 +16,7 @@ import {
   CreditCard, ShieldCheck,
 } from "lucide-react";
 import { usePreferences } from "@/context/preferences";
+import { TravelModeTabs } from "@/components/TravelModeTabs";
 
 type TripType = "oneway" | "roundtrip";
 type CabinClass = "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
@@ -1099,7 +1100,9 @@ export default function Flights() {
         {/* Search card — lower portion, inside the hero */}
         <div className="relative z-10 px-4 pb-10 md:pb-14">
           <div className="container mx-auto max-w-5xl">
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-4 sm:p-6">
+            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
+            <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
+            <div className="p-4 sm:p-6">
             <div className="flex items-center gap-1 mb-5 p-1 bg-muted rounded-xl w-fit">
               {(["oneway", "roundtrip"] as TripType[]).map(t => (
                 <button
@@ -1207,6 +1210,7 @@ export default function Flights() {
                 {mutation.isPending ? <><Loader2 className="w-5 h-5 animate-spin" /> Searching flights…</> : <><Search className="w-5 h-5" /> Search Flights</>}
               </Button>
             </form>
+            </div>
           </div>
         </div>
         </div>

@@ -1,0 +1,64 @@
+import { useLocation } from "wouter";
+import { Building2, Plane, Ticket } from "lucide-react";
+
+type TabMode = "hotels" | "flights" | "events";
+
+const TABS: { key: TabMode; label: string; icon: React.ElementType; href: string }[] = [
+  { key: "hotels",  label: "Hotels",  icon: Building2, href: "/" },
+  { key: "flights", label: "Flights", icon: Plane,     href: "/flights" },
+  { key: "events",  label: "Events",  icon: Ticket,    href: "/events" },
+];
+
+interface Props {
+  active: TabMode;
+  variant?: "hero" | "card";
+  className?: string;
+}
+
+export function TravelModeTabs({ active, variant = "card", className = "" }: Props) {
+  const [, navigate] = useLocation();
+
+  if (variant === "hero") {
+    return (
+      <div className={`flex items-center gap-2 mb-5 ${className}`}>
+        {TABS.map(({ key, label, icon: Icon, href }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => navigate(href)}
+            data-testid={`tab-travel-${key}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all select-none ${
+              active === key
+                ? "bg-white text-gray-900 shadow-lg"
+                : "bg-white/20 text-white hover:bg-white/35 backdrop-blur-sm border border-white/20"
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex border-b border-border ${className}`}>
+      {TABS.map(({ key, label, icon: Icon, href }) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => navigate(href)}
+          data-testid={`tab-travel-${key}`}
+          className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold border-b-2 -mb-px transition-all select-none whitespace-nowrap ${
+            active === key
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Icon className="w-[17px] h-[17px]" />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}

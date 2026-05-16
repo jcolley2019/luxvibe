@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
+import { TravelModeTabs } from "@/components/TravelModeTabs";
 import {
   Search,
   MapPin,
@@ -1304,6 +1305,7 @@ export default function SearchHero({
                 })()}
               </div>
             )}
+            <TravelModeTabs active="hotels" variant="card" />
             <div className="relative px-5 py-4 border-b border-gray-100 dark:border-border">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
@@ -1776,6 +1778,8 @@ export default function SearchHero({
               </div>
             </div>
           </div>
+
+          <TravelModeTabs active="hotels" variant="hero" />
 
           {/* Desktop search bar + calendar anchored together */}
           <div className="w-full max-w-4xl relative" ref={desktopSearchBarRef}>
