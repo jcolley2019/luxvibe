@@ -407,7 +407,16 @@ function PopularDestinations() {
 
   function scrollDest(dir: "left" | "right") {
     if (!destCarouselRef.current) return;
-    destCarouselRef.current.scrollBy({ left: dir === "right" ? 216 * 3 : -216 * 3, behavior: "smooth" });
+    const children = destCarouselRef.current.children;
+    if (children.length < 2) return;
+    const first = children[0] as HTMLElement;
+    const second = children[1] as HTMLElement;
+    const cardStep = second.offsetLeft - first.offsetLeft;
+    const count = window.innerWidth < 768 ? 1 : 4;
+    destCarouselRef.current.scrollBy({
+      left: dir === "right" ? cardStep * count : -(cardStep * count),
+      behavior: "smooth",
+    });
   }
 
   return (
