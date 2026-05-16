@@ -171,6 +171,8 @@ async function geocodeHotel(name: string, city: string, countryCode: string): Pr
 }
 
 const LITEAPI_KEY = process.env.LITEAPI_KEY_PRODUCTION || process.env.LITEAPI_KEY!;
+// Flights API is sandbox-only — always use the sandbox key regardless of LITEAPI_KEY_PRODUCTION
+const LITEAPI_FLIGHTS_KEY = process.env.LITEAPI_KEY!;
 
 // LiteAPI supports these language codes for hotel content (names, descriptions, amenities).
 // English is the default — we only pass the param when the user has selected a non-English language.
@@ -3203,9 +3205,9 @@ ${allUrls.map(u => `  <url>
     try {
       const { offerId } = req.body;
       if (!offerId) return res.status(400).json({ message: "offerId is required" });
-      const result = await fetch(`${LITEAPI_BASE}/flights/verify`, {
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/verify`, {
         method: "POST",
-        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         body: JSON.stringify({ offerId }),
         signal: AbortSignal.timeout(20000),
       });
@@ -3226,15 +3228,15 @@ ${allUrls.map(u => `  <url>
       const prebookBody: any = { offerId, usePaymentSdk: true, clientReference: clientRef };
       if (passengers?.length) prebookBody.passengers = passengers;
       if (contact) prebookBody.contact = contact;
-      const result = await fetch(`${LITEAPI_BASE}/flights/prebooks`, {
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/prebooks`, {
         method: "POST",
-        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         body: JSON.stringify(prebookBody),
         signal: AbortSignal.timeout(30000),
       });
       const data = await result.json() as any;
       if (data?.error) return res.status(400).json({ message: data.error?.message || JSON.stringify(data.error) });
-      const apiKey = LITEAPI_KEY || "";
+      const apiKey = LITEAPI_FLIGHTS_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
       const inner = data.data?.[0] ?? data.data ?? data;
       if (inner.prebookId) flightPrebookRefs.set(inner.prebookId, clientRef);
@@ -3252,14 +3254,14 @@ ${allUrls.map(u => `  <url>
       const { prebookId } = req.params;
       const { services } = req.body;
       if (!services?.length) return res.status(400).json({ message: "services array is required" });
-      const result = await fetch(`${LITEAPI_BASE}/flights/prebooks/${prebookId}/services`, {
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/prebooks/${prebookId}/services`, {
         method: "POST",
-        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         body: JSON.stringify({ services }),
         signal: AbortSignal.timeout(20000),
       });
       const data = await result.json() as any;
-      const apiKey = LITEAPI_KEY || "";
+      const apiKey = LITEAPI_FLIGHTS_KEY || "";
       const paymentEnv = apiKey.startsWith("prod_") ? "live" : "sandbox";
       const inner = data.data?.[0] ?? data.data ?? data;
       res.status(result.ok ? 200 : result.status).json({ ...inner, paymentEnv });
@@ -3281,9 +3283,9 @@ ${allUrls.map(u => `  <url>
       };
       if (clientRef) bookBody.clientReference = clientRef;
       console.log("[flights/book] prebookId:", prebookId, "transactionId:", transactionId);
-      const result = await fetch(`${LITEAPI_BASE}/flights/bookings`, {
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/bookings`, {
         method: "POST",
-        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_KEY },
+        headers: { "accept": "application/json", "content-type": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         body: JSON.stringify(bookBody),
         signal: AbortSignal.timeout(45000),
       });
@@ -3304,9 +3306,9 @@ ${allUrls.map(u => `  <url>
       const params = new URLSearchParams();
       if (req.query.airlinePnr) params.set("airlinePnr", String(req.query.airlinePnr));
       if (req.query.lastName) params.set("lastName", String(req.query.lastName));
-      const url = `${LITEAPI_BASE}/flights/bookings${params.toString() ? `?${params}` : ""}`;
+      const url = `${LITEAPI_BOOK_BASE}/flights/bookings${params.toString() ? `?${params}` : ""}`;
       const result = await fetch(url, {
-        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY },
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         signal: AbortSignal.timeout(15000),
       });
       const data = await result.json() as any;
@@ -3323,8 +3325,8 @@ ${allUrls.map(u => `  <url>
   app.get("/api/flights/bookings/:bookingId", async (req, res) => {
     try {
       const { bookingId } = req.params;
-      const result = await fetch(`${LITEAPI_BASE}/flights/bookings/${bookingId}`, {
-        headers: { "accept": "application/json", "X-API-Key": LITEAPI_KEY },
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/bookings/${bookingId}`, {
+        headers: { "accept": "application/json", "X-API-Key": LITEAPI_FLIGHTS_KEY },
         signal: AbortSignal.timeout(15000),
       });
       const data = await result.json() as any;
@@ -3477,12 +3479,12 @@ ${allUrls.map(u => `  <url>
   // POST /api/flights/search — proxy to LiteAPI Flights rates endpoint
   app.post("/api/flights/search", async (req, res) => {
     try {
-      const result = await fetch(`${LITEAPI_BASE}/flights/rates`, {
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/flights/rates`, {
         method: "POST",
         headers: {
           "accept": "application/json",
           "content-type": "application/json",
-          "X-API-Key": LITEAPI_KEY,
+          "X-API-Key": LITEAPI_FLIGHTS_KEY,
         },
         body: JSON.stringify(req.body),
         signal: AbortSignal.timeout(30000),
