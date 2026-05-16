@@ -548,6 +548,27 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
   );
 }
 
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left gap-4 hover:bg-muted/50 transition-colors"
+      >
+        <span className="font-medium text-foreground text-sm">{question}</span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed border-t border-border pt-3">
+          {answer}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FlightCheckoutSheet({
   journey, offer, adults, children, infants, currency, open, onClose,
 }: {
@@ -1191,6 +1212,41 @@ export default function Flights() {
         </div>
       </div>
 
+      {/* ── Trust bar ── */}
+      <div className="bg-muted/40 border-b border-border">
+        <div className="container mx-auto max-w-5xl px-4 py-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Search className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Compare 500+ airlines</p>
+                <p className="text-xs text-muted-foreground mt-0.5">More deals, more sites — one search</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">12,000,000+ journeys booked</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Trusted by travellers worldwide</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <span className="text-amber-500 text-sm font-bold">★</span>
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">4.9 / 5 traveller rating</p>
+                <p className="text-xs text-muted-foreground mt-0.5">1M+ reviews on the app</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="flex-1 container mx-auto max-w-5xl px-4 py-8">
         {mutation.isPending && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -1398,14 +1454,76 @@ export default function Flights() {
         )}
 
         {!results && !mutation.isPending && !mutation.isError && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
-              <Plane className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-semibold text-foreground text-lg mb-1">Search for flights above</p>
-              <p className="text-muted-foreground text-sm">Enter your airports and dates to see real-time prices from multiple airlines</p>
-            </div>
+          <div className="space-y-14">
+
+            {/* ── Popular deals ── */}
+            <section>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Popular flight deals</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">Hand-picked routes travellers love right now</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { from: "New York", fromCode: "JFK", to: "London", toCode: "LHR", price: "from $389", img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" },
+                  { from: "Los Angeles", fromCode: "LAX", to: "Paris", toCode: "CDG", price: "from $512", img: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&q=80" },
+                  { from: "Miami", fromCode: "MIA", to: "Cancún", toCode: "CUN", price: "from $179", img: "https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=600&q=80" },
+                  { from: "New York", fromCode: "JFK", to: "Tokyo", toCode: "NRT", price: "from $698", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80" },
+                ].map(deal => (
+                  <button
+                    key={deal.toCode}
+                    type="button"
+                    onClick={() => { setOrigin(deal.fromCode); setDestination(deal.toCode); }}
+                    className="group relative rounded-2xl overflow-hidden aspect-[4/3] text-left hover:shadow-xl transition-all"
+                  >
+                    <img src={deal.img} alt={deal.to} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-white font-bold text-base leading-tight">{deal.to}</p>
+                      <p className="text-white/80 text-xs mt-0.5">{deal.from} → {deal.to}</p>
+                      <p className="text-white font-semibold text-sm mt-1">{deal.price}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* ── Why book with Luxvibe ── */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: <ShieldCheck className="w-6 h-6 text-green-600" />, bg: "bg-green-50 dark:bg-green-900/20", title: "Free cancellation options", desc: "Keep your plans flexible — many fares include free changes." },
+                { icon: <CreditCard className="w-6 h-6 text-blue-600" />, bg: "bg-blue-50 dark:bg-blue-900/20", title: "No hidden fees", desc: "The price you see is the price you pay. Always." },
+                { icon: <Clock className="w-6 h-6 text-purple-600" />, bg: "bg-purple-50 dark:bg-purple-900/20", title: "Book in minutes", desc: "Streamlined checkout — from search to confirmed in seconds." },
+                { icon: <Luggage className="w-6 h-6 text-amber-600" />, bg: "bg-amber-50 dark:bg-amber-900/20", title: "Bags & extras included", desc: "See exactly what's included before you book — no surprises." },
+              ].map(item => (
+                <div key={item.title} className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
+                  <div className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center`}>{item.icon}</div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{item.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {/* ── FAQ ── */}
+            <section>
+              <h2 className="text-xl font-bold text-foreground mb-5">Frequently asked questions</h2>
+              <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden">
+                {[
+                  { q: "How do I get the cheapest flights?", a: "Book early (6–8 weeks ahead for domestic, 3–6 months for international), be flexible on dates, and compare multiple airlines. Flying mid-week and avoiding peak seasons also helps significantly." },
+                  { q: "What's the best day of the week to fly?", a: "Tuesday and Wednesday are typically the cheapest days to fly. Avoid Fridays and Sundays which tend to have the highest fares due to business traveller and leisure demand." },
+                  { q: "How can I find cheap international flights?", a: "Use Luxvibe's flight search to compare across 500+ airlines at once. Setting flexible date ranges and considering nearby airports can unlock significantly lower fares." },
+                  { q: "What does Economy, Premium Economy, Business, and First Class mean?", a: "Economy is the standard cabin. Premium Economy offers more legroom and recline. Business Class includes lie-flat seats on long-haul flights. First Class is the most premium experience with private suites on select airlines." },
+                  { q: "Can I book a one-way flight?", a: "Absolutely. Toggle to 'One way' in the search form. One-way tickets are often cheaper for short trips or when you have flexible return plans." },
+                  { q: "What happens if my flight is cancelled?", a: "If your flight is cancelled, the airline is required to rebook you on the next available flight or offer a refund. Refundable fares offer additional protection — look for the green 'Refundable' badge on results." },
+                ].map((item, i) => (
+                  <FaqItem key={i} question={item.q} answer={item.a} />
+                ))}
+              </div>
+            </section>
+
           </div>
         )}
       </div>
