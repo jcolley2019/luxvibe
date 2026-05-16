@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearch, useLocation } from "wouter";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -43,6 +44,9 @@ import {
   Trash2,
   Check,
   Pencil,
+  Mountain,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 import { CompareModal } from "@/components/CompareModal";
 import { Button } from "@/components/ui/button";
@@ -363,6 +367,141 @@ function DiscoverByVibe() {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+const TRAVEL_STYLES = [
+  { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",   bg: "bg-cyan-50 dark:bg-cyan-950/40",   activeBg: "bg-cyan-600 text-white" },
+  { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/40", activeBg: "bg-violet-600 text-white" },
+  { key: "ski",      label: "Ski & Snow", icon: Mountain,   query: "ski-in ski-out mountain resort hotels with slopes access and alpine atmosphere", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-950/40",   activeBg: "bg-blue-600 text-white" },
+  { key: "wellness", label: "Wellness",   icon: Waves,      query: "luxury spa and wellness retreat hotels with thermal pools yoga and holistic therapies", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/40", activeBg: "bg-emerald-600 text-white" },
+  { key: "family",   label: "Family",     icon: Users,      query: "family-friendly resort hotels with kids clubs pools and entertainment for all ages", color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-950/40",  activeBg: "bg-amber-600 text-white" },
+  { key: "romance",  label: "Romance",    icon: Heart,      query: "romantic boutique hotels perfect for honeymoons couples retreats and special occasions", color: "text-rose-600",   bg: "bg-rose-50 dark:bg-rose-950/40",   activeBg: "bg-rose-600 text-white" },
+];
+
+function StaysForYourStyle() {
+  const [activeKey, setActiveKey] = useState("beach");
+  const [, navigate] = useLocation();
+  const activeStyle = TRAVEL_STYLES.find((s) => s.key === activeKey)!;
+
+  const { data: hotels, isLoading } = useQuery<any[]>({
+    queryKey: ["/api/hotels/semantic-search", activeKey],
+    queryFn: async () => {
+      const res = await fetch(`/api/hotels/semantic-search?query=${encodeURIComponent(activeStyle.query)}`);
+      if (!res.ok) throw new Error("Search failed");
+      return res.json();
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const displayed = (hotels || []).slice(0, 6);
+
+  function handleViewAll() {
+    const checkIn = new Date(); checkIn.setDate(checkIn.getDate() + 14);
+    const checkOut = new Date(checkIn); checkOut.setDate(checkOut.getDate() + 3);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    navigate(`/?aiSearch=${encodeURIComponent(activeStyle.query)}&checkIn=${fmt(checkIn)}&checkOut=${fmt(checkOut)}&guests=2`);
+  }
+
+  return (
+    <section className="pb-12 container mx-auto px-4" data-testid="section-stays-style">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold font-heading">Stays for your travel style</h2>
+        <button
+          onClick={handleViewAll}
+          className="text-sm font-medium text-primary flex items-center gap-1 hover:underline"
+          data-testid="button-style-view-all"
+        >
+          View all <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Style tabs */}
+      <div className="flex gap-2 flex-wrap mb-6">
+        {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
+          <button
+            key={key}
+            onClick={() => setActiveKey(key)}
+            data-testid={`tab-style-${key}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+              activeKey === key
+                ? `${activeBg} border-transparent shadow-sm`
+                : `${bg} ${color} border-border hover:border-transparent`
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Cards */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl overflow-hidden animate-pulse">
+              <div className="bg-muted h-44 w-full" />
+              <div className="pt-3 space-y-2">
+                <div className="bg-muted h-3.5 rounded w-3/4" />
+                <div className="bg-muted h-3 rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <motion.div
+          key={activeKey}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+        >
+          {displayed.map((hotel) => (
+            <Link
+              key={hotel.id}
+              href={`/hotel/${hotel.id}`}
+              data-testid={`card-style-hotel-${hotel.id}`}
+              className="group block rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+            >
+              {/* Image */}
+              <div className="relative h-44 w-full overflow-hidden rounded-2xl bg-muted">
+                {hotel.photo ? (
+                  <img
+                    src={hotel.photo}
+                    alt={hotel.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/10">
+                    <activeStyle.icon className="w-10 h-10 text-muted-foreground/30" />
+                  </div>
+                )}
+                {hotel.style && (
+                  <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                    {hotel.style}
+                  </span>
+                )}
+              </div>
+              {/* Info */}
+              <div className="pt-3 pb-1">
+                <p className="font-semibold text-sm text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                  {hotel.name}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                  {[hotel.city, hotel.country].filter(Boolean).join(", ")}
+                </p>
+                {hotel.semanticTags?.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground/70 mt-1 line-clamp-1">
+                    {hotel.semanticTags.slice(0, 2).join(" · ")}
+                  </p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </motion.div>
+      )}
     </section>
   );
 }
@@ -2375,6 +2514,9 @@ export default function Home() {
 
           {/* Discover by Vibe */}
           <DiscoverByVibe />
+
+          {/* Stays for your travel style */}
+          <StaysForYourStyle />
 
           {/* Recently Viewed */}
           {recentHotels.length > 0 && (
