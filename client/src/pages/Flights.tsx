@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
 import {
-  Plane, ArrowLeftRight, ArrowRight, ChevronDown, ChevronUp, Users, Search,
+  Plane, ArrowLeftRight, ArrowUpDown, ArrowRight, ChevronDown, ChevronUp, Users, Search,
   Loader2, AlertCircle, Luggage, X, SlidersHorizontal, Clock,
   Check, RefreshCw, Wifi, Tv, Zap, Coffee, Armchair, Info,
   CreditCard, ShieldCheck, Plus, LayoutList, BedDouble,
@@ -116,16 +116,141 @@ function getStopsColor(count: number): string {
   return "text-red-500";
 }
 
-function AirportInput({
-  value, onChange, placeholder, label, testId, cityCountry,
+function AirportCardField({
+  iata, display, airportName, onSelect, placeholder, label, testId,
 }: {
-  value: string; onChange: (v: string) => void; placeholder: string; label: string; testId: string; cityCountry?: string;
+  iata: string; display: string; airportName?: string;
+  onSelect: (iata: string, display: string, name: string) => void;
+  placeholder: string; label: string; testId: string;
+}) {
+  const [query, setQuery] = useState(display);
+  const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(!iata);
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { setQuery(display); }, [display]);
+  useEffect(() => { if (iata) setEditing(false); else setEditing(true); }, [iata]);
+
+  useEffect(() => {
+    function close(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        if (!iata) setQuery(""); else setQuery(display);
+      }
+    }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [iata, display]);
+
+  const handleChange = useCallback((raw: string) => {
+    setQuery(raw);
+    if (debounce.current) clearTimeout(debounce.current);
+    if (raw.length >= 2) {
+      setLoading(true);
+      debounce.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/flights/airports?q=${encodeURIComponent(raw.toUpperCase())}`);
+          const data = await res.json();
+          setSuggestions(Array.isArray(data) ? data.slice(0, 6) : []);
+          setOpen(true);
+        } catch { setSuggestions([]); }
+        finally { setLoading(false); }
+      }, 280);
+    } else { setSuggestions([]); setOpen(false); }
+  }, []);
+
+  function handleSelect(s: AirportSuggestion) {
+    const city = s.cityName || s.name || s.iataCode;
+    const lbl = city + (s.countryCode ? `, ${s.countryCode}` : "");
+    const name = s.name && s.cityName ? s.name : "";
+    onSelect(s.iataCode, lbl, name);
+    setQuery(lbl);
+    setEditing(false);
+    setOpen(false);
+    setSuggestions([]);
+  }
+
+  function handleCardClick() {
+    onSelect("", "", "");
+    setQuery("");
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  return (
+    <div ref={ref} className="relative px-4 py-3 min-h-[72px]">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
+      {iata && !editing ? (
+        <button type="button" onClick={handleCardClick}
+          className="flex items-start gap-3 w-full text-left"
+          data-testid={testId}>
+          <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0 mt-0.5">{iata}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{display}</p>
+            {airportName && (
+              <p className="text-xs text-muted-foreground truncate">{airportName}</p>
+            )}
+          </div>
+        </button>
+      ) : (
+        <div className="flex items-center gap-2.5">
+          <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={e => handleChange(e.target.value)}
+            onFocus={() => { setQuery(""); if (suggestions.length > 0) setOpen(true); }}
+            placeholder={placeholder}
+            autoComplete="off"
+            className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+            data-testid={testId}
+          />
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />}
+        </div>
+      )}
+      <AnimatePresence>
+        {open && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+            className="absolute left-0 right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-xl z-[60] overflow-hidden"
+          >
+            {suggestions.map((s, i) => (
+              <button key={i} type="button" onMouseDown={() => handleSelect(s)}
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors border-b border-border last:border-0"
+                data-testid={`airport-option-${s.iataCode}`}>
+                <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0 mt-0.5">{s.iataCode}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {s.cityName || s.name || s.iataCode}
+                    {s.countryCode ? <span className="font-normal text-muted-foreground">, {s.countryCode}</span> : null}
+                  </p>
+                  {s.name && s.cityName && (
+                    <p className="text-xs text-muted-foreground truncate">{s.name}</p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AirportInput({
+  value, onChange, placeholder, label, testId,
+}: {
+  value: string; onChange: (v: string) => void; placeholder: string; label: string; testId: string;
 }) {
   const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
   const [selectedAirport, setSelectedAirport] = useState<AirportSuggestion | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [touched, setTouched] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -137,16 +262,12 @@ function AirportInput({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Clear selected label and touched flag when value is cleared externally
-  useEffect(() => {
-    if (!value) { setSelectedAirport(null); setTouched(false); }
-  }, [value]);
+  useEffect(() => { if (!value) setSelectedAirport(null); }, [value]);
 
   const handleChange = useCallback((raw: string) => {
     const v = raw.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
     onChange(v);
     setSelectedAirport(null);
-    setTouched(true);
     if (debounce.current) clearTimeout(debounce.current);
     if (v.length >= 2) {
       setLoading(true);
@@ -159,23 +280,19 @@ function AirportInput({
         } catch { setSuggestions([]); }
         finally { setLoading(false); }
       }, 300);
-    } else {
-      setSuggestions([]);
-      setOpen(false);
-    }
+    } else { setSuggestions([]); setOpen(false); }
   }, [onChange]);
 
   function handleSelect(s: AirportSuggestion) {
     onChange(s.iataCode);
     setSelectedAirport(s);
-    setTouched(true);
     setOpen(false);
     setSuggestions([]);
   }
 
   const subtitle = selectedAirport
     ? [selectedAirport.cityName, selectedAirport.countryCode].filter(Boolean).join(", ")
-    : (!touched && cityCountry) ? cityCountry : null;
+    : null;
 
   return (
     <div ref={ref} className="relative flex-1 min-w-0">
@@ -195,9 +312,7 @@ function AirportInput({
         />
         {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
       </div>
-      {subtitle && (
-        <p className="mt-1 pl-1 text-xs text-muted-foreground truncate">{subtitle}</p>
-      )}
+      {subtitle && <p className="mt-1 pl-1 text-xs text-muted-foreground truncate">{subtitle}</p>}
       <AnimatePresence>
         {open && suggestions.length > 0 && (
           <motion.div
@@ -205,22 +320,16 @@ function AirportInput({
             className="absolute top-full mt-1 w-full min-w-[260px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
           >
             {suggestions.map((s, i) => (
-              <button
-                key={i}
-                type="button"
-                onMouseDown={() => handleSelect(s)}
+              <button key={i} type="button" onMouseDown={() => handleSelect(s)}
                 className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors border-b border-border last:border-0"
-                data-testid={`airport-option-${s.iataCode}`}
-              >
+                data-testid={`airport-option-${s.iataCode}`}>
                 <span className="font-mono font-bold text-sm text-foreground w-8 shrink-0 mt-0.5">{s.iataCode}</span>
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-foreground truncate">
                     {s.cityName || s.name || s.iataCode}
                     {s.countryCode ? <span className="text-muted-foreground font-normal">, {s.countryCode}</span> : null}
                   </div>
-                  {s.name && (
-                    <div className="text-xs text-muted-foreground truncate">{s.name}</div>
-                  )}
+                  {s.name && <div className="text-xs text-muted-foreground truncate">{s.name}</div>}
                 </div>
               </button>
             ))}
@@ -950,8 +1059,10 @@ export default function Flights() {
   const [tripType, setTripType] = useState<TripType>("roundtrip");
   const [origin, setOrigin] = useState("");
   const [originDisplay, setOriginDisplay] = useState("");
+  const [originAirportName, setOriginAirportName] = useState("");
   const [destination, setDestination] = useState("");
   const [destDisplay, setDestDisplay] = useState("");
+  const [destAirportName, setDestAirportName] = useState("");
   const [departDate, setDepartDate] = useState(defaultDepart);
   const [returnDate, setReturnDate] = useState(defaultReturn);
   const [adults, setAdults] = useState(1);
@@ -1012,6 +1123,8 @@ export default function Flights() {
     if (o) setOrigin(o); if (d) setDestination(d);
     const od = params.get("originDisplay"); if (od) setOriginDisplay(od);
     const dd = params.get("destDisplay"); if (dd) setDestDisplay(dd);
+    const on = params.get("originAirportName"); if (on) setOriginAirportName(on);
+    const dn = params.get("destAirportName"); if (dn) setDestAirportName(dn);
     const dep = params.get("depart"); if (dep) setDepartDate(dep);
     const ret = params.get("return"); if (ret) setReturnDate(ret);
     const a = params.get("adults"); if (a) setAdults(Number(a));
@@ -1039,10 +1152,9 @@ export default function Flights() {
   }
 
   function swapAirports() {
-    setOrigin(destination);
-    setDestination(origin);
-    setOriginDisplay(destDisplay);
-    setDestDisplay(originDisplay);
+    setOrigin(destination); setDestination(origin);
+    setOriginDisplay(destDisplay); setDestDisplay(originDisplay);
+    setOriginAirportName(destAirportName); setDestAirportName(originAirportName);
   }
 
   const allJourneys: FlightJourney[] = [];
@@ -1254,16 +1366,23 @@ export default function Flights() {
                 </>
               ) : (
                 <>
-                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <AirportInput value={origin} onChange={v => { setOrigin(v); if (!v) setOriginDisplay(""); }} placeholder="JFK" label="From" testId="input-origin" cityCountry={originDisplay} />
-                    <div className="flex items-end pb-1.5">
+                  {/* FROM / swap / TO — unified card matching homepage style */}
+                  <div className="relative border border-border rounded-2xl bg-background mb-4">
+                    <AirportCardField
+                      iata={origin} display={originDisplay} airportName={originAirportName}
+                      onSelect={(i, d, n) => { setOrigin(i); setOriginDisplay(d); setOriginAirportName(n); }}
+                      placeholder="City or airport" label="From" testId="input-origin" />
+                    <div className="relative h-0 border-t border-border">
                       <button type="button" onClick={swapAirports}
-                        className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all shrink-0"
+                        className="absolute right-4 top-0 -translate-y-1/2 w-7 h-7 rounded-full border border-border bg-white dark:bg-card flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
                         data-testid="button-swap-airports">
-                        <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                        <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                       </button>
                     </div>
-                    <AirportInput value={destination} onChange={v => { setDestination(v); if (!v) setDestDisplay(""); }} placeholder="CDG" label="To" testId="input-destination" cityCountry={destDisplay} />
+                    <AirportCardField
+                      iata={destination} display={destDisplay} airportName={destAirportName}
+                      onSelect={(i, d, n) => { setDestination(i); setDestDisplay(d); setDestAirportName(n); }}
+                      placeholder="City or airport" label="To" testId="input-destination" />
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     <div className={tripType === "roundtrip" ? "col-span-1" : "col-span-2 sm:col-span-1"}>

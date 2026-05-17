@@ -37,7 +37,7 @@ function AirportField({
 }: {
   iata: string;
   display: string;
-  onSelect: (iata: string, display: string) => void;
+  onSelect: (iata: string, display: string, airportName: string) => void;
   placeholder: string;
   label: string;
   testId: string;
@@ -87,11 +87,12 @@ function AirportField({
   function handleSelect(s: Airport) {
     const city = s.cityName || s.name || s.iataCode;
     const lbl = city + (s.countryCode ? `, ${s.countryCode}` : "");
-    onSelect(s.iataCode, lbl);
+    const name = s.name && s.cityName ? s.name : "";
+    onSelect(s.iataCode, lbl, name);
     setQuery(lbl);
     setOpen(false);
     setSuggestions([]);
-    if (s.name && s.cityName) setAirportName(s.name);
+    if (name) setAirportName(name);
     else setAirportName("");
   }
 
@@ -349,8 +350,10 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
   const [tripType, setTripType] = useState<TripType>("roundtrip");
   const [originIata, setOriginIata] = useState("");
   const [originDisplay, setOriginDisplay] = useState("");
+  const [originAirportName, setOriginAirportName] = useState("");
   const [destIata, setDestIata] = useState("");
   const [destDisplay, setDestDisplay] = useState("");
+  const [destAirportName, setDestAirportName] = useState("");
   const [depart, setDepart] = useState(() => format(addDays(today, 30), "yyyy-MM-dd"));
   const [returnDate, setReturnDate] = useState(() => format(addDays(today, 37), "yyyy-MM-dd"));
   const [adults, setAdults] = useState(1);
@@ -398,9 +401,9 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
   }
 
   function swap() {
-    const oi = originIata, od = originDisplay;
-    setOriginIata(destIata); setOriginDisplay(destDisplay);
-    setDestIata(oi); setDestDisplay(od);
+    const oi = originIata, od = originDisplay, on = originAirportName;
+    setOriginIata(destIata); setOriginDisplay(destDisplay); setOriginAirportName(destAirportName);
+    setDestIata(oi); setDestDisplay(od); setDestAirportName(on);
   }
 
   const multiReady = tripType === "multicity" && legs.filter(l => l.originIata && l.destIata).length >= 2;
@@ -426,6 +429,8 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
       cabinClass, tripType,
       ...(originDisplay ? { originDisplay } : {}),
       ...(destDisplay ? { destDisplay } : {}),
+      ...(originAirportName ? { originAirportName } : {}),
+      ...(destAirportName ? { destAirportName } : {}),
       ...(tripType === "roundtrip" ? { return: returnDate } : {}),
     });
     navigate(`/flights?${params.toString()}`);
@@ -494,7 +499,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
             {/* FROM / swap / TO — unified card */}
             <div className="border border-border rounded-2xl bg-background">
               <AirportField card iata={originIata} display={originDisplay}
-                onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }}
+                onSelect={(i, d, n) => { setOriginIata(i); setOriginDisplay(d); setOriginAirportName(n); }}
                 placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
               <div className="relative h-0 border-t border-border">
                 <button type="button" onClick={swap}
@@ -504,7 +509,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
                 </button>
               </div>
               <AirportField card iata={destIata} display={destDisplay}
-                onSelect={(i, d) => { setDestIata(i); setDestDisplay(d); }}
+                onSelect={(i, d, n) => { setDestIata(i); setDestDisplay(d); setDestAirportName(n); }}
                 placeholder="City or airport" label="To" testId="input-flight-dest-mobile" />
             </div>
 
@@ -628,7 +633,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
               {/* One-way / Round-trip: FROM / swap / TO */}
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <AirportField iata={originIata} display={originDisplay}
-                  onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }}
+                  onSelect={(i, d, n) => { setOriginIata(i); setOriginDisplay(d); setOriginAirportName(n); }}
                   placeholder="City or airport" label="From" testId="input-flight-origin" />
                 <div className="flex items-end pb-1.5">
                   <button type="button" onClick={swap}
@@ -638,7 +643,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
                   </button>
                 </div>
                 <AirportField iata={destIata} display={destDisplay}
-                  onSelect={(i, d) => { setDestIata(i); setDestDisplay(d); }}
+                  onSelect={(i, d, n) => { setDestIata(i); setDestDisplay(d); setDestAirportName(n); }}
                   placeholder="City or airport" label="To" testId="input-flight-dest" />
               </div>
 
