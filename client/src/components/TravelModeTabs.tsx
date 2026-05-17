@@ -51,7 +51,7 @@ export function TravelModeTabs({ active, variant = "card", className = "", onTab
   }
 
   return (
-    <div className={`flex border-b border-border ${className}`}>
+    <div className={`flex justify-center border-b border-border ${className}`}>
       {TABS.map(({ key, label, icon: Icon, href }) => (
         <button
           key={key}
