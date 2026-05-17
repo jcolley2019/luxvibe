@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetClose } from "@/components/ui/sheet";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
@@ -443,7 +443,7 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
 
         <div className="flex items-center gap-4 shrink-0">
           <div className="text-right">
-            <div className="text-xl font-bold text-foreground">{formatPrice(totalPrice)}</div>
+            <div className="text-xl font-bold text-primary">{formatPrice(totalPrice)}</div>
             {adults > 1 && (
               <div className="text-xs text-muted-foreground">{formatPrice(pricePerAdult)}/person</div>
             )}
@@ -1375,21 +1375,8 @@ export default function Flights() {
               </div>
             ) : (
               <div className="flex flex-col lg:flex-row gap-6">
-                <aside className="lg:w-64 shrink-0">
-                  <div className="flex items-center justify-between mb-3 lg:hidden">
-                    <button
-                      type="button"
-                      onClick={() => setShowFilters(o => !o)}
-                      className="flex items-center gap-2 text-sm font-medium text-foreground border border-border px-3 py-2 rounded-xl hover:bg-muted transition-all"
-                      data-testid="button-toggle-filters"
-                    >
-                      <SlidersHorizontal className="w-4 h-4" /> Filters
-                      {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                    <span className="text-sm text-muted-foreground">{sorted.length} result{sorted.length !== 1 ? "s" : ""}</span>
-                  </div>
-
-                  <div className={`${showFilters ? "block" : "hidden"} lg:block bg-card border border-border rounded-2xl p-4 space-y-5`}>
+                <aside className="hidden lg:block lg:w-64 shrink-0">
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-5">
                     <div>
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Stops</div>
                       {[{ label: "Any", value: -1 }, { label: "Nonstop only", value: 0 }, { label: "1 stop or fewer", value: 1 }, { label: "2 stops or fewer", value: 2 }].map(opt => (
@@ -1476,26 +1463,43 @@ export default function Flights() {
                 </aside>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-1 flex-wrap">
-                      {SORT_TABS.map(tab => (
-                        <button
-                          key={tab.key}
-                          type="button"
-                          onClick={() => setSortMode(tab.key)}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${sortMode === tab.key ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-                          data-testid={`tab-sort-${tab.key}`}
-                        >
-                          {tab.label}
-                          {tab.key === "price" && sortedMeta?.price?.price && (
-                            <span className="ml-1 text-xs opacity-75">
-                              {new Intl.NumberFormat("en-US", { style: "currency", currency: sortedMeta.price.currency || "USD", maximumFractionDigits: 0 }).format(sortedMeta.price.price)}
-                            </span>
-                          )}
-                        </button>
-                      ))}
+                  {/* Sticky toolbar: sort pills + mobile filter button */}
+                  <div className="sticky top-0 z-20 -mx-4 px-4 lg:mx-0 lg:px-0 lg:static bg-background/95 backdrop-blur-sm border-b border-border lg:border-0 py-2.5 lg:py-0 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1.5 overflow-x-auto flex-1 min-w-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
+                        {SORT_TABS.map(tab => (
+                          <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setSortMode(tab.key)}
+                            className={`flex-none px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${sortMode === tab.key ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                            data-testid={`tab-sort-${tab.key}`}
+                          >
+                            {tab.label}
+                            {tab.key === "price" && sortedMeta?.price?.price && (
+                              <span className="ml-1 text-xs opacity-75">
+                                {new Intl.NumberFormat("en-US", { style: "currency", currency: sortedMeta.price.currency || "USD", maximumFractionDigits: 0 }).format(sortedMeta.price.price)}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowFilters(true)}
+                        className="lg:hidden shrink-0 relative flex items-center gap-1.5 text-sm font-medium text-foreground border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-all"
+                        data-testid="button-toggle-filters"
+                      >
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Filters
+                        {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterAirlines.size > 0].filter(Boolean).length > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterAirlines.size > 0].filter(Boolean).length}
+                          </span>
+                        )}
+                      </button>
+                      <span className="hidden lg:block text-sm text-muted-foreground shrink-0">{sorted.length} result{sorted.length !== 1 ? "s" : ""}</span>
                     </div>
-                    <span className="hidden lg:block text-sm text-muted-foreground">{sorted.length} result{sorted.length !== 1 ? "s" : ""}</span>
                   </div>
 
                   <div className="space-y-3">
@@ -1533,6 +1537,109 @@ export default function Flights() {
             onClose={() => setSelectedFlight(null)}
           />
         )}
+
+        {/* ── Mobile filter bottom sheet ── */}
+        <Sheet open={showFilters} onOpenChange={setShowFilters}>
+          <SheetContent side="bottom" className="lg:hidden rounded-t-2xl max-h-[82vh] flex flex-col p-0">
+            <SheetHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0 flex flex-row items-center justify-between">
+              <SheetTitle className="text-base font-semibold">Filters</SheetTitle>
+              <SheetClose asChild>
+                <button type="button" className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors" data-testid="button-close-filters">
+                  <X className="w-4 h-4" />
+                </button>
+              </SheetClose>
+            </SheetHeader>
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+              <div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Stops</div>
+                {[{ label: "Any", value: -1 }, { label: "Nonstop only", value: 0 }, { label: "1 stop or fewer", value: 1 }, { label: "2 stops or fewer", value: 2 }].map(opt => (
+                  <label key={opt.value} className="flex items-center gap-2 py-2 cursor-pointer group">
+                    <div
+                      onClick={() => setFilterMaxStops(opt.value)}
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${filterMaxStops === opt.value ? "border-primary bg-primary" : "border-border group-hover:border-primary/50"}`}
+                    >
+                      {filterMaxStops === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <span className="text-sm text-foreground">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Price (max)</div>
+                <Slider
+                  min={0} max={Math.max(maxResultPrice, 2000)} step={50}
+                  value={[filterMaxPrice]}
+                  onValueChange={([v]) => setFilterMaxPrice(v)}
+                  className="w-full"
+                  data-testid="slider-max-price-mobile"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                  <span>$0</span>
+                  <span className="font-medium text-foreground">${filterMaxPrice.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Preferences</div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={filterRefundable} onChange={e => setFilterRefundable(e.target.checked)}
+                    className="rounded w-4 h-4" data-testid="check-refundable-mobile" />
+                  <span className="text-sm text-foreground">Refundable only</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={filterCheckedBag} onChange={e => setFilterCheckedBag(e.target.checked)}
+                    className="rounded w-4 h-4" data-testid="check-checked-bag-mobile" />
+                  <span className="text-sm text-foreground">Checked bag included</span>
+                </label>
+              </div>
+
+              {uniqueAirlines.length > 1 && (
+                <div className="border-t border-border pt-4 space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Airlines</div>
+                  {uniqueAirlines.map(airline => {
+                    const checked = filterAirlines.has(airline.iataCode);
+                    return (
+                      <label key={airline.iataCode} className="flex items-center gap-3 cursor-pointer group py-1" data-testid={`check-airline-mobile-${airline.iataCode}`}>
+                        <div
+                          onClick={() => setFilterAirlines(prev => {
+                            const next = new Set(prev);
+                            if (next.has(airline.iataCode)) next.delete(airline.iataCode);
+                            else next.add(airline.iataCode);
+                            return next;
+                          })}
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${checked ? "border-primary bg-primary" : "border-border group-hover:border-primary/50"}`}
+                        >
+                          {checked && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                        {airline.logo && (
+                          <img src={airline.logo} alt={airline.name} className="w-5 h-5 object-contain shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        )}
+                        <span className="text-sm text-foreground">{airline.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="px-5 py-4 border-t border-border shrink-0 flex gap-3">
+              {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterAirlines.size > 0) && (
+                <button
+                  type="button"
+                  onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); setFilterAirlines(new Set()); }}
+                  className="flex-1 py-2.5 text-sm font-medium text-foreground border border-border rounded-xl hover:bg-muted transition-colors"
+                  data-testid="button-clear-filters-mobile"
+                >
+                  Clear all
+                </button>
+              )}
+              <Button onClick={() => setShowFilters(false)} className="flex-1 rounded-xl" data-testid="button-apply-filters">
+                Show {sorted.length} result{sorted.length !== 1 ? "s" : ""}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {!results && !mutation.isPending && !mutation.isError && (
           <div className="space-y-14">
