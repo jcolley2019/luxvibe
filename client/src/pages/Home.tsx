@@ -328,7 +328,7 @@ function PopularDestinations() {
         {cards.map((dest, i) => (
           <motion.div
             key={dest.city}
-            className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+            className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.3 }}
@@ -535,7 +535,7 @@ function StaysForYourStyle() {
       {isLoading ? (
         <div className="flex gap-5 overflow-x-hidden pb-2 px-4 -mx-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex-none w-[calc(25%-15px)] min-w-[240px] rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
+            <div key={i} className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
               <div className="bg-muted h-48 w-full" />
               <div className="p-3 space-y-2">
                 <div className="bg-muted h-3.5 rounded w-3/4" />
@@ -557,7 +557,7 @@ function StaysForYourStyle() {
           {displayed.map((hotel, i) => (
             <motion.div
               key={hotel.id}
-              className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+              className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px]"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2596,7 +2596,7 @@ export default function Home() {
                 {featured?.map((hotel, i) => (
                   <motion.div
                     key={hotel.id}
-                    className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+                    className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px]"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2653,7 +2653,7 @@ export default function Home() {
                 {enrichedRecentHotels.map((hotel, i) => (
                   <motion.div
                     key={hotel.id}
-                    className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+                    className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px]"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2735,7 +2735,7 @@ export default function Home() {
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div
                       key={hotel.id}
-                      className="flex-none w-[calc(25%-15px)] min-w-[240px]"
+                      className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px]"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.35 }}
