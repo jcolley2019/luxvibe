@@ -326,6 +326,16 @@ export default function EventTravel() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
+      {/* ── Back button ── */}
+      <div className="border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="max-w-5xl mx-auto px-4 py-2">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-back-home">
+            <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+            Back to Home
+          </Link>
+        </div>
+      </div>
+
       {/* ── Coming Soon Notice ── */}
       <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-center gap-3 text-center flex-wrap">
