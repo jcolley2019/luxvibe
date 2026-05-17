@@ -309,7 +309,7 @@ function PopularDestinations() {
     <section className="pb-12 container mx-auto px-4" data-testid="section-popular-destinations">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl sm:text-2xl font-bold font-heading">Explore popular destinations</h2>
-        <div className="hidden sm:flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <button onClick={() => scrollDest("left")} aria-label="Previous" data-testid="button-dest-prev"
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
             <ChevronLeft className="w-4 h-4" />
@@ -418,7 +418,7 @@ function StaysForYourStyle() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleViewAll}
-            className="text-sm font-medium text-primary flex items-center gap-1 hover:underline"
+            className="hidden sm:flex text-sm font-medium text-primary items-center gap-1 hover:underline"
             data-testid="button-style-view-all"
           >
             View all <ArrowRight className="w-3.5 h-3.5" />
