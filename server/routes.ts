@@ -1493,7 +1493,7 @@ export async function registerRoutes(
       if (!query) {
         return res.status(400).json({ message: "Query parameter is required" });
       }
-      const data = await liteApiGet("/data/hotels/semantic-search", { query });
+      const data = await liteApiGet("/data/hotels/semantic-search", { query, limit: "20" });
       const hotels = Array.isArray(data?.data) ? data.data : [];
       const results = hotels.map((h: any) => ({
         id: h.id || h.hotelId || "",

@@ -395,7 +395,7 @@ function StaysForYourStyle() {
     staleTime: 10 * 60 * 1000,
   });
 
-  const displayed = (hotels || []).slice(0, 8);
+  const displayed = (hotels || []).slice(0, 12);
 
   function handleViewAll() {
     const checkIn = new Date(); checkIn.setDate(checkIn.getDate() + 14);
