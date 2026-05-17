@@ -336,21 +336,8 @@ export default function EventTravel() {
         </div>
       </div>
 
-      {/* ── Coming Soon Notice ── */}
-      <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-center gap-3 text-center flex-wrap">
-          <span className="flex items-center gap-1.5 text-amber-800 dark:text-amber-200 font-semibold text-sm">
-            <Info className="w-4 h-4 shrink-0" />
-            Coming Soon
-          </span>
-          <span className="text-amber-700 dark:text-amber-300 text-sm">
-            Live event search is pending Ticketmaster partner approval. Hotel booking around events is fully available now.
-          </span>
-        </div>
-      </div>
-
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4 bg-black">
+      <section className="relative overflow-hidden min-h-[480px] md:h-[638px] flex flex-col justify-center px-4 py-16 md:py-0 bg-black">
         {/* Crossfading background images — prev fades out, current fades in */}
         {prevHeroUrl && (
           <div
@@ -377,13 +364,13 @@ export default function EventTravel() {
             <Ticket className="w-3.5 h-3.5 mr-1.5" />
             Event Travel Planning
           </Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 font-serif leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-5 font-serif leading-tight">
             Luxury Hotel Stays for Event-Driven Travel
           </h1>
-          <p className="text-white/75 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-            Plan premium trips around concerts, sports, theater, festivals, and destination events. LuxVibe helps travelers discover luxury hotels near live experiences, then — when available and approved — directs users to official ticketing partners to complete event ticket purchases directly.
+          <p className="text-white/75 text-sm sm:text-base md:text-xl mb-5 md:mb-8 max-w-2xl mx-auto leading-relaxed">
+            Plan premium trips around concerts, sports, theater, and festivals. LuxVibe finds luxury hotels near live experiences — then connects you to official ticketing partners when available.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-5">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-3 md:mb-5">
             <Button
               size="lg"
               className="h-12 px-8 text-base shadow-lg opacity-75 cursor-not-allowed"
@@ -409,7 +396,7 @@ export default function EventTravel() {
       </section>
 
       {/* ── Our Ticketing Model (reviewer trust block) ── */}
-      <section className="max-w-3xl mx-auto px-4 pt-12 pb-4">
+      <section className="max-w-3xl mx-auto px-4 pt-16 pb-4">
         <div className="flex items-start gap-3 p-6 rounded-2xl border-2 border-primary/20 bg-primary/5">
           <ShieldCheck className="w-6 h-6 text-primary shrink-0 mt-0.5" />
           <div>
