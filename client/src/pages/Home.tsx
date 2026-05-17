@@ -384,7 +384,56 @@ function StaysForYourStyle() {
   const [, navigate] = useLocation();
   const staysCarouselRef = useRef<HTMLDivElement>(null);
   const pillsRowRef = useRef<HTMLDivElement>(null);
-  const activeStyle = TRAVEL_STYLES.find((s) => s.key === activeKey)!;
+  const pillsDragging = useRef(false);
+  const activeStyle = TRAVEL_STYLES.find((s) => s.key === activeKey)!
+
+  // Drag-to-scroll for the pills row (works with mouse AND touch simulation)
+  useEffect(() => {
+    const el = pillsRowRef.current;
+    if (!el) return;
+    let startX = 0;
+    let scrollLeft = 0;
+    let moved = false;
+
+    const onDown = (e: PointerEvent) => {
+      startX = e.clientX;
+      scrollLeft = el.scrollLeft;
+      moved = false;
+      pillsDragging.current = false;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) {
+        moved = true;
+        pillsDragging.current = true;
+      }
+      el.scrollLeft = scrollLeft - dx;
+    };
+
+    const onUp = () => {
+      el.style.cursor = "grab";
+      el.style.userSelect = "";
+      // keep pillsDragging true briefly so click handlers see it
+      setTimeout(() => { pillsDragging.current = false; }, 50);
+    };
+
+    el.style.cursor = "grab";
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+    };
+  }, []);;
 
   const { data: hotels, isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/semantic-search", activeKey],
@@ -463,9 +512,9 @@ function StaysForYourStyle() {
           {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
             <button
               key={key}
-              onClick={() => setActiveKey(key)}
+              onClick={() => { if (!pillsDragging.current) setActiveKey(key); }}
               data-testid={`tab-style-${key}`}
-              className={`flex-none flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+              className={`flex-none flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border select-none ${
                 activeKey === key
                   ? `${activeBg} border-transparent shadow-sm`
                   : `${bg} ${color} border-border hover:border-transparent`
