@@ -1804,7 +1804,7 @@ export default function SearchHero({
                 <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
                   <div className="flex items-center gap-2">
                     <Plane className="w-4 h-4 opacity-90" />
-                    <span>500+ Airlines</span>
+                    <span>Instant Confirmation</span>
                   </div>
                   <div className="w-px h-4 bg-white/30" />
                   <div className="flex items-center gap-2">

@@ -1505,7 +1505,7 @@ export default function Flights() {
             Real-time fares from 500+ airlines — book your perfect journey in seconds
           </p>
           <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
-            <div className="flex items-center gap-2"><Plane className="w-4 h-4 opacity-90" /><span>500+ Airlines</span></div>
+            <div className="flex items-center gap-2"><Plane className="w-4 h-4 opacity-90" /><span>Instant Confirmation</span></div>
             <div className="w-px h-4 bg-white/30" />
             <div className="flex items-center gap-2"><Search className="w-4 h-4 opacity-90" /><span>190+ Countries</span></div>
             <div className="w-px h-4 bg-white/30" />
