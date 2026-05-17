@@ -18,15 +18,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun, Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles, Home, Ticket } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun,
+  Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles,
+  Home, Ticket, Menu, ChevronDown,
+} from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
-    try {
-      return localStorage.getItem("lv_theme_v2") === "dark";
-    } catch { return false; }
+    try { return localStorage.getItem("lv_theme_v2") === "dark"; }
+    catch { return false; }
   });
 
   useEffect(() => {
@@ -44,7 +48,6 @@ function useDarkMode() {
 
 function useFavoritesCount() {
   const [count, setCount] = useState(0);
-
   useEffect(() => {
     const read = () => {
       try {
@@ -54,77 +57,51 @@ function useFavoritesCount() {
     };
     read();
     window.addEventListener("storage", read);
-    // Also poll on focus in case storage event doesn't fire within same tab
     window.addEventListener("focus", read);
     return () => {
       window.removeEventListener("storage", read);
       window.removeEventListener("focus", read);
     };
   }, []);
-
   return count;
 }
 
 const LANGUAGES = [
-  { name: "English", code: "EN", flag: "🇺🇸" },
-  { name: "Français", code: "FR", flag: "🇫🇷" },
-  { name: "Türkçe", code: "TR", flag: "🇹🇷" },
-  { name: "Nederlands", code: "NL", flag: "🇳🇱" },
-  { name: "Español", code: "ES", flag: "🇪🇸" },
-  { name: "Deutsch", code: "DE", flag: "🇩🇪" },
+  { name: "English",   code: "EN", flag: "🇺🇸" },
+  { name: "Français",  code: "FR", flag: "🇫🇷" },
+  { name: "Türkçe",   code: "TR", flag: "🇹🇷" },
+  { name: "Nederlands",code: "NL", flag: "🇳🇱" },
+  { name: "Español",  code: "ES", flag: "🇪🇸" },
+  { name: "Deutsch",  code: "DE", flag: "🇩🇪" },
   { name: "Italiano", code: "IT", flag: "🇮🇹" },
-  { name: "العربية", code: "AR", flag: "🇸🇦" },
-  { name: "Português", code: "PT", flag: "🇵🇹" },
+  { name: "العربية",  code: "AR", flag: "🇸🇦" },
+  { name: "Português",code: "PT", flag: "🇵🇹" },
   { name: "Ελληνικά", code: "EL", flag: "🇬🇷" },
-  { name: "Română", code: "RO", flag: "🇷🇴" },
-  { name: "Русский", code: "RU", flag: "🇷🇺" },
-  { name: "日本語", code: "JA", flag: "🇯🇵" },
-  { name: "中文", code: "ZH", flag: "🇨🇳" },
-  { name: "한국어", code: "KO", flag: "🇰🇷" },
+  { name: "Română",   code: "RO", flag: "🇷🇴" },
+  { name: "Русский",  code: "RU", flag: "🇷🇺" },
+  { name: "日本語",   code: "JA", flag: "🇯🇵" },
+  { name: "中文",     code: "ZH", flag: "🇨🇳" },
+  { name: "한국어",   code: "KO", flag: "🇰🇷" },
 ];
 
 const CURRENCIES = [
-  { name: "US Dollar", code: "USD", symbol: "$" },
-  { name: "Euro", code: "EUR", symbol: "€" },
-  { name: "British Pound", code: "GBP", symbol: "£" },
-  { name: "Japanese Yen", code: "JPY", symbol: "¥" },
-  { name: "Canadian Dollar", code: "CAD", symbol: "C$" },
-  { name: "Australian Dollar", code: "AUD", symbol: "A$" },
-  { name: "Swiss Franc", code: "CHF", symbol: "CHF" },
-  { name: "UAE Dirham", code: "AED", symbol: "د.إ" },
+  { name: "US Dollar",       code: "USD", symbol: "$"   },
+  { name: "Euro",            code: "EUR", symbol: "€"   },
+  { name: "British Pound",   code: "GBP", symbol: "£"   },
+  { name: "Japanese Yen",    code: "JPY", symbol: "¥"   },
+  { name: "Canadian Dollar", code: "CAD", symbol: "C$"  },
+  { name: "Australian Dollar",code:"AUD", symbol: "A$"  },
+  { name: "Swiss Franc",     code: "CHF", symbol: "CHF" },
+  { name: "UAE Dirham",      code: "AED", symbol: "د.إ" },
 ];
 
 const GUIDE_TIPS = [
-  {
-    icon: "✦",
-    title: "Pick from the dropdown for best results",
-    text: "When you type a destination, select a suggestion from the list — this gives the search engine a precise location and returns far more hotels.",
-  },
-  {
-    icon: "♠",
-    title: "Searching Las Vegas? Try \"Las Vegas Strip\"",
-    text: "Type \"Las Vegas Strip\" and choose from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more.",
-  },
-  {
-    icon: "✧",
-    title: "Use Vibe search for inspiration",
-    text: "Switch to the Vibe tab in the search bar and describe your dream stay — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it.",
-  },
-  {
-    icon: "★",
-    title: "4 & 5-star hotels shown by default",
-    text: "Results are curated to luxury properties. Use the star filter in the sidebar to include 3-star or budget options at any time.",
-  },
-  {
-    icon: "🛏",
-    title: "Adjust dates on the hotel page",
-    text: "On any hotel details page, use the compact search bar in the header to change your dates and see updated room rates instantly.",
-  },
-  {
-    icon: "🔒",
-    title: "Secure booking in 3 steps",
-    text: "Select a room → fill in your guest details → pay with our secure payment system. Your booking confirmation appears instantly.",
-  },
+  { icon: "✦", title: "Pick from the dropdown for best results", text: "When you type a destination, select a suggestion from the list — this gives the search engine a precise location and returns far more hotels." },
+  { icon: "♠", title: "Searching Las Vegas? Try \"Las Vegas Strip\"", text: "Type \"Las Vegas Strip\" and choose from the dropdown to surface the iconic Strip resorts — Bellagio, MGM Grand, Caesars Palace, and more." },
+  { icon: "✧", title: "Use Vibe search for inspiration", text: "Switch to the Vibe tab in the search bar and describe your dream stay — \"romantic beachfront resort\" or \"luxury casino with a rooftop pool\" — and AI will find it." },
+  { icon: "★", title: "4 & 5-star hotels shown by default", text: "Results are curated to luxury properties. Use the star filter in the sidebar to include 3-star or budget options at any time." },
+  { icon: "🛏", title: "Adjust dates on the hotel page", text: "On any hotel details page, use the compact search bar in the header to change your dates and see updated room rates instantly." },
+  { icon: "🔒", title: "Secure booking in 3 steps", text: "Select a room → fill in your guest details → pay with our secure payment system. Your booking confirmation appears instantly." },
 ];
 
 function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -132,12 +109,10 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
   const { t } = useTranslation();
   const [tab, setTab] = useState<"language" | "currency">("language");
   const [langSearch, setLangSearch] = useState("");
-
   const filteredLangs = LANGUAGES.filter(l =>
     l.name.toLowerCase().includes(langSearch.toLowerCase()) ||
     l.code.toLowerCase().includes(langSearch.toLowerCase())
   );
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
@@ -145,7 +120,6 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
           <DialogHeader className="mb-4">
             <DialogTitle className="text-xl font-bold">{t("nav.choose_lang_currency")}</DialogTitle>
           </DialogHeader>
-
           <div className="flex gap-6 border-b border-border mb-5">
             {(["language", "currency"] as const).map(tabKey => (
               <button
@@ -158,7 +132,6 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
               </button>
             ))}
           </div>
-
           {tab === "language" ? (
             <>
               <div className="relative mb-4">
@@ -172,7 +145,7 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
                   data-testid="input-lang-search"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
                 {filteredLangs.map(lang => (
                   <button
                     key={lang.code}
@@ -190,7 +163,7 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
               </div>
             </>
           ) : (
-            <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
               {CURRENCIES.map(cur => (
                 <button
                   key={cur.code}
@@ -213,7 +186,6 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
   );
 }
 
-
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated, openLoginModal, closeLoginModal, loginModalOpen } = useAuth();
   const { currency, language } = usePreferences();
@@ -221,29 +193,33 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { dark, toggle: toggleDark } = useDarkMode();
   const favCount = useFavoritesCount();
   const [langOpen, setLangOpen] = useState(false);
-  const [keysTooltip, setKeysTooltip] = useState(false);
-  const [langTooltip, setLangTooltip] = useState(false);
-  const [favoritesTooltip, setFavoritesTooltip] = useState(false);
-  const [guideTooltip, setGuideTooltip] = useState(false);
-  const [loginTooltip, setLoginTooltip] = useState(false);
-  const [journalTooltip, setJournalTooltip] = useState(false);
-  const [flightsTooltip, setFlightsTooltip] = useState(false);
-  const [eventsTooltip, setEventsTooltip] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const tipsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!tipsOpen) return;
     function handleClick(e: MouseEvent) {
-      if (tipsRef.current && !tipsRef.current.contains(e.target as Node)) {
-        setTipsOpen(false);
-      }
+      if (tipsRef.current && !tipsRef.current.contains(e.target as Node)) setTipsOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [tipsOpen]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
+
   const hasFavorites = favCount > 0;
+
+  const EXPLORE_LINKS = [
+    { label: "Journal",  href: "/blog",         icon: BookOpen },
+    { label: "Flights",  href: "/flights",       icon: Plane   },
+    { label: "Events",   href: "/event-travel",  icon: Ticket  },
+  ];
 
   return (
     <>
@@ -251,130 +227,84 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
       <AuthModal open={loginModalOpen} onClose={closeLoginModal} />
 
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <Link href="/" aria-label="Luxvibe – home" className="flex items-center gap-1.5 shrink-0" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-3">
+
+          {/* ── Left: Logo + Desktop Explore Dropdown ── */}
+          <div className="flex items-center gap-5">
+            <Link
+              href="/"
+              aria-label="Luxvibe – home"
+              className="flex items-center gap-1.5 shrink-0"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
               <span
                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                className="text-2xl xs:text-2xl sm:text-2xl font-semibold tracking-[0.1em] sm:tracking-[0.18em] text-foreground uppercase"
+                className="text-2xl font-semibold tracking-[0.15em] text-foreground uppercase"
               >
                 Luxvibe
               </span>
             </Link>
 
-            {/* Nav Links */}
-            <nav className="flex items-center gap-6">
-              {/* Journal Link - Text on desktop, Icon on mobile */}
-              <div className="relative">
-                <Link
-                  href="/blog"
-                  aria-label="Journal – travel blog"
-                  onMouseEnter={() => setJournalTooltip(true)}
-                  onMouseLeave={() => setJournalTooltip(false)}
-                  className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
-                  data-testid="nav-link-journal"
+            {/* Desktop Explore dropdown — hidden on mobile */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="button-explore-menu"
                 >
-                  <BookOpen className="w-4 h-4 md:hidden" aria-hidden="true" />
-                  <span className="hidden md:inline">Journal</span>
-                </Link>
-                {journalTooltip && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
-                    Journal
-                  </div>
-                )}
-              </div>
-
-              {/* Flights Link */}
-              <div className="relative">
-                <Link
-                  href="/flights"
-                  aria-label="Flights – search and book flights"
-                  onMouseEnter={() => setFlightsTooltip(true)}
-                  onMouseLeave={() => setFlightsTooltip(false)}
-                  className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
-                  data-testid="nav-link-flights"
-                >
-                  <Plane className="w-4 h-4 md:hidden" aria-hidden="true" />
-                  <span className="hidden md:inline">Flights</span>
-                </Link>
-                {flightsTooltip && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
-                    Flights
-                  </div>
-                )}
-              </div>
-
-              {/* Events Link */}
-              <div className="relative">
-                <Link
-                  href="/event-travel"
-                  aria-label="Events – discover concerts, sports and more"
-                  onMouseEnter={() => setEventsTooltip(true)}
-                  onMouseLeave={() => setEventsTooltip(false)}
-                  className="md:text-sm md:font-medium md:text-muted-foreground md:hover:text-foreground md:transition-colors flex md:flex items-center justify-center md:justify-start w-9 h-9 md:w-auto md:h-auto rounded-full md:rounded-none border md:border-0 border-border md:border-border text-muted-foreground md:text-muted-foreground hover:text-foreground md:hover:text-foreground hover:bg-muted md:hover:bg-transparent transition-all"
-                  data-testid="nav-link-events"
-                >
-                  <Ticket className="w-4 h-4 md:hidden" aria-hidden="true" />
-                  <span className="hidden md:inline">Events</span>
-                </Link>
-                {eventsTooltip && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50 md:hidden">
-                    Events
-                  </div>
-                )}
-              </div>
-
-            </nav>
+                  Explore
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52 mt-1">
+                {EXPLORE_LINKS.map(({ label, href, icon: Icon }) => (
+                  <DropdownMenuItem key={label} asChild>
+                    <Link
+                      href={href}
+                      className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm"
+                      data-testid={`desktop-nav-${label.toLowerCase()}`}
+                    >
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      {label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Central slot (compact search bar on hotel pages) */}
+          {/* ── Center: optional compact search slot (hotel pages) ── */}
           {centralSlot && (
-            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-xl hidden md:flex justify-center">
-              {centralSlot}
+            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-xl hidden md:flex justify-center pointer-events-none">
+              <div className="pointer-events-auto">{centralSlot}</div>
             </div>
           )}
 
-          {/* Right side icons */}
+          {/* ── Right: desktop utility icons + auth / mobile hamburger ── */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Language / Currency */}
-            <div className="relative">
-              <button
-                onClick={() => setLangOpen(true)}
-                onMouseEnter={() => setLangTooltip(true)}
-                onMouseLeave={() => setLangTooltip(false)}
-                aria-label="Language and currency settings"
-                className="h-9 px-2 rounded-full border border-border flex items-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-                data-testid="button-language"
-              >
-                <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
-              </button>
-              {langTooltip && (
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  {t("nav.language_currency")}
-                </div>
-              )}
-            </div>
 
-            {/* Lightbulb — site guide - hidden on small mobile */}
-            <div className="hidden xs:relative xs:block" ref={tipsRef}>
+            {/* Language / Currency — desktop only */}
+            <button
+              onClick={() => setLangOpen(true)}
+              aria-label="Language and currency settings"
+              className="hidden md:flex h-9 px-2 rounded-full border border-border items-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+              data-testid="button-language"
+            >
+              <Globe className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-medium hidden lg:inline">{language}</span>
+            </button>
+
+            {/* Site guide — desktop only */}
+            <div className="hidden md:block relative" ref={tipsRef}>
               <button
                 onClick={() => setTipsOpen(o => !o)}
-                onMouseEnter={() => setGuideTooltip(true)}
-                onMouseLeave={() => setGuideTooltip(false)}
                 aria-label="Luxvibe site guide"
                 aria-expanded={tipsOpen}
                 className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${tipsOpen ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50"}`}
                 data-testid="button-site-guide"
               >
-                <Lightbulb className="w-4 h-4" aria-hidden="true" />
+                <Lightbulb className="w-4 h-4" />
               </button>
-              {guideTooltip && !tipsOpen && (
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  Luxvibe Guide
-                </div>
-              )}
-
               {tipsOpen && (
                 <div className="absolute top-11 right-0 w-80 bg-white dark:bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
@@ -382,14 +312,10 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                       <Lightbulb className="w-4 h-4 text-primary" />
                       <span className="font-semibold text-sm text-foreground">Luxvibe Guide</span>
                     </div>
-                    <button
-                      onClick={() => setTipsOpen(false)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
+                    <button onClick={() => setTipsOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-
                   <div className="p-4 space-y-4 max-h-[420px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
                     {GUIDE_TIPS.map((tip, i) => (
                       <div key={i} className="flex items-start gap-3">
@@ -401,40 +327,28 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                       </div>
                     ))}
                   </div>
-
                   <div className="px-5 pb-4 pt-1 border-t border-border">
-                    <p className="text-[11px] text-muted-foreground text-center">
-                      Luxvibe — Luxury hotel booking made simple
-                    </p>
+                    <p className="text-[11px] text-muted-foreground text-center">Luxvibe — Luxury hotel booking made simple</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Manage Bookings */}
-            <div className="relative">
-              <Link
-                href="/manage-booking"
-                aria-label="Manage your bookings"
-                onMouseEnter={() => setKeysTooltip(true)}
-                onMouseLeave={() => setKeysTooltip(false)}
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-                data-testid="button-manage-bookings"
-              >
-                <KeyRound className="w-4 h-4" aria-hidden="true" />
-              </Link>
-              {keysTooltip && (
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                  {t("nav.manage_bookings")}
-                </div>
-              )}
-            </div>
+            {/* Manage Bookings key — desktop only */}
+            <Link
+              href="/manage-booking"
+              aria-label="Manage your bookings"
+              className="hidden md:flex w-9 h-9 rounded-full border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+              data-testid="button-manage-bookings"
+            >
+              <KeyRound className="w-4 h-4" />
+            </Link>
 
-            {/* Auth */}
+            {/* Auth — desktop user menu OR login button */}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 ml-1">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 ml-1" data-testid="button-user-avatar">
                     <Avatar className="h-9 w-9 border border-border">
                       <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
@@ -444,7 +358,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-64" align="end" forceMount>
-                  {/* User header */}
                   <div className="flex items-center gap-3 px-3 py-3 border-b border-border">
                     <Avatar className="h-10 w-10 border border-border shrink-0">
                       <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
@@ -458,139 +371,300 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                           {[user.firstName, user.lastName].filter(Boolean).join(" ")}
                         </p>
                       )}
-                      {user?.email && (
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                      )}
+                      {user?.email && <p className="text-xs text-muted-foreground truncate">{user.email}</p>}
                     </div>
                   </div>
-
-                  {/* Menu items */}
                   <div className="py-1">
                     <DropdownMenuItem asChild>
                       <Link href="/" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <Home className="w-4 h-4 text-muted-foreground" />
-                        Home
+                        <Home className="w-4 h-4 text-muted-foreground" /> Home
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
-                      <Link href="/blog" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <Lightbulb className="w-4 h-4 text-muted-foreground" />
-                        Journal
+                      <Link href="/my-bookings" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
+                        <CalendarDays className="w-4 h-4 text-muted-foreground" /> {t("nav.my_bookings")}
                       </Link>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link href="/flights" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <Plane className="w-4 h-4 text-muted-foreground" />
-                        Flights
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link href="/event-travel" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-events">
-                        <Ticket className="w-4 h-4 text-muted-foreground" />
-                        Events
-                      </Link>
-                    </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
                       <Link href="/favorites" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Heart className={`w-4 h-4 ${hasFavorites ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
                         My Favorites
                         {hasFavorites && (
-                          <span className="ml-auto text-xs font-bold bg-red-100 dark:bg-red-950/50 text-red-600 px-1.5 py-0.5 rounded-full">
-                            {favCount}
-                          </span>
+                          <span className="ml-auto text-xs font-bold bg-red-100 dark:bg-red-950/50 text-red-600 px-1.5 py-0.5 rounded-full">{favCount}</span>
                         )}
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
                       <Link href="/invite" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                        Invite Friends &amp; Referrals
+                        <Users className="w-4 h-4 text-muted-foreground" /> Invite Friends &amp; Referrals
                       </Link>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link href="/my-bookings" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
-                        <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                        {t("nav.my_bookings")}
-                      </Link>
-                    </DropdownMenuItem>
-
                     <DropdownMenuSeparator />
                     <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Reference</div>
                     <DropdownMenuItem asChild>
-                      <Link href="/currencies" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-currencies">
+                      <Link href="/currencies" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <DollarSign className="w-4 h-4 text-muted-foreground" /> Currencies
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/hotel-facilities" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-facilities">
+                      <Link href="/hotel-facilities" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Building2 className="w-4 h-4 text-muted-foreground" /> Hotel Facilities
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/room-views" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-room-views">
+                      <Link href="/room-views" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Eye className="w-4 h-4 text-muted-foreground" /> Room Views
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/room-amenities" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="mobile-nav-room-amenities">
+                      <Link href="/room-amenities" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Sparkles className="w-4 h-4 text-muted-foreground" /> Room Amenities
                       </Link>
                     </DropdownMenuItem>
-
-                    {/* Dark mode toggle — only in dropdown for logged-in users */}
-                    <DropdownMenuItem
-                      onClick={toggleDark}
-                      className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm"
-                      data-testid="button-theme-toggle"
-                    >
-                      {dark
-                        ? <Sun className="w-4 h-4 text-muted-foreground" />
-                        : <Moon className="w-4 h-4 text-muted-foreground" />
-                      }
+                    <DropdownMenuItem onClick={toggleDark} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="button-theme-toggle">
+                      {dark ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
                       {dark ? "Light Mode" : "Dark Mode"}
                     </DropdownMenuItem>
                   </div>
-
                   <DropdownMenuSeparator />
-
                   <div className="py-1">
-                    <DropdownMenuItem
-                      onClick={() => logout()}
-                      className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm text-destructive focus:text-destructive"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {t("nav.logout")}
+                    <DropdownMenuItem onClick={() => logout()} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm text-destructive focus:text-destructive">
+                      <LogOut className="w-4 h-4" /> {t("nav.logout")}
                     </DropdownMenuItem>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="relative">
+              <Button
+                onClick={() => openLoginModal()}
+                className="hidden md:flex ml-1 h-9 px-5 rounded-full text-sm font-semibold"
+                data-testid="button-login"
+              >
+                {t("nav.login")}
+              </Button>
+            )}
+
+            {/* Mobile: Login or Avatar + Hamburger */}
+            <div className="flex md:hidden items-center gap-2">
+              {isAuthenticated ? (
+                <button
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="h-9 w-9 rounded-full p-0 flex items-center justify-center"
+                  data-testid="button-mobile-avatar"
+                >
+                  <Avatar className="h-8 w-8 border border-border">
+                    <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                      {(user?.firstName?.[0] || "U").toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              ) : (
                 <Button
                   onClick={() => openLoginModal()}
-                  onMouseEnter={() => setLoginTooltip(true)}
-                  onMouseLeave={() => setLoginTooltip(false)}
-                  className="ml-1 h-9 px-5 rounded-full text-sm font-semibold"
+                  className="h-9 px-4 rounded-full text-sm font-semibold"
                   data-testid="button-login"
                 >
                   {t("nav.login")}
                 </Button>
-                {loginTooltip && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-50">
-                    Login to Book
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open navigation menu"
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                data-testid="button-mobile-menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* ── Mobile slide-in drawer (from right) ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Drawer panel */}
+            <motion.div
+              key="drawer"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed top-0 right-0 bottom-0 z-[201] w-[85vw] max-w-sm bg-background shadow-2xl flex flex-col md:hidden"
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+                <span style={{ fontFamily: "'Cormorant Garamond', serif" }} className="text-xl font-semibold tracking-[0.15em] text-foreground uppercase">
+                  Luxvibe
+                </span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close menu"
+                  className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="button-close-mobile-menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Drawer scrollable body */}
+              <div className="flex-1 overflow-y-auto py-3">
+
+                {/* Auth section at top when logged in */}
+                {isAuthenticated && (
+                  <div className="flex items-center gap-3 px-5 py-4 mb-1 border-b border-border">
+                    <Avatar className="h-11 w-11 border border-border shrink-0">
+                      <AvatarImage src={user?.profileImageUrl ?? undefined} alt={user?.firstName || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {(user?.firstName?.[0] || "U").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate">
+                        {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "My Account"}
+                      </p>
+                      {user?.email && <p className="text-xs text-muted-foreground truncate">{user.email}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation section */}
+                <div className="px-3 pt-2">
+                  <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Navigate</p>
+                  {[
+                    { label: "Home",    href: "/",            icon: Home    },
+                    { label: "Journal", href: "/blog",         icon: BookOpen},
+                    { label: "Flights", href: "/flights",      icon: Plane   },
+                    { label: "Events",  href: "/event-travel", icon: Ticket  },
+                  ].map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={label}
+                      href={href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                      data-testid={`mobile-nav-${label.toLowerCase()}`}
+                    >
+                      <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="h-px bg-border mx-3 my-3" />
+
+                {/* Settings section */}
+                <div className="px-3">
+                  <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Settings</p>
+
+                  <button
+                    onClick={() => { setLangOpen(true); setMobileMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                    data-testid="mobile-nav-language"
+                  >
+                    <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+                    Language &amp; Currency
+                    <span className="ml-auto text-xs text-muted-foreground font-normal">{language}</span>
+                  </button>
+
+                  <Link
+                    href="/manage-booking"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                    data-testid="mobile-nav-manage-booking"
+                  >
+                    <KeyRound className="w-4 h-4 text-muted-foreground shrink-0" />
+                    Manage My Bookings
+                  </Link>
+
+                  <button
+                    onClick={toggleDark}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                    data-testid="mobile-nav-dark-mode"
+                  >
+                    {dark ? <Sun className="w-4 h-4 text-muted-foreground shrink-0" /> : <Moon className="w-4 h-4 text-muted-foreground shrink-0" />}
+                    {dark ? "Light Mode" : "Dark Mode"}
+                  </button>
+                </div>
+
+                {/* Authenticated extras */}
+                {isAuthenticated && (
+                  <>
+                    <div className="h-px bg-border mx-3 my-3" />
+                    <div className="px-3">
+                      <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">My Account</p>
+                      <Link
+                        href="/my-bookings"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                        data-testid="mobile-nav-my-bookings"
+                      >
+                        <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                        {t("nav.my_bookings")}
+                      </Link>
+                      <Link
+                        href="/favorites"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                        data-testid="mobile-nav-favorites"
+                      >
+                        <Heart className={`w-4 h-4 shrink-0 ${hasFavorites ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
+                        My Favorites
+                        {hasFavorites && (
+                          <span className="ml-auto text-xs font-bold bg-red-100 dark:bg-red-950/50 text-red-600 px-1.5 py-0.5 rounded-full">{favCount}</span>
+                        )}
+                      </Link>
+                      <Link
+                        href="/invite"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                        data-testid="mobile-nav-invite"
+                      >
+                        <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                        Invite Friends &amp; Referrals
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Drawer footer — logout or login */}
+              <div className="shrink-0 px-5 py-4 border-t border-border">
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => { logout(); setMobileMenuOpen(false); }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                    data-testid="mobile-nav-logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t("nav.logout")}
+                  </button>
+                ) : (
+                  <Button
+                    onClick={() => { openLoginModal(); setMobileMenuOpen(false); }}
+                    className="w-full h-11 rounded-xl text-sm font-semibold"
+                    data-testid="mobile-nav-login"
+                  >
+                    {t("nav.login")}
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
