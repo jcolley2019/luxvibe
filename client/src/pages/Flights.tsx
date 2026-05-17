@@ -1291,214 +1291,236 @@ export default function Flights() {
 
   document.title = "Flights — Luxvibe";
 
+  // Shared search form content used in both mobile and desktop hero sections
+  const flightSearchCard = (
+    <>
+      <div className="flex items-center gap-1 mb-5 p-1 bg-muted rounded-xl w-fit">
+        {(["oneway", "roundtrip", "multicity"] as TripType[]).map(t => (
+          <button key={t} type="button" onClick={() => setTripType(t)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tripType === t ? "bg-white dark:bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid={`tab-trip-${t}`}
+          >
+            <span className="flex items-center gap-1.5">
+              {t === "oneway" && <><ArrowRight className="w-3.5 h-3.5" />One way</>}
+              {t === "roundtrip" && <><RefreshCw className="w-3.5 h-3.5" />Round trip</>}
+              {t === "multicity" && <><LayoutList className="w-3.5 h-3.5" />Multi-city</>}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={handleSearch}>
+        {tripType === "multicity" ? (
+          <>
+            <div className="space-y-3 mb-4">
+              {multiLegs.map((leg, i) => (
+                <div key={i} className="flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="hidden sm:flex items-center justify-center w-7 h-10 shrink-0 text-xs font-bold text-muted-foreground rounded-lg bg-muted">{i + 1}</div>
+                  <AirportInput value={leg.origin}
+                    onChange={v => setMultiLegs(ls => ls.map((l, j) => j === i ? { ...l, origin: v } : l))}
+                    placeholder="JFK" label="From" testId={`input-mc-origin-${i}`} />
+                  <AirportInput value={leg.destination}
+                    onChange={v => {
+                      const next = multiLegs.map((l, j) => j === i ? { ...l, destination: v } : l);
+                      if (i + 1 < next.length && !next[i + 1].origin) next[i + 1] = { ...next[i + 1], origin: v };
+                      setMultiLegs(next);
+                    }}
+                    placeholder="CDG" label="To" testId={`input-mc-dest-${i}`} />
+                  <div className="shrink-0 w-full sm:w-44">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Date</label>
+                    <input type="date" value={leg.date}
+                      min={i > 0 ? multiLegs[i - 1].date : format(today, "yyyy-MM-dd")}
+                      onChange={e => setMultiLegs(ls => ls.map((l, j) => j === i ? { ...l, date: e.target.value } : l))}
+                      className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                      data-testid={`input-mc-date-${i}`} />
+                  </div>
+                  {multiLegs.length > 2 ? (
+                    <button type="button" onClick={() => setMultiLegs(ls => ls.filter((_, j) => j !== i))}
+                      className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-muted hover:border-destructive/40 hover:text-destructive transition-all shrink-0 mb-0.5"
+                      data-testid={`button-remove-leg-${i}`}>
+                      <X className="w-4 h-4" />
+                    </button>
+                  ) : <div className="w-10 shrink-0 hidden sm:block" />}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start">
+              {multiLegs.length < 5 && (
+                <button type="button"
+                  onClick={() => setMultiLegs(ls => [...ls, { origin: ls[ls.length - 1].destination || "", destination: "", date: ls[ls.length - 1].date || defaultDepart }])}
+                  className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors py-3 px-1"
+                  data-testid="button-add-leg">
+                  <Plus className="w-4 h-4" /> Add another flight
+                </button>
+              )}
+              <div className="flex-1" />
+              <div className="w-full sm:w-56">
+                <PassengerSelector adults={adults} children={children} infants={infants}
+                  onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
+              </div>
+              <div ref={cabinRef} className="relative w-full sm:w-48">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Cabin</label>
+                <button type="button" onClick={() => setCabinOpen(o => !o)}
+                  className="w-full flex items-center gap-2 px-3 py-3 border border-border rounded-xl bg-background hover:border-primary/50 transition-all text-left"
+                  data-testid="button-cabin-class">
+                  <span className="text-sm font-medium text-foreground flex-1 truncate">{CABIN_LABELS[cabinClass]}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+                <AnimatePresence>
+                  {cabinOpen && (
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                      className="absolute top-full mt-1 w-full bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                      {(Object.keys(CABIN_LABELS) as CabinClass[]).map(c => (
+                        <button key={c} type="button" onClick={() => { setCabinClass(c); setCabinOpen(false); }}
+                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-muted/60 transition-colors ${cabinClass === c ? "text-primary font-semibold" : "text-foreground"}`}
+                          data-testid={`cabin-option-${c}`}>{CABIN_LABELS[c]}</button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="relative border border-border rounded-2xl bg-background mb-4">
+              <AirportCardField
+                iata={origin} display={originDisplay} airportName={originAirportName}
+                onSelect={(i, d, n) => { setOrigin(i); setOriginDisplay(d); setOriginAirportName(n); }}
+                placeholder="City or airport" label="From" testId="input-origin" />
+              <div className="relative h-0 border-t border-border">
+                <button type="button" onClick={swapAirports}
+                  className="absolute right-4 top-0 -translate-y-1/2 w-7 h-7 rounded-full border border-border bg-white dark:bg-card flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
+                  data-testid="button-swap-airports">
+                  <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </div>
+              <AirportCardField
+                iata={destination} display={destDisplay} airportName={destAirportName}
+                onSelect={(i, d, n) => { setDestination(i); setDestDisplay(d); setDestAirportName(n); }}
+                placeholder="City or airport" label="To" testId="input-destination" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <div className={tripType === "roundtrip" ? "col-span-1" : "col-span-2 sm:col-span-1"}>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Depart</label>
+                <input type="date" value={departDate} min={format(today, "yyyy-MM-dd")}
+                  onChange={e => setDepartDate(e.target.value)}
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  data-testid="input-depart-date" required />
+              </div>
+              {tripType === "roundtrip" && (
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Return</label>
+                  <input type="date" value={returnDate} min={departDate}
+                    onChange={e => setReturnDate(e.target.value)}
+                    className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    data-testid="input-return-date" />
+                </div>
+              )}
+              <PassengerSelector adults={adults} children={children} infants={infants}
+                onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
+              <div ref={cabinRef} className="relative">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Cabin</label>
+                <button type="button" onClick={() => setCabinOpen(o => !o)}
+                  className="w-full flex items-center gap-2 px-3 py-3 border border-border rounded-xl bg-background hover:border-primary/50 transition-all text-left"
+                  data-testid="button-cabin-class">
+                  <span className="text-sm font-medium text-foreground flex-1 truncate">{CABIN_LABELS[cabinClass]}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+                <AnimatePresence>
+                  {cabinOpen && (
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                      className="absolute top-full mt-1 w-full bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                      {(Object.keys(CABIN_LABELS) as CabinClass[]).map(c => (
+                        <button key={c} type="button" onClick={() => { setCabinClass(c); setCabinOpen(false); }}
+                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-muted/60 transition-colors ${cabinClass === c ? "text-primary font-semibold" : "text-foreground"}`}
+                          data-testid={`cabin-option-${c}`}>{CABIN_LABELS[c]}</button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </>
+        )}
+
+        <Button
+          type="submit"
+          disabled={mutation.isPending || (tripType === "multicity" ? multiLegs.filter(l => l.origin && l.destination).length < 2 : (!origin || !destination))}
+          className="w-full h-12 rounded-xl text-base font-semibold gap-2"
+          data-testid="button-search-flights"
+        >
+          {mutation.isPending ? <><Loader2 className="w-5 h-5 animate-spin" /> Searching flights…</> : <><Search className="w-5 h-5" /> Search Flights</>}
+        </Button>
+      </form>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* Hero — title + search card both inside the image */}
-      <div className="relative overflow-hidden flex flex-col">
+      {/* ── Mobile hero — same fixed height as home page ── */}
+      <div className="md:hidden">
+        <div className="relative h-[320px] overflow-hidden bg-black">
+          <img
+            src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
+            alt="Airplane above clouds"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+            <h1 className="text-[42px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
+              Fly Further.<br />Spend Smarter.
+            </h1>
+            <p className="text-white/90 text-base font-medium drop-shadow-md">
+              Discover flights that redefine travel
+            </p>
+          </div>
+        </div>
+        {/* Search card overlaps the bottom of the hero — same as home page */}
+        <div className="relative -mt-12 mx-4 z-10 pb-2">
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
+            <TravelModeTabs active="flights" variant="card" className="px-4" />
+            <div className="p-4">
+              {flightSearchCard}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Desktop hero — same fixed height as home page ── */}
+      <div className="hidden md:block relative w-full min-h-[638px] overflow-hidden bg-black">
         <img
           src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
           alt="Airplane above clouds"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-slate-900/35 to-slate-900/75" />
-
-        {/* Title — upper portion */}
-        <div className="relative text-center px-4 pt-16 pb-10 md:pt-24 md:pb-14">
-          <h1 className="text-[42px] md:text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
-            Fly Further.<br className="hidden sm:block" /> Spend Smarter.
+        <div className="relative z-10 text-center px-4 pt-16 pb-6">
+          <h1 className="text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+            Fly Further. Spend Smarter.
           </h1>
-          <p className="text-white/90 text-base md:text-lg font-medium tracking-wide mb-5 drop-shadow-md">
+          <p className="text-white/90 text-lg font-medium tracking-wide mb-5 drop-shadow-md">
             Real-time fares from 500+ airlines — book your perfect journey in seconds
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white text-sm font-medium drop-shadow-md">
-            <div className="flex items-center gap-2">
-              <Plane className="w-4 h-4 opacity-90" />
-              <span>500+ Airlines</span>
-            </div>
-            <div className="w-px h-4 bg-white/30 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 opacity-90" />
-              <span>190+ Countries</span>
-            </div>
-            <div className="w-px h-4 bg-white/30 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 opacity-90" />
-              <span>Best Price Guarantee</span>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
+            <div className="flex items-center gap-2"><Plane className="w-4 h-4 opacity-90" /><span>500+ Airlines</span></div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2"><Search className="w-4 h-4 opacity-90" /><span>190+ Countries</span></div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 opacity-90" /><span>Best Price Guarantee</span></div>
           </div>
         </div>
-
-        {/* Search card — lower portion, inside the hero */}
-        <div className="relative z-10 px-4 pb-10 md:pb-14">
+        <div className="relative z-10 px-4 pb-10">
           <div className="container mx-auto max-w-5xl">
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
-            <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
-            <div className="p-4 sm:p-6">
-            <div className="flex items-center gap-1 mb-5 p-1 bg-muted rounded-xl w-fit">
-              {(["oneway", "roundtrip", "multicity"] as TripType[]).map(t => (
-                <button key={t} type="button" onClick={() => setTripType(t)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tripType === t ? "bg-white dark:bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  data-testid={`tab-trip-${t}`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {t === "oneway" && <><ArrowRight className="w-3.5 h-3.5" />One way</>}
-                    {t === "roundtrip" && <><RefreshCw className="w-3.5 h-3.5" />Round trip</>}
-                    {t === "multicity" && <><LayoutList className="w-3.5 h-3.5" />Multi-city</>}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={handleSearch}>
-              {tripType === "multicity" ? (
-                <>
-                  <div className="space-y-3 mb-4">
-                    {multiLegs.map((leg, i) => (
-                      <div key={i} className="flex flex-col sm:flex-row gap-3 items-end">
-                        <div className="hidden sm:flex items-center justify-center w-7 h-10 shrink-0 text-xs font-bold text-muted-foreground rounded-lg bg-muted">{i + 1}</div>
-                        <AirportInput value={leg.origin}
-                          onChange={v => setMultiLegs(ls => ls.map((l, j) => j === i ? { ...l, origin: v } : l))}
-                          placeholder="JFK" label="From" testId={`input-mc-origin-${i}`} />
-                        <AirportInput value={leg.destination}
-                          onChange={v => {
-                            const next = multiLegs.map((l, j) => j === i ? { ...l, destination: v } : l);
-                            if (i + 1 < next.length && !next[i + 1].origin) next[i + 1] = { ...next[i + 1], origin: v };
-                            setMultiLegs(next);
-                          }}
-                          placeholder="CDG" label="To" testId={`input-mc-dest-${i}`} />
-                        <div className="shrink-0 w-full sm:w-44">
-                          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Date</label>
-                          <input type="date" value={leg.date}
-                            min={i > 0 ? multiLegs[i - 1].date : format(today, "yyyy-MM-dd")}
-                            onChange={e => setMultiLegs(ls => ls.map((l, j) => j === i ? { ...l, date: e.target.value } : l))}
-                            className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                            data-testid={`input-mc-date-${i}`} />
-                        </div>
-                        {multiLegs.length > 2 ? (
-                          <button type="button" onClick={() => setMultiLegs(ls => ls.filter((_, j) => j !== i))}
-                            className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-muted hover:border-destructive/40 hover:text-destructive transition-all shrink-0 mb-0.5"
-                            data-testid={`button-remove-leg-${i}`}>
-                            <X className="w-4 h-4" />
-                          </button>
-                        ) : <div className="w-10 shrink-0 hidden sm:block" />}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start">
-                    {multiLegs.length < 5 && (
-                      <button type="button"
-                        onClick={() => setMultiLegs(ls => [...ls, { origin: ls[ls.length - 1].destination || "", destination: "", date: ls[ls.length - 1].date || defaultDepart }])}
-                        className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors py-3 px-1"
-                        data-testid="button-add-leg">
-                        <Plus className="w-4 h-4" /> Add another flight
-                      </button>
-                    )}
-                    <div className="flex-1" />
-                    <div className="w-full sm:w-56">
-                      <PassengerSelector adults={adults} children={children} infants={infants}
-                        onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
-                    </div>
-                    <div ref={cabinRef} className="relative w-full sm:w-48">
-                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Cabin</label>
-                      <button type="button" onClick={() => setCabinOpen(o => !o)}
-                        className="w-full flex items-center gap-2 px-3 py-3 border border-border rounded-xl bg-background hover:border-primary/50 transition-all text-left"
-                        data-testid="button-cabin-class">
-                        <span className="text-sm font-medium text-foreground flex-1 truncate">{CABIN_LABELS[cabinClass]}</span>
-                        <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                      </button>
-                      <AnimatePresence>
-                        {cabinOpen && (
-                          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                            className="absolute top-full mt-1 w-full bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-                            {(Object.keys(CABIN_LABELS) as CabinClass[]).map(c => (
-                              <button key={c} type="button" onClick={() => { setCabinClass(c); setCabinOpen(false); }}
-                                className={`w-full px-4 py-2.5 text-left text-sm hover:bg-muted/60 transition-colors ${cabinClass === c ? "text-primary font-semibold" : "text-foreground"}`}
-                                data-testid={`cabin-option-${c}`}>{CABIN_LABELS[c]}</button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* FROM / swap / TO — unified card matching homepage style */}
-                  <div className="relative border border-border rounded-2xl bg-background mb-4">
-                    <AirportCardField
-                      iata={origin} display={originDisplay} airportName={originAirportName}
-                      onSelect={(i, d, n) => { setOrigin(i); setOriginDisplay(d); setOriginAirportName(n); }}
-                      placeholder="City or airport" label="From" testId="input-origin" />
-                    <div className="relative h-0 border-t border-border">
-                      <button type="button" onClick={swapAirports}
-                        className="absolute right-4 top-0 -translate-y-1/2 w-7 h-7 rounded-full border border-border bg-white dark:bg-card flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
-                        data-testid="button-swap-airports">
-                        <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
-                      </button>
-                    </div>
-                    <AirportCardField
-                      iata={destination} display={destDisplay} airportName={destAirportName}
-                      onSelect={(i, d, n) => { setDestination(i); setDestDisplay(d); setDestAirportName(n); }}
-                      placeholder="City or airport" label="To" testId="input-destination" />
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    <div className={tripType === "roundtrip" ? "col-span-1" : "col-span-2 sm:col-span-1"}>
-                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Depart</label>
-                      <input type="date" value={departDate} min={format(today, "yyyy-MM-dd")}
-                        onChange={e => setDepartDate(e.target.value)}
-                        className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                        data-testid="input-depart-date" required />
-                    </div>
-                    {tripType === "roundtrip" && (
-                      <div>
-                        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Return</label>
-                        <input type="date" value={returnDate} min={departDate}
-                          onChange={e => setReturnDate(e.target.value)}
-                          className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                          data-testid="input-return-date" />
-                      </div>
-                    )}
-                    <PassengerSelector adults={adults} children={children} infants={infants}
-                      onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
-                    <div ref={cabinRef} className="relative">
-                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Cabin</label>
-                      <button type="button" onClick={() => setCabinOpen(o => !o)}
-                        className="w-full flex items-center gap-2 px-3 py-3 border border-border rounded-xl bg-background hover:border-primary/50 transition-all text-left"
-                        data-testid="button-cabin-class">
-                        <span className="text-sm font-medium text-foreground flex-1 truncate">{CABIN_LABELS[cabinClass]}</span>
-                        <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                      </button>
-                      <AnimatePresence>
-                        {cabinOpen && (
-                          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                            className="absolute top-full mt-1 w-full bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-                            {(Object.keys(CABIN_LABELS) as CabinClass[]).map(c => (
-                              <button key={c} type="button" onClick={() => { setCabinClass(c); setCabinOpen(false); }}
-                                className={`w-full px-4 py-2.5 text-left text-sm hover:bg-muted/60 transition-colors ${cabinClass === c ? "text-primary font-semibold" : "text-foreground"}`}
-                                data-testid={`cabin-option-${c}`}>{CABIN_LABELS[c]}</button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <Button
-                type="submit"
-                disabled={mutation.isPending || (tripType === "multicity" ? multiLegs.filter(l => l.origin && l.destination).length < 2 : (!origin || !destination))}
-                className="w-full h-12 rounded-xl text-base font-semibold gap-2"
-                data-testid="button-search-flights"
-              >
-                {mutation.isPending ? <><Loader2 className="w-5 h-5 animate-spin" /> Searching flights…</> : <><Search className="w-5 h-5" /> Search Flights</>}
-              </Button>
-            </form>
+              <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
+              <div className="p-4 sm:p-6">
+                {flightSearchCard}
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
 
