@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plane, ArrowLeftRight, Loader2, Users, ChevronDown, Search,
+  Plane, ArrowLeftRight, ArrowUpDown, Loader2, Users, ChevronDown, Search,
   ArrowRight, RefreshCw, Plus, X, LayoutList,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
@@ -113,7 +113,7 @@ function AirportField({
 
   if (card) {
     return (
-      <div ref={ref} className="relative px-4 py-3">
+      <div ref={ref} className="relative px-4 py-3 h-[78px]">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
 
         {iata && !editing ? (
@@ -494,14 +494,13 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
               <AirportField card iata={originIata} display={originDisplay}
                 onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }}
                 placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
-              <div className="flex items-center justify-end px-4 py-1.5 border-t border-border bg-background">
+              <div className="relative h-0 border-t border-border">
                 <button type="button" onClick={swap}
-                  className="w-8 h-8 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors shadow-sm"
+                  className="absolute right-4 top-0 -translate-y-1/2 w-7 h-7 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
                   data-testid="button-swap-mobile">
-                  <ArrowLeftRight className="w-3.5 h-3.5 text-muted-foreground" />
+                  <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
-              <div className="border-t border-border" />
               <AirportField card iata={destIata} display={destDisplay}
                 onSelect={(i, d) => { setDestIata(i); setDestDisplay(d); }}
                 placeholder="City or airport" label="To" testId="input-flight-dest-mobile" />
