@@ -117,14 +117,15 @@ function getStopsColor(count: number): string {
 }
 
 function AirportInput({
-  value, onChange, placeholder, label, testId,
+  value, onChange, placeholder, label, testId, cityCountry,
 }: {
-  value: string; onChange: (v: string) => void; placeholder: string; label: string; testId: string;
+  value: string; onChange: (v: string) => void; placeholder: string; label: string; testId: string; cityCountry?: string;
 }) {
   const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
   const [selectedAirport, setSelectedAirport] = useState<AirportSuggestion | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -136,15 +137,16 @@ function AirportInput({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Clear selected label when value is cleared externally
+  // Clear selected label and touched flag when value is cleared externally
   useEffect(() => {
-    if (!value) setSelectedAirport(null);
+    if (!value) { setSelectedAirport(null); setTouched(false); }
   }, [value]);
 
   const handleChange = useCallback((raw: string) => {
     const v = raw.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
     onChange(v);
     setSelectedAirport(null);
+    setTouched(true);
     if (debounce.current) clearTimeout(debounce.current);
     if (v.length >= 2) {
       setLoading(true);
@@ -166,13 +168,14 @@ function AirportInput({
   function handleSelect(s: AirportSuggestion) {
     onChange(s.iataCode);
     setSelectedAirport(s);
+    setTouched(true);
     setOpen(false);
     setSuggestions([]);
   }
 
   const subtitle = selectedAirport
     ? [selectedAirport.cityName, selectedAirport.countryCode].filter(Boolean).join(", ")
-    : null;
+    : (!touched && cityCountry) ? cityCountry : null;
 
   return (
     <div ref={ref} className="relative flex-1 min-w-0">
@@ -946,7 +949,9 @@ export default function Flights() {
 
   const [tripType, setTripType] = useState<TripType>("roundtrip");
   const [origin, setOrigin] = useState("");
+  const [originDisplay, setOriginDisplay] = useState("");
   const [destination, setDestination] = useState("");
+  const [destDisplay, setDestDisplay] = useState("");
   const [departDate, setDepartDate] = useState(defaultDepart);
   const [returnDate, setReturnDate] = useState(defaultReturn);
   const [adults, setAdults] = useState(1);
@@ -1005,6 +1010,8 @@ export default function Flights() {
     }
     const o = params.get("origin"); const d = params.get("destination");
     if (o) setOrigin(o); if (d) setDestination(d);
+    const od = params.get("originDisplay"); if (od) setOriginDisplay(od);
+    const dd = params.get("destDisplay"); if (dd) setDestDisplay(dd);
     const dep = params.get("depart"); if (dep) setDepartDate(dep);
     const ret = params.get("return"); if (ret) setReturnDate(ret);
     const a = params.get("adults"); if (a) setAdults(Number(a));
@@ -1034,6 +1041,8 @@ export default function Flights() {
   function swapAirports() {
     setOrigin(destination);
     setDestination(origin);
+    setOriginDisplay(destDisplay);
+    setDestDisplay(originDisplay);
   }
 
   const allJourneys: FlightJourney[] = [];
@@ -1246,7 +1255,7 @@ export default function Flights() {
               ) : (
                 <>
                   <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <AirportInput value={origin} onChange={setOrigin} placeholder="JFK" label="From" testId="input-origin" />
+                    <AirportInput value={origin} onChange={v => { setOrigin(v); if (!v) setOriginDisplay(""); }} placeholder="JFK" label="From" testId="input-origin" cityCountry={originDisplay} />
                     <div className="flex items-end pb-1.5">
                       <button type="button" onClick={swapAirports}
                         className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all shrink-0"
@@ -1254,7 +1263,7 @@ export default function Flights() {
                         <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
                       </button>
                     </div>
-                    <AirportInput value={destination} onChange={setDestination} placeholder="CDG" label="To" testId="input-destination" />
+                    <AirportInput value={destination} onChange={v => { setDestination(v); if (!v) setDestDisplay(""); }} placeholder="CDG" label="To" testId="input-destination" cityCountry={destDisplay} />
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     <div className={tripType === "roundtrip" ? "col-span-1" : "col-span-2 sm:col-span-1"}>

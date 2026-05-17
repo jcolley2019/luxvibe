@@ -424,6 +424,8 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
       origin: originIata, destination: destIata, depart,
       adults: String(adults), children: String(children), infants: String(infants),
       cabinClass, tripType,
+      ...(originDisplay ? { originDisplay } : {}),
+      ...(destDisplay ? { destDisplay } : {}),
       ...(tripType === "roundtrip" ? { return: returnDate } : {}),
     });
     navigate(`/flights?${params.toString()}`);
