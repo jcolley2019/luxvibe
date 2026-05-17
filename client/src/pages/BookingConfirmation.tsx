@@ -21,6 +21,7 @@ import {
   CreditCard,
   ArrowRight,
   Home,
+  Plane,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -303,6 +304,41 @@ export default function BookingConfirmation() {
                 </Button>
               </CardFooter>
             </Card>
+
+            {(() => {
+              const ci = bookingData.checkin || checkoutData?.checkIn;
+              const co = bookingData.checkout || checkoutData?.checkOut;
+              const guestCount = parseInt(checkoutData?.guests || "1", 10);
+              const alsoNeedFlights = checkoutData?.alsoNeedFlights;
+              const flightUrl = `/flights?depart=${ci || ""}&return=${co || ""}&adults=${guestCount}`;
+              return (
+                <div className={`rounded-2xl border overflow-hidden ${alsoNeedFlights ? "border-primary shadow-md shadow-primary/10" : "border-border"}`}>
+                  <div className={`px-5 py-4 border-b border-border flex items-center gap-2 ${alsoNeedFlights ? "bg-primary/5" : "bg-muted/30"}`}>
+                    <Plane className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-sm font-semibold text-foreground flex-1">Complete your trip — add flights</p>
+                    {alsoNeedFlights && <span className="text-xs text-primary font-semibold">You requested this</span>}
+                  </div>
+                  <div className="p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">
+                        Find flights to match your stay at <span className="font-medium text-foreground">{bookingData.hotel?.name || checkoutData?.hotelName}</span>
+                      </p>
+                      {ci && co && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Depart {format(parseISO(ci), "MMM d")} · Return {format(parseISO(co), "MMM d")} · {guestCount} passenger{guestCount !== 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                    <Link href={flightUrl}
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shrink-0 ${alsoNeedFlights ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-border hover:border-primary/40 hover:bg-primary/5 text-foreground"}`}
+                      data-testid="link-find-flights"
+                    >
+                      Search Flights <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
 
             <p className="text-center text-xs sm:text-sm text-muted-foreground px-4 pb-4">
               A confirmation email has been sent to {checkoutData?.email}.

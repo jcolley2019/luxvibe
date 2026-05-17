@@ -13,7 +13,7 @@ import {
   Plane, ArrowLeftRight, ArrowRight, ChevronDown, ChevronUp, Users, Search,
   Loader2, AlertCircle, Luggage, X, SlidersHorizontal, Clock,
   Check, RefreshCw, Wifi, Tv, Zap, Coffee, Armchair, Info,
-  CreditCard, ShieldCheck, Plus, LayoutList,
+  CreditCard, ShieldCheck, Plus, LayoutList, BedDouble,
 } from "lucide-react";
 import { usePreferences } from "@/context/preferences";
 import { TravelModeTabs } from "@/components/TravelModeTabs";
@@ -600,6 +600,7 @@ function FlightCheckoutSheet({
   );
   const [contact, setContact] = useState({ firstName: "", email: "" });
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [alsoNeedHotel, setAlsoNeedHotel] = useState(false);
 
   const verify = useMutation({
     mutationFn: async () => {
@@ -635,10 +636,14 @@ function FlightCheckoutSheet({
       setPrebookData(data);
       sessionStorage.setItem("flightPassengers", JSON.stringify(passengers));
       sessionStorage.setItem("flightContact", JSON.stringify(contact));
+      const inboundSegs = journey.segments.filter(s => s.direction === "INBOUND");
       sessionStorage.setItem("flightData", JSON.stringify({
         origin: journey.segments[0]?.originCode,
         destination: journey.segments[journey.segments.length - 1]?.destinationCode,
         departTime: journey.segments[0]?.departureTime,
+        returnDate: inboundSegs[0]?.departureTime?.split("T")[0] || null,
+        adults,
+        alsoNeedHotel,
         price: offer.pricing.display.total,
         currency: offer.pricing.display.currency || currency,
       }));
@@ -677,6 +682,7 @@ function FlightCheckoutSheet({
     else {
       setStep("verifying"); setVerifyData(null); setPrebookData(null);
       setSdkLoaded(false); setSdkInit(false); setFormErrors([]);
+      setAlsoNeedHotel(false);
       prebook.reset(); verify.reset();
     }
   }, [open]);
@@ -884,6 +890,22 @@ function FlightCheckoutSheet({
                   <p className="text-xs text-destructive">{(prebook.error as Error)?.message || "Failed to reserve this flight. Please try again."}</p>
                 </div>
               )}
+
+              <div
+                className="flex items-start gap-3 p-4 rounded-xl border border-border cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
+                onClick={() => setAlsoNeedHotel(v => !v)}
+                data-testid="checkbox-also-need-hotel"
+              >
+                <div className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${alsoNeedHotel ? "bg-primary border-primary" : "border-muted-foreground/40"}`}>
+                  {alsoNeedHotel && <Check className="w-3 h-3 text-primary-foreground" />}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <BedDouble className="w-3.5 h-3.5 text-primary" /> I also need a hotel for this trip
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">After your flight is booked, we'll take you to hotel search with your dates pre-filled.</p>
+                </div>
+              </div>
 
               <div className="pb-8">
                 <Button onClick={handleProceed} disabled={prebook.isPending} className="w-full h-12 rounded-xl text-base font-semibold gap-2"

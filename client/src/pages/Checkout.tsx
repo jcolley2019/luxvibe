@@ -36,6 +36,7 @@ import {
   ChevronDown,
   Check,
   Gift,
+  Plane,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -75,6 +76,7 @@ export default function Checkout() {
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [voucherInput, setVoucherInput] = useState("");
   const [voucherApplied, setVoucherApplied] = useState<string | null>(null);
+  const [alsoNeedFlights, setAlsoNeedFlights] = useState(false);
 
   useEffect(() => {
     document.title = "Complete Your Booking — Luxvibe";
@@ -122,6 +124,7 @@ export default function Checkout() {
         roomName,
         price,
         currency,
+        alsoNeedFlights,
       };
       sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
       sessionStorage.setItem(
@@ -361,6 +364,24 @@ export default function Checkout() {
                             <Check className="w-3 h-3" /> Code <span className="font-mono font-bold">{voucherApplied}</span> applied to your booking
                           </p>
                         )}
+                      </div>
+                    )}
+
+                    {!prebookData && (
+                      <div
+                        className="flex items-start gap-3 p-4 rounded-xl border border-border cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
+                        onClick={() => setAlsoNeedFlights(v => !v)}
+                        data-testid="checkbox-also-need-flights"
+                      >
+                        <div className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${alsoNeedFlights ? "bg-primary border-primary" : "border-muted-foreground/40"}`}>
+                          {alsoNeedFlights && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                            <Plane className="w-3.5 h-3.5 text-primary" /> I also need flights for this trip
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">After booking your hotel, we'll take you to flight search with your dates pre-filled.</p>
+                        </div>
                       </div>
                     )}
 

@@ -6,8 +6,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import {
   Plane, CheckCircle2, XCircle, Loader2, Mail, Home, Users,
-  ArrowRight, AlertCircle, Calendar,
+  ArrowRight, AlertCircle, Calendar, BedDouble,
 } from "lucide-react";
+import { Link } from "wouter";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -295,6 +296,42 @@ export default function FlightConfirmation() {
                 </div>
               </div>
             </div>
+
+            {ssFlightData && (() => {
+              const dest = ssFlightData.destination;
+              const checkIn = ssFlightData.departTime?.split("T")[0];
+              const checkOut = ssFlightData.returnDate;
+              const guestCount = ssFlightData.adults || 1;
+              const alsoNeedHotel = ssFlightData.alsoNeedHotel;
+              const hotelUrl = `/?destination=${dest || ""}&checkIn=${checkIn || ""}&checkOut=${checkOut || ""}&adults=${guestCount}`;
+              return (
+                <div className={`rounded-2xl border overflow-hidden ${alsoNeedHotel ? "border-primary shadow-md shadow-primary/10" : "border-border"}`}>
+                  <div className={`px-5 py-4 border-b border-border flex items-center gap-2 ${alsoNeedHotel ? "bg-primary/5" : "bg-muted/30"}`}>
+                    <BedDouble className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-sm font-semibold text-foreground flex-1">Complete your trip — find a hotel</p>
+                    {alsoNeedHotel && <span className="text-xs text-primary font-semibold">You requested this</span>}
+                  </div>
+                  <div className="p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">
+                        Find a hotel in <span className="font-medium text-foreground">{dest}</span> to match your flight dates
+                      </p>
+                      {checkIn && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Check-in {format(new Date(checkIn), "MMM d")}{checkOut ? ` · Check-out ${format(new Date(checkOut), "MMM d")}` : ""} · {guestCount} guest{guestCount !== 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                    <Link href={hotelUrl}
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shrink-0 ${alsoNeedHotel ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-border hover:border-primary/40 hover:bg-primary/5 text-foreground"}`}
+                      data-testid="link-find-hotels"
+                    >
+                      Search Hotels <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="flex gap-3">
               <Button className="flex-1 rounded-xl gap-2" onClick={() => navigate("/")}>
