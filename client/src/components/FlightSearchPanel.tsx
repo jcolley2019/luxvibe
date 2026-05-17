@@ -81,20 +81,24 @@ function AirportField({
     } else { setSuggestions([]); setOpen(false); }
   }, []);
 
+  const [editing, setEditing] = useState(!iata);
+  const [airportName, setAirportName] = useState("");
+
   function handleSelect(s: Airport) {
-    const lbl = s.cityName || s.name || s.iataCode;
+    const city = s.cityName || s.name || s.iataCode;
+    const lbl = city + (s.countryCode ? `, ${s.countryCode}` : "");
     onSelect(s.iataCode, lbl);
     setQuery(lbl);
     setOpen(false);
     setSuggestions([]);
+    if (s.name && s.cityName) setAirportName(s.name);
+    else setAirportName("");
   }
 
   function handleFocus() {
     setQuery("");
     if (suggestions.length > 0) setOpen(true);
   }
-
-  const [editing, setEditing] = useState(!iata);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (iata) setEditing(false); }, [iata]);
@@ -102,6 +106,7 @@ function AirportField({
   function handleCardSelectedClick() {
     onSelect("", "");
     setQuery("");
+    setAirportName("");
     setEditing(true);
     setTimeout(() => inputRef.current?.focus(), 0);
   }
@@ -112,15 +117,20 @@ function AirportField({
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
 
         {iata && !editing ? (
-          /* Selected state — shows IATA + city like the dropdown row */
+          /* Selected state — matches dropdown row: IATA + city/country + terminal name */
           <button
             type="button"
             onClick={handleCardSelectedClick}
-            className="flex items-center gap-3 w-full text-left"
+            className="flex items-start gap-3 w-full text-left"
             data-testid={testId}
           >
-            <span className="font-mono font-bold text-base text-foreground w-10 shrink-0">{iata}</span>
-            <span className="text-sm font-medium text-foreground truncate">{display}</span>
+            <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0 mt-0.5">{iata}</span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{display}</p>
+              {airportName && (
+                <p className="text-xs text-muted-foreground truncate">{airportName}</p>
+              )}
+            </div>
           </button>
         ) : (
           /* Search state */
