@@ -105,7 +105,7 @@ function AirportField({
   useEffect(() => { if (iata) setEditing(false); }, [iata]);
 
   function handleCardSelectedClick() {
-    onSelect("", "");
+    onSelect("", "", "");
     setQuery("");
     setAirportName("");
     setEditing(true);

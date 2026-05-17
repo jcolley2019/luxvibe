@@ -1103,6 +1103,8 @@ export default function Flights() {
     onSuccess: data => setResults(data),
   });
 
+  const autoSearchFiredRef = useRef(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tt = params.get("tripType");
@@ -1115,7 +1117,17 @@ export default function Flights() {
         const dt = params.get(`leg${i}_date`);
         if (o && d) parsed.push({ origin: o, destination: d, date: dt || defaultDepart });
       }
-      if (parsed.length >= 2) setMultiLegs(parsed);
+      if (parsed.length >= 2) {
+        setMultiLegs(parsed);
+        const validLegs = parsed.filter(l => l.origin && l.destination);
+        const a = Number(params.get("adults") || "1");
+        const c = Number(params.get("children") || "0");
+        const inf = Number(params.get("infants") || "0");
+        const cab = (params.get("cabinClass") || "ECONOMY") as CabinClass;
+        if (validLegs.length >= 2) {
+          mutation.mutate({ legs: validLegs.map(l => ({ origin: l.origin, destination: l.destination, date: l.date })), adults: a, children: c, infants: inf, cabinClass: cab, currency: currency || "USD", country: "US" });
+        }
+      }
     } else if (tt === "oneway" || tt === "roundtrip") {
       setTripType(tt as TripType);
     }
@@ -1125,13 +1137,29 @@ export default function Flights() {
     const dd = params.get("destDisplay"); if (dd) setDestDisplay(dd);
     const on = params.get("originAirportName"); if (on) setOriginAirportName(on);
     const dn = params.get("destAirportName"); if (dn) setDestAirportName(dn);
-    const dep = params.get("depart"); if (dep) setDepartDate(dep);
+    const dep = params.get("depart") || defaultDepart;
+    if (params.get("depart")) setDepartDate(dep);
     const ret = params.get("return"); if (ret) setReturnDate(ret);
     const a = params.get("adults"); if (a) setAdults(Number(a));
     const c = params.get("children"); if (c) setChildren(Number(c));
     const inf = params.get("infants"); if (inf) setInfants(Number(inf));
     const cab = params.get("cabinClass"); if (cab && cab in CABIN_LABELS) setCabinClass(cab as CabinClass);
-  }, []);
+
+    // Auto-search when navigating from homepage — use raw URL values to avoid async state delay
+    if (o && d && tt !== "multicity" && !autoSearchFiredRef.current) {
+      autoSearchFiredRef.current = true;
+      const autoAdults = Number(params.get("adults") || "1");
+      const autoChildren = Number(params.get("children") || "0");
+      const autoInfants = Number(params.get("infants") || "0");
+      const autoCabinClass = (params.get("cabinClass") || "ECONOMY") as CabinClass;
+      const tripTypeVal = tt || "roundtrip";
+      const legs: any[] = [{ origin: o, destination: d, date: dep, direction: "OUTBOUND" }];
+      if (tripTypeVal === "roundtrip" && ret) {
+        legs.push({ origin: d, destination: o, date: ret, direction: "INBOUND" });
+      }
+      mutation.mutate({ legs, adults: autoAdults, children: autoChildren, infants: autoInfants, cabinClass: autoCabinClass, currency: currency || "USD", country: "US" });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
