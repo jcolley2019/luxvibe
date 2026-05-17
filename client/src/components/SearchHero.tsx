@@ -1386,7 +1386,7 @@ export default function SearchHero({
         </div>
 
         {/* ── Mobile temptation chips ── */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 px-2 pb-2">
+        {searchMode === "hotels" && <div className="flex flex-wrap items-center justify-center gap-2 mt-4 px-2 pb-2">
           <span className="text-xs text-gray-500 dark:text-muted-foreground font-medium mr-1">
             Try:
           </span>
@@ -1445,7 +1445,7 @@ export default function SearchHero({
             <Sparkles className="w-3 h-3" />
             Ask Luxe
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* ── Mobile full-screen destination search sheet ── */}
@@ -1932,7 +1932,7 @@ export default function SearchHero({
           )}
 
           {/* ── Desktop temptation chips ── */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">
+          {searchMode === "hotels" && <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">
             <span className="text-white/60 text-sm font-medium mr-1">Try:</span>
             {[
               {
@@ -1989,7 +1989,7 @@ export default function SearchHero({
               <Sparkles className="w-3.5 h-3.5" />
               Ask Luxe
             </button>
-          </div>
+          </div>}
         </div>
       </div>
     </>
