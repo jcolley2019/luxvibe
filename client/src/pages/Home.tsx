@@ -308,7 +308,7 @@ function PopularDestinations() {
   return (
     <section className="pb-12 container mx-auto px-4" data-testid="section-popular-destinations">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold font-heading">Explore popular destinations</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold font-heading">Explore popular destinations</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => scrollDest("left")} aria-label="Previous" data-testid="button-dest-prev"
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
@@ -328,7 +328,7 @@ function PopularDestinations() {
         {cards.map((dest, i) => (
           <motion.div
             key={dest.city}
-            className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none"
+            className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.3 }}
@@ -368,15 +368,15 @@ function PopularDestinations() {
 }
 
 const TRAVEL_STYLES = [
-  { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",    bg: "bg-cyan-50 dark:bg-cyan-950/40",    activeBg: "bg-cyan-600 text-white" },
-  { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600",  bg: "bg-violet-50 dark:bg-violet-950/40",  activeBg: "bg-violet-600 text-white" },
-  { key: "romance",  label: "Romance",    icon: Heart,      query: "romantic boutique hotels perfect for honeymoons couples retreats and special occasions", color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-950/40",    activeBg: "bg-rose-600 text-white" },
-  { key: "luxury",   label: "Luxury",     icon: Gem,        query: "luxury five star hotel with premium amenities butler service and exceptional dining", color: "text-yellow-600",  bg: "bg-yellow-50 dark:bg-yellow-950/40",  activeBg: "bg-yellow-600 text-white" },
-  { key: "wellness", label: "Wellness",   icon: Waves,      query: "luxury spa and wellness retreat hotels with thermal pools yoga and holistic therapies", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/40", activeBg: "bg-emerald-600 text-white" },
-  { key: "family",   label: "Family",     icon: Users,      query: "family-friendly resort hotels with kids clubs pools and entertainment for all ages", color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-950/40",   activeBg: "bg-amber-600 text-white" },
-  { key: "ski",      label: "Ski & Snow", icon: Mountain,   query: "ski-in ski-out mountain resort hotels with slopes access and alpine atmosphere", color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950/40",    activeBg: "bg-blue-600 text-white" },
-  { key: "business", label: "Business",   icon: Briefcase,  query: "business hotel with meeting rooms fast wifi and executive services in city centre", color: "text-slate-600",   bg: "bg-slate-50 dark:bg-slate-950/40",   activeBg: "bg-slate-600 text-white" },
-  { key: "budget",   label: "Budget",     icon: PiggyBank,  query: "affordable comfortable hotel good value for money clean and well located", color: "text-green-600",   bg: "bg-green-50 dark:bg-green-950/40",   activeBg: "bg-green-600 text-white" },
+  { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",    bg: "bg-cyan-50 dark:bg-cyan-950/40",    activeBg: "bg-gradient-to-r from-cyan-400 to-blue-500 text-white" },
+  { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600",  bg: "bg-violet-50 dark:bg-violet-950/40",  activeBg: "bg-gradient-to-r from-violet-500 to-purple-600 text-white" },
+  { key: "romance",  label: "Romance",    icon: Heart,      query: "romantic boutique hotels perfect for honeymoons couples retreats and special occasions", color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-950/40",    activeBg: "bg-gradient-to-r from-rose-500 to-pink-600 text-white" },
+  { key: "luxury",   label: "Luxury",     icon: Gem,        query: "luxury five star hotel with premium amenities butler service and exceptional dining", color: "text-yellow-600",  bg: "bg-yellow-50 dark:bg-yellow-950/40",  activeBg: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white" },
+  { key: "wellness", label: "Wellness",   icon: Waves,      query: "luxury spa and wellness retreat hotels with thermal pools yoga and holistic therapies", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/40", activeBg: "bg-gradient-to-r from-emerald-400 to-teal-500 text-white" },
+  { key: "family",   label: "Family",     icon: Users,      query: "family-friendly resort hotels with kids clubs pools and entertainment for all ages", color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-950/40",   activeBg: "bg-gradient-to-r from-amber-400 to-orange-500 text-white" },
+  { key: "ski",      label: "Ski & Snow", icon: Mountain,   query: "ski-in ski-out mountain resort hotels with slopes access and alpine atmosphere", color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950/40",    activeBg: "bg-gradient-to-r from-blue-400 to-indigo-500 text-white" },
+  { key: "business", label: "Business",   icon: Briefcase,  query: "business hotel with meeting rooms fast wifi and executive services in city centre", color: "text-slate-600",   bg: "bg-slate-50 dark:bg-slate-950/40",   activeBg: "bg-gradient-to-r from-slate-500 to-slate-700 text-white" },
+  { key: "budget",   label: "Budget",     icon: PiggyBank,  query: "affordable comfortable hotel good value for money clean and well located", color: "text-green-600",   bg: "bg-green-50 dark:bg-green-950/40",   activeBg: "bg-gradient-to-r from-green-400 to-emerald-500 text-white" },
 ];
 
 function StaysForYourStyle() {
@@ -460,7 +460,7 @@ function StaysForYourStyle() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="text-xl sm:text-2xl font-bold font-heading">Stays for your travel style</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold font-heading">Stays for your travel style</h2>
           <span className="hidden sm:inline text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-tight">
             AI-Powered
           </span>
@@ -535,7 +535,7 @@ function StaysForYourStyle() {
       {isLoading ? (
         <div className="flex gap-5 overflow-x-hidden pb-2 px-4 -mx-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
+            <div key={i} className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
               <div className="bg-muted h-48 w-full" />
               <div className="p-3 space-y-2">
                 <div className="bg-muted h-3.5 rounded w-3/4" />
@@ -557,7 +557,7 @@ function StaysForYourStyle() {
           {displayed.map((hotel, i) => (
             <motion.div
               key={hotel.id}
-              className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none"
+              className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2596,7 +2596,7 @@ export default function Home() {
                 {featured?.map((hotel, i) => (
                   <motion.div
                     key={hotel.id}
-                    className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none"
+                    className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2653,7 +2653,7 @@ export default function Home() {
                 {enrichedRecentHotels.map((hotel, i) => (
                   <motion.div
                     key={hotel.id}
-                    className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none"
+                    className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
@@ -2735,7 +2735,7 @@ export default function Home() {
                   {nearbyHotels.map((hotel, i) => (
                     <motion.div
                       key={hotel.id}
-                      className="flex-none w-[calc(25%-15px)] min-w-[72vw] sm:min-w-[240px] snap-center sm:snap-align-none"
+                      className="flex-none w-[calc(25%-15px)] min-w-[78vw] sm:min-w-[270px] snap-center sm:snap-align-none"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.35 }}
