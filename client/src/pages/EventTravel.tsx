@@ -326,6 +326,19 @@ export default function EventTravel() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
+      {/* ── Coming Soon Notice ── */}
+      <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-center gap-3 text-center flex-wrap">
+          <span className="flex items-center gap-1.5 text-amber-800 dark:text-amber-200 font-semibold text-sm">
+            <Info className="w-4 h-4 shrink-0" />
+            Coming Soon
+          </span>
+          <span className="text-amber-700 dark:text-amber-300 text-sm">
+            Live event search is pending Ticketmaster partner approval. Hotel booking around events is fully available now.
+          </span>
+        </div>
+      </div>
+
       {/* ── Hero ── */}
       <section className="relative overflow-hidden h-[320px] md:h-[638px] flex flex-col justify-center px-4 bg-black">
         {/* Crossfading background images — prev fades out, current fades in */}
@@ -361,16 +374,14 @@ export default function EventTravel() {
             Plan premium trips around concerts, sports, theater, festivals, and destination events. LuxVibe helps travelers discover luxury hotels near live experiences, then — when available and approved — directs users to official ticketing partners to complete event ticket purchases directly.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-5">
-            <Link href="/events">
-              <Button
-                size="lg"
-                className="h-12 px-8 text-base shadow-lg"
-                data-testid="button-explore-event-travel"
-              >
-                Explore Event Travel
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              className="h-12 px-8 text-base shadow-lg opacity-75 cursor-not-allowed"
+              disabled
+              data-testid="button-explore-event-travel"
+            >
+              Event Search Coming Soon
+            </Button>
             <Button
               size="lg"
               variant="outline"

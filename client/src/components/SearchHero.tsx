@@ -224,7 +224,7 @@ export default function SearchHero({
   const [placeId, setPlaceId] = useState("");
 
   function handleTabChange(key: "hotels" | "flights" | "events") {
-    if (key === "events") { setLocation("/events"); return; }
+    if (key === "events") { setLocation("/event-travel"); return; }
     setSearchMode(key as "hotels" | "flights");
   }
 

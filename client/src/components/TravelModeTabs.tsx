@@ -6,7 +6,7 @@ type TabMode = "hotels" | "flights" | "events";
 const TABS: { key: TabMode; label: string; icon: React.ElementType; href: string }[] = [
   { key: "hotels",  label: "Hotels",  icon: Building2, href: "/" },
   { key: "flights", label: "Flights", icon: Plane,     href: "/flights" },
-  { key: "events",  label: "Events",  icon: Ticket,    href: "/events" },
+  { key: "events",  label: "Events",  icon: Ticket,    href: "/event-travel" },
 ];
 
 interface Props {
