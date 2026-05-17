@@ -94,27 +94,53 @@ function AirportField({
     if (suggestions.length > 0) setOpen(true);
   }
 
+  const [editing, setEditing] = useState(!iata);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { if (iata) setEditing(false); }, [iata]);
+
+  function handleCardSelectedClick() {
+    onSelect("", "");
+    setQuery("");
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
   if (card) {
     return (
       <div ref={ref} className="relative px-4 py-3">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
-        <div className="flex items-center gap-2.5">
-          <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            value={query}
-            onChange={e => handleChange(e.target.value)}
-            onFocus={handleFocus}
-            placeholder={placeholder}
-            autoComplete="off"
-            className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+
+        {iata && !editing ? (
+          /* Selected state — shows IATA + city like the dropdown row */
+          <button
+            type="button"
+            onClick={handleCardSelectedClick}
+            className="flex items-center gap-3 w-full text-left"
             data-testid={testId}
-          />
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />}
-        </div>
-        {iata && query && (
-          <p className="text-[10px] font-mono font-bold text-primary/60 mt-1 pl-6">{iata}</p>
+          >
+            <span className="font-mono font-bold text-base text-foreground w-10 shrink-0">{iata}</span>
+            <span className="text-sm font-medium text-foreground truncate">{display}</span>
+          </button>
+        ) : (
+          /* Search state */
+          <div className="flex items-center gap-2.5">
+            <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={e => handleChange(e.target.value)}
+              onFocus={handleFocus}
+              placeholder={placeholder}
+              autoComplete="off"
+              className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+              data-testid={testId}
+            />
+            {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />}
+          </div>
         )}
+
         <AnimatePresence>
           {open && suggestions.length > 0 && (
             <motion.div
@@ -122,7 +148,7 @@ function AirportField({
               className="absolute left-0 right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-xl z-[60] overflow-hidden"
             >
               {suggestions.map((s, i) => (
-                <button key={i} type="button" onMouseDown={() => handleSelect(s)}
+                <button key={i} type="button" onMouseDown={() => { handleSelect(s); setEditing(false); }}
                   className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors border-b border-border last:border-0"
                   data-testid={`flight-airport-${s.iataCode}`}
                 >
