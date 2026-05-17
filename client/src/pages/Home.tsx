@@ -383,6 +383,7 @@ function StaysForYourStyle() {
   const [activeKey, setActiveKey] = useState("beach");
   const [, navigate] = useLocation();
   const staysCarouselRef = useRef<HTMLDivElement>(null);
+  const pillsRowRef = useRef<HTMLDivElement>(null);
   const activeStyle = TRAVEL_STYLES.find((s) => s.key === activeKey)!;
 
   const { data: hotels, isLoading } = useQuery<any[]>({
@@ -425,11 +426,15 @@ function StaysForYourStyle() {
           </button>
           <button
             onClick={() => {
-              if (!staysCarouselRef.current) return;
-              const children = staysCarouselRef.current.children;
-              if (children.length < 2) return;
-              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
-              staysCarouselRef.current.scrollBy({ left: -(step * (window.innerWidth < 768 ? 1 : 4)), behavior: "smooth" });
+              if (window.innerWidth < 768) {
+                pillsRowRef.current?.scrollBy({ left: -160, behavior: "smooth" });
+              } else {
+                if (!staysCarouselRef.current) return;
+                const children = staysCarouselRef.current.children;
+                if (children.length < 2) return;
+                const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+                staysCarouselRef.current.scrollBy({ left: -(step * 4), behavior: "smooth" });
+              }
             }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-prev"
@@ -438,11 +443,15 @@ function StaysForYourStyle() {
           </button>
           <button
             onClick={() => {
-              if (!staysCarouselRef.current) return;
-              const children = staysCarouselRef.current.children;
-              if (children.length < 2) return;
-              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
-              staysCarouselRef.current.scrollBy({ left: step * (window.innerWidth < 768 ? 1 : 4), behavior: "smooth" });
+              if (window.innerWidth < 768) {
+                pillsRowRef.current?.scrollBy({ left: 160, behavior: "smooth" });
+              } else {
+                if (!staysCarouselRef.current) return;
+                const children = staysCarouselRef.current.children;
+                if (children.length < 2) return;
+                const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+                staysCarouselRef.current.scrollBy({ left: step * 4, behavior: "smooth" });
+              }
             }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-next"
@@ -452,23 +461,33 @@ function StaysForYourStyle() {
         </div>
       </div>
 
-      {/* Style tabs — single scrollable row */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scroll-smooth" style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
-        {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
-          <button
-            key={key}
-            onClick={() => setActiveKey(key)}
-            data-testid={`tab-style-${key}`}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
-              activeKey === key
-                ? `${activeBg} border-transparent shadow-sm`
-                : `${bg} ${color} border-border hover:border-transparent`
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
+      {/* Style tabs — single scrollable row with fade hint */}
+      <div className="relative">
+        <div
+          ref={pillsRowRef}
+          className="flex gap-2 overflow-x-auto pb-3 mb-1 scroll-smooth"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+        >
+          {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
+            <button
+              key={key}
+              onClick={() => setActiveKey(key)}
+              data-testid={`tab-style-${key}`}
+              className={`flex-none flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+                activeKey === key
+                  ? `${activeBg} border-transparent shadow-sm`
+                  : `${bg} ${color} border-border hover:border-transparent`
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+          {/* Spacer so last pill doesn't sit flush against fade */}
+          <div className="flex-none w-4" />
+        </div>
+        {/* Right-edge fade gradient — shows on all sizes to hint more pills */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-background to-transparent" />
       </div>
 
       {/* Cards */}
