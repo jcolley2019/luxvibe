@@ -458,7 +458,7 @@ function StaysForYourStyle() {
         <div
           ref={pillsRowRef}
           className="flex gap-2 overflow-x-auto pb-3 mb-1 scroll-smooth"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch", touchAction: "pan-x" } as React.CSSProperties}
         >
           {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
             <button
