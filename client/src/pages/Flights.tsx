@@ -1080,9 +1080,25 @@ export default function Flights() {
   const [filterMaxStops, setFilterMaxStops] = useState<number>(-1);
   const [filterRefundable, setFilterRefundable] = useState(false);
   const [filterCheckedBag, setFilterCheckedBag] = useState(false);
+  const [filterCarryOn, setFilterCarryOn] = useState(false);
+  const [filterChangeable, setFilterChangeable] = useState(false);
   const [filterMaxPrice, setFilterMaxPrice] = useState<number>(10000);
+  const [filterMaxDuration, setFilterMaxDuration] = useState<number>(0);
+  const [filterDepartureTimes, setFilterDepartureTimes] = useState<Set<string>>(new Set());
   const [filterAirlines, setFilterAirlines] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+
+  function clearAllFilters() {
+    setFilterMaxStops(-1);
+    setFilterRefundable(false);
+    setFilterCheckedBag(false);
+    setFilterCarryOn(false);
+    setFilterChangeable(false);
+    setFilterMaxPrice(10000);
+    setFilterMaxDuration(0);
+    setFilterDepartureTimes(new Set());
+    setFilterAirlines(new Set());
+  }
 
   const [results, setResults] = useState<FlightSearchResponse | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<{ journey: FlightJourney; offer: FlightOffer } | null>(null);
@@ -1168,6 +1184,7 @@ export default function Flights() {
       if (validLegs.length < 2) return;
       mutation.mutate({ legs: validLegs.map(l => ({ origin: l.origin, destination: l.destination, date: l.date })), adults, children, infants, cabinClass, currency: currency || "USD", country: "US" });
       setResults(null);
+      clearAllFilters();
       return;
     }
     if (!origin || !destination) return;
@@ -1177,6 +1194,7 @@ export default function Flights() {
     }
     mutation.mutate({ legs, adults, children, infants, cabinClass, currency: currency || "USD", country: "US" });
     setResults(null);
+    clearAllFilters();
   }
 
   function swapAirports() {
@@ -1220,11 +1238,22 @@ export default function Flights() {
     if (!offer) return false;
     if (filterRefundable && !offer.terms.refundable) return false;
     if (filterCheckedBag && !offer.baggage.hasCheckedBag) return false;
+    if (filterCarryOn && !offer.baggage.hasCarryOnBag) return false;
+    if (filterChangeable && !offer.terms.changeable) return false;
     if (filterMaxStops !== -1) {
       const outStops = j.segments.filter(s => s.direction === "OUTBOUND" || j.segments.every(x => !x.direction)).length - 1;
       if (outStops > filterMaxStops) return false;
     }
     if (offer.pricing.display.total > filterMaxPrice) return false;
+    if (filterMaxDuration > 0 && j.totalDuration.minutes > filterMaxDuration) return false;
+    if (filterDepartureTimes.size > 0) {
+      const outFirst = j.segments.find(s => s.direction === "OUTBOUND" || j.segments.every(x => !x.direction));
+      if (outFirst) {
+        const hour = new Date(outFirst.departureTime).getHours();
+        const slot = hour < 6 ? "night" : hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+        if (!filterDepartureTimes.has(slot)) return false;
+      }
+    }
     if (filterAirlines.size > 0) {
       const outFirst = j.segments.find(s => s.direction === "OUTBOUND" || j.segments.every(x => !x.direction));
       if (!outFirst || !filterAirlines.has(outFirst.carrier.marketingCode)) return false;
@@ -1246,6 +1275,8 @@ export default function Flights() {
   });
 
   const maxResultPrice = allJourneys.reduce((max, j) => Math.max(max, j.offers[0]?.pricing.display.total ?? 0), 0);
+  const maxResultDuration = allJourneys.reduce((max, j) => Math.max(max, j.totalDuration.minutes), 0);
+  const durationSliderMax = Math.max(maxResultDuration, 720);
 
   const CABIN_LABELS: Record<CabinClass, string> = {
     ECONOMY: "Economy", PREMIUM_ECONOMY: "Premium Economy", BUSINESS: "Business", FIRST: "First Class",
@@ -1593,11 +1624,74 @@ export default function Flights() {
                         <span className="text-sm text-foreground">Refundable only</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={filterChangeable} onChange={e => setFilterChangeable(e.target.checked)}
+                          className="rounded" data-testid="check-changeable" />
+                        <span className="text-sm text-foreground">Changeable fare</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={filterCheckedBag} onChange={e => setFilterCheckedBag(e.target.checked)}
                           className="rounded" data-testid="check-checked-bag" />
                         <span className="text-sm text-foreground">Checked bag included</span>
                       </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={filterCarryOn} onChange={e => setFilterCarryOn(e.target.checked)}
+                          className="rounded" data-testid="check-carry-on" />
+                        <span className="text-sm text-foreground">Carry-on included</span>
+                      </label>
                     </div>
+
+                    <div className="border-t border-border pt-4">
+                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Departure time</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {[
+                          { key: "morning", label: "Morning", sub: "6am – 12pm" },
+                          { key: "afternoon", label: "Afternoon", sub: "12pm – 6pm" },
+                          { key: "evening", label: "Evening", sub: "6pm – 12am" },
+                          { key: "night", label: "Night", sub: "12am – 6am" },
+                        ].map(slot => {
+                          const active = filterDepartureTimes.has(slot.key);
+                          return (
+                            <button
+                              key={slot.key}
+                              type="button"
+                              onClick={() => setFilterDepartureTimes(prev => {
+                                const next = new Set(prev);
+                                if (next.has(slot.key)) next.delete(slot.key);
+                                else next.add(slot.key);
+                                return next;
+                              })}
+                              className={`px-2 py-1.5 rounded-lg border text-left transition-all ${active ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:border-primary/40"}`}
+                              data-testid={`button-dept-time-${slot.key}`}
+                            >
+                              <div className="text-xs font-medium">{slot.label}</div>
+                              <div className="text-[10px] text-muted-foreground">{slot.sub}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {maxResultDuration > 0 && (
+                      <div className="border-t border-border pt-4">
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                          Max trip duration
+                        </div>
+                        <div className="text-xs text-muted-foreground mb-3">
+                          {filterMaxDuration === 0 ? "Any" : formatDuration(filterMaxDuration)}
+                        </div>
+                        <Slider
+                          min={60} max={durationSliderMax} step={30}
+                          value={[filterMaxDuration === 0 ? durationSliderMax : filterMaxDuration]}
+                          onValueChange={([v]) => setFilterMaxDuration(v >= durationSliderMax ? 0 : v)}
+                          className="w-full"
+                          data-testid="slider-max-duration"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                          <span>1h</span>
+                          <span>{formatDuration(durationSliderMax)}</span>
+                        </div>
+                      </div>
+                    )}
 
                     {uniqueAirlines.length > 1 && (
                       <div className="border-t border-border pt-4 space-y-2">
@@ -1627,10 +1721,10 @@ export default function Flights() {
                       </div>
                     )}
 
-                    {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterAirlines.size > 0) && (
+                    {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterCarryOn || filterChangeable || filterAirlines.size > 0 || filterDepartureTimes.size > 0 || filterMaxDuration > 0) && (
                       <button
                         type="button"
-                        onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); setFilterAirlines(new Set()); }}
+                        onClick={clearAllFilters}
                         className="w-full text-xs text-primary hover:underline text-left"
                         data-testid="button-clear-filters"
                       >
@@ -1670,9 +1764,9 @@ export default function Flights() {
                       >
                         <SlidersHorizontal className="w-4 h-4" />
                         Filters
-                        {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterAirlines.size > 0].filter(Boolean).length > 0 && (
+                        {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterCarryOn, filterChangeable, filterAirlines.size > 0, filterDepartureTimes.size > 0, filterMaxDuration > 0].filter(Boolean).length > 0 && (
                           <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                            {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterAirlines.size > 0].filter(Boolean).length}
+                            {[filterMaxStops !== -1, filterRefundable, filterCheckedBag, filterCarryOn, filterChangeable, filterAirlines.size > 0, filterDepartureTimes.size > 0, filterMaxDuration > 0].filter(Boolean).length}
                           </span>
                         )}
                       </button>
@@ -1691,7 +1785,7 @@ export default function Flights() {
                         <p className="text-muted-foreground font-medium">No results match your filters</p>
                         <button
                           type="button"
-                          onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); }}
+                          onClick={clearAllFilters}
                           className="text-sm text-primary hover:underline"
                         >
                           Clear all filters
@@ -1766,11 +1860,72 @@ export default function Flights() {
                   <span className="text-sm text-foreground">Refundable only</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={filterChangeable} onChange={e => setFilterChangeable(e.target.checked)}
+                    className="rounded w-4 h-4" data-testid="check-changeable-mobile" />
+                  <span className="text-sm text-foreground">Changeable fare</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={filterCheckedBag} onChange={e => setFilterCheckedBag(e.target.checked)}
                     className="rounded w-4 h-4" data-testid="check-checked-bag-mobile" />
                   <span className="text-sm text-foreground">Checked bag included</span>
                 </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={filterCarryOn} onChange={e => setFilterCarryOn(e.target.checked)}
+                    className="rounded w-4 h-4" data-testid="check-carry-on-mobile" />
+                  <span className="text-sm text-foreground">Carry-on included</span>
+                </label>
               </div>
+
+              <div className="border-t border-border pt-4">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Departure time</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: "morning", label: "Morning", sub: "6am – 12pm" },
+                    { key: "afternoon", label: "Afternoon", sub: "12pm – 6pm" },
+                    { key: "evening", label: "Evening", sub: "6pm – 12am" },
+                    { key: "night", label: "Night", sub: "12am – 6am" },
+                  ].map(slot => {
+                    const active = filterDepartureTimes.has(slot.key);
+                    return (
+                      <button
+                        key={slot.key}
+                        type="button"
+                        onClick={() => setFilterDepartureTimes(prev => {
+                          const next = new Set(prev);
+                          if (next.has(slot.key)) next.delete(slot.key);
+                          else next.add(slot.key);
+                          return next;
+                        })}
+                        className={`px-3 py-2 rounded-xl border text-left transition-all ${active ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:border-primary/40"}`}
+                        data-testid={`button-dept-time-mobile-${slot.key}`}
+                      >
+                        <div className="text-xs font-medium">{slot.label}</div>
+                        <div className="text-[10px] text-muted-foreground">{slot.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {maxResultDuration > 0 && (
+                <div className="border-t border-border pt-4">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Max trip duration</div>
+                  <div className="text-xs text-muted-foreground mb-3">
+                    {filterMaxDuration === 0 ? "Any" : formatDuration(filterMaxDuration)}
+                  </div>
+                  <Slider
+                    min={60} max={durationSliderMax} step={30}
+                    value={[filterMaxDuration === 0 ? durationSliderMax : filterMaxDuration]}
+                    onValueChange={([v]) => setFilterMaxDuration(v >= durationSliderMax ? 0 : v)}
+                    className="w-full"
+                    data-testid="slider-max-duration-mobile"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                    <span>1h</span>
+                    <span>{formatDuration(durationSliderMax)}</span>
+                  </div>
+                </div>
+              )}
 
               {uniqueAirlines.length > 1 && (
                 <div className="border-t border-border pt-4 space-y-2">
@@ -1802,10 +1957,10 @@ export default function Flights() {
             </div>
 
             <div className="px-5 py-4 border-t border-border shrink-0 flex gap-3">
-              {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterAirlines.size > 0) && (
+              {(filterMaxStops !== -1 || filterRefundable || filterCheckedBag || filterCarryOn || filterChangeable || filterAirlines.size > 0 || filterDepartureTimes.size > 0 || filterMaxDuration > 0) && (
                 <button
                   type="button"
-                  onClick={() => { setFilterMaxStops(-1); setFilterRefundable(false); setFilterCheckedBag(false); setFilterMaxPrice(10000); setFilterAirlines(new Set()); }}
+                  onClick={clearAllFilters}
                   className="flex-1 py-2.5 text-sm font-medium text-foreground border border-border rounded-xl hover:bg-muted transition-colors"
                   data-testid="button-clear-filters-mobile"
                 >
