@@ -445,7 +445,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
         {tripType === "multicity" ? (
           <>
             {legs.map((leg, i) => (
-              <div key={i} className="border border-border rounded-2xl overflow-hidden bg-background">
+              <div key={i} className="border border-border rounded-2xl bg-background">
                 <div className="flex items-center justify-between px-4 pt-3 pb-1">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Flight {i + 1}</span>
                   {legs.length > 2 && (
@@ -480,7 +480,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
         ) : (
           <>
             {/* FROM / swap / TO — unified card */}
-            <div className="border border-border rounded-2xl overflow-hidden bg-background">
+            <div className="border border-border rounded-2xl bg-background">
               <AirportField card iata={originIata} display={originDisplay}
                 onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }}
                 placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
