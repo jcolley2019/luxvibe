@@ -322,7 +322,7 @@ function PopularDestinations() {
       </div>
       <div
         ref={destCarouselRef}
-        className="flex gap-5 overflow-x-auto pb-2 -mx-4 px-4 scroll-smooth scroll-px-4 carousel-scroll"
+        className="flex gap-5 overflow-x-auto scroll-smooth pb-2 px-4 -mx-4 scroll-px-4 carousel-scroll snap-x snap-mandatory sm:snap-none"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
       >
         {cards.map((dest, i) => (
