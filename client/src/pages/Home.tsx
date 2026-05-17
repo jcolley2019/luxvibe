@@ -256,120 +256,6 @@ function fmtShortDate(iso: string | null | undefined): string {
   return `${months[parseInt(m) - 1]} ${parseInt(d)}`;
 }
 
-const VIBE_CARDS = [
-  {
-    label: "Romantic Getaway",
-    query: "romantic getaway hotel with couples spa",
-    icon: Heart,
-    gradient: "from-rose-500 to-pink-600",
-  },
-  {
-    label: "Family Adventure",
-    query: "family-friendly hotel with kids activities and pool",
-    icon: Palmtree,
-    gradient: "from-emerald-500 to-teal-600",
-  },
-  {
-    label: "Business Travel",
-    query: "business hotel with meeting rooms and fast wifi",
-    icon: Briefcase,
-    gradient: "from-slate-600 to-slate-800",
-  },
-  {
-    label: "Beach Paradise",
-    query: "beachfront resort with ocean view and pool",
-    icon: Waves,
-    gradient: "from-sky-400 to-blue-600",
-  },
-  {
-    label: "City Explorer",
-    query: "boutique hotel in city center near attractions",
-    icon: Compass,
-    gradient: "from-amber-500 to-orange-600",
-  },
-  {
-    label: "Wellness Retreat",
-    query: "wellness spa resort with yoga and meditation",
-    icon: Dumbbell,
-    gradient: "from-violet-500 to-purple-600",
-  },
-  {
-    label: "Luxury Escape",
-    query: "luxury five star hotel with premium amenities",
-    icon: Gem,
-    gradient: "from-yellow-500 to-amber-600",
-  },
-  {
-    label: "Budget Friendly",
-    query: "affordable comfortable hotel good value",
-    icon: PiggyBank,
-    gradient: "from-green-500 to-emerald-600",
-  },
-];
-
-function DiscoverByVibe() {
-  const [, setLocation] = useLocation();
-  const { t } = useTranslation();
-
-  const handleVibeClick = (query: string) => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 3);
-    const checkIn = tomorrow.toISOString().split("T")[0];
-    const checkOut = dayAfter.toISOString().split("T")[0];
-    const params = new URLSearchParams({
-      aiSearch: query,
-      checkIn,
-      checkOut,
-      guests: "2",
-    });
-    setLocation(`/?${params.toString()}`);
-  };
-
-  return (
-    <section
-      className="pb-10 container mx-auto px-4"
-      data-testid="section-discover-vibe"
-    >
-      <div className="flex items-center justify-between gap-2 mb-5">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="text-xl sm:text-2xl font-bold font-heading">
-            Discover by Vibe
-          </h2>
-        </div>
-        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-tight">
-          AI-Powered
-        </span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-        {VIBE_CARDS.map((vibe, i) => {
-          const Icon = vibe.icon;
-          return (
-            <motion.button
-              key={vibe.label}
-              onClick={() => handleVibeClick(vibe.query)}
-              className={`relative overflow-hidden rounded-xl p-5 text-left text-white bg-gradient-to-br ${vibe.gradient} hover:shadow-lg transition-shadow duration-300 group`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.3 }}
-              data-testid={`button-vibe-${vibe.label.toLowerCase().replace(/\s+/g, "-")}`}
-            >
-              <Icon className="w-8 h-8 mb-3 opacity-90 group-hover:scale-110 transition-transform duration-300" />
-              <div className="text-sm font-bold leading-tight">
-                {vibe.label}
-              </div>
-              <div className="absolute top-2 right-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Icon className="w-16 h-16" />
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 const POPULAR_DEST_FALLBACK = [
   { city: "Paris",     country: "France",    photo: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&auto=format", minPrice: null },
@@ -482,12 +368,15 @@ function PopularDestinations() {
 }
 
 const TRAVEL_STYLES = [
-  { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",   bg: "bg-cyan-50 dark:bg-cyan-950/40",   activeBg: "bg-cyan-600 text-white" },
-  { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/40", activeBg: "bg-violet-600 text-white" },
-  { key: "ski",      label: "Ski & Snow", icon: Mountain,   query: "ski-in ski-out mountain resort hotels with slopes access and alpine atmosphere", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-950/40",   activeBg: "bg-blue-600 text-white" },
+  { key: "beach",    label: "Beach",      icon: Palmtree,   query: "luxury beachfront hotels with ocean views and private beach access", color: "text-cyan-600",    bg: "bg-cyan-50 dark:bg-cyan-950/40",    activeBg: "bg-cyan-600 text-white" },
+  { key: "city",     label: "City Break", icon: Building2,  query: "boutique design hotels in vibrant city centres perfect for urban exploration", color: "text-violet-600",  bg: "bg-violet-50 dark:bg-violet-950/40",  activeBg: "bg-violet-600 text-white" },
+  { key: "romance",  label: "Romance",    icon: Heart,      query: "romantic boutique hotels perfect for honeymoons couples retreats and special occasions", color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-950/40",    activeBg: "bg-rose-600 text-white" },
+  { key: "luxury",   label: "Luxury",     icon: Gem,        query: "luxury five star hotel with premium amenities butler service and exceptional dining", color: "text-yellow-600",  bg: "bg-yellow-50 dark:bg-yellow-950/40",  activeBg: "bg-yellow-600 text-white" },
   { key: "wellness", label: "Wellness",   icon: Waves,      query: "luxury spa and wellness retreat hotels with thermal pools yoga and holistic therapies", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/40", activeBg: "bg-emerald-600 text-white" },
-  { key: "family",   label: "Family",     icon: Users,      query: "family-friendly resort hotels with kids clubs pools and entertainment for all ages", color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-950/40",  activeBg: "bg-amber-600 text-white" },
-  { key: "romance",  label: "Romance",    icon: Heart,      query: "romantic boutique hotels perfect for honeymoons couples retreats and special occasions", color: "text-rose-600",   bg: "bg-rose-50 dark:bg-rose-950/40",   activeBg: "bg-rose-600 text-white" },
+  { key: "family",   label: "Family",     icon: Users,      query: "family-friendly resort hotels with kids clubs pools and entertainment for all ages", color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-950/40",   activeBg: "bg-amber-600 text-white" },
+  { key: "ski",      label: "Ski & Snow", icon: Mountain,   query: "ski-in ski-out mountain resort hotels with slopes access and alpine atmosphere", color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950/40",    activeBg: "bg-blue-600 text-white" },
+  { key: "business", label: "Business",   icon: Briefcase,  query: "business hotel with meeting rooms fast wifi and executive services in city centre", color: "text-slate-600",   bg: "bg-slate-50 dark:bg-slate-950/40",   activeBg: "bg-slate-600 text-white" },
+  { key: "budget",   label: "Budget",     icon: PiggyBank,  query: "affordable comfortable hotel good value for money clean and well located", color: "text-green-600",   bg: "bg-green-50 dark:bg-green-950/40",   activeBg: "bg-green-600 text-white" },
 ];
 
 function StaysForYourStyle() {
@@ -519,7 +408,13 @@ function StaysForYourStyle() {
     <section className="pb-12 container mx-auto px-4" data-testid="section-stays-style">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold font-heading">Stays for your travel style</h2>
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <h2 className="text-xl sm:text-2xl font-bold font-heading">Stays for your travel style</h2>
+          <span className="hidden sm:inline text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-tight">
+            AI-Powered
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleViewAll}
@@ -529,14 +424,26 @@ function StaysForYourStyle() {
             View all <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={() => staysCarouselRef.current?.scrollBy({ left: -780, behavior: "smooth" })}
+            onClick={() => {
+              if (!staysCarouselRef.current) return;
+              const children = staysCarouselRef.current.children;
+              if (children.length < 2) return;
+              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+              staysCarouselRef.current.scrollBy({ left: -(step * (window.innerWidth < 768 ? 1 : 4)), behavior: "smooth" });
+            }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-prev"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={() => staysCarouselRef.current?.scrollBy({ left: 780, behavior: "smooth" })}
+            onClick={() => {
+              if (!staysCarouselRef.current) return;
+              const children = staysCarouselRef.current.children;
+              if (children.length < 2) return;
+              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+              staysCarouselRef.current.scrollBy({ left: step * (window.innerWidth < 768 ? 1 : 4), behavior: "smooth" });
+            }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-next"
           >
@@ -545,8 +452,8 @@ function StaysForYourStyle() {
         </div>
       </div>
 
-      {/* Style tabs */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      {/* Style tabs — single scrollable row */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scroll-smooth" style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
         {TRAVEL_STYLES.map(({ key, label, icon: Icon, activeBg, bg, color }) => (
           <button
             key={key}
@@ -2650,9 +2557,6 @@ export default function Home() {
 
           {/* Popular Destinations */}
           <PopularDestinations />
-
-          {/* Discover by Vibe */}
-          <DiscoverByVibe />
 
           {/* Stays for your travel style */}
           <StaysForYourStyle />
