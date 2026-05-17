@@ -426,15 +426,11 @@ function StaysForYourStyle() {
           </button>
           <button
             onClick={() => {
-              if (window.innerWidth < 768) {
-                pillsRowRef.current?.scrollBy({ left: -160, behavior: "smooth" });
-              } else {
-                if (!staysCarouselRef.current) return;
-                const children = staysCarouselRef.current.children;
-                if (children.length < 2) return;
-                const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
-                staysCarouselRef.current.scrollBy({ left: -(step * 4), behavior: "smooth" });
-              }
+              if (!staysCarouselRef.current) return;
+              const children = staysCarouselRef.current.children;
+              if (children.length < 2) return;
+              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+              staysCarouselRef.current.scrollBy({ left: -(step * (window.innerWidth < 768 ? 1 : 4)), behavior: "smooth" });
             }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-prev"
@@ -443,15 +439,11 @@ function StaysForYourStyle() {
           </button>
           <button
             onClick={() => {
-              if (window.innerWidth < 768) {
-                pillsRowRef.current?.scrollBy({ left: 160, behavior: "smooth" });
-              } else {
-                if (!staysCarouselRef.current) return;
-                const children = staysCarouselRef.current.children;
-                if (children.length < 2) return;
-                const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
-                staysCarouselRef.current.scrollBy({ left: step * 4, behavior: "smooth" });
-              }
+              if (!staysCarouselRef.current) return;
+              const children = staysCarouselRef.current.children;
+              if (children.length < 2) return;
+              const step = (children[1] as HTMLElement).offsetLeft - (children[0] as HTMLElement).offsetLeft;
+              staysCarouselRef.current.scrollBy({ left: step * (window.innerWidth < 768 ? 1 : 4), behavior: "smooth" });
             }}
             className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             data-testid="button-stays-next"
