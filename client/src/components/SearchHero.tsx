@@ -81,6 +81,17 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=1920&q=80", // ski resort village
 ];
 
+const FLIGHT_HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80", // airplane above clouds
+  "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1920&q=80", // airplane window seat view
+  "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1920&q=80", // above the clouds at sunrise
+  "https://images.unsplash.com/photo-1483450388369-9ed95738483c?w=1920&q=80", // airplane wing over clouds
+  "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?w=1920&q=80", // aerial city view from above
+  "https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1920&q=80", // aerial mountain range view
+  "https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1920&q=80", // golden clouds at altitude
+  "https://images.unsplash.com/photo-1502156571462-cd7f3db6fcc3?w=1920&q=80", // aerial turquoise ocean
+];
+
 const POPULAR_DESTINATIONS = [
   { displayName: "Las Vegas, NV", cityName: "Las Vegas", formattedAddress: "Nevada, United States" },
   { displayName: "New York, NY", cityName: "New York", formattedAddress: "New York, United States" },
@@ -232,7 +243,11 @@ export default function SearchHero({
     () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)],
     [],
   );
-  const heroImage = propHeroImage || selectedHeroImage;
+  const selectedFlightImage = useMemo(
+    () => FLIGHT_HERO_IMAGES[Math.floor(Math.random() * FLIGHT_HERO_IMAGES.length)],
+    [],
+  );
+  const heroImage = propHeroImage || (searchMode === "flights" ? selectedFlightImage : selectedHeroImage);
 
   const [date, setDate] = useState<{ from: Date; to?: Date } | undefined>(
     () => {
@@ -1088,14 +1103,27 @@ export default function SearchHero({
           />
           <div className="absolute inset-0 bg-black/35" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-            <h1 className="text-[42px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
-              Luxury Stays.
-              <br />
-              Unbeatable Rates.
-            </h1>
-            <p className="text-white/90 text-base font-medium drop-shadow-md">
-              Discover stays that redefine extraordinary
-            </p>
+            {searchMode === "flights" ? (
+              <>
+                <h1 className="text-[42px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
+                  Fly Further.<br />Spend Smarter.
+                </h1>
+                <p className="text-white/90 text-base font-medium drop-shadow-md">
+                  Discover flights that redefine travel
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-[42px] font-bold text-white leading-tight mb-2 drop-shadow-lg">
+                  Luxury Stays.
+                  <br />
+                  Unbeatable Rates.
+                </h1>
+                <p className="text-white/90 text-base font-medium drop-shadow-md">
+                  Discover stays that redefine extraordinary
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -1765,28 +1793,57 @@ export default function SearchHero({
 
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center h-full">
           <div className="mb-10">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
-              Luxury Stays. Unbeatable Rates.
-            </h1>
-            <p className="text-white text-lg font-medium tracking-wide mb-4">
-              Discover stays that redefine extraordinary
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 opacity-90" />
-                <span>2M+ Hotels Worldwide</span>
-              </div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 opacity-90" />
-                <span>190+ Countries</span>
-              </div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <span>4.9/5 Guest Rating</span>
-              </div>
-            </div>
+            {searchMode === "flights" ? (
+              <>
+                <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+                  Fly Further. Spend Smarter.
+                </h1>
+                <p className="text-white text-lg font-medium tracking-wide mb-4">
+                  Real-time fares from 500+ airlines — book your perfect journey in seconds
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
+                  <div className="flex items-center gap-2">
+                    <Plane className="w-4 h-4 opacity-90" />
+                    <span>500+ Airlines</span>
+                  </div>
+                  <div className="w-px h-4 bg-white/30" />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 opacity-90" />
+                    <span>190+ Countries</span>
+                  </div>
+                  <div className="w-px h-4 bg-white/30" />
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <span>Best Price Guarantee</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+                  Luxury Stays. Unbeatable Rates.
+                </h1>
+                <p className="text-white text-lg font-medium tracking-wide mb-4">
+                  Discover stays that redefine extraordinary
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 opacity-90" />
+                    <span>2M+ Hotels Worldwide</span>
+                  </div>
+                  <div className="w-px h-4 bg-white/30" />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 opacity-90" />
+                    <span>190+ Countries</span>
+                  </div>
+                  <div className="w-px h-4 bg-white/30" />
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <span>4.9/5 Guest Rating</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <TravelModeTabs active={searchMode} variant="hero" onTabChange={handleTabChange} />
