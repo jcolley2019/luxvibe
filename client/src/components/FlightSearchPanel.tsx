@@ -33,7 +33,7 @@ interface MultiLeg {
 }
 
 function AirportField({
-  iata, display, onSelect, placeholder, label, testId,
+  iata, display, onSelect, placeholder, label, testId, card = false,
 }: {
   iata: string;
   display: string;
@@ -41,6 +41,7 @@ function AirportField({
   placeholder: string;
   label: string;
   testId: string;
+  card?: boolean;
 }) {
   const [query, setQuery] = useState(display);
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
@@ -91,6 +92,57 @@ function AirportField({
   function handleFocus() {
     setQuery("");
     if (suggestions.length > 0) setOpen(true);
+  }
+
+  if (card) {
+    return (
+      <div ref={ref} className="relative px-4 py-3">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
+        <div className="flex items-center gap-2.5">
+          <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            value={query}
+            onChange={e => handleChange(e.target.value)}
+            onFocus={handleFocus}
+            placeholder={placeholder}
+            autoComplete="off"
+            className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+            data-testid={testId}
+          />
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />}
+        </div>
+        {iata && query && (
+          <p className="text-[10px] font-mono font-bold text-primary/60 mt-1 pl-6">{iata}</p>
+        )}
+        <AnimatePresence>
+          {open && suggestions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              className="absolute left-0 right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-xl z-[60] overflow-hidden"
+            >
+              {suggestions.map((s, i) => (
+                <button key={i} type="button" onMouseDown={() => handleSelect(s)}
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors border-b border-border last:border-0"
+                  data-testid={`flight-airport-${s.iataCode}`}
+                >
+                  <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0 mt-0.5">{s.iataCode}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {s.cityName || s.name || s.iataCode}
+                      {s.countryCode ? <span className="font-normal text-muted-foreground">, {s.countryCode}</span> : null}
+                    </p>
+                    {s.name && s.cityName && (
+                      <p className="text-xs text-muted-foreground truncate">{s.name}</p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
   }
 
   return (
@@ -349,14 +401,17 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
 
   const dateInputClass = "w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all";
 
+  const cardDateClass = "w-full bg-transparent text-sm font-medium text-foreground focus:outline-none";
+
   if (variant === "mobile") {
     return (
-      <div className="px-5 pb-4 pt-2 space-y-4" data-testid="flight-search-panel-mobile">
-        {/* Trip type */}
-        <div className="flex gap-1 p-1 bg-muted rounded-xl w-fit">
+      <div className="px-4 pb-5 pt-3 space-y-3.5" data-testid="flight-search-panel-mobile">
+
+        {/* Trip type — full width */}
+        <div className="flex gap-1 p-1 bg-muted/80 rounded-xl">
           {TRIP_TABS.map(({ key, label }) => (
             <button key={key} type="button" onClick={() => setTripType(key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tripType === key ? "bg-white dark:bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${tripType === key ? "bg-white dark:bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
             >{label}</button>
           ))}
         </div>
@@ -364,26 +419,27 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
         {tripType === "multicity" ? (
           <>
             {legs.map((leg, i) => (
-              <div key={i} className="border border-border rounded-xl p-3 space-y-3 relative">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Flight {i + 1}</span>
+              <div key={i} className="border border-border rounded-2xl overflow-hidden bg-background">
+                <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Flight {i + 1}</span>
                   {legs.length > 2 && (
                     <button type="button" onClick={() => removeLeg(i)} className="text-muted-foreground hover:text-destructive transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-                <AirportField iata={leg.originIata} display={leg.originDisplay}
+                <AirportField card iata={leg.originIata} display={leg.originDisplay}
                   onSelect={(iata, disp) => updateLeg(i, { originIata: iata, originDisplay: disp })}
                   placeholder="City or airport" label="From" testId={`input-mc-origin-${i}-mobile`} />
-                <AirportField iata={leg.destIata} display={leg.destDisplay}
+                <div className="border-t border-border" />
+                <AirportField card iata={leg.destIata} display={leg.destDisplay}
                   onSelect={(iata, disp) => updateLeg(i, { destIata: iata, destDisplay: disp })}
                   placeholder="City or airport" label="To" testId={`input-mc-dest-${i}-mobile`} />
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Date</label>
+                <div className="border-t border-border px-4 py-3">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Date</p>
                   <input type="date" value={leg.date} min={i > 0 ? legs[i - 1].date : format(today, "yyyy-MM-dd")}
                     onChange={e => updateLeg(i, { date: e.target.value })}
-                    className={dateInputClass} data-testid={`input-mc-date-${i}-mobile`} />
+                    className={cardDateClass} data-testid={`input-mc-date-${i}-mobile`} />
                 </div>
               </div>
             ))}
@@ -397,32 +453,51 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
           </>
         ) : (
           <>
-            <AirportField iata={originIata} display={originDisplay} onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }} placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
-            <div className="flex justify-center">
-              <button type="button" onClick={swap} className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
-            <AirportField iata={destIata} display={destDisplay} onSelect={(i, d) => { setDestIata(i); setDestDisplay(d); }} placeholder="City or airport" label="To" testId="input-flight-dest-mobile" />
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Depart</label>
-                <input type="date" value={depart} min={format(today, "yyyy-MM-dd")} onChange={e => setDepart(e.target.value)} className={dateInputClass} data-testid="input-flight-depart-mobile" />
+            {/* FROM / swap / TO — unified card */}
+            <div className="border border-border rounded-2xl overflow-hidden bg-background">
+              <AirportField card iata={originIata} display={originDisplay}
+                onSelect={(i, d) => { setOriginIata(i); setOriginDisplay(d); }}
+                placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
+              <div className="flex items-center justify-end px-4 py-1.5 border-t border-border bg-background">
+                <button type="button" onClick={swap}
+                  className="w-8 h-8 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors shadow-sm"
+                  data-testid="button-swap-mobile">
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
               </div>
-              {tripType === "roundtrip" && (
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Return</label>
-                  <input type="date" value={returnDate} min={depart} onChange={e => setReturnDate(e.target.value)} className={dateInputClass} data-testid="input-flight-return-mobile" />
-                </div>
-              )}
+              <div className="border-t border-border" />
+              <AirportField card iata={destIata} display={destDisplay}
+                onSelect={(i, d) => { setDestIata(i); setDestDisplay(d); }}
+                placeholder="City or airport" label="To" testId="input-flight-dest-mobile" />
+            </div>
+
+            {/* Dates — card style */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border border-border rounded-2xl px-4 py-3 bg-background">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Depart</p>
+                <input type="date" value={depart} min={format(today, "yyyy-MM-dd")}
+                  onChange={e => setDepart(e.target.value)}
+                  className={cardDateClass} data-testid="input-flight-depart-mobile" />
+              </div>
+              <div className={`border rounded-2xl px-4 py-3 bg-background transition-opacity ${tripType === "roundtrip" ? "border-border opacity-100" : "border-border opacity-30 pointer-events-none"}`}>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Return</p>
+                <input type="date" value={returnDate} min={depart}
+                  onChange={e => setReturnDate(e.target.value)}
+                  className={cardDateClass} data-testid="input-flight-return-mobile"
+                  disabled={tripType !== "roundtrip"} />
+              </div>
             </div>
           </>
         )}
 
-        <PassengerSelector adults={adults} children={children} infants={infants}
-          onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
-        <CabinDropdown value={cabinClass} onChange={setCabinClass} />
+        {/* Passengers + Cabin — side by side */}
+        <div className="grid grid-cols-2 gap-3">
+          <PassengerSelector adults={adults} children={children} infants={infants}
+            onChange={(a, c, i) => { setAdults(a); setChildren(c); setInfants(i); }} />
+          <CabinDropdown value={cabinClass} onChange={setCabinClass} />
+        </div>
 
+        {/* Search */}
         <button type="button" onClick={handleSearch} disabled={!multiReady && !singleReady}
           className="w-full py-3.5 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-flight-search-mobile"
