@@ -58,8 +58,8 @@ export default function CarRental() {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden min-h-[480px] md:h-[638px] flex flex-col justify-center px-4 py-16 md:py-0 bg-black">
         <img
-          src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1920&q=80"
-          alt="Luxury rental car on open road"
+          src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1920&q=80"
+          alt="Modern sedan rental car"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-black/55 pointer-events-none" />
@@ -136,7 +136,7 @@ export default function CarRental() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80", label: "Sports & Exotic" },
+              { url: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80", label: "Compact & Economy" },
               { url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80", label: "SUV & Crossover" },
               { url: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80", label: "Luxury Sedan" },
             ].map(({ url, label }, i) => (
