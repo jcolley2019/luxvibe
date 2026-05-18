@@ -17,7 +17,7 @@ export function RentalCarCard({ pickupDate, returnDate, destination }: RentalCar
   if (pickupDate) params.set("pick_up_date", pickupDate);
   if (returnDate) params.set("drop_off_date", returnDate);
 
-  const searchUrl = `${BASE_URL}/united-states/?${params.toString()}`;
+  const searchUrl = `${BASE_URL}/?${params.toString()}`;
 
   return (
     <div

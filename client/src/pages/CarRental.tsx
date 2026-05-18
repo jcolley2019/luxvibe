@@ -10,8 +10,7 @@ import { TravelModeTabs } from "@/components/TravelModeTabs";
 
 const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeyc2019";
 const BASE_URL = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL || "https://www.discovercars.com";
-const US_SEARCH_URL = `${BASE_URL}/united-states/?a_aid=${AFFILIATE_ID}`;
-const GENERAL_URL = `${BASE_URL}/?a_aid=${AFFILIATE_ID}`;
+const AFFILIATE_URL = `${BASE_URL}/?a_aid=${AFFILIATE_ID}`;
 
 const FEATURES = [
   {
@@ -37,12 +36,12 @@ const FEATURES = [
 ];
 
 const US_DESTINATIONS = [
-  { label: "Las Vegas, NV",       url: `${BASE_URL}/united-states/las-vegas/?a_aid=${AFFILIATE_ID}` },
-  { label: "Miami, FL",           url: `${BASE_URL}/united-states/miami/?a_aid=${AFFILIATE_ID}` },
-  { label: "Los Angeles, CA",     url: `${BASE_URL}/united-states/los-angeles/?a_aid=${AFFILIATE_ID}` },
-  { label: "New York, NY",        url: `${BASE_URL}/united-states/new-york/?a_aid=${AFFILIATE_ID}` },
-  { label: "Orlando, FL",         url: `${BASE_URL}/united-states/orlando/?a_aid=${AFFILIATE_ID}` },
-  { label: "San Francisco, CA",   url: `${BASE_URL}/united-states/san-francisco/?a_aid=${AFFILIATE_ID}` },
+  { label: "Las Vegas, NV",       url: `${BASE_URL}/?pick_up_place=Las+Vegas&a_aid=${AFFILIATE_ID}` },
+  { label: "Miami, FL",           url: `${BASE_URL}/?pick_up_place=Miami&a_aid=${AFFILIATE_ID}` },
+  { label: "Los Angeles, CA",     url: `${BASE_URL}/?pick_up_place=Los+Angeles&a_aid=${AFFILIATE_ID}` },
+  { label: "New York, NY",        url: `${BASE_URL}/?pick_up_place=New+York&a_aid=${AFFILIATE_ID}` },
+  { label: "Orlando, FL",         url: `${BASE_URL}/?pick_up_place=Orlando&a_aid=${AFFILIATE_ID}` },
+  { label: "San Francisco, CA",   url: `${BASE_URL}/?pick_up_place=San+Francisco&a_aid=${AFFILIATE_ID}` },
 ];
 
 export default function CarRental() {
@@ -85,7 +84,7 @@ export default function CarRental() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href={US_SEARCH_URL}
+              href={AFFILIATE_URL}
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-white text-gray-900 text-base font-semibold hover:bg-white/90 transition-colors shadow-lg"
@@ -95,7 +94,7 @@ export default function CarRental() {
               Search US Car Rentals
             </a>
             <a
-              href={GENERAL_URL}
+              href={AFFILIATE_URL}
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-white/15 border border-white/30 text-white text-base font-semibold hover:bg-white/25 transition-colors"
@@ -177,9 +176,9 @@ export default function CarRental() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { url: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80", label: "Compact & Economy", href: `${BASE_URL}/united-states/?car_group=economy&a_aid=${AFFILIATE_ID}` },
-            { url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80", label: "SUV & Crossover",   href: `${BASE_URL}/united-states/?car_group=suv&a_aid=${AFFILIATE_ID}` },
-            { url: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80", label: "Luxury Sedan",      href: `${BASE_URL}/united-states/?car_group=luxury&a_aid=${AFFILIATE_ID}` },
+            { url: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80", label: "Compact & Economy", href: AFFILIATE_URL },
+            { url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80", label: "SUV & Crossover",   href: AFFILIATE_URL },
+            { url: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80", label: "Luxury Sedan",      href: AFFILIATE_URL },
           ].map(({ url, label, href }, i) => (
             <motion.a
               key={i}
@@ -215,7 +214,7 @@ export default function CarRental() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a
-            href={US_SEARCH_URL}
+            href={AFFILIATE_URL}
             target="_blank"
             rel="noopener noreferrer sponsored"
             className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
