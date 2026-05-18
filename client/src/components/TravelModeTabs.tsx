@@ -1,11 +1,12 @@
 import { useLocation } from "wouter";
-import { Building2, Plane, Ticket } from "lucide-react";
+import { Building2, Plane, Ticket, Car } from "lucide-react";
 
-type TabMode = "hotels" | "flights" | "events";
+type TabMode = "hotels" | "flights" | "cars" | "events";
 
 const TABS: { key: TabMode; label: string; icon: React.ElementType; href: string }[] = [
   { key: "hotels",  label: "Hotels",  icon: Building2, href: "/" },
   { key: "flights", label: "Flights", icon: Plane,     href: "/flights" },
+  { key: "cars",    label: "Cars",    icon: Car,       href: "/car-rental" },
   { key: "events",  label: "Events",  icon: Ticket,    href: "/event-travel" },
 ];
 

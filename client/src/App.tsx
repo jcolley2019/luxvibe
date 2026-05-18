@@ -38,6 +38,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 const Events = lazy(() => import("@/pages/Events"));
 const EventDetail = lazy(() => import("@/pages/EventDetail"));
 const EventTravel = lazy(() => import("@/pages/EventTravel"));
+const CarRental = lazy(() => import("@/pages/CarRental"));
 
 class ErrorBoundary extends Component<
   { children: ReactNode; silent?: boolean },
@@ -137,6 +138,13 @@ function Router() {
       <Route path="/hotel-facilities" component={HotelFacilities} />
       <Route path="/room-views" component={RoomViews} />
       <Route path="/room-amenities" component={RoomAmenities} />
+      <Route path="/car-rental">
+        {() => (
+          <Suspense fallback={null}>
+            <CarRental />
+          </Suspense>
+        )}
+      </Route>
       <Route path="/event-travel">
         {() => (
           <Suspense fallback={null}>
