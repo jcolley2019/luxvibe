@@ -185,35 +185,22 @@ function AirportField({
   return (
     <div ref={ref} className="relative flex-1 min-w-0">
       <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</label>
-      {iata && !editing ? (
-        <button
-          type="button"
-          onClick={handleCardSelectedClick}
-          className="w-full flex items-center gap-3 px-3 py-3 border border-border rounded-xl bg-background hover:border-primary/50 transition-all text-left min-h-[46px]"
+      <div className="relative">
+        <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={e => handleChange(e.target.value)}
+          onFocus={handleFocus}
+          placeholder={placeholder}
+          autoComplete="off"
+          className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           data-testid={testId}
-        >
-          <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0">{iata}</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">{display}</p>
-            {airportName && <p className="text-xs text-muted-foreground truncate">{airportName}</p>}
-          </div>
-        </button>
-      ) : (
-        <div className="relative">
-          <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={e => handleChange(e.target.value)}
-            onFocus={handleFocus}
-            placeholder={placeholder}
-            autoComplete="off"
-            className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-            data-testid={testId}
-          />
-          {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
-        </div>
+        />
+        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+      </div>
+      {iata && query && (
+        <p className="mt-1 pl-1 text-xs font-mono font-bold text-primary/60">{iata}</p>
       )}
       <AnimatePresence>
         {open && suggestions.length > 0 && (

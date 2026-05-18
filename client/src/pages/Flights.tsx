@@ -1608,10 +1608,8 @@ export default function Flights() {
         </div>
         {/* Search card overlaps the bottom of the hero — same as home page */}
         <div className="relative -mt-12 mx-4 z-10 pb-2">
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl">
-            <div className="overflow-hidden rounded-t-2xl">
-              <TravelModeTabs active="flights" variant="card" className="px-4" />
-            </div>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
+            <TravelModeTabs active="flights" variant="card" className="px-4" />
             <div className="p-4">
               {flightSearchCard}
             </div>
@@ -1619,39 +1617,33 @@ export default function Flights() {
         </div>
       </div>
 
-      {/* ── Desktop hero — image + text in overflow-hidden box, search card pulled outside ── */}
-      <div className="hidden md:block">
-        {/* Image + text — overflow-hidden is safe here because no dropdown lives inside */}
-        <div className="relative overflow-hidden bg-black h-[360px]">
-          <img
-            src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
-            alt="Airplane above clouds"
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-slate-900/35 to-slate-900/75" />
-          <div className="relative z-10 text-center px-4 pt-16 pb-6">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
-              Fly Further. Spend Smarter.
-            </h1>
-            <p className="text-white/90 text-lg font-medium tracking-wide mb-5 drop-shadow-md">
-              Real-time fares from 500+ airlines — book your perfect journey in seconds
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
-              <div className="flex items-center gap-2"><Plane className="w-4 h-4 opacity-90" /><span>Instant Confirmation</span></div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2"><Search className="w-4 h-4 opacity-90" /><span>190+ Countries</span></div>
-              <div className="w-px h-4 bg-white/30" />
-              <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 opacity-90" /><span>Best Price Guarantee</span></div>
-            </div>
+      {/* ── Desktop hero — same fixed height as home page ── */}
+      <div className="hidden md:block relative w-full min-h-[638px] overflow-hidden bg-black">
+        <img
+          src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
+          alt="Airplane above clouds"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-slate-900/35 to-slate-900/75" />
+        <div className="relative z-10 text-center px-4 pt-16 pb-6">
+          <h1 className="text-5xl lg:text-7xl font-bold text-white mb-3 drop-shadow-lg leading-tight">
+            Fly Further. Spend Smarter.
+          </h1>
+          <p className="text-white/90 text-lg font-medium tracking-wide mb-5 drop-shadow-md">
+            Real-time fares from 500+ airlines — book your perfect journey in seconds
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-white text-sm font-medium drop-shadow-md">
+            <div className="flex items-center gap-2"><Plane className="w-4 h-4 opacity-90" /><span>Instant Confirmation</span></div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2"><Search className="w-4 h-4 opacity-90" /><span>190+ Countries</span></div>
+            <div className="w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 opacity-90" /><span>Best Price Guarantee</span></div>
           </div>
         </div>
-        {/* Search card — outside overflow-hidden so airport dropdowns are never clipped */}
-        <div className="relative z-10 -mt-16 px-4 pb-10">
+        <div className="relative z-10 px-4 pb-10">
           <div className="container mx-auto max-w-5xl">
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl">
-              <div className="overflow-hidden rounded-t-2xl">
-                <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
-              </div>
+            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
+              <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
               <div className="p-4 sm:p-6">
                 {flightSearchCard}
               </div>
