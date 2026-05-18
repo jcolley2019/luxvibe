@@ -360,22 +360,55 @@ function CabinDropdown({ value, onChange }: { value: CabinClass; onChange: (v: C
   );
 }
 
-export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mobile" }) {
+interface FlightSearchInitialValues {
+  tripType?: TripType;
+  originIata?: string;
+  originDisplay?: string;
+  originAirportName?: string;
+  destIata?: string;
+  destDisplay?: string;
+  destAirportName?: string;
+  depart?: string;
+  returnDate?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  cabinClass?: CabinClass;
+}
+
+interface FlightSearchCallbackParams {
+  legs: { origin: string; destination: string; date: string; direction?: string }[];
+  adults: number;
+  children: number;
+  infants: number;
+  cabinClass: string;
+  tripType: string;
+}
+
+export function FlightSearchPanel({
+  variant = "hero",
+  initialValues,
+  onSearch,
+}: {
+  variant?: "hero" | "mobile";
+  initialValues?: FlightSearchInitialValues;
+  onSearch?: (params: FlightSearchCallbackParams) => void;
+}) {
   const [, navigate] = useLocation();
   const today = new Date();
-  const [tripType, setTripType] = useState<TripType>("roundtrip");
-  const [originIata, setOriginIata] = useState("");
-  const [originDisplay, setOriginDisplay] = useState("");
-  const [originAirportName, setOriginAirportName] = useState("");
-  const [destIata, setDestIata] = useState("");
-  const [destDisplay, setDestDisplay] = useState("");
-  const [destAirportName, setDestAirportName] = useState("");
-  const [depart, setDepart] = useState(() => format(addDays(today, 30), "yyyy-MM-dd"));
-  const [returnDate, setReturnDate] = useState(() => format(addDays(today, 37), "yyyy-MM-dd"));
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [cabinClass, setCabinClass] = useState<CabinClass>("ECONOMY");
+  const [tripType, setTripType] = useState<TripType>(initialValues?.tripType || "roundtrip");
+  const [originIata, setOriginIata] = useState(initialValues?.originIata || "");
+  const [originDisplay, setOriginDisplay] = useState(initialValues?.originDisplay || "");
+  const [originAirportName, setOriginAirportName] = useState(initialValues?.originAirportName || "");
+  const [destIata, setDestIata] = useState(initialValues?.destIata || "");
+  const [destDisplay, setDestDisplay] = useState(initialValues?.destDisplay || "");
+  const [destAirportName, setDestAirportName] = useState(initialValues?.destAirportName || "");
+  const [depart, setDepart] = useState(() => initialValues?.depart || format(addDays(today, 30), "yyyy-MM-dd"));
+  const [returnDate, setReturnDate] = useState(() => initialValues?.returnDate || format(addDays(today, 37), "yyyy-MM-dd"));
+  const [adults, setAdults] = useState(initialValues?.adults ?? 1);
+  const [children, setChildren] = useState(initialValues?.children ?? 0);
+  const [infants, setInfants] = useState(initialValues?.infants ?? 0);
+  const [cabinClass, setCabinClass] = useState<CabinClass>(initialValues?.cabinClass || "ECONOMY");
 
   const makeDefaultLegs = (): MultiLeg[] => [
     { originIata: "", originDisplay: "", destIata: "", destDisplay: "", date: format(addDays(today, 30), "yyyy-MM-dd") },
@@ -429,6 +462,13 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
     if (tripType === "multicity") {
       const validLegs = legs.filter(l => l.originIata && l.destIata);
       if (validLegs.length < 2) return;
+      if (onSearch) {
+        onSearch({
+          legs: validLegs.map(l => ({ origin: l.originIata, destination: l.destIata, date: l.date })),
+          adults, children, infants, cabinClass, tripType,
+        });
+        return;
+      }
       const params = new URLSearchParams({ tripType: "multicity", adults: String(adults), children: String(children), infants: String(infants), cabinClass });
       validLegs.forEach((l, i) => {
         params.set(`leg${i}_origin`, l.originIata);
@@ -439,6 +479,16 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
       return;
     }
     if (!originIata || !destIata) return;
+    if (onSearch) {
+      const singleLegs: { origin: string; destination: string; date: string; direction?: string }[] = [
+        { origin: originIata, destination: destIata, date: depart, direction: "OUTBOUND" },
+      ];
+      if (tripType === "roundtrip" && returnDate) {
+        singleLegs.push({ origin: destIata, destination: originIata, date: returnDate, direction: "INBOUND" });
+      }
+      onSearch({ legs: singleLegs, adults, children, infants, cabinClass, tripType });
+      return;
+    }
     const params = new URLSearchParams({
       origin: originIata, destination: destIata, depart,
       adults: String(adults), children: String(children), infants: String(infants),

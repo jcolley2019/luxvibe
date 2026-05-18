@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { usePreferences } from "@/context/preferences";
 import { TravelModeTabs } from "@/components/TravelModeTabs";
+import { FlightSearchPanel } from "@/components/FlightSearchPanel";
 
 type TripType = "oneway" | "roundtrip" | "multicity";
 type CabinClass = "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
@@ -1325,6 +1326,12 @@ export default function Flights() {
     clearAllFilters();
   }
 
+  function handleFlightSearch({ legs, adults: a, children: c, infants: inf, cabinClass: cab }: { legs: any[]; adults: number; children: number; infants: number; cabinClass: string; tripType: string }) {
+    mutation.mutate({ legs, adults: a, children: c, infants: inf, cabinClass: cab, currency: currency || "USD", country: "US" });
+    setResults(null);
+    clearAllFilters();
+  }
+
   function swapAirports() {
     setOrigin(destination); setDestination(origin);
     setOriginDisplay(destDisplay); setDestDisplay(originDisplay);
@@ -1610,9 +1617,12 @@ export default function Flights() {
         <div className="relative -mt-12 mx-4 z-10 pb-2">
           <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
             <TravelModeTabs active="flights" variant="card" className="px-4" />
-            <div className="p-4">
-              {flightSearchCard}
-            </div>
+            <FlightSearchPanel
+              variant="mobile"
+              key={`${origin}-${destination}-${departDate}`}
+              initialValues={{ tripType, originIata: origin, originDisplay, originAirportName, destIata: destination, destDisplay, destAirportName, depart: departDate, returnDate, adults, children, infants, cabinClass }}
+              onSearch={handleFlightSearch}
+            />
           </div>
         </div>
       </div>
@@ -1644,9 +1654,12 @@ export default function Flights() {
           <div className="container mx-auto max-w-5xl">
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
               <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
-              <div className="p-4 sm:p-6">
-                {flightSearchCard}
-              </div>
+              <FlightSearchPanel
+                variant="mobile"
+                key={`${origin}-${destination}-${departDate}`}
+                initialValues={{ tripType, originIata: origin, originDisplay, originAirportName, destIata: destination, destDisplay, destAirportName, depart: departDate, returnDate, adults, children, infants, cabinClass }}
+                onSearch={handleFlightSearch}
+              />
             </div>
           </div>
         </div>
