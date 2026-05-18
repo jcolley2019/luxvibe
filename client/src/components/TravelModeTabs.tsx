@@ -29,7 +29,7 @@ export function TravelModeTabs({ active, variant = "card", className = "", onTab
 
   if (variant === "hero") {
     return (
-      <div className={`flex items-center gap-2 mb-5 ${className}`}>
+      <div className={`flex items-center justify-center gap-2 mb-5 ${className}`}>
         {TABS.map(({ key, label, icon: Icon, href }) => (
           <button
             key={key}
