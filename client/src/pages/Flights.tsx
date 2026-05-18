@@ -1511,22 +1511,37 @@ export default function Flights() {
           </>
         ) : (
           <>
-            <div className="relative border border-border rounded-2xl bg-background mb-4">
-              <AirportCardField
-                iata={origin} display={originDisplay} airportName={originAirportName}
-                onSelect={(i, d, n) => { setOrigin(i); setOriginDisplay(d); setOriginAirportName(n); }}
-                placeholder="City or airport" label="From" testId="input-origin" />
-              <div className="relative h-0 border-t border-border">
+            <div className="relative border border-border rounded-2xl bg-background mb-4 flex flex-col md:flex-row">
+              <div className="flex-1 min-w-0">
+                <AirportCardField
+                  iata={origin} display={originDisplay} airportName={originAirportName}
+                  onSelect={(i, d, n) => { setOrigin(i); setOriginDisplay(d); setOriginAirportName(n); }}
+                  placeholder="City or airport" label="From" testId="input-origin" />
+              </div>
+              {/* Mobile: horizontal divider with vertical-swap button */}
+              <div className="md:hidden relative h-0 border-t border-border">
                 <button type="button" onClick={swapAirports}
                   className="absolute right-4 top-0 -translate-y-1/2 w-7 h-7 rounded-full border border-border bg-white dark:bg-card flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
                   data-testid="button-swap-airports">
                   <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
-              <AirportCardField
-                iata={destination} display={destDisplay} airportName={destAirportName}
-                onSelect={(i, d, n) => { setDestination(i); setDestDisplay(d); setDestAirportName(n); }}
-                placeholder="City or airport" label="To" testId="input-destination" />
+              {/* Desktop: vertical divider with horizontal-swap button */}
+              <div className="hidden md:flex items-center justify-center relative shrink-0">
+                <div className="absolute inset-y-0 left-0 w-px bg-border" />
+                <button type="button" onClick={swapAirports}
+                  className="relative w-7 h-7 rounded-full border border-border bg-white dark:bg-card flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10 mx-3.5"
+                  data-testid="button-swap-airports">
+                  <ArrowLeftRight className="w-3 h-3 text-muted-foreground" />
+                </button>
+                <div className="absolute inset-y-0 right-0 w-px bg-border" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <AirportCardField
+                  iata={destination} display={destDisplay} airportName={destAirportName}
+                  onSelect={(i, d, n) => { setDestination(i); setDestDisplay(d); setDestAirportName(n); }}
+                  placeholder="City or airport" label="To" testId="input-destination" />
+              </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div className={tripType === "roundtrip" ? "col-span-1" : "col-span-2 sm:col-span-1"}>
