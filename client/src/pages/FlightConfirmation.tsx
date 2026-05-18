@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import { TravelInsuranceCard } from "@/components/TravelInsuranceCard";
 import { motion } from "framer-motion";
 import { usePreferences } from "@/context/preferences";
 
@@ -342,6 +343,15 @@ export default function FlightConfirmation() {
                 </div>
               );
             })()}
+
+            <TravelInsuranceCard
+              departureDate={outSegs[0]?.departure?.date}
+              returnDate={inSegs.length ? inSegs[inSegs.length - 1]?.arrival?.date : outSegs[outSegs.length - 1]?.arrival?.date}
+              travelers={displayPassengers.length || 1}
+              tripCost={typeof price === "number" ? price : undefined}
+              currency={currency}
+              destination={outSegs[outSegs.length - 1]?.arrival?.iata}
+            />
 
             <div className="flex gap-3">
               <Button className="flex-1 rounded-xl gap-2" onClick={() => navigate("/")}>

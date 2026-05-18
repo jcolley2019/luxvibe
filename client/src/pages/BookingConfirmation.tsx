@@ -25,6 +25,7 @@ import {
   Printer,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { TravelInsuranceCard } from "@/components/TravelInsuranceCard";
 
 export default function BookingConfirmation() {
   const queryClient = useQueryClient();
@@ -315,6 +316,14 @@ export default function BookingConfirmation() {
                 </Button>
               </CardFooter>
             </Card>
+
+            <TravelInsuranceCard
+              departureDate={bookingData.checkin || checkoutData?.checkIn}
+              returnDate={bookingData.checkout || checkoutData?.checkOut}
+              travelers={parseInt(checkoutData?.guests || "1", 10)}
+              tripCost={bookingData?.price?.net ?? bookingData?.price?.total ?? checkoutData?.totalPrice}
+              currency={bookingData?.price?.currency ?? "USD"}
+            />
 
             {(() => {
               const ci = bookingData.checkin || checkoutData?.checkIn;

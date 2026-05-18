@@ -42,3 +42,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_log_in_with_replit:2.0.0", "github:1.0.0", "javascript_anthropic_ai_integrations:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+VITE_INSURANCE_ENABLED = "false"
+VITE_INSURANCE_AFFILIATE_URL = "https://www.squaremouth.com/travel-insurance-quotes"
