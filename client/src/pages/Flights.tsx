@@ -886,10 +886,29 @@ function FlightCheckoutSheet({
           </div>
 
           {step === "verifying" && (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-7 h-7 text-primary animate-spin" />
-              <p className="text-sm font-medium text-foreground">Verifying latest price…</p>
-              <p className="text-xs text-muted-foreground">Confirming availability with the airline</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-4 px-8 text-center">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">Confirming your fare…</p>
+                <p className="text-xs text-muted-foreground">We're checking that this seat and price are still available with the airline. This usually takes just a few seconds.</p>
+              </div>
+              <div className="mt-2 w-full max-w-xs space-y-2 text-left">
+                {[
+                  { n: "1", label: "Fare confirmed", desc: "Price locked in for you" },
+                  { n: "2", label: "Enter passenger details", desc: "Names as on your passport" },
+                  { n: "3", label: "Secure payment", desc: "Card charged only on success" },
+                ].map(s => (
+                  <div key={s.n} className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/40">
+                    <div className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0">{s.n}</div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{s.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -904,6 +923,28 @@ function FlightCheckoutSheet({
                   </p>
                 </div>
               )}
+
+              {/* Document guidance banner */}
+              <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🪪</span>
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">Have your travel document ready</p>
+                </div>
+                <ul className="space-y-1.5 text-xs text-amber-800 dark:text-amber-300">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0">✈️</span>
+                    <span><span className="font-semibold">International flights:</span> a valid passport is required. It must not expire within 6 months of your travel date.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0">🇺🇸</span>
+                    <span><span className="font-semibold">US domestic flights:</span> a passport or <span className="font-semibold">REAL ID-compliant</span> driver's license or state ID is accepted.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0">⚠️</span>
+                    <span>All names must be entered <span className="font-semibold">exactly as printed</span> on your document — including middle names if shown.</span>
+                  </li>
+                </ul>
+              </div>
 
               {passengerTypes.map((pt, i) => (
                 <div key={i} className="space-y-3">
@@ -1041,7 +1082,24 @@ function FlightCheckoutSheet({
           )}
 
           {step === "payment" && (
-            <div className="px-6 py-5">
+            <div className="px-6 py-5 space-y-4">
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary shrink-0" /> How your payment works
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { icon: "🔒", text: "Your seat is being held while you complete payment — no one else can book it." },
+                    { icon: "💳", text: "Your card is only charged once the booking is confirmed with the airline." },
+                    { icon: "📧", text: "You'll receive an e-ticket and booking reference by email within minutes." },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                      <span className="shrink-0">{item.icon}</span>
+                      <span>{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               {!sdkLoaded && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
                   <Loader2 className="w-5 h-5 animate-spin" /> Loading payment form…
