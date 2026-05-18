@@ -237,7 +237,7 @@ function FlightBookingCard({ b }: { b: any }) {
 }
 
 export default function MyBookings() {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, openLoginModal } = useAuth();
   const { data: bookings, isLoading: isBookingsLoading } = useBookings();
   const { toast } = useToast();
 
@@ -340,8 +340,34 @@ export default function MyBookings() {
   }
 
   if (!isAuthenticated) {
-    window.location.href = "/api/login";
-    return null;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <CalendarDays className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Sign in to view your bookings</h1>
+          <p className="text-muted-foreground max-w-sm mb-8">
+            Create a free Luxvibe account or sign in to access your hotel and flight reservations.
+          </p>
+          <Button
+            size="lg"
+            className="rounded-full px-8"
+            onClick={() => {
+              sessionStorage.setItem("lv_post_login_redirect", "/my-bookings");
+              openLoginModal();
+            }}
+            data-testid="button-sign-in-for-bookings"
+          >
+            Sign in to Luxvibe
+          </Button>
+          <p className="mt-4 text-sm text-muted-foreground">
+            You can browse hotels and flights without an account.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const handleSort = (key: SortKey) => {

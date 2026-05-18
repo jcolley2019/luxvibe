@@ -343,7 +343,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
 
             {/* Manage Bookings key — desktop only */}
             <Link
-              href="/manage-booking"
+              href="/my-bookings"
               aria-label="Manage your bookings"
               className="hidden md:flex w-9 h-9 rounded-full border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
               data-testid="button-manage-bookings"
@@ -642,7 +642,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                   </button>
 
                   <Link
-                    href="/manage-booking"
+                    href="/my-bookings"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
                     data-testid="mobile-nav-manage-booking"
