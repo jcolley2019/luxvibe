@@ -234,8 +234,9 @@ export default function SearchHero({
   const [destination, setDestination] = useState(initialDestination);
   const [placeId, setPlaceId] = useState("");
 
-  function handleTabChange(key: "hotels" | "flights" | "events") {
+  function handleTabChange(key: "hotels" | "flights" | "cars" | "events") {
     if (key === "events") { setLocation("/event-travel"); return; }
+    if (key === "cars") { setLocation("/car-rental"); return; }
     setSearchMode(key as "hotels" | "flights");
   }
 
