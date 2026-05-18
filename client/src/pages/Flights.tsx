@@ -89,9 +89,12 @@ function formatDuration(minutes: number): string {
 
 function formatTime(isoString: string): string {
   try {
-    const [, timePart] = isoString.split("T");
+    const timePart = isoString.split("T")[1];
     if (!timePart) return isoString;
-    return timePart.slice(0, 5);
+    const [h, m] = timePart.slice(0, 5).split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
   } catch { return isoString; }
 }
 

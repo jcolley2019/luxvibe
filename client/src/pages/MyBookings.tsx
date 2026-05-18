@@ -76,7 +76,14 @@ function formatDateShort(iso: string) {
   try { return format(new Date(iso.split("T")[0]), "EEE, MMM d, yyyy"); } catch { return iso; }
 }
 function formatTime(iso: string) {
-  try { return iso.split("T")[1]?.slice(0, 5) || iso; } catch { return iso; }
+  try {
+    const timePart = iso.split("T")[1];
+    if (!timePart) return iso;
+    const [h, m] = timePart.slice(0, 5).split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+  } catch { return iso; }
 }
 
 function FlightBookingCard({ b }: { b: any }) {
