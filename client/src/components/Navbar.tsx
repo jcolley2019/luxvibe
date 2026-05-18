@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun,
   Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles,
-  Home, Ticket, Menu, ChevronDown, Gift, Clock,
+  Home, Ticket, Menu, ChevronDown, Gift, Clock, Settings,
 } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
@@ -350,6 +350,43 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
             >
               <KeyRound className="w-4 h-4" />
             </Link>
+
+            {/* Settings dropdown — desktop only */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Settings"
+                  className="hidden md:flex w-9 h-9 rounded-full border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                  data-testid="button-settings-desktop"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-52" align="end">
+                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Preferences
+                </div>
+                <DropdownMenuItem
+                  onClick={toggleDark}
+                  className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm"
+                  data-testid="button-settings-theme-toggle"
+                >
+                  {dark ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
+                  {dark ? "Light Mode" : "Dark Mode"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setTimeFormat(timeFormat === "12h" ? "24h" : "12h")}
+                  className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm"
+                  data-testid="button-settings-time-format"
+                >
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  Time Format
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {timeFormat === "12h" ? "12h" : "24h"}
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Auth — desktop user menu OR login button */}
             {isAuthenticated ? (
