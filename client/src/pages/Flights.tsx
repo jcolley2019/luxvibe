@@ -1656,15 +1656,13 @@ export default function Flights() {
         </div>
         <div className="relative z-10 px-4 pb-10">
           <div className="container mx-auto max-w-5xl">
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
-              <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
-              <FlightSearchPanel
-                variant="mobile"
-                key={`${origin}-${destination}-${departDate}`}
-                initialValues={{ tripType, originIata: origin, originDisplay, originAirportName, destIata: destination, destDisplay, destAirportName, depart: departDate, returnDate, adults, children, infants, cabinClass }}
-                onSearch={handleFlightSearch}
-              />
-            </div>
+            <TravelModeTabs active="flights" variant="hero" />
+            <FlightSearchPanel
+              variant="hero"
+              key={`${origin}-${destination}-${departDate}`}
+              initialValues={{ tripType, originIata: origin, originDisplay, originAirportName, destIata: destination, destDisplay, destAirportName, depart: departDate, returnDate, adults, children, infants, cabinClass }}
+              onSearch={handleFlightSearch}
+            />
           </div>
         </div>
       </div>
