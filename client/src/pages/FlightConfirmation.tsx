@@ -11,11 +11,13 @@ import {
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { usePreferences } from "@/context/preferences";
 
-function formatTime(iso: string) {
+function formatTime(iso: string, fmt: "12h" | "24h" = "12h") {
   try {
     const timePart = iso.split("T")[1];
     if (!timePart) return iso;
+    if (fmt === "24h") return timePart.slice(0, 5);
     const [h, m] = timePart.slice(0, 5).split(":").map(Number);
     const period = h >= 12 ? "PM" : "AM";
     const hour12 = h % 12 || 12;
@@ -27,6 +29,7 @@ function formatDateShort(iso: string) {
 }
 
 function SegmentRow({ segs, label }: { segs: any[]; label: string }) {
+  const { timeFormat } = usePreferences();
   if (!segs.length) return null;
   const first = segs[0];
   const last = segs[segs.length - 1];
@@ -46,7 +49,7 @@ function SegmentRow({ segs, label }: { segs: any[]; label: string }) {
       <div className="flex items-center gap-3">
         <div className="text-center min-w-[56px]">
           <p className="text-xl font-bold font-mono text-foreground">{first.originCode}</p>
-          <p className="text-sm text-muted-foreground">{formatTime(first.departureTime)}</p>
+          <p className="text-sm text-muted-foreground">{formatTime(first.departureTime, timeFormat)}</p>
           <p className="text-xs text-muted-foreground">{formatDateShort(first.departureTime)}</p>
         </div>
         <div className="flex-1 flex flex-col items-center gap-1">
@@ -59,7 +62,7 @@ function SegmentRow({ segs, label }: { segs: any[]; label: string }) {
         </div>
         <div className="text-center min-w-[56px]">
           <p className="text-xl font-bold font-mono text-foreground">{last.destinationCode}</p>
-          <p className="text-sm text-muted-foreground">{formatTime(last.arrivalTime)}</p>
+          <p className="text-sm text-muted-foreground">{formatTime(last.arrivalTime, timeFormat)}</p>
           <p className="text-xs text-muted-foreground">{formatDateShort(last.arrivalTime)}</p>
         </div>
       </div>

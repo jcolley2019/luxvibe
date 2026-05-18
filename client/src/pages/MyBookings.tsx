@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/context/preferences";
 import { useBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -75,10 +76,11 @@ function fmtDate(val: string | null | undefined) {
 function formatDateShort(iso: string) {
   try { return format(new Date(iso.split("T")[0]), "EEE, MMM d, yyyy"); } catch { return iso; }
 }
-function formatTime(iso: string) {
+function formatTime(iso: string, fmt: "12h" | "24h" = "12h") {
   try {
     const timePart = iso.split("T")[1];
     if (!timePart) return iso;
+    if (fmt === "24h") return timePart.slice(0, 5);
     const [h, m] = timePart.slice(0, 5).split(":").map(Number);
     const period = h >= 12 ? "PM" : "AM";
     const hour12 = h % 12 || 12;
@@ -87,6 +89,7 @@ function formatTime(iso: string) {
 }
 
 function FlightBookingCard({ b }: { b: any }) {
+  const { timeFormat } = usePreferences();
   const segments: any[] = b.journey?.segments || [];
   const outSegs = segments.filter((s: any) => s.direction === "OUTBOUND" || segments.every((x: any) => !x.direction));
   const inSegs = segments.filter((s: any) => s.direction === "INBOUND");
@@ -169,12 +172,12 @@ function FlightBookingCard({ b }: { b: any }) {
             <div className="flex items-center gap-3 flex-1">
               <div className="text-center">
                 <p className="font-mono font-semibold text-foreground">{origin}</p>
-                {depTime && <p className="text-xs text-muted-foreground">{formatTime(depTime)}</p>}
+                {depTime && <p className="text-xs text-muted-foreground">{formatTime(depTime, timeFormat)}</p>}
               </div>
               <div className="flex-1 border-t border-dashed border-border" />
               <div className="text-center">
                 <p className="font-mono font-semibold text-foreground">{destination}</p>
-                {lastOut?.arrivalTime && <p className="text-xs text-muted-foreground">{formatTime(lastOut.arrivalTime)}</p>}
+                {lastOut?.arrivalTime && <p className="text-xs text-muted-foreground">{formatTime(lastOut.arrivalTime, timeFormat)}</p>}
               </div>
             </div>
             {depTime && (
@@ -190,12 +193,12 @@ function FlightBookingCard({ b }: { b: any }) {
             <div className="flex items-center gap-3 flex-1">
               <div className="text-center">
                 <p className="font-mono font-semibold text-foreground">{firstIn.originCode}</p>
-                {retDepTime && <p className="text-xs text-muted-foreground">{formatTime(retDepTime)}</p>}
+                {retDepTime && <p className="text-xs text-muted-foreground">{formatTime(retDepTime, timeFormat)}</p>}
               </div>
               <div className="flex-1 border-t border-dashed border-border" />
               <div className="text-center">
                 <p className="font-mono font-semibold text-foreground">{lastIn?.destinationCode || origin}</p>
-                {lastIn?.arrivalTime && <p className="text-xs text-muted-foreground">{formatTime(lastIn.arrivalTime)}</p>}
+                {lastIn?.arrivalTime && <p className="text-xs text-muted-foreground">{formatTime(lastIn.arrivalTime, timeFormat)}</p>}
               </div>
             </div>
             {retDepTime && (

@@ -87,10 +87,11 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function formatTime(isoString: string): string {
+function formatTime(isoString: string, fmt: "12h" | "24h" = "12h"): string {
   try {
     const timePart = isoString.split("T")[1];
     if (!timePart) return isoString;
+    if (fmt === "24h") return timePart.slice(0, 5);
     const [h, m] = timePart.slice(0, 5).split(":").map(Number);
     const period = h >= 12 ? "PM" : "AM";
     const hour12 = h % 12 || 12;
@@ -418,6 +419,7 @@ function PassengerSelector({
 
 function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJourney; currency: string; adults: number; onSelect: () => void; }) {
   const [expanded, setExpanded] = useState(false);
+  const { timeFormat } = usePreferences();
   const offer = journey.offers[0];
   if (!offer) return null;
 
@@ -472,7 +474,7 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
 
         <div className="flex items-center gap-3 flex-1">
           <div className="text-center">
-            <div className="text-lg font-bold text-foreground tabular-nums">{formatTime(first.departureTime)}</div>
+            <div className="text-lg font-bold text-foreground tabular-nums">{formatTime(first.departureTime, timeFormat)}</div>
             <div className="text-xs font-semibold text-foreground">{first.originCode}</div>
             <div className="text-xs text-muted-foreground truncate max-w-[70px]">{first.originName?.split(" ").slice(0, 2).join(" ")}</div>
           </div>
@@ -495,7 +497,7 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
 
           <div className="text-center">
             <div className="text-lg font-bold text-foreground tabular-nums">
-              {formatTime(last.arrivalTime)}
+              {formatTime(last.arrivalTime, timeFormat)}
               {dayChangeVal > 0 && <sup className="text-xs text-amber-500 ml-0.5">+{dayChangeVal}</sup>}
             </div>
             <div className="text-xs font-semibold text-foreground">{last.destinationCode}</div>
@@ -600,7 +602,7 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
                   <div className="flex-1 space-y-2">
                     <div>
                       <div className="font-semibold text-foreground">
-                        {formatTime(seg.departureTime)} · {seg.originCode} — {seg.originName}
+                        {formatTime(seg.departureTime, timeFormat)} · {seg.originCode} — {seg.originName}
                       </div>
                       <div className="text-xs text-muted-foreground">{formatDate(seg.departureTime)}</div>
                     </div>
@@ -612,7 +614,7 @@ function FlightCard({ journey, currency, adults, onSelect }: { journey: FlightJo
                     </div>
                     <div>
                       <div className="font-semibold text-foreground">
-                        {formatTime(seg.arrivalTime)} · {seg.destinationCode} — {seg.destinationName}
+                        {formatTime(seg.arrivalTime, timeFormat)} · {seg.destinationCode} — {seg.destinationName}
                       </div>
                       <div className="text-xs text-muted-foreground">{formatDate(seg.arrivalTime)}</div>
                     </div>
@@ -695,6 +697,7 @@ function FlightCheckoutSheet({
 }) {
   type CheckoutStep = "verifying" | "form" | "payment";
   const [step, setStep] = useState<CheckoutStep>("verifying");
+  const { timeFormat } = usePreferences();
   const [verifyData, setVerifyData] = useState<any>(null);
   const [prebookData, setPrebookData] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
@@ -861,22 +864,22 @@ function FlightCheckoutSheet({
             {outFirst && outLast && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-bold font-mono">{outFirst.originCode}</span>
-                <span className="text-muted-foreground text-xs">{formatTime(outFirst.departureTime)}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(outFirst.departureTime, timeFormat)}</span>
                 <div className="flex-1 border-t border-dashed border-border mx-1" />
                 <span className="text-xs text-muted-foreground">{formatDuration(journey.legDurations.find(l => l.direction === "OUTBOUND")?.duration.minutes || journey.totalDuration.minutes)}</span>
                 <div className="flex-1 border-t border-dashed border-border mx-1" />
-                <span className="text-muted-foreground text-xs">{formatTime(outLast.arrivalTime)}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(outLast.arrivalTime, timeFormat)}</span>
                 <span className="font-bold font-mono">{outLast.destinationCode}</span>
               </div>
             )}
             {inFirst && inLast && (
               <div className="flex items-center gap-2 text-sm mt-2">
                 <span className="font-bold font-mono">{inFirst.originCode}</span>
-                <span className="text-muted-foreground text-xs">{formatTime(inFirst.departureTime)}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(inFirst.departureTime, timeFormat)}</span>
                 <div className="flex-1 border-t border-dashed border-border mx-1" />
                 <span className="text-xs text-muted-foreground">{formatDuration(journey.legDurations.find(l => l.direction === "INBOUND")?.duration.minutes || 0)}</span>
                 <div className="flex-1 border-t border-dashed border-border mx-1" />
-                <span className="text-muted-foreground text-xs">{formatTime(inLast.arrivalTime)}</span>
+                <span className="text-muted-foreground text-xs">{formatTime(inLast.arrivalTime, timeFormat)}</span>
                 <span className="font-bold font-mono">{inLast.destinationCode}</span>
               </div>
             )}

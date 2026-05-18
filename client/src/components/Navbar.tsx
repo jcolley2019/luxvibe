@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun,
   Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles,
-  Home, Ticket, Menu, ChevronDown, Gift,
+  Home, Ticket, Menu, ChevronDown, Gift, Clock,
 } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
@@ -195,7 +195,7 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
     staleTime: 5 * 60 * 1000,
     enabled: isAuthenticated,
   });
-  const { currency, language } = usePreferences();
+  const { currency, language, timeFormat, setTimeFormat } = usePreferences();
   const { t } = useTranslation();
   const { dark, toggle: toggleDark } = useDarkMode();
   const favCount = useFavoritesCount();
@@ -445,6 +445,11 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                       {dark ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
                       {dark ? "Light Mode" : "Dark Mode"}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTimeFormat(timeFormat === "12h" ? "24h" : "12h")} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="button-time-format-toggle">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      Time Format
+                      <span className="ml-auto text-xs text-muted-foreground">{timeFormat === "12h" ? "12h" : "24h"}</span>
+                    </DropdownMenuItem>
                   </div>
                   <DropdownMenuSeparator />
                   <div className="py-1">
@@ -616,6 +621,16 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                   >
                     {dark ? <Sun className="w-4 h-4 text-muted-foreground shrink-0" /> : <Moon className="w-4 h-4 text-muted-foreground shrink-0" />}
                     {dark ? "Light Mode" : "Dark Mode"}
+                  </button>
+
+                  <button
+                    onClick={() => setTimeFormat(timeFormat === "12h" ? "24h" : "12h")}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+                    data-testid="mobile-nav-time-format"
+                  >
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    Time Format
+                    <span className="ml-auto text-xs text-muted-foreground font-normal">{timeFormat === "12h" ? "12h" : "24h"}</span>
                   </button>
                 </div>
 

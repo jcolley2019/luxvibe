@@ -5,15 +5,19 @@ import i18n from "@/i18n";
 export interface Preferences {
   currency: string;
   language: string;
+  timeFormat: "12h" | "24h";
   setCurrency: (c: string) => void;
   setLanguage: (l: string) => void;
+  setTimeFormat: (f: "12h" | "24h") => void;
 }
 
 const PreferencesContext = createContext<Preferences>({
   currency: "USD",
   language: "EN",
+  timeFormat: "12h",
   setCurrency: () => {},
   setLanguage: () => {},
+  setTimeFormat: () => {},
 });
 
 export const LANG_TO_NATIONALITY: Record<string, string> = {
@@ -29,6 +33,7 @@ function load(key: string, fallback: string): string {
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [currency, _setCurrency] = useState(() => load("lv_currency", "USD"));
   const [language, _setLanguage] = useState(() => load("lv_language", "EN"));
+  const [timeFormat, _setTimeFormat] = useState<"12h" | "24h">(() => (load("lv_time_format", "12h") as "12h" | "24h"));
 
   const setCurrency = (c: string) => {
     _setCurrency(c);
@@ -43,8 +48,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     queryClient.invalidateQueries();
   };
 
+  const setTimeFormat = (f: "12h" | "24h") => {
+    _setTimeFormat(f);
+    try { localStorage.setItem("lv_time_format", f); } catch {}
+  };
+
   return (
-    <PreferencesContext.Provider value={{ currency, language, setCurrency, setLanguage }}>
+    <PreferencesContext.Provider value={{ currency, language, timeFormat, setCurrency, setLanguage, setTimeFormat }}>
       {children}
     </PreferencesContext.Provider>
   );
