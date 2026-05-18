@@ -1,12 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import {
-  Car, ArrowRight, MapPin, ShieldCheck, Clock, Star, ExternalLink,
-} from "lucide-react";
+import { Car, MapPin, ShieldCheck, Clock, Star, ExternalLink } from "lucide-react";
 import { TravelModeTabs } from "@/components/TravelModeTabs";
+import { DiscoverCarsModal } from "@/components/DiscoverCarsModal";
 
 const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeyc2019";
 const BASE_URL = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL || "https://www.discovercars.com";
@@ -36,15 +35,37 @@ const FEATURES = [
 ];
 
 const US_DESTINATIONS = [
-  { label: "Las Vegas, NV",       url: `${BASE_URL}/?pick_up_place=Las+Vegas&a_aid=${AFFILIATE_ID}` },
-  { label: "Miami, FL",           url: `${BASE_URL}/?pick_up_place=Miami&a_aid=${AFFILIATE_ID}` },
-  { label: "Los Angeles, CA",     url: `${BASE_URL}/?pick_up_place=Los+Angeles&a_aid=${AFFILIATE_ID}` },
-  { label: "New York, NY",        url: `${BASE_URL}/?pick_up_place=New+York&a_aid=${AFFILIATE_ID}` },
-  { label: "Orlando, FL",         url: `${BASE_URL}/?pick_up_place=Orlando&a_aid=${AFFILIATE_ID}` },
-  { label: "San Francisco, CA",   url: `${BASE_URL}/?pick_up_place=San+Francisco&a_aid=${AFFILIATE_ID}` },
+  { label: "Las Vegas, NV",     url: `${BASE_URL}/?pick_up_place=Las+Vegas&a_aid=${AFFILIATE_ID}` },
+  { label: "Miami, FL",         url: `${BASE_URL}/?pick_up_place=Miami&a_aid=${AFFILIATE_ID}` },
+  { label: "Los Angeles, CA",   url: `${BASE_URL}/?pick_up_place=Los+Angeles&a_aid=${AFFILIATE_ID}` },
+  { label: "New York, NY",      url: `${BASE_URL}/?pick_up_place=New+York&a_aid=${AFFILIATE_ID}` },
+  { label: "Orlando, FL",       url: `${BASE_URL}/?pick_up_place=Orlando&a_aid=${AFFILIATE_ID}` },
+  { label: "San Francisco, CA", url: `${BASE_URL}/?pick_up_place=San+Francisco&a_aid=${AFFILIATE_ID}` },
 ];
 
+const VEHICLE_CLASSES = [
+  { url: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80", label: "Compact & Economy" },
+  { url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80", label: "SUV & Crossover" },
+  { url: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80", label: "Luxury Sedan" },
+];
+
+interface ModalState {
+  open: boolean;
+  href: string;
+  destination?: string;
+}
+
 export default function CarRental() {
+  const [modal, setModal] = useState<ModalState>({ open: false, href: "" });
+
+  function openModal(href: string, destination?: string) {
+    setModal({ open: true, href, destination });
+  }
+
+  function closeModal() {
+    setModal((m) => ({ ...m, open: false }));
+  }
+
   useEffect(() => {
     document.title = "Car Rental — Compare & Book | Luxvibe";
     const setMeta = (name: string, content: string, prop = false) => {
@@ -70,6 +91,13 @@ export default function CarRental() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
+      <DiscoverCarsModal
+        open={modal.open}
+        onClose={closeModal}
+        href={modal.href}
+        destination={modal.destination}
+      />
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden h-[480px] md:h-[638px] flex flex-col justify-center px-4 bg-black">
@@ -100,26 +128,22 @@ export default function CarRental() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              href={AFFILIATE_URL}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+            <button
+              onClick={() => openModal(AFFILIATE_URL)}
               className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-white text-gray-900 text-base font-semibold hover:bg-white/90 transition-colors shadow-lg"
               data-testid="button-search-cars-us"
             >
               <Car className="w-4 h-4" />
               Search US Car Rentals
-            </a>
-            <a
-              href={AFFILIATE_URL}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+            </button>
+            <button
+              onClick={() => openModal(AFFILIATE_URL)}
               className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-white/15 border border-white/30 text-white text-base font-semibold hover:bg-white/25 transition-colors"
               data-testid="button-search-cars-worldwide"
             >
               Worldwide Search
               <ExternalLink className="w-4 h-4" />
-            </a>
+            </button>
           </div>
 
           <p className="text-white/45 text-xs mt-5">
@@ -136,11 +160,9 @@ export default function CarRental() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {US_DESTINATIONS.map(({ label, url }, i) => (
-            <motion.a
+            <motion.button
               key={i}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+              onClick={() => openModal(url, label)}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -150,7 +172,7 @@ export default function CarRental() {
             >
               <MapPin className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
               <span className="text-xs font-medium text-foreground leading-tight">{label}</span>
-            </motion.a>
+            </motion.button>
           ))}
         </div>
       </section>
@@ -192,21 +214,16 @@ export default function CarRental() {
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { url: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80", label: "Compact & Economy", href: AFFILIATE_URL },
-            { url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80", label: "SUV & Crossover",   href: AFFILIATE_URL },
-            { url: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80", label: "Luxury Sedan",      href: AFFILIATE_URL },
-          ].map(({ url, label, href }, i) => (
-            <motion.a
+          {VEHICLE_CLASSES.map(({ url, label }, i) => (
+            <motion.button
               key={i}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+              onClick={() => openModal(AFFILIATE_URL)}
               initial={{ opacity: 0, scale: 0.97 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="relative rounded-2xl overflow-hidden aspect-[4/3] group block"
+              className="relative rounded-2xl overflow-hidden aspect-[4/3] group block w-full text-left"
+              data-testid={`button-vehicle-class-${i}`}
             >
               <img
                 src={url}
@@ -218,7 +235,7 @@ export default function CarRental() {
                 <p className="text-white font-semibold text-base drop-shadow">{label}</p>
                 <ExternalLink className="w-4 h-4 text-white/70" />
               </div>
-            </motion.a>
+            </motion.button>
           ))}
         </div>
       </section>
@@ -230,16 +247,14 @@ export default function CarRental() {
           Combine your car rental with a luxury hotel stay and flights — all in one place.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href={AFFILIATE_URL}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+          <button
+            onClick={() => openModal(AFFILIATE_URL)}
             className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
             data-testid="link-search-cars-cta"
           >
             <Car className="w-4 h-4" />
             Search Car Rentals
-          </a>
+          </button>
           <Link
             href="/"
             className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors"
