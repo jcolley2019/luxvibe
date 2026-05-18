@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetClose } from "@/components/ui/sheet";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
@@ -1119,6 +1119,15 @@ export default function Flights() {
     onSuccess: data => setResults(data),
   });
 
+  const { data: inspirationData, isLoading: inspirationLoading } = useQuery<{
+    routes: { fromIata: string; fromCity: string; toIata: string; toCity: string; country: string; image: string; price: number | null; currency: string; departureDate: string }[];
+    departureDate: string;
+  }>({
+    queryKey: ["/api/flights/inspiration"],
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
   const autoSearchFiredRef = useRef(false);
 
   useEffect(() => {
@@ -1580,6 +1589,65 @@ export default function Flights() {
             <Button variant="outline" size="sm" onClick={() => mutation.reset()} className="mt-2 gap-2">
               <RefreshCw className="w-4 h-4" /> Try again
             </Button>
+          </div>
+        )}
+
+        {!results && !mutation.isPending && !mutation.isError && (
+          <div className="py-4">
+            <div className="flex items-end justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Popular Routes</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  One-way · Economy · 1 adult · Departing ~{inspirationData?.departureDate ? new Date(inspirationData.departureDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "30 days out"}
+                </p>
+              </div>
+              {inspirationLoading && (
+                <p className="text-xs text-muted-foreground animate-pulse">Loading live prices…</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {inspirationLoading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-48 rounded-2xl bg-muted animate-pulse" />
+                  ))
+                : (inspirationData?.routes ?? []).map((route, i) => (
+                    <button
+                      key={i}
+                      data-testid={`inspiration-route-${route.toIata}`}
+                      onClick={() => {
+                        setOrigin(route.fromIata);
+                        setOriginDisplay(route.fromCity);
+                        setOriginAirportName("");
+                        setDestination(route.toIata);
+                        setDestDisplay(route.toCity);
+                        setDestAirportName("");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="relative h-48 rounded-2xl overflow-hidden text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <img
+                        src={route.image}
+                        alt={route.toCity}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <p className="text-white font-bold text-base leading-tight">{route.toCity}</p>
+                        <p className="text-white/70 text-xs mt-0.5">{route.fromCity} → {route.toCity}</p>
+                        <div className="mt-2 inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                          {route.price != null ? (
+                            <span className="text-white text-xs font-semibold">
+                              from {new Intl.NumberFormat("en-US", { style: "currency", currency: route.currency || "USD", maximumFractionDigits: 0 }).format(route.price)}
+                            </span>
+                          ) : (
+                            <span className="text-white/80 text-xs">Check price</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))
+              }
+            </div>
           </div>
         )}
 

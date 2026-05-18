@@ -3573,6 +3573,66 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/flights/inspiration — popular routes with live prices for pre-search inspiration
+  app.get("/api/flights/inspiration", async (req, res) => {
+    try {
+      const today = new Date();
+      const departDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const departureDateStr = departDate.toISOString().split("T")[0];
+
+      const ROUTES = [
+        { fromIata: "JFK", fromCity: "New York", toIata: "LHR", toCity: "London", country: "United Kingdom", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80" },
+        { fromIata: "JFK", fromCity: "New York", toIata: "CDG", toCity: "Paris", country: "France", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80" },
+        { fromIata: "LAX", fromCity: "Los Angeles", toIata: "NRT", toCity: "Tokyo", country: "Japan", image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80" },
+        { fromIata: "JFK", fromCity: "New York", toIata: "DXB", toCity: "Dubai", country: "UAE", image: "https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800&q=80" },
+        { fromIata: "LAX", fromCity: "Los Angeles", toIata: "CUN", toCity: "Cancún", country: "Mexico", image: "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=800&q=80" },
+        { fromIata: "ORD", fromCity: "Chicago", toIata: "MIA", toCity: "Miami", country: "United States", image: "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=800&q=80" },
+        { fromIata: "LAX", fromCity: "Los Angeles", toIata: "JFK", toCity: "New York", country: "United States", image: "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80" },
+        { fromIata: "JFK", fromCity: "New York", toIata: "FCO", toCity: "Rome", country: "Italy", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80" },
+      ];
+
+      const settled = await Promise.allSettled(
+        ROUTES.map(async (route) => {
+          const r = await fetch(`${LITEAPI_BOOK_BASE}/flights/rates`, {
+            method: "POST",
+            headers: {
+              "accept": "application/json",
+              "content-type": "application/json",
+              "X-API-Key": LITEAPI_FLIGHTS_KEY,
+            },
+            body: JSON.stringify({
+              flights: [{ fromId: route.fromIata, toId: route.toIata, departureDate: departureDateStr }],
+              adults: 1, children: 0, infants: 0,
+              cabinClass: "ECONOMY",
+              currency: "USD",
+            }),
+            signal: AbortSignal.timeout(20000),
+          });
+          const data = await r.json() as any;
+          let price: number | null = null;
+          let currency = "USD";
+          if (data?.data?.[0]?.sortMetadata?.price?.price) {
+            price = data.data[0].sortMetadata.price.price;
+            currency = data.data[0].sortMetadata.price.currency || "USD";
+          } else if (data?.data?.[0]?.journeys?.[0]?.offers?.[0]?.pricing?.display?.total) {
+            price = data.data[0].journeys[0].offers[0].pricing.display.total;
+            currency = data.data[0].journeys[0].offers[0].pricing.display.currency || "USD";
+          }
+          return { ...route, price, currency, departureDate: departureDateStr };
+        })
+      );
+
+      const routes = settled.map((r, i) =>
+        r.status === "fulfilled" ? r.value : { ...ROUTES[i], price: null, currency: "USD", departureDate: departureDateStr }
+      );
+
+      res.json({ routes, departureDate: departureDateStr });
+    } catch (err: any) {
+      console.error("[flights/inspiration]", err?.message);
+      res.status(500).json({ error: "Failed to fetch flight inspiration" });
+    }
+  });
+
   // GET /api/stays/category — fetch curated stays for a category via semantic search
   app.get("/api/stays/category", async (req, res) => {
     try {
