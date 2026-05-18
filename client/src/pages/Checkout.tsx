@@ -486,8 +486,11 @@ export default function Checkout() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
+                        {voucherDiscount && (
+                          <p className="text-xs line-through text-green-700/60 dark:text-green-300/60">{currency} {price}</p>
+                        )}
                         <p className="text-lg font-bold text-green-900 dark:text-green-100">
-                          {currency} {price}
+                          {currency} {discountedPrice.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -551,8 +554,11 @@ export default function Checkout() {
                       Total Price
                     </span>
                     <div className="text-right">
+                      {voucherDiscount && (
+                        <span className="text-sm line-through text-muted-foreground block">{currency} {price}</span>
+                      )}
                       <span className="text-xl sm:text-2xl font-bold leading-none block mb-0.5">
-                        {currency} {price}
+                        {currency} {discountedPrice.toFixed(2)}
                       </span>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                         All taxes included
