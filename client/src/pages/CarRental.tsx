@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { TravelModeTabs } from "@/components/TravelModeTabs";
 
-const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeycl2019";
+const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeyc2019";
 const BASE_URL = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL || "https://www.discovercars.com";
 const US_SEARCH_URL = `${BASE_URL}/united-states/?a_aid=${AFFILIATE_ID}`;
 const GENERAL_URL = `${BASE_URL}/?a_aid=${AFFILIATE_ID}`;

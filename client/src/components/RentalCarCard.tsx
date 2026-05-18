@@ -1,6 +1,6 @@
 import { Car, ExternalLink } from "lucide-react";
 
-const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeycl2019";
+const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeyc2019";
 const BASE_URL = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL || "https://www.discovercars.com";
 
 interface RentalCarCardProps {
