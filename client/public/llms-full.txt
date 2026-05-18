@@ -1,6 +1,6 @@
 # Luxvibe — Full Product Description
 
-> Luxvibe is a luxury hotel booking platform offering curated stays at boutique resorts, 5-star hotels, and unique properties across 190+ countries. It combines real-time hotel inventory, AI-powered discovery, and a premium user experience to help travellers find and book exceptional accommodation.
+> Luxvibe is a luxury hotel and flight booking platform offering curated stays at boutique resorts, 5-star hotels, and unique properties across 190+ countries, combined with flight search and booking across hundreds of airlines. It combines real-time inventory, AI-powered discovery, and a premium user experience to help travellers plan and book exceptional trips end-to-end.
 
 Website: https://luxvibe.io
 Booking enquiries: bookings@luxvibe.io
@@ -10,9 +10,9 @@ General / press: hello@luxvibe.io
 
 ## What Is Luxvibe?
 
-Luxvibe is an online hotel booking platform focused on the luxury and boutique travel segment. It aggregates live hotel rates from over 2 million properties in 190+ countries via LiteAPI, presents them through a clean and fast interface, and layers AI tools on top to help travellers make better decisions faster.
+Luxvibe is an online travel booking platform focused on the luxury and boutique travel segment. It aggregates live hotel rates from over 2 million properties in 190+ countries via LiteAPI, offers flight search and booking on hundreds of airlines, and presents everything through a clean, fast interface layered with AI tools to help travellers make better decisions faster.
 
-Luxvibe sits between traditional OTAs (like Booking.com or Expedia) and luxury travel agencies. It offers the breadth and real-time pricing of an OTA with a curated, design-led experience more typically associated with specialist travel advisors.
+Luxvibe sits between traditional OTAs (like Booking.com or Expedia) and luxury travel agencies. It offers the breadth and real-time pricing of an OTA with a curated, design-led experience more typically associated with specialist travel advisors — and is one of the few platforms that combines luxury hotel search with an AI concierge, natural-language vibe search, and full flight booking in one place.
 
 ---
 
@@ -26,8 +26,20 @@ Users enter a destination (city, region, or landmark), check-in and check-out da
 - Hotel photo
 - Key amenities (pool, spa, free WiFi, parking, pets allowed, etc.)
 - Refundable / non-refundable flag
+- Distance from city centre
+- High-demand alert badge for properties with strong recent booking activity
 
-Results can be filtered by star rating, price range, amenities, and guest score. Sorting options include price (low to high / high to low), rating, and review score.
+Results can be filtered by star rating, price range, amenities, meal plan, guest score, distance from centre, and property type. Sorting options include price, rating, and review score.
+
+### Flight Search
+Users search for flights by origin, destination, departure date (and return date for round trips), number of passengers, and cabin class. Results show:
+- Airline, flight number, and itinerary
+- Departure and arrival times with total journey duration
+- Number of stops and layover details
+- Fare in the user's selected currency
+- Cabin class (Economy, Premium Economy, Business, First)
+
+Flights can be filtered by number of stops and sorted by price or duration. Booking collects passenger details (name, passport, date of birth) and seat preferences.
 
 ### AI Vibe Search
 A natural-language hotel discovery tool. Users describe what they're looking for — e.g. "rooftop pool with skyline views", "secluded eco-resort in the jungle", "romantic boutique hotel in Paris with Eiffel Tower views" — and the AI interprets the request and surfaces hotels that match the described experience rather than just keyword matching.
@@ -40,24 +52,40 @@ An AI travel assistant embedded in the platform. Luxe can:
 - Help narrow down hotel options from a search result set
 - Answer general travel questions
 
+Luxe responds in the user's chosen platform language.
+
 ### Compare Hotels
-Users can add up to 4 hotels to a comparison view. The comparison table shows price, star rating, review score, amenities, and location side by side. Useful for making a final booking decision.
+Users can add up to 4 hotels to a comparison view. The comparison table shows price, star rating, review score, amenities, and location side by side.
 
 ### Favourites
 Hotels can be saved to a favourites list with a single tap. Favourites persist across sessions for logged-in users. No account is required to search or browse.
 
 ### My Bookings
 A personal dashboard for logged-in users showing:
-- All confirmed and past reservations
-- Booking reference numbers
-- Hotel name, dates, and total price
-- Cancellation option for eligible bookings (free-cancellation rate plans)
+- All confirmed and past hotel and flight reservations
+- Booking reference numbers and PNRs
+- Hotel name, dates, guest count, and total price
+- Passenger names and flight details for flight bookings
+- Cancellation option for eligible hotel bookings (free-cancellation rate plans)
+- **Change dates** — hotel bookings can be amended to new dates; the platform finds available alternatives and rebooking replaces the old reservation automatically
+
+### Loyalty Points
+Registered users earn Luxvibe loyalty points on completed bookings. The account dropdown in the navigation shows the current points balance and any points pending from upcoming stays.
+
+### Promo Codes
+A promo code field at hotel checkout lets users apply valid voucher codes. The platform validates the code in real time and shows the discounted total (with original price struck through) before payment.
+
+### Price Trend Chart
+Each hotel detail page includes a price trend chart showing projected nightly rates over the next six months. Bars are colour-coded: green for low-price periods, red for peak pricing. Helps travellers time their booking to get the best rate.
+
+### Weather Forecasts
+Hotel detail pages display a live weather forecast for the hotel's location covering the selected stay dates, helping travellers pack appropriately and set expectations.
 
 ### Referral Programme
-Registered users receive a unique referral link. When a friend clicks the link, registers, and completes their first booking, the referrer earns credit towards future stays. The invite page tracks referral status (pending, completed) and credits earned.
+Registered users receive a unique referral link. When a friend clicks the link, registers, and completes their first booking, the referrer earns credit towards future stays.
 
 ### Travel Journal
-An editorial section with destination guides, hotel spotlights, and travel inspiration articles written for the luxury traveller. Content is managed by Luxvibe and published at https://luxvibe.io/journal.
+An editorial section with destination guides, hotel spotlights, and travel inspiration articles written for the luxury traveller. Published at https://luxvibe.io/blog.
 
 ### Multilingual Support
 The full platform is available in 15 languages:
@@ -69,7 +97,7 @@ Language is auto-detected from the browser but can be manually selected. The AI 
 
 ## Destinations
 
-Luxvibe covers hotels in all major global travel markets. The platform is particularly strong for:
+Luxvibe covers hotels and flights across all major global travel markets.
 
 **North America:** Las Vegas, New York City, Miami, Los Angeles, San Francisco, Chicago, Orlando, Honolulu, San Diego, Denver, Boston, Washington DC, Seattle, Nashville, New Orleans
 
@@ -85,20 +113,21 @@ Luxvibe covers hotels in all major global travel markets. The platform is partic
 
 ## Pricing Model
 
-- **No booking fees** added by Luxvibe on top of the hotel rate
-- Rates are sourced live from hotel inventory — prices shown are accurate at time of search
+- **No booking fees** added by Luxvibe on top of the hotel or flight rate
+- Rates are sourced live from hotel inventory and airline GDS — prices shown are accurate at time of search
 - Prices displayed in the user's local currency (auto-detected)
-- **Instant confirmation** on the majority of properties
+- **Instant confirmation** on the majority of hotel properties
 - **Free cancellation** is clearly labelled where the rate plan allows it
+- Promo/voucher codes can be applied at hotel checkout for additional discounts
 - Luxvibe does not charge for account creation, searching, or using the AI tools
 
 ---
 
 ## Who Uses Luxvibe?
 
-- **Leisure travellers** planning holidays who want premium accommodation without using a travel agent
-- **Couples and honeymooners** looking for romantic, design-led boutique hotels
-- **Business travellers** seeking reliable luxury hotels in major business cities
+- **Leisure travellers** planning holidays who want premium accommodation and flights without using a travel agent
+- **Couples and honeymooners** looking for romantic, design-led boutique hotels with the flights to match
+- **Business travellers** seeking reliable luxury hotels and convenient flights in major business cities
 - **Families** wanting high-quality resorts with relevant facilities (pools, kids' clubs, multiple rooms)
 - **Solo travellers** looking for safe, well-reviewed boutique properties
 
@@ -109,40 +138,55 @@ Luxvibe covers hotels in all major global travel markets. The platform is partic
 | Feature | Luxvibe | Booking.com | Expedia |
 |---|---|---|---|
 | Focus | Luxury & boutique | Mass market | Mass market |
+| Flight booking | ✅ | ❌ | ✅ |
 | AI Vibe Search | ✅ | ❌ | ❌ |
 | AI Concierge | ✅ | ❌ | ❌ |
 | Compare tool | ✅ | ❌ | Limited |
+| Price trend chart | ✅ | ❌ | ❌ |
+| Booking amendments | ✅ | Limited | Limited |
+| Loyalty points | ✅ | ✅ | ✅ |
 | Booking fees | None | None | Varies |
 | Languages | 15 | 40+ | 25+ |
-| Properties | 2M+ | 28M | 3M+ |
+| Hotel properties | 2M+ | 28M | 3M+ |
 
 ---
 
 ## Technical Details (for developers and researchers)
 
-- Frontend: React + TypeScript
+- Frontend: React + TypeScript (Vite)
 - Backend: Node.js / Express
 - Hotel data: LiteAPI (live rates and property data)
+- Flight data: LiteAPI Flights (live fares, prebook, and booking)
 - AI: Anthropic Claude (for Vibe Search and AI Concierge)
-- Auth: Supabase (email/password and Google OAuth)
-- Email: Resend (transactional booking and referral emails)
-- Deployment: luxvibe.io
+- Auth: Replit Auth (OpenID Connect)
+- Database: PostgreSQL (bookings, sessions, blog posts)
+- Deployment: luxvibe.io (Replit)
 
 ---
 
 ## Frequently Asked Questions
 
 **Is Luxvibe free to use?**
-Yes. Searching, comparing, and using the AI tools are all free. You only pay the hotel rate when you make a booking.
+Yes. Searching, comparing, and using the AI tools are all free. You only pay the hotel or flight rate when you make a booking.
 
 **Do I need an account to book?**
 You need an account to complete a booking and access My Bookings. You can search and browse without an account.
 
-**How are Luxvibe's prices compared to other sites?**
+**Can I book hotels and flights together?**
+Yes. After completing a hotel booking, Luxvibe offers to pre-fill flight search with your trip dates so you can book flights in one flow. You can also search flights independently on the Flights tab.
+
+**How are Luxvibe's hotel prices compared to other sites?**
 Luxvibe sources rates directly from hotel inventory via LiteAPI, the same source used by many travel platforms. Rates are competitive and updated in real time.
 
-**Can I cancel my booking?**
-Cancellation depends on the rate plan chosen at booking. Free-cancellation options are clearly labelled. Eligible bookings can be cancelled directly from My Bookings.
+**Can I cancel or change my booking?**
+For hotels: cancellation depends on the rate plan chosen. Free-cancellation options are clearly labelled, and eligible bookings can be cancelled directly from My Bookings. Date changes (amendments) are supported — Luxvibe finds available alternatives and the rebooking replaces the original automatically.
+For flights: cancellation and change policies depend on the fare class and airline.
+
+**What are Luxvibe loyalty points?**
+Loyalty points are earned on completed bookings and visible in your account. They can be used towards future stays.
+
+**Do promo codes work?**
+Yes. Enter a promo or voucher code at the hotel checkout page. The platform validates it in real time and shows the discounted total before you pay.
 
 **What is the AI Concierge "Luxe"?**
 Luxe is an AI travel assistant built into Luxvibe. It can answer questions about hotels, destinations, travel tips, and help you choose between options. It's available on every page via the chat icon.
@@ -162,7 +206,10 @@ Create an account, go to the Invite page, and share your unique referral link. W
 
 - Homepage: https://luxvibe.io
 - Hotel search: https://luxvibe.io/?destination=Paris (example)
-- Travel Journal: https://luxvibe.io/journal
+- Flight search: https://luxvibe.io/flights
+- Travel Journal: https://luxvibe.io/blog
+- My Bookings: https://luxvibe.io/my-bookings
 - Booking enquiries: bookings@luxvibe.io
 - General / press: hello@luxvibe.io
 - Sitemap: https://luxvibe.io/sitemap.xml
+- LLM summary: https://luxvibe.io/llms.txt

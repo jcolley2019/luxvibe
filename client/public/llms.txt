@@ -1,10 +1,10 @@
 # Luxvibe
 
-Luxvibe is a luxury hotel booking platform powered by LiteAPI, offering real-time rates on 2 million+ hotels across 190+ countries.
+Luxvibe is a luxury hotel and flight booking platform powered by LiteAPI, offering real-time rates on 2 million+ hotels across 190+ countries and flights on hundreds of airlines worldwide.
 
 ## Overview
 
-Luxvibe helps travelers discover and book luxury hotels worldwide — from 5-star city properties to boutique coastal resorts. The platform combines real-time inventory, AI-powered discovery, and a curated experience to make high-end travel planning effortless.
+Luxvibe helps travelers discover, compare, and book luxury hotels and flights worldwide — from 5-star city properties to boutique coastal resorts, paired with the flights to get there. The platform combines real-time inventory, AI-powered discovery, and a curated experience to make high-end travel planning effortless.
 
 Website: https://luxvibe.io
 Booking enquiries: bookings@luxvibe.io
@@ -12,20 +12,26 @@ Booking enquiries: bookings@luxvibe.io
 ## Key Features
 
 - **Hotel Search** – Search by destination, dates, and guest count. Filter by star rating, price range, amenities, and review score. Sort by price, rating, or guest score. View results on a map or in a list.
+- **Flight Search** – Search one-way and return flights by route and dates. Compare fares across airlines, filter by stops and cabin class, and book with full passenger details and seat selection.
 - **AI Vibe Search** – Natural-language hotel discovery. Describe the experience you want ("rooftop pool with skyline views", "secluded eco-resort") and the AI surfaces matching properties.
 - **AI Concierge — Luxe** – An AI travel assistant that answers questions about hotels, recommends destinations, gives local tips, and helps narrow down choices. Responds in the user's selected language.
 - **Compare Hotels** – Side-by-side comparison of up to 4 hotels covering price, star rating, review score, amenities, and location.
 - **Favourites** – Save hotels to a personal list with a single tap. Persists across sessions for logged-in users.
-- **My Bookings** – Personal dashboard showing confirmed and past reservations, booking references, hotel names, dates, prices, and cancellation options.
+- **My Bookings** – Personal dashboard showing confirmed and past hotel and flight reservations. Supports cancellation of eligible bookings and date amendments (change dates on hotel stays).
+- **Loyalty Points** – Earn and track Luxvibe loyalty points on bookings. Points balance and upcoming earnings shown in the account dashboard.
+- **Promo Codes** – Apply promo/voucher codes at checkout for discounts on hotel stays.
+- **Price Trend Chart** – View nightly price movements for a hotel over the next 6 months, helping travellers choose the best time to book.
 - **Referral Programme** – Unique referral links for registered users. Successful referrals earn credit towards future stays.
 - **Price Comparison** – Direct links to compare prices on Expedia and Booking.com from any hotel detail page.
-- **Travel Journal** – Editorial destination guides, hotel spotlights, and travel inspiration at https://luxvibe.io/journal.
+- **Travel Journal** – Editorial destination guides, hotel spotlights, and travel inspiration at https://luxvibe.io/blog.
 - **Interactive Maps** – Explore hotel locations with neighborhood context in both search results and detail pages.
+- **Weather Forecasts** – Live weather forecast for a hotel's location shown on the hotel detail page, covering the stay dates.
 - **Multilingual** – Full platform in 15 languages: English, French, Spanish, German, Italian, Portuguese, Dutch, Turkish, Russian, Arabic, Japanese, Chinese (Simplified), Korean, Greek, Romanian.
 
 ## Coverage
 
-190+ countries · 2 million+ hotels · All luxury segments from boutique to 5-star resorts
+Hotels: 190+ countries · 2 million+ properties · All luxury segments from boutique to 5-star resorts
+Flights: Hundreds of airlines · Global routes · Economy through Business class
 
 ## Top Destinations
 
