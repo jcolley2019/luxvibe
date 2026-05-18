@@ -1,5 +1,8 @@
 import { Car, ExternalLink } from "lucide-react";
 
+const AFFILIATE_ID = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_ID || "joeycl2019";
+const BASE_URL = import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL || "https://www.discovercars.com";
+
 interface RentalCarCardProps {
   pickupDate?: string;
   returnDate?: string;
@@ -9,16 +12,12 @@ interface RentalCarCardProps {
 export function RentalCarCard({ pickupDate, returnDate, destination }: RentalCarCardProps) {
   if (import.meta.env.VITE_RENTAL_CAR_ENABLED !== "true") return null;
 
-  const baseUrl =
-    import.meta.env.VITE_RENTAL_CAR_AFFILIATE_URL ||
-    "https://www.rentalcars.com";
+  const params = new URLSearchParams({ a_aid: AFFILIATE_ID });
+  if (destination) params.set("pick_up_place", destination);
+  if (pickupDate) params.set("pick_up_date", pickupDate);
+  if (returnDate) params.set("drop_off_date", returnDate);
 
-  const params = new URLSearchParams();
-  if (pickupDate) params.set("pickupDate", pickupDate);
-  if (returnDate) params.set("dropoffDate", returnDate);
-  if (destination) params.set("location", destination);
-
-  const searchUrl = `${baseUrl}?${params.toString()}`;
+  const searchUrl = `${BASE_URL}/united-states/?${params.toString()}`;
 
   return (
     <div
@@ -38,17 +37,17 @@ export function RentalCarCard({ pickupDate, returnDate, destination }: RentalCar
       <div className="p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-card">
         <div className="flex-1 space-y-1">
           <p className="text-sm font-medium text-foreground">
-            Compare rental cars for your trip
+            Compare rental cars via DiscoverCars
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Economy, SUV, luxury, and more — from top carriers at your destination.
+            500+ suppliers including Enterprise, Hertz, Avis &amp; Budget.
             Free cancellation on most bookings.
           </p>
         </div>
         <a
           href={searchUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
           className="shrink-0 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
           data-testid="link-rental-car-search"
         >

@@ -1,0 +1,81 @@
+Dear Joseph Colley
+
+This is an automatically generated email. Carefully read our Terms & Conditions before starting to advertise DiscoverCars.com car rentals to avoid any unwanted behavior.
+Please set your password using the following link (AdBlock might block the page. Make sure to disable it if you will encounter any problems):: Click this link to set password
+To log in, please use your email as your username:: jcolley2019@gmail.com
+
+Important information:
+Cookie lifetime: 365 days.
+Sub-Affiliate sales commission: 3%
+Your commission example:
+Average 7 days rental in Tenerife:
+70% from 16.66 EUR booking + 30% from 44.52 EUR Full Coverage = 11.66 + 13.35 = 25.01 EUR Your commission
+Want to get a chance to increase your commission? Check out these offers:
+Special Offer 1 (For travel bloggers only): Extra lifetime 5% commission for booking (Total 75%) if you will place an affiliate link to your website within 10 days after the registration or if you run a YouTube channel then create and post a new travel video featuring DiscoverCars.com in 2 weeks after the registration.
+Special Offer 2 (For travel bloggers only): Extra lifetime 10% commission for booking (Total 80%) if you will add an affiliate link to your homepage or if you run a YouTube channel then create and post a new travel video featuring DiscoverCars.com in 1 week after the registration.
+P.S. Adding booking widget doesn't count towards the special offer. Counts only link.
+Send an e-mail to sabina.maliseva@discovercars.com about adding the link for the special offer to notify us and we will increase your commission.
+
+STEP 1: Login information
+Access your affiliate account by this URL. We recommend to bookmark it: https://discover-car-hire.postaffiliatepro.com/affiliates/login.php#login
+Login to your affiliate account to find your affiliate link on the top left part of the page. It will look like this:
+https://www.discovercars.com/?a_aid=”affiliateid”
+AffiliateIDlocation.png
+Affiliate links are important because our system tracks sales belonging to you when your readers click on your affiliate link and book a car. 
+Additionally, text links work better because banners get blocked by ad blockers, while text links are always visible to your readers.
+
+
+STEP 2: Place your affiliate link on your website
+The best strategy is to place your affiliate link on your homepage and in all travel-related articles.
+If you write about a specific destination, we recommend using deep links.
+For example, if you have an article about renting a car in Italy then you should link it to the Italy landing page of our website like this:
+https://www.discovercars.com/italy-mainland?a_aid=”affiliateid”
+
+These types of posts see the highest SEO traffic and conversion rate as people are looking for specific tips and hints for renting a car.
+
+For instructions on how to setup deeplinks refer to Step 3: Deep link generator.
+
+To set up links which will track sales from each of your travel articles or multiple websites, follow this guide:
+https://support.qualityunit.com/438945-SubID--Channels-tracking
+
+
+STEP 3: Use our deep link generator
+Access Deep-link generator by this URL: https://www.discovercars.com/landing-page-generator
+
+It will help you to create a deep link to a specific location. For example, if you have a blog post about Traveling in Lisbon,
+
+using the deep link for Lisbon landing page will increase conversion rate.
+
+To use it correctly, choose a country, city, location, language, and then enter your affiliate code. Your affiliate code is the affiliate id from your affiliate link:
+https://www.discovercars.com/?a_aid=”affiliateid”
+
+Once all the information is typed in, just press the green button and you will see a new link that you can copy and paste onto your website.
+
+
+
+STEP 4: Booking widget
+To add a booking widget to your website, use our widget generator tool which will help you to easily set it up and customize.
+
+https://www.discovercars.com/affiliate/widget
+
+
+
+STEP 5: Useful information
+We also have did a research among our affiliates and created an 'Affiliate Handbook' that includes our top selling countries, ideas for new articles, 
+and practical SEO tips. If you are interested in getting this case study, please send an e-mail to sabina.maliseva@discovercars.com
+
+
+
+Conclusion
+After placing your affiliate links on your website, you are all set to earn commissions from us.
+
+Additionally, there is an opportunity to use a booking widget (located in a promotion section as an HTML banner).
+
+If you need any additional help or have questions, feel free to send an e-mail to sabina.maliseva@discovercars.com
+
+
+
+Best regards,
+Affiliate Marketing Team
+www.discovercars.com 
+
