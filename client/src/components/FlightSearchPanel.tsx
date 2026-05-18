@@ -114,7 +114,7 @@ function AirportField({
 
   if (card) {
     return (
-      <div ref={ref} className="relative px-4 py-3 h-[78px]">
+      <div ref={ref} className="relative px-4 py-3 h-[78px] overflow-hidden">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
 
         {iata && !editing ? (
@@ -190,14 +190,14 @@ function AirportField({
           type="button"
           ref={inputRef as any}
           onClick={() => { onSelect("", "", ""); setQuery(""); setLocalAirportName(""); setEditing(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-          className="w-full flex items-start gap-3 px-3 py-3 border border-border rounded-xl bg-background hover:bg-muted/30 transition-colors text-left"
+          className="w-full h-[46px] flex items-center gap-3 px-3 border border-border rounded-xl bg-background hover:bg-muted/30 transition-colors text-left overflow-hidden"
           data-testid={testId}
         >
-          <span className="font-mono font-bold text-base text-foreground w-9 shrink-0 mt-0.5">{iata}</span>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{display}</p>
+          <span className="font-mono font-bold text-base text-foreground w-9 shrink-0">{iata}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground truncate leading-tight">{display}</p>
             {(propAirportName || localAirportName) && (
-              <p className="text-xs text-muted-foreground truncate">{propAirportName || localAirportName}</p>
+              <p className="text-[11px] text-muted-foreground truncate leading-tight">{propAirportName || localAirportName}</p>
             )}
           </div>
         </button>
