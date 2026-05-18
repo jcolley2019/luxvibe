@@ -1632,8 +1632,8 @@ export default function Flights() {
         </div>
       </div>
 
-      {/* ── Desktop hero — same fixed height as home page ── */}
-      <div className="hidden md:block relative w-full min-h-[638px] overflow-hidden bg-black">
+      {/* ── Desktop hero — sticky, fixed height, always visible ── */}
+      <div className="hidden md:block sticky top-16 z-40 w-full h-[638px] overflow-hidden bg-black">
         <img
           src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80"
           alt="Airplane above clouds"
