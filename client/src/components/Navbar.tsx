@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun,
   Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles,
-  Home, Ticket, Menu, ChevronDown, Gift, Clock,
+  Home, Ticket, Menu, ChevronDown, Gift, Clock, Settings,
 } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
@@ -290,16 +290,42 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
           {/* ── Right: desktop utility icons + auth / mobile hamburger ── */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-            {/* Language / Currency — desktop only */}
-            <button
-              onClick={() => setLangOpen(true)}
-              aria-label="Language and currency settings"
-              className="hidden md:flex h-9 px-2 rounded-full border border-border items-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-              data-testid="button-language"
-            >
-              <Globe className="w-4 h-4 shrink-0" />
-              <span className="text-xs font-medium hidden lg:inline">{language}</span>
-            </button>
+            {/* Settings dropdown — desktop only */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Settings"
+                  className="hidden md:flex w-9 h-9 rounded-full border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
+                  data-testid="button-settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60 mt-1">
+                <div className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Settings</div>
+                <DropdownMenuItem onClick={() => setLangOpen(true)} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="settings-language">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  Language &amp; Currency
+                  <span className="ml-auto text-xs text-muted-foreground">{language}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/manage-booking" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="settings-manage-bookings">
+                    <KeyRound className="w-4 h-4 text-muted-foreground" />
+                    Manage My Bookings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleDark} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="settings-dark-mode">
+                  {dark ? <Sun className="w-4 h-4 text-muted-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
+                  {dark ? "Light Mode" : "Dark Mode"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeFormat(timeFormat === "12h" ? "24h" : "12h")} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm" data-testid="settings-time-format">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  Time Format
+                  <span className="ml-auto text-xs text-muted-foreground">{timeFormat === "12h" ? "12h" : "24h"}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Site guide — desktop only */}
             <div className="hidden md:block relative" ref={tipsRef}>
@@ -341,15 +367,6 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
               )}
             </div>
 
-            {/* Manage Bookings key — desktop only */}
-            <Link
-              href="/manage-booking"
-              aria-label="Manage your bookings"
-              className="hidden md:flex w-9 h-9 rounded-full border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-muted/50 transition-all"
-              data-testid="button-manage-bookings"
-            >
-              <KeyRound className="w-4 h-4" />
-            </Link>
 
             {/* Auth — desktop user menu OR login button */}
             {isAuthenticated ? (
