@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import {
   Plane, CheckCircle2, XCircle, Loader2, Mail, Home, Users,
-  ArrowRight, AlertCircle, Calendar, BedDouble,
+  ArrowRight, AlertCircle, Calendar, BedDouble, Printer,
 } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
@@ -351,6 +351,14 @@ export default function FlightConfirmation() {
                 <Plane className="w-4 h-4" /> Search More Flights
               </Button>
             </div>
+            <Button
+              variant="outline"
+              className="w-full rounded-xl gap-2 text-muted-foreground"
+              onClick={() => window.print()}
+              data-testid="button-print-flight-confirmation"
+            >
+              <Printer className="w-4 h-4" /> Print / Save flight ticket
+            </Button>
           </motion.div>
         )}
       </div>

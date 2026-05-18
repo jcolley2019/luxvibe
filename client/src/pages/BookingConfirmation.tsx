@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Home,
   Plane,
+  Printer,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -288,19 +289,29 @@ export default function BookingConfirmation() {
                 </div>
               </CardContent>
 
-              <CardFooter className="bg-muted/30 p-5 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <CardFooter className="bg-muted/30 p-5 sm:p-6 flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="flex-1 w-full"
+                  >
+                    <Link href="/my-bookings">View My Bookings</Link>
+                  </Button>
+                  <Button asChild className="flex-1 w-full">
+                    <Link href="/">
+                      Book Another Hotel
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Link>
+                  </Button>
+                </div>
                 <Button
-                  asChild
                   variant="outline"
-                  className="flex-1 w-full order-2 sm:order-1"
+                  className="w-full gap-2 text-muted-foreground"
+                  onClick={() => window.print()}
+                  data-testid="button-print-hotel-confirmation"
                 >
-                  <Link href="/my-bookings">View My Bookings</Link>
-                </Button>
-                <Button asChild className="flex-1 w-full order-1 sm:order-2">
-                  <Link href="/">
-                    Book Another Hotel
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
+                  <Printer className="w-4 h-4" /> Print / Save confirmation
                 </Button>
               </CardFooter>
             </Card>
