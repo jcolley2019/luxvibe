@@ -1608,8 +1608,10 @@ export default function Flights() {
         </div>
         {/* Search card overlaps the bottom of the hero — same as home page */}
         <div className="relative -mt-12 mx-4 z-10 pb-2">
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
-            <TravelModeTabs active="flights" variant="card" className="px-4" />
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl">
+            <div className="overflow-hidden rounded-t-2xl">
+              <TravelModeTabs active="flights" variant="card" className="px-4" />
+            </div>
             <div className="p-4">
               {flightSearchCard}
             </div>
@@ -1646,8 +1648,10 @@ export default function Flights() {
         {/* Search card — outside overflow-hidden so airport dropdowns are never clipped */}
         <div className="relative z-10 -mt-16 px-4 pb-10">
           <div className="container mx-auto max-w-5xl">
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden">
-              <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
+            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl">
+              <div className="overflow-hidden rounded-t-2xl">
+                <TravelModeTabs active="flights" variant="card" className="px-4 sm:px-6" />
+              </div>
               <div className="p-4 sm:p-6">
                 {flightSearchCard}
               </div>
