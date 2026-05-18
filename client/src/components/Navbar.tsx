@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/context/preferences";
@@ -22,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, CalendarDays, Globe, KeyRound, X, Lightbulb, Moon, Sun,
   Heart, Users, BookOpen, Plane, DollarSign, Building2, Eye, Sparkles,
-  Home, Ticket, Menu, ChevronDown,
+  Home, Ticket, Menu, ChevronDown, Gift,
 } from "lucide-react";
 import { useFavorites } from "@/context/favorites";
 import { AuthModal } from "@/components/AuthModal";
@@ -188,6 +189,12 @@ function LanguageModal({ open, onClose }: { open: boolean; onClose: () => void }
 
 export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
   const { user, logout, isAuthenticated, openLoginModal, closeLoginModal, loginModalOpen } = useAuth();
+
+  const { data: loyaltyPoints } = useQuery<{ points: number; upcomingPoints: number; exists: boolean }>({
+    queryKey: ["/api/loyalty/points"],
+    staleTime: 5 * 60 * 1000,
+    enabled: isAuthenticated,
+  });
   const { currency, language } = usePreferences();
   const { t } = useTranslation();
   const { dark, toggle: toggleDark } = useDarkMode();
@@ -394,6 +401,19 @@ export function Navbar({ centralSlot }: { centralSlot?: React.ReactNode }) {
                         )}
                       </Link>
                     </DropdownMenuItem>
+                    {(loyaltyPoints?.points ?? 0) > 0 && (
+                      <div className="mx-2 my-1 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                        <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
+                          <Gift className="w-3 h-3 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-amber-900 dark:text-amber-100">{loyaltyPoints!.points.toLocaleString()} Luxvibe points</p>
+                          {(loyaltyPoints!.upcomingPoints ?? 0) > 0 && (
+                            <p className="text-[10px] text-amber-700 dark:text-amber-300">+{loyaltyPoints!.upcomingPoints} upcoming</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/invite" className="cursor-pointer flex items-center gap-2.5 px-3 py-2 text-sm">
                         <Users className="w-4 h-4 text-muted-foreground" /> Invite Friends &amp; Referrals

@@ -3748,6 +3748,102 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // GET /api/vouchers/validate?code= — validate a LiteAPI promo/voucher code
+  app.get("/api/vouchers/validate", async (req, res) => {
+    try {
+      const { code } = req.query as { code?: string };
+      if (!code?.trim()) return res.status(400).json({ error: "Code required" });
+      const data = await liteApiGet("/vouchers") as any;
+      const vouchers: any[] = data?.data || [];
+      const voucher = vouchers.find((v: any) =>
+        v.code?.toLowerCase() === code.toLowerCase() &&
+        (v.status === "active" || v.isActive === true)
+      );
+      if (!voucher) return res.status(404).json({ error: "Invalid or expired promo code" });
+      const now = new Date();
+      if (voucher.validFrom && new Date(voucher.validFrom) > now)
+        return res.status(400).json({ error: "Promo code not yet active" });
+      if (voucher.validTo && new Date(voucher.validTo) < now)
+        return res.status(400).json({ error: "Promo code has expired" });
+      return res.json({
+        valid: true,
+        code: voucher.code,
+        discountType: voucher.discountType || "percentage",
+        discountValue: Number(voucher.discountValue ?? voucher.value ?? 0),
+        currency: voucher.currency || "USD",
+        description: voucher.name || voucher.description || null,
+      });
+    } catch (err: any) {
+      console.error("[vouchers/validate]", err?.message);
+      res.status(500).json({ error: "Failed to validate promo code" });
+    }
+  });
+
+  // GET /api/hotels/:id/price-index — beta price trend for a hotel (30-180 days)
+  app.get("/api/hotels/:id/price-index", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const today = new Date().toISOString().split("T")[0];
+      const sixMonths = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const { fromDate = today, toDate = sixMonths } = req.query as Record<string, string>;
+      const data = await liteApiGet(
+        `/data/price-index/hotels?hotelIds=${encodeURIComponent(id)}&fromDate=${fromDate}&toDate=${toDate}`
+      ) as any;
+      res.json(data);
+    } catch (err: any) {
+      console.error("[price-index]", err?.message);
+      res.status(500).json({ error: "Failed to fetch price index" });
+    }
+  });
+
+  // POST /api/bookings/:bookingId/alternatives — find alternative rooms for date-change amendment
+  app.post("/api/bookings/:bookingId/alternatives", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { checkin, checkout, adults = 2 } = req.body as { checkin: string; checkout: string; adults?: number };
+      const result = await fetch(
+        `${LITEAPI_BOOK_BASE}/bookings/${encodeURIComponent(bookingId)}/alternative-prebooks`,
+        {
+          method: "POST",
+          headers: {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "X-API-Key": LITEAPI_KEY,
+          },
+          body: JSON.stringify({ checkin, checkout, occupancies: [{ adults }] }),
+          signal: AbortSignal.timeout(30000),
+        }
+      );
+      const data = await result.json() as any;
+      res.status(result.ok ? 200 : result.status).json(data);
+    } catch (err: any) {
+      console.error("[bookings/alternatives]", err?.message);
+      res.status(500).json({ error: "Failed to find alternative bookings" });
+    }
+  });
+
+  // POST /api/bookings/rebook — confirm amendment: cancels old booking, creates new one
+  app.post("/api/bookings/rebook", async (req, res) => {
+    try {
+      const { prebookId, existingBookingId } = req.body as { prebookId: string; existingBookingId: string };
+      const result = await fetch(`${LITEAPI_BOOK_BASE}/rates/rebook`, {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "X-API-Key": LITEAPI_KEY,
+        },
+        body: JSON.stringify({ prebookId, existingBookingId }),
+        signal: AbortSignal.timeout(30000),
+      });
+      const data = await result.json() as any;
+      res.status(result.ok ? 200 : result.status).json(data);
+    } catch (err: any) {
+      console.error("[bookings/rebook]", err?.message);
+      res.status(500).json({ error: "Failed to rebook" });
+    }
+  });
+
   // ─── Events: Ticketmaster Discovery API ───────────────────────────────────
 
   // GET /api/events — search events

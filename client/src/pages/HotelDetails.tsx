@@ -1,4 +1,5 @@
 import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useHotel, useSimilarHotels, useHotelReviews, type ReviewSentiment, askHotelAI } from "@/hooks/use-hotels";
 import { Navbar } from "@/components/Navbar";
@@ -15,7 +16,7 @@ import {
   Building2, Briefcase, Plane, ShowerHead, Wind, Bed, ConciergeBell, Lock,
   Beer, Clock, Accessibility, Leaf, Zap, Send, X, Check, Info, AlertCircle,
   BedDouble, Users, Maximize2, ChevronRight, CalendarDays,
-  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search, Gem
+  Tv, Thermometer, Bath, FlameKindling, Refrigerator, Phone, Flame, AirVent, Search, Gem, TrendingUp
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useFavorites } from "@/context/favorites";
@@ -234,6 +235,18 @@ export default function HotelDetails() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+
+  const { data: priceIndexData } = useQuery({
+    queryKey: ["/api/hotels", id, "price-index"],
+    queryFn: async () => {
+      const res = await fetch(`/api/hotels/${id}/price-index`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!id,
+    staleTime: 30 * 60 * 1000,
+    retry: false,
+  });
   const { isAuthenticated, openLoginModal } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
@@ -782,6 +795,58 @@ export default function HotelDetails() {
           checkOut={checkOut}
           hotelName={hotel.name}
         />
+
+        {/* ─── Price Index Chart ─── */}
+        {(() => {
+          const points: Array<{ date: string; price: number }> = [];
+          if (priceIndexData?.data) {
+            const raw = Array.isArray(priceIndexData.data) ? priceIndexData.data : Object.values(priceIndexData.data);
+            for (const item of raw as any[]) {
+              const date = item.date || item.fromDate || "";
+              const price = Number(item.avgPricePerNight ?? item.price ?? item.minPrice ?? 0);
+              if (date && price > 0) points.push({ date, price });
+            }
+          }
+          if (points.length < 4) return null;
+          const sample = points.filter((_, i) => i % Math.ceil(points.length / 20) === 0).slice(0, 20);
+          const maxPrice = Math.max(...sample.map(p => p.price));
+          const minPrice = Math.min(...sample.map(p => p.price));
+          const range = maxPrice - minPrice || 1;
+          return (
+            <div className="mb-8 p-5 rounded-2xl border border-border bg-card shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  Price Trend
+                </h2>
+                <span className="text-xs text-muted-foreground">{points.length} days of data</span>
+              </div>
+              <div className="flex items-end gap-1 h-20">
+                {sample.map((p, i) => {
+                  const heightPct = 15 + ((p.price - minPrice) / range) * 85;
+                  const isLow = p.price <= minPrice + range * 0.25;
+                  const isHigh = p.price >= minPrice + range * 0.75;
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative" title={`${p.date}: ${Math.round(p.price)}`}>
+                      <div
+                        className={`w-full rounded-t transition-all ${isLow ? "bg-emerald-400" : isHigh ? "bg-rose-400" : "bg-primary/60"}`}
+                        style={{ height: `${heightPct}%` }}
+                      />
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-popover border border-border text-[10px] px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-10">
+                        ${Math.round(p.price)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                <span>{sample[0]?.date?.slice(5)}</span>
+                <span className="text-emerald-600 font-medium">Low from ${Math.round(minPrice)}/night</span>
+                <span>{sample[sample.length - 1]?.date?.slice(5)}</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ─── Facilities Section ─── */}
         <div ref={sectionRefs.facilities} className="pb-10">

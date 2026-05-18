@@ -16,6 +16,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { CalendarDays } from "lucide-react";
+import {
   Loader2,
   Search,
   ArrowUpDown,
@@ -235,6 +243,11 @@ export default function MyBookings() {
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [pendingCancel, setPendingCancel] = useState<{ id: string; hotelName: string } | null>(null);
+  const [amendingBooking, setAmendingBooking] = useState<{ id: string; hotelName: string; checkIn: string; checkOut: string; guests: number } | null>(null);
+  const [amendNewCheckIn, setAmendNewCheckIn] = useState("");
+  const [amendNewCheckOut, setAmendNewCheckOut] = useState("");
+  const [amendAlternatives, setAmendAlternatives] = useState<any[]>([]);
+  const [amendConfirming, setAmendConfirming] = useState<string | null>(null);
 
   const { data: flightBookingsData, isLoading: isFlightBookingsLoading } = useQuery({
     queryKey: ["/api/flights/bookings"],
@@ -270,6 +283,41 @@ export default function MyBookings() {
         variant: "destructive",
       });
       setPendingCancel(null);
+    },
+  });
+
+  const findAlternativesMutation = useMutation({
+    mutationFn: async ({ bookingId, checkin, checkout, adults }: { bookingId: string; checkin: string; checkout: string; adults: number }) => {
+      const res = await apiRequest("POST", `/api/bookings/${bookingId}/alternatives`, { checkin, checkout, adults });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      const alternatives: any[] = data?.data || data?.prebooks || data?.alternatives || [];
+      setAmendAlternatives(alternatives);
+      if (alternatives.length === 0) {
+        toast({ title: "No alternatives found", description: "No available rooms for these dates. Try different dates.", variant: "destructive" });
+      }
+    },
+    onError: (err: any) => {
+      toast({ title: "Search failed", description: err?.message || "Could not find alternatives. Please try again.", variant: "destructive" });
+    },
+  });
+
+  const rebookMutation = useMutation({
+    mutationFn: async ({ prebookId, existingBookingId }: { prebookId: string; existingBookingId: string }) => {
+      const res = await apiRequest("POST", "/api/bookings/rebook", { prebookId, existingBookingId });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Dates changed successfully!", description: "Your booking has been updated and the old one cancelled." });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      setAmendingBooking(null);
+      setAmendAlternatives([]);
+      setAmendConfirming(null);
+    },
+    onError: (err: any) => {
+      toast({ title: "Change failed", description: err?.message || "Could not change your booking dates. Please try again.", variant: "destructive" });
+      setAmendConfirming(null);
     },
   });
 
@@ -345,6 +393,89 @@ export default function MyBookings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Amendment / Change dates dialog */}
+      <Dialog open={!!amendingBooking} onOpenChange={(open) => { if (!open) { setAmendingBooking(null); setAmendAlternatives([]); setAmendConfirming(null); } }}>
+        <DialogContent className="max-w-lg" data-testid="dialog-change-dates">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-primary" />
+              Change dates
+            </DialogTitle>
+            <DialogDescription>
+              {amendingBooking?.hotelName} — select new check-in and check-out dates.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">New check-in</label>
+                <input
+                  type="date"
+                  className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={amendNewCheckIn}
+                  onChange={e => { setAmendNewCheckIn(e.target.value); setAmendAlternatives([]); }}
+                  min={format(new Date(), "yyyy-MM-dd")}
+                  data-testid="input-amend-checkin"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">New check-out</label>
+                <input
+                  type="date"
+                  className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={amendNewCheckOut}
+                  onChange={e => { setAmendNewCheckOut(e.target.value); setAmendAlternatives([]); }}
+                  min={amendNewCheckIn || format(new Date(), "yyyy-MM-dd")}
+                  data-testid="input-amend-checkout"
+                />
+              </div>
+            </div>
+
+            <Button
+              className="w-full rounded-xl"
+              disabled={!amendNewCheckIn || !amendNewCheckOut || amendNewCheckIn >= amendNewCheckOut || findAlternativesMutation.isPending}
+              onClick={() => amendingBooking && findAlternativesMutation.mutate({ bookingId: amendingBooking.id, checkin: amendNewCheckIn, checkout: amendNewCheckOut, adults: amendingBooking.guests })}
+              data-testid="button-find-alternatives"
+            >
+              {findAlternativesMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Searching…</> : "Find available rooms"}
+            </Button>
+
+            {amendAlternatives.length > 0 && (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{amendAlternatives.length} option{amendAlternatives.length !== 1 ? "s" : ""} found</p>
+                {amendAlternatives.slice(0, 5).map((alt: any, i: number) => {
+                  const prebookId = alt.prebookId || alt.id;
+                  const price = alt.offerRetailRate?.amount ?? alt.price ?? alt.totalAmount ?? "—";
+                  const currency = alt.offerRetailRate?.currency ?? alt.currency ?? "";
+                  const roomName = alt.roomType?.name ?? alt.name ?? `Option ${i + 1}`;
+                  return (
+                    <div key={prebookId || i} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-muted/30">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{roomName}</p>
+                        {price !== "—" && <p className="text-xs text-muted-foreground">{currency} {Number(price).toLocaleString()}</p>}
+                      </div>
+                      <Button
+                        size="sm"
+                        className="shrink-0 h-8 rounded-lg text-xs"
+                        disabled={amendConfirming === prebookId || rebookMutation.isPending}
+                        onClick={() => {
+                          setAmendConfirming(prebookId);
+                          rebookMutation.mutate({ prebookId, existingBookingId: amendingBooking!.id });
+                        }}
+                        data-testid={`button-select-alternative-${i}`}
+                      >
+                        {amendConfirming === prebookId ? <Loader2 className="w-3 h-3 animate-spin" /> : "Select"}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="flex-1 container mx-auto px-4 py-10 max-w-7xl">
         {/* Loyalty Points Widget */}
@@ -544,6 +675,18 @@ export default function MyBookings() {
                                 </Link>
                               );
                             })()}
+                            {!isCancelled(booking.status) && booking.bookingId && (
+                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-primary border-primary/30 hover:bg-primary/5"
+                                onClick={() => {
+                                  setAmendingBooking({ id: booking.bookingId, hotelName: booking.hotelName, checkIn: booking.checkIn as string, checkOut: booking.checkOut as string, guests: booking.guests || 2 });
+                                  setAmendNewCheckIn(booking.checkIn as string || "");
+                                  setAmendNewCheckOut(booking.checkOut as string || "");
+                                  setAmendAlternatives([]);
+                                }}
+                                data-testid={`button-change-dates-${booking.id}`}>
+                                <CalendarDays className="w-3 h-3" /> Change dates
+                              </Button>
+                            )}
                             {!isCancelled(booking.status) && (booking as any).cancellable === true && (
                               <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                                 onClick={() => setPendingCancel({ id: booking.id, hotelName: booking.hotelName })}
