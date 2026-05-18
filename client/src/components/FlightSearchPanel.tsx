@@ -33,10 +33,11 @@ interface MultiLeg {
 }
 
 function AirportField({
-  iata, display, onSelect, placeholder, label, testId, card = false,
+  iata, display, airportName: propAirportName, onSelect, placeholder, label, testId, card = false,
 }: {
   iata: string;
   display: string;
+  airportName?: string;
   onSelect: (iata: string, display: string, airportName: string) => void;
   placeholder: string;
   label: string;
@@ -82,18 +83,17 @@ function AirportField({
   }, []);
 
   const [editing, setEditing] = useState(!iata);
-  const [airportName, setAirportName] = useState("");
+  const [localAirportName, setLocalAirportName] = useState("");
 
   function handleSelect(s: Airport) {
     const city = s.cityName || s.name || s.iataCode;
     const lbl = city + (s.countryCode ? `, ${s.countryCode}` : "");
-    const name = s.name && s.cityName ? s.name : "";
+    const name = s.name && s.cityName ? s.name : (s.name || "");
     onSelect(s.iataCode, lbl, name);
     setQuery(lbl);
     setOpen(false);
     setSuggestions([]);
-    if (name) setAirportName(name);
-    else setAirportName("");
+    setLocalAirportName(name);
   }
 
   function handleFocus() {
@@ -107,7 +107,7 @@ function AirportField({
   function handleCardSelectedClick() {
     onSelect("", "", "");
     setQuery("");
-    setAirportName("");
+    setLocalAirportName("");
     setEditing(true);
     setTimeout(() => inputRef.current?.focus(), 0);
   }
@@ -118,7 +118,7 @@ function AirportField({
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
 
         {iata && !editing ? (
-          /* Selected state — matches dropdown row: IATA + city/country + terminal name */
+          /* Selected state — IATA + city/country + terminal name */
           <button
             type="button"
             onClick={handleCardSelectedClick}
@@ -128,8 +128,8 @@ function AirportField({
             <span className="font-mono font-bold text-sm text-foreground w-9 shrink-0 mt-0.5">{iata}</span>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{display}</p>
-              {airportName && (
-                <p className="text-xs text-muted-foreground truncate">{airportName}</p>
+              {(propAirportName || localAirportName) && (
+                <p className="text-xs text-muted-foreground truncate">{propAirportName || localAirportName}</p>
               )}
             </div>
           </button>
@@ -185,22 +185,38 @@ function AirportField({
   return (
     <div ref={ref} className="relative flex-1 min-w-0">
       <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</label>
-      <div className="relative">
-        <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => handleChange(e.target.value)}
-          onFocus={handleFocus}
-          placeholder={placeholder}
-          autoComplete="off"
-          className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+      {iata && !editing ? (
+        <button
+          type="button"
+          ref={inputRef as any}
+          onClick={() => { onSelect("", "", ""); setQuery(""); setLocalAirportName(""); setEditing(true); setTimeout(() => inputRef.current?.focus(), 0); }}
+          className="w-full flex items-start gap-3 px-3 py-3 border border-border rounded-xl bg-background hover:bg-muted/30 transition-colors text-left"
           data-testid={testId}
-        />
-        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
-      </div>
-      {iata && query && (
-        <p className="mt-1 pl-1 text-xs font-mono font-bold text-primary/60">{iata}</p>
+        >
+          <span className="font-mono font-bold text-base text-foreground w-9 shrink-0 mt-0.5">{iata}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{display}</p>
+            {(propAirportName || localAirportName) && (
+              <p className="text-xs text-muted-foreground truncate">{propAirportName || localAirportName}</p>
+            )}
+          </div>
+        </button>
+      ) : (
+        <div className="relative">
+          <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={e => handleChange(e.target.value)}
+            onFocus={handleFocus}
+            placeholder={placeholder}
+            autoComplete="off"
+            className="w-full pl-9 pr-3 py-3 border border-border rounded-xl bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            data-testid={testId}
+          />
+          {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+        </div>
       )}
       <AnimatePresence>
         {open && suggestions.length > 0 && (
@@ -498,7 +514,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
           <>
             {/* FROM / swap / TO — unified card */}
             <div className="border border-border rounded-2xl bg-background">
-              <AirportField card iata={originIata} display={originDisplay}
+              <AirportField card iata={originIata} display={originDisplay} airportName={originAirportName}
                 onSelect={(i, d, n) => { setOriginIata(i); setOriginDisplay(d); setOriginAirportName(n); }}
                 placeholder="City or airport" label="From" testId="input-flight-origin-mobile" />
               <div className="relative h-0 border-t border-border">
@@ -508,7 +524,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
                   <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
-              <AirportField card iata={destIata} display={destDisplay}
+              <AirportField card iata={destIata} display={destDisplay} airportName={destAirportName}
                 onSelect={(i, d, n) => { setDestIata(i); setDestDisplay(d); setDestAirportName(n); }}
                 placeholder="City or airport" label="To" testId="input-flight-dest-mobile" />
             </div>
@@ -632,7 +648,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
             <>
               {/* One-way / Round-trip: FROM / swap / TO */}
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <AirportField iata={originIata} display={originDisplay}
+                <AirportField iata={originIata} display={originDisplay} airportName={originAirportName}
                   onSelect={(i, d, n) => { setOriginIata(i); setOriginDisplay(d); setOriginAirportName(n); }}
                   placeholder="City or airport" label="From" testId="input-flight-origin" />
                 <div className="flex items-end pb-1.5">
@@ -642,7 +658,7 @@ export function FlightSearchPanel({ variant = "hero" }: { variant?: "hero" | "mo
                     <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </div>
-                <AirportField iata={destIata} display={destDisplay}
+                <AirportField iata={destIata} display={destDisplay} airportName={destAirportName}
                   onSelect={(i, d, n) => { setDestIata(i); setDestDisplay(d); setDestAirportName(n); }}
                   placeholder="City or airport" label="To" testId="input-flight-dest" />
               </div>
