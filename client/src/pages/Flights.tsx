@@ -1227,6 +1227,29 @@ export default function Flights() {
   const [filterAirlines, setFilterAirlines] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
 
+  // Page-level SEO meta tags
+  useEffect(() => {
+    document.title = "Flights — Search & Book | Luxvibe";
+    const setMeta = (name: string, content: string, prop = false) => {
+      const sel = prop ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+      let el = document.querySelector(sel) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(prop ? "property" : "name", name); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("description", "Search and book flights on hundreds of airlines worldwide. One-way, round trip, and multi-city. Economy, Business, and First Class. Real-time pricing and instant confirmation.");
+    setMeta("og:title", "Search Flights — Luxvibe", true);
+    setMeta("og:description", "Find and book flights on hundreds of airlines. Real-time fares, one-way, round trip and multi-city. Economy to First Class.", true);
+    setMeta("og:url", "https://luxvibe.io/flights", true);
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", "https://luxvibe.io/flights");
+    return () => {
+      document.title = "Luxvibe – Luxury Hotels, Flights & Car Rental Worldwide";
+      const c = document.querySelector('link[rel="canonical"]');
+      if (c) c.setAttribute("href", "https://luxvibe.io/");
+    };
+  }, []);
+
   function clearAllFilters() {
     setFilterMaxStops(-1);
     setFilterRefundable(false);
@@ -1428,7 +1451,6 @@ export default function Flights() {
     { key: "stops", label: "Fewest stops" },
   ];
 
-  document.title = "Flights — Luxvibe";
 
   // Shared search form content used in both mobile and desktop hero sections
   const flightSearchCard = (

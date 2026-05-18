@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
 import { Navbar } from "@/components/Navbar";
-import { MapPin, Calendar, Star, ChevronLeft, ChevronRight, ArrowRight, Clock, Users } from "lucide-react";
+import { MapPin, Calendar, Star, ChevronLeft, ChevronRight, ArrowRight, Clock, Users, Car, Plane, Hotel } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -581,6 +581,42 @@ export default function BlogPost() {
         {/* FAQ */}
         <FaqSection destination={post.destination} />
       </div>
+
+      {/* Plan Your Trip — internal backlinks to Hotels, Flights, Car Rental */}
+      <section className="border-t border-border bg-muted/30 py-10 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-lg font-bold text-foreground mb-1">Plan your trip{post.destination ? ` to ${post.destination}` : ""}</h2>
+          <p className="text-sm text-muted-foreground mb-5">
+            Search hotels, flights, and rental cars for your next adventure — all on Luxvibe.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/?destination=${encodeURIComponent(post.destination || "")}`}
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+              data-testid="link-blog-search-hotels"
+            >
+              <Hotel className="w-4 h-4" />
+              {post.destination ? `Hotels in ${post.destination}` : "Search Hotels"}
+            </Link>
+            <Link
+              href="/flights"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted/50 transition-colors"
+              data-testid="link-blog-flights"
+            >
+              <Plane className="w-4 h-4" />
+              Search Flights
+            </Link>
+            <Link
+              href="/car-rental"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted/50 transition-colors"
+              data-testid="link-blog-car-rental"
+            >
+              <Car className="w-4 h-4" />
+              Rent a Car
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Related posts */}
       {relatedPosts.length > 0 && (

@@ -3218,6 +3218,7 @@ Rules:
     const staticUrls = [
       { loc: "https://luxvibe.io/", changefreq: "daily", priority: "1.0" },
       { loc: "https://luxvibe.io/flights", changefreq: "daily", priority: "0.9" },
+      { loc: "https://luxvibe.io/car-rental", changefreq: "weekly", priority: "0.8" },
       { loc: "https://luxvibe.io/blog", changefreq: "weekly", priority: "0.8" },
       ...[
         "Las+Vegas","New+York","Miami","Los+Angeles","Paris","London","Dubai",

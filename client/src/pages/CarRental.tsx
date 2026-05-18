@@ -46,8 +46,25 @@ const US_DESTINATIONS = [
 
 export default function CarRental() {
   useEffect(() => {
-    document.title = "Car Rental — Compare & Book | LuxVibe";
-    return () => { document.title = "LuxVibe — Luxury Hotel Booking"; };
+    document.title = "Car Rental — Compare & Book | Luxvibe";
+    const setMeta = (name: string, content: string, prop = false) => {
+      const sel = prop ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+      let el = document.querySelector(sel) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(prop ? "property" : "name", name); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("description", "Compare rental cars from 500+ suppliers including Enterprise, Hertz, Avis and Budget. Best price guarantee, free cancellation on most bookings. Powered by DiscoverCars.");
+    setMeta("og:title", "Car Rental — Compare & Book | Luxvibe", true);
+    setMeta("og:description", "Compare 500+ car rental suppliers worldwide. Free cancellation, best price guarantee. Las Vegas, Miami, New York, Los Angeles and more.", true);
+    setMeta("og:url", "https://luxvibe.io/car-rental", true);
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", "https://luxvibe.io/car-rental");
+    return () => {
+      document.title = "Luxvibe – Luxury Hotels, Flights & Car Rental Worldwide";
+      const c = document.querySelector('link[rel="canonical"]');
+      if (c) c.setAttribute("href", "https://luxvibe.io/");
+    };
   }, []);
 
   return (
