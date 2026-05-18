@@ -1176,25 +1176,44 @@ export default function Flights() {
   const defaultDepart = format(addDays(today, 30), "yyyy-MM-dd");
   const defaultReturn = format(addDays(today, 37), "yyyy-MM-dd");
 
-  const [tripType, setTripType] = useState<TripType>("roundtrip");
-  const [origin, setOrigin] = useState("");
-  const [originDisplay, setOriginDisplay] = useState("");
-  const [originAirportName, setOriginAirportName] = useState("");
-  const [destination, setDestination] = useState("");
-  const [destDisplay, setDestDisplay] = useState("");
-  const [destAirportName, setDestAirportName] = useState("");
-  const [departDate, setDepartDate] = useState(defaultDepart);
-  const [returnDate, setReturnDate] = useState(defaultReturn);
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [cabinClass, setCabinClass] = useState<CabinClass>("ECONOMY");
+  const [tripType, setTripType] = useState<TripType>(() => {
+    const tt = new URLSearchParams(window.location.search).get("tripType");
+    return (tt === "oneway" || tt === "roundtrip" || tt === "multicity") ? tt as TripType : "roundtrip";
+  });
+  const [origin, setOrigin] = useState(() => new URLSearchParams(window.location.search).get("origin") || "");
+  const [originDisplay, setOriginDisplay] = useState(() => new URLSearchParams(window.location.search).get("originDisplay") || "");
+  const [originAirportName, setOriginAirportName] = useState(() => new URLSearchParams(window.location.search).get("originAirportName") || "");
+  const [destination, setDestination] = useState(() => new URLSearchParams(window.location.search).get("destination") || "");
+  const [destDisplay, setDestDisplay] = useState(() => new URLSearchParams(window.location.search).get("destDisplay") || "");
+  const [destAirportName, setDestAirportName] = useState(() => new URLSearchParams(window.location.search).get("destAirportName") || "");
+  const [departDate, setDepartDate] = useState(() => new URLSearchParams(window.location.search).get("depart") || defaultDepart);
+  const [returnDate, setReturnDate] = useState(() => new URLSearchParams(window.location.search).get("return") || defaultReturn);
+  const [adults, setAdults] = useState(() => Number(new URLSearchParams(window.location.search).get("adults") || "1"));
+  const [children, setChildren] = useState(() => Number(new URLSearchParams(window.location.search).get("children") || "0"));
+  const [infants, setInfants] = useState(() => Number(new URLSearchParams(window.location.search).get("infants") || "0"));
+  const [cabinClass, setCabinClass] = useState<CabinClass>(() => {
+    const cab = new URLSearchParams(window.location.search).get("cabinClass");
+    return (cab === "ECONOMY" || cab === "PREMIUM_ECONOMY" || cab === "BUSINESS" || cab === "FIRST") ? cab : "ECONOMY";
+  });
   const [cabinOpen, setCabinOpen] = useState(false);
   const cabinRef = useRef<HTMLDivElement>(null);
-  const [multiLegs, setMultiLegs] = useState<MultiCityLeg[]>([
-    { origin: "", destination: "", date: defaultDepart },
-    { origin: "", destination: "", date: defaultReturn },
-  ]);
+  const [multiLegs, setMultiLegs] = useState<MultiCityLeg[]>(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("tripType") === "multicity") {
+      const parsed: MultiCityLeg[] = [];
+      for (let i = 0; i < 5; i++) {
+        const o = p.get(`leg${i}_origin`);
+        const d = p.get(`leg${i}_dest`);
+        const dt = p.get(`leg${i}_date`);
+        if (o && d) parsed.push({ origin: o, destination: d, date: dt || defaultDepart });
+      }
+      if (parsed.length >= 2) return parsed;
+    }
+    return [
+      { origin: "", destination: "", date: defaultDepart },
+      { origin: "", destination: "", date: defaultReturn },
+    ];
+  });
 
   const [sortMode, setSortMode] = useState<SortMode>("best");
   const [filterMaxStops, setFilterMaxStops] = useState<number>(-1);
@@ -1251,58 +1270,43 @@ export default function Flights() {
   const autoSearchFiredRef = useRef(false);
 
   useEffect(() => {
+    // State is already initialized from URL params via lazy useState — only fire the auto-search here
     const params = new URLSearchParams(window.location.search);
     const tt = params.get("tripType");
-    if (tt === "multicity") {
-      setTripType("multicity");
+    const o = params.get("origin");
+    const d = params.get("destination");
+    const dep = params.get("depart") || defaultDepart;
+    const ret = params.get("return");
+
+    if (tt === "multicity" && !autoSearchFiredRef.current) {
       const parsed: MultiCityLeg[] = [];
       for (let i = 0; i < 5; i++) {
-        const o = params.get(`leg${i}_origin`);
-        const d = params.get(`leg${i}_dest`);
+        const lo = params.get(`leg${i}_origin`);
+        const ld = params.get(`leg${i}_dest`);
         const dt = params.get(`leg${i}_date`);
-        if (o && d) parsed.push({ origin: o, destination: d, date: dt || defaultDepart });
+        if (lo && ld) parsed.push({ origin: lo, destination: ld, date: dt || defaultDepart });
       }
-      if (parsed.length >= 2) {
-        setMultiLegs(parsed);
-        const validLegs = parsed.filter(l => l.origin && l.destination);
+      const validLegs = parsed.filter(l => l.origin && l.destination);
+      if (validLegs.length >= 2) {
+        autoSearchFiredRef.current = true;
         const a = Number(params.get("adults") || "1");
         const c = Number(params.get("children") || "0");
         const inf = Number(params.get("infants") || "0");
         const cab = (params.get("cabinClass") || "ECONOMY") as CabinClass;
-        if (validLegs.length >= 2) {
-          mutation.mutate({ legs: validLegs.map(l => ({ origin: l.origin, destination: l.destination, date: l.date })), adults: a, children: c, infants: inf, cabinClass: cab, currency: currency || "USD", country: "US" });
-        }
+        mutation.mutate({ legs: validLegs.map(l => ({ origin: l.origin, destination: l.destination, date: l.date })), adults: a, children: c, infants: inf, cabinClass: cab, currency: currency || "USD", country: "US" });
       }
-    } else if (tt === "oneway" || tt === "roundtrip") {
-      setTripType(tt as TripType);
-    }
-    const o = params.get("origin"); const d = params.get("destination");
-    if (o) setOrigin(o); if (d) setDestination(d);
-    const od = params.get("originDisplay"); if (od) setOriginDisplay(od);
-    const dd = params.get("destDisplay"); if (dd) setDestDisplay(dd);
-    const on = params.get("originAirportName"); if (on) setOriginAirportName(on);
-    const dn = params.get("destAirportName"); if (dn) setDestAirportName(dn);
-    const dep = params.get("depart") || defaultDepart;
-    if (params.get("depart")) setDepartDate(dep);
-    const ret = params.get("return"); if (ret) setReturnDate(ret);
-    const a = params.get("adults"); if (a) setAdults(Number(a));
-    const c = params.get("children"); if (c) setChildren(Number(c));
-    const inf = params.get("infants"); if (inf) setInfants(Number(inf));
-    const cab = params.get("cabinClass"); if (cab && cab in CABIN_LABELS) setCabinClass(cab as CabinClass);
-
-    // Auto-search when navigating from homepage — use raw URL values to avoid async state delay
-    if (o && d && tt !== "multicity" && !autoSearchFiredRef.current) {
+    } else if (o && d && !autoSearchFiredRef.current) {
       autoSearchFiredRef.current = true;
-      const autoAdults = Number(params.get("adults") || "1");
-      const autoChildren = Number(params.get("children") || "0");
-      const autoInfants = Number(params.get("infants") || "0");
-      const autoCabinClass = (params.get("cabinClass") || "ECONOMY") as CabinClass;
-      const tripTypeVal = tt || "roundtrip";
+      const a = Number(params.get("adults") || "1");
+      const c = Number(params.get("children") || "0");
+      const inf = Number(params.get("infants") || "0");
+      const cab = (params.get("cabinClass") || "ECONOMY") as CabinClass;
+      const tripTypeVal = (tt === "oneway" || tt === "roundtrip") ? tt : "roundtrip";
       const legs: any[] = [{ origin: o, destination: d, date: dep, direction: "OUTBOUND" }];
       if (tripTypeVal === "roundtrip" && ret) {
         legs.push({ origin: d, destination: o, date: ret, direction: "INBOUND" });
       }
-      mutation.mutate({ legs, adults: autoAdults, children: autoChildren, infants: autoInfants, cabinClass: autoCabinClass, currency: currency || "USD", country: "US" });
+      mutation.mutate({ legs, adults: a, children: c, infants: inf, cabinClass: cab, currency: currency || "USD", country: "US" });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
