@@ -714,8 +714,10 @@ function FlightCheckoutSheet({
       type: p.type, firstName: "", lastName: "", birthday: "",
       nationality: "", gender: "M" as "M" | "F",
       documentType: "passport", documentNumber: "", documentIssueCountry: "", documentExpiry: "",
+      knownTravelerNumber: "", redressNumber: "",
     }))
   );
+  const [trustedOpen, setTrustedOpen] = useState<boolean[]>(() => passengerTypes.map(() => false));
   const [contact, setContact] = useState({ firstName: "", email: "" });
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [alsoNeedHotel, setAlsoNeedHotel] = useState(false);
@@ -743,6 +745,8 @@ function FlightCheckoutSheet({
           documentType: p.documentType, documentNumber: p.documentNumber,
           documentIssueCountry: p.documentIssueCountry || p.nationality,
           documentExpiry: p.documentExpiry,
+          ...(p.knownTravelerNumber ? { knownTravelerNumber: p.knownTravelerNumber.trim().toUpperCase() } : {}),
+          ...(p.redressNumber ? { redressNumber: p.redressNumber.trim() } : {}),
         })),
         contact,
       });
@@ -1014,6 +1018,57 @@ function FlightCheckoutSheet({
                         onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, documentIssueCountry: e.target.value.toUpperCase().slice(0, 2) } : p))}
                         placeholder={passengers[i].nationality || "US"} className="mt-1 rounded-xl font-mono uppercase tracking-widest" data-testid={`input-pax-${i}-issuecc`} />
                     </div>
+                  </div>
+
+                  {/* Trusted Traveler Programs — collapsible */}
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setTrustedOpen(arr => arr.map((v, j) => j === i ? !v : v))}
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold text-muted-foreground hover:bg-muted/40 transition-colors"
+                      data-testid={`btn-trusted-toggle-${i}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Trusted Traveler Programs <span className="font-normal opacity-70">(optional)</span>
+                      </span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${trustedOpen[i] ? "rotate-180" : ""}`} />
+                    </button>
+                    {trustedOpen[i] && (
+                      <div className="px-3 pb-3 pt-1 space-y-3 border-t border-border bg-muted/20">
+                        <p className="text-[11px] text-muted-foreground pt-1">
+                          Adding these numbers ensures they print on your boarding pass. CLEAR members do not need to enter anything — CLEAR verifies you at the airport using biometrics.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              Known Traveler No. (KTN)
+                            </label>
+                            <Input
+                              value={passengers[i].knownTravelerNumber}
+                              onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, knownTravelerNumber: e.target.value.toUpperCase() } : p))}
+                              placeholder="e.g. 123456789"
+                              className="mt-1 rounded-xl font-mono"
+                              data-testid={`input-pax-${i}-ktn`}
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">TSA PreCheck · Global Entry · NEXUS · SENTRI</p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              Redress Control No.
+                            </label>
+                            <Input
+                              value={passengers[i].redressNumber}
+                              onChange={e => setPassengers(ps => ps.map((p, j) => j === i ? { ...p, redressNumber: e.target.value } : p))}
+                              placeholder="e.g. 1234567"
+                              className="mt-1 rounded-xl font-mono"
+                              data-testid={`input-pax-${i}-redress`}
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">DHS Traveler Redress Inquiry (TRIP)</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
